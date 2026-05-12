@@ -126,15 +126,10 @@ export function ReportDisplay({
     parsedPolicy.vehicle.make,
     parsedPolicy.vehicle.model
   );
-  // Pull the first word of the owner name; fall back to a friendly default
-  // because the LLM extractor sometimes returns an empty/whitespace name when
-  // the policy PDF doesn't surface one cleanly.
-  const ownerFirstName = (() => {
-    const raw = (parsedPolicy.owner?.name ?? "").trim();
-    if (!raw) return "there";
-    const first = raw.split(/\s+/)[0];
-    return first || "there";
-  })();
+  // Greeting is intentionally generic — the LLM extractor isn't reliable
+  // enough to surface a clean first name from every policy PDF, and a wrong
+  // name reads worse than a friendly placeholder.
+  const greetingName = "Buddy";
 
   const vehicleAge =
     new Date().getFullYear() - parsedPolicy.vehicle.yearOfManufacture;
@@ -165,7 +160,7 @@ export function ReportDisplay({
               </div>
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-gold mb-0.5">
-                  Hi, {ownerFirstName}
+                  Hey {greetingName}
                 </div>
                 <h1 className="text-xl md:text-2xl font-bold">
                   Your Motor Insurance{" "}
