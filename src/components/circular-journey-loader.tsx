@@ -111,8 +111,9 @@ export function CircularJourneyLoader({
 
   return (
     <div className="w-full max-w-2xl mx-auto py-4">
-      {/* Top: vehicle name + plate */}
-      <div className="text-center mb-4 space-y-2">
+      {/* Top: vehicle name + plate. Fixed min-height so the car below doesn't
+       *  jump when the preview returns mid-load and these elements appear. */}
+      <div className="text-center mb-3 space-y-2 min-h-[60px] flex flex-col items-center justify-center">
         {vehicleLabel && (
           <div className="text-base font-bold text-brand-charcoal leading-tight">
             {vehicleLabel}
@@ -128,17 +129,16 @@ export function CircularJourneyLoader({
         )}
       </div>
 
-      {/* HERO LIVE STATE — comparison + active message + chips, ABOVE the animation.
-       *  Big timer lives in the top-right corner chip (rendered by UploadDropzone)
-       *  so this hero block is tighter and the questions carousel fits below the SVG. */}
-      <div className="max-w-md mx-auto text-center mb-4">
+      {/* HERO LIVE STATE — comparison + active message + chips ABOVE the animation.
+       *  Fixed min-height so the car below the live area never shifts even as
+       *  comparisons / chips / preview data flow in.  Stopwatch chip lives in
+       *  the top-right corner (rendered by UploadDropzone). */}
+      <div className="max-w-md mx-auto text-center mb-4 min-h-[180px] flex flex-col items-center justify-start">
         {startedAt !== undefined && <TimeComparison />}
 
-        {primaryText && (
-          <div className="text-base md:text-lg font-bold text-brand-charcoal mt-2">
-            {primaryText}
-          </div>
-        )}
+        <div className="text-base md:text-lg font-bold text-brand-charcoal mt-2 min-h-[28px]">
+          {primaryText}
+        </div>
         <div
           key={messageIdx}
           className="text-xs text-brand-slate mt-0.5 min-h-[18px] animate-pulse-soft"
@@ -146,7 +146,8 @@ export function CircularJourneyLoader({
           {messages[messageIdx]}
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+        {/* Chips row — reserve a fixed min-height so empty state doesn't collapse */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2 min-h-[32px]">
           {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[11px] text-brand-deepblue">
               <span className="font-bold tabular-nums">{ageCounter}</span>
@@ -171,9 +172,10 @@ export function CircularJourneyLoader({
           )}
         </div>
 
-        {etaText && (
-          <div className="text-[11px] text-brand-slate/70 mt-2">{etaText}</div>
-        )}
+        {/* ETA row — always reserved so its appearance/disappearance doesn't shift the SVG */}
+        <div className="text-[11px] text-brand-slate/70 mt-2 min-h-[16px]">
+          {etaText}
+        </div>
       </div>
 
       {/* The driving scene — moved BELOW the live status for visibility */}

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, Upload, FileText, AlertCircle } from "lucide-react";
 import clsx from "clsx";
 import { CircularJourneyLoader } from "@/components/circular-journey-loader";
-import { ElapsedTimer } from "@/components/elapsed-timer";
+import { StopwatchChip } from "@/components/stopwatch-chip";
 import {
   MidLoadQuestions,
   answersToQuery,
@@ -49,12 +49,11 @@ function BackChip({ href }: { href: string }) {
 
 function TimerChip({ startedAt }: { startedAt: number }) {
   return (
-    <div className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-deepblue text-white shadow-soft print:hidden">
-      <ElapsedTimer
-        startedAt={startedAt}
-        size="sm"
-        className="!text-xs !font-bold text-white"
-      />
+    <div
+      className="absolute top-3 right-3 z-10 rounded-full bg-white shadow-soft print:hidden"
+      style={{ padding: 2 }}
+    >
+      <StopwatchChip startedAt={startedAt} size={54} />
     </div>
   );
 }
