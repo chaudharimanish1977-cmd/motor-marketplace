@@ -10,9 +10,16 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Motor Marketplace — Smart Car Insurance for India",
+  metadataBase: new URL("https://rightoffer.in"),
+  title: "RightOffer — Right insurance, right reasons, in under 2 minutes",
   description:
-    "Upload your motor policy, get an AI-powered review of coverage gaps, and the best curated renewal offers from leading insurers — in under a minute.",
+    "Upload your motor policy and get a clear AI-powered review of what's covered, what's missing, and what to look for at renewal. Independent, India-first, in under 2 minutes.",
+  openGraph: {
+    title: "RightOffer — Smart car insurance reviews",
+    description:
+      "Independent AI review of your motor policy in under 2 minutes. Understand coverage gaps before they become out-of-pocket surprises.",
+    siteName: "RightOffer",
+  },
 };
 
 export default function RootLayout({

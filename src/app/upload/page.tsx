@@ -3,14 +3,21 @@ import { ArrowLeft, Shield, Sparkles } from "lucide-react";
 import { UploadDropzone } from "@/components/upload-dropzone";
 
 export const metadata = {
-  title: "Upload Your Policy — Motor Marketplace",
+  title: "Upload Your Policy — RightOffer",
 };
 
-export default function UploadPage() {
+interface PageProps {
+  searchParams: Promise<{ demo?: string }>;
+}
+
+export default async function UploadPage({ searchParams }: PageProps) {
+  const { demo } = await searchParams;
+  const isDemo = demo === "1";
+
   return (
     <main className="min-h-screen px-4 py-8 max-w-2xl mx-auto">
       <Link
-        href="/"
+        href={isDemo ? "/investor" : "/"}
         className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-navy mb-8 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -20,7 +27,7 @@ export default function UploadPage() {
       <div className="space-y-3 mb-8">
         <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-navy bg-blue-100 rounded-full">
           <Sparkles className="w-3 h-3" />
-          Step 1 of 3
+          Step 1 of {isDemo ? "3" : "2"}
         </span>
         <h1 className="text-3xl md:text-4xl font-bold text-brand-ink">
           Upload Your Current Policy
@@ -28,14 +35,14 @@ export default function UploadPage() {
         <p className="text-slate-600 text-lg">
           We&apos;ll read it in{" "}
           <span className="font-semibold text-brand-deepblue">
-            ~60 seconds
+            under 2 minutes
           </span>{" "}
           and tell you exactly what&apos;s strong, what&apos;s missing, and
           what to look for at renewal.
         </p>
       </div>
 
-      <UploadDropzone />
+      <UploadDropzone demoMode={isDemo} />
 
       <div className="mt-8 flex items-start gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
         <Shield className="w-5 h-5 text-slate-600 shrink-0 mt-0.5" />

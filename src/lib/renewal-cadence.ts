@@ -41,7 +41,7 @@ const NUDGE_TEMPLATES: NudgeTemplate[] = [
     channel: "sms",
     subjectTemplate: "Renewal reminder",
     bodyTemplate:
-      "Motor Marketplace: {vehicle} insurance renewal in 30 days. Get curated offers: motormart.in/r",
+      "RightOffer: {vehicle} insurance renewal in 30 days. Get curated offers: rightoffer.in/r",
   },
   {
     triggerType: "15_day_pre",

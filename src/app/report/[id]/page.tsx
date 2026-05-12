@@ -9,11 +9,12 @@ export const maxDuration = 60;
 
 interface PageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string; demo?: string }>;
 }
 
 export default async function ReportPage({ params, searchParams }: PageProps) {
-  const [{ id }, { from }] = await Promise.all([params, searchParams]);
+  const [{ id }, { from, demo }] = await Promise.all([params, searchParams]);
+  const view: "investor" | "customer" = demo === "1" ? "investor" : "customer";
 
   const parsedPolicy = await findById<ParsedPolicy>(
     Tables.PARSED_POLICIES,
@@ -49,6 +50,7 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
       parsedPolicy={parsedPolicy}
       report={report}
       totalElapsedMs={totalElapsedMs}
+      view={view}
     />
   );
 }

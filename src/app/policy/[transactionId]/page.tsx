@@ -113,7 +113,7 @@ export default async function PolicyPage({ params }: PageProps) {
           <header className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-8 py-5 flex items-center justify-between">
             <div>
               <div className="text-xs uppercase tracking-wider text-slate-400">
-                Issued via Motor Marketplace
+                Issued via RightOffer
               </div>
               <div className="text-2xl font-bold mt-0.5">
                 {bid.insurerName}
@@ -293,12 +293,12 @@ export default async function PolicyPage({ params }: PageProps) {
           {/* Footer */}
           <footer className="px-8 py-6 bg-brand-offwhite text-xs text-brand-slate space-y-2">
             <p>
-              <strong>Issued via Motor Marketplace</strong> on behalf of{" "}
+              <strong>Issued via RightOffer</strong> on behalf of{" "}
               {bid.insurerName}, an IRDAI-licensed general insurer.
             </p>
             <p>
               For claims: contact {bid.insurerName} directly at their
-              published claims helpline. Motor Marketplace provides claim
+              published claims helpline. RightOffer provides claim
               tracking dashboard and escalation support.
             </p>
             <p>

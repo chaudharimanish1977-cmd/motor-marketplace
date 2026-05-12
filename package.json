@@ -1,8 +1,8 @@
 {
-  "name": "motor-marketplace",
+  "name": "rightoffer",
   "version": "0.1.0",
   "private": true,
-  "description": "AI-powered private car insurance marketplace for India — V1 prototype (parser + reverse-bidding for renewals)",
+  "description": "RightOffer — AI-powered motor insurance reviews + curated renewal marketplace for India.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

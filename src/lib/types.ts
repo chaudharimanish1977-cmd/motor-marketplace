@@ -1,5 +1,5 @@
 /**
- * Core domain types for Motor Marketplace V1.
+ * Core domain types for RightOffer V1.
  * Designed to capture everything in a typical Indian motor policy PDF (modeled on Magma + standard IRDAI format).
  */
 

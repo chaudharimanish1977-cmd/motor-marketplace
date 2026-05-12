@@ -89,12 +89,15 @@ interface Props {
   report: PolicyReport;
   /** Total ms from upload click → report ready. When present, shown in the header. */
   totalElapsedMs?: number;
+  /** Drives CTA behaviour. Customer view ends here (no bid link). Investor sees full flow. */
+  view?: "customer" | "investor";
 }
 
 export function ReportDisplay({
   parsedPolicy,
   report,
   totalElapsedMs,
+  view = "customer",
 }: Props) {
   const {
     atAGlance,
@@ -164,7 +167,9 @@ export function ReportDisplay({
                 {new Date(report.generatedAt).toLocaleString("en-IN", {
                   dateStyle: "medium",
                   timeStyle: "short",
-                })}
+                  timeZone: "Asia/Kolkata",
+                })}{" "}
+                IST
               </div>
               <SimplifyToggle />
               <EmailMeButton reportId={report.id} />
@@ -253,6 +258,7 @@ export function ReportDisplay({
         <KeyTakeawayCard
           takeaway={keyTakeaway}
           parsedPolicyId={parsedPolicy.id}
+          view={view}
         />
 
         {/* Disclaimer */}
@@ -661,10 +667,14 @@ function IdealInsurerProfileToggle({
 function KeyTakeawayCard({
   takeaway,
   parsedPolicyId,
+  view,
 }: {
   takeaway: PolicyReport["keyTakeaway"];
   parsedPolicyId: string;
+  view: "customer" | "investor";
 }) {
+  const isInvestor = view === "investor";
+
   return (
     <div className="rounded-3xl bg-gradient-to-br from-brand-deepblue via-brand-deepblue to-brand-electricblue text-white p-8 md:p-10 text-center shadow-elevated">
       <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-semibold uppercase tracking-wider mb-5">
@@ -681,16 +691,36 @@ function KeyTakeawayCard({
       <p className="report-detail text-blue-100 max-w-2xl mx-auto mb-7 text-lg">
         {takeaway.body}
       </p>
-      <Link
-        href={`/bid/${parsedPolicyId}`}
-        className="inline-flex items-center gap-2 px-8 py-4 bg-brand-orange text-white font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all"
-      >
-        {takeaway.cta}
-        <ArrowRight className="w-5 h-5" />
-      </Link>
-      <p className="text-blue-200 text-xs mt-4">
-        Free to see your offers · Insurers compete for your renewal · No spam
-      </p>
+      {isInvestor ? (
+        <>
+          <Link
+            href={`/bid/${parsedPolicyId}`}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-orange text-white font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all"
+          >
+            {takeaway.cta}
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+          <p className="text-blue-200 text-xs mt-4">
+            Free to see your offers · Insurers compete for your renewal · No
+            spam
+          </p>
+        </>
+      ) : (
+        <>
+          <a
+            href="mailto:hello@rightoffer.in?subject=Help%20me%20understand%20my%20policy%20review"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-orange text-white font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all"
+          >
+            Talk to a RightOffer advisor
+            <ArrowRight className="w-5 h-5" />
+          </a>
+          <p className="text-blue-200 text-xs mt-4 max-w-md mx-auto">
+            We&apos;ll help you understand exactly what&apos;s in this report —
+            and what to look for at renewal — so you&apos;re never surprised at
+            claim time.
+          </p>
+        </>
+      )}
     </div>
   );
 }

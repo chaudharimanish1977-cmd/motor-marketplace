@@ -18,7 +18,13 @@ interface PreviewData {
   model: string | null;
 }
 
-export function UploadDropzone() {
+interface UploadDropzoneProps {
+  /** When true, redirects pass `demo=1` so the report page renders the full
+   *  investor flow (bid CTAs, etc). Customer view leaves it false. */
+  demoMode?: boolean;
+}
+
+export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
   const router = useRouter();
   const [state, setState] = useState<UploadState>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -85,8 +91,10 @@ export function UploadDropzone() {
 
         const data = await res.json();
         setState("done");
+        const demoSuffix = demoMode ? "&demo=1" : "";
         setTimeout(
-          () => router.push(`/report/${data.id}?from=${t0}`),
+          () =>
+            router.push(`/report/${data.id}?from=${t0}${demoSuffix}`),
           600
         );
       } catch (err) {
@@ -94,7 +102,7 @@ export function UploadDropzone() {
         setError(err instanceof Error ? err.message : "Unknown error");
       }
     },
-    [router]
+    [router, demoMode]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

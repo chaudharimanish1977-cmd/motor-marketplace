@@ -1,5 +1,5 @@
 /**
- * Anthropic Claude client + helper functions for Motor Marketplace.
+ * Anthropic Claude client + helper functions for RightOffer.
  *
  * For the prototype we call the Anthropic API directly (US-routed). On any production
  * deploy this MUST move to AWS Bedrock Mumbai or equivalent India-region inference
