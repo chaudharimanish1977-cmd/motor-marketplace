@@ -774,15 +774,17 @@ const SLIDES: Slide[] = [
   {
     render: () => (
       <div>
-        <div className="font-extrabold text-[120px] md:text-[200px] tracking-tight leading-none">
+        <div className="font-extrabold text-[72px] md:text-[120px] tracking-tight leading-none">
           $7M <Accent>—</Accent> $10M
         </div>
-        <div className="mt-6 text-xl md:text-2xl text-white/60 font-medium max-w-2xl">
+        <div className="mt-4 text-base md:text-xl text-white/60 font-medium max-w-2xl">
           Pre-seed + Seed, combined. Structurable as tranched commitment.
         </div>
-        <div className="mt-16">
-          <Eyebrow>Use of funds</Eyebrow>
-          <div className="space-y-3 max-w-3xl">
+        <div className="mt-8 md:mt-10">
+          <div className="text-[10px] md:text-xs font-bold tracking-[0.18em] uppercase text-white/40 mb-3">
+            Use of funds
+          </div>
+          <div className="space-y-2 max-w-3xl">
             {[
               { l: "Tech + product (AI, mobile, WhatsApp)", p: 40 },
               { l: "Compliance + licence + insurer integrations", p: 20 },
@@ -791,21 +793,21 @@ const SLIDES: Slide[] = [
               { l: "Buffer", p: 5 },
             ].map((row) => (
               <div key={row.l} className="flex items-center gap-4">
-                <div className="flex-1 text-sm md:text-base text-white/70">{row.l}</div>
-                <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="flex-1 text-xs md:text-sm text-white/70">{row.l}</div>
+                <div className="w-32 md:w-44 h-1.5 bg-white/10 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-[#FF6B35]"
                     style={{ width: `${row.p * 2.5}%` }}
                   />
                 </div>
-                <div className="text-sm md:text-base font-bold tabular-nums w-12 text-right">
+                <div className="text-xs md:text-sm font-bold tabular-nums w-10 text-right">
                   {row.p}%
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="mt-12 text-sm md:text-base text-white/40 max-w-3xl">
+        <div className="mt-6 md:mt-8 text-xs md:text-sm text-white/40 max-w-3xl">
           Series A target: $25-35M at $120-180M post (Q2 2027).
         </div>
       </div>
