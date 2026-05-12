@@ -79,31 +79,36 @@ export function TimeComparison({ className, intervalMs = 3500 }: Props) {
   const themeClass = THEMES[current.theme];
 
   return (
-    // Fixed-height container — reserves room for up to 2 lines of text so the
-    // layout never shifts when the next comparison happens to be longer than
-    // the previous one. Pill content vertically centres inside.
+    // Fixed-height container — reserves room for up to 2 lines of pill text so
+    // the layout below never shifts when the next comparison is longer.
     <div
       className={clsx(
-        "flex items-center justify-center min-h-[3.5rem] w-full",
+        "flex items-center justify-center gap-3 min-h-[4rem] w-full",
         className
       )}
     >
-      <div
-        key={idx}
+      {/* Hero emoji — sized way up and pulled OUT of the pill so it reads as
+       *  the visual anchor of the message, not just decoration */}
+      <span
+        key={`emoji-${idx}`}
+        className="text-4xl md:text-5xl leading-none shrink-0 animate-in zoom-in-50 duration-300"
+        aria-hidden
+      >
+        {current.emoji}
+      </span>
+      <span
+        key={`text-${idx}`}
         className={clsx(
-          "inline-flex items-center gap-2 px-4 py-2 rounded-2xl border-2 text-xs shadow-soft animate-in fade-in slide-in-from-bottom-1 duration-300 max-w-[20rem]",
+          "inline-flex items-center px-3.5 py-2 rounded-2xl border-2 text-xs sm:text-sm shadow-soft animate-in fade-in slide-in-from-left-2 duration-300 max-w-[16rem] sm:max-w-[18rem]",
           themeClass
         )}
         aria-live="polite"
       >
-        <span className="text-lg leading-none shrink-0" aria-hidden>
-          {current.emoji}
-        </span>
         <span
-          className="font-semibold leading-snug text-center"
+          className="font-semibold leading-snug"
           dangerouslySetInnerHTML={{ __html: current.text }}
         />
-      </div>
+      </span>
     </div>
   );
 }

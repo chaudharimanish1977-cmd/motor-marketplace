@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import {
   Gauge,
@@ -21,9 +21,18 @@ export interface MidLoadAnswers {
 }
 
 interface Props {
-  /** Called whenever the user changes an answer. Parent picks them up via a
-   *  ref so this never gates the redirect — if the user skips, that's fine. */
+  /** Called whenever the user changes an answer. Parent reads via a ref;
+   *  never gates the redirect. */
   onChange?: (answers: MidLoadAnswers) => void;
+  /** Pre-fill answered state — used on phase-2 loader so questions answered
+   *  on phase-1 don't appear again. */
+  initialAnswers?: MidLoadAnswers;
+  /** When set, answers are also persisted to localStorage under this key. The
+   *  report page reads the same key on mount to merge phase-2 answers in. */
+  persistKey?: string;
+  /** When true, the carousel auto-jumps to the first UNanswered question on
+   *  mount and tap-to-answer auto-advances to the next unanswered one. */
+  skipAnswered?: boolean;
 }
 
 interface Question {
@@ -60,56 +69,96 @@ const QUESTIONS: Question[] = [
   },
 ];
 
-/**
- * Compact single-question carousel shown WHILE the policy is parsing. One
- * question on screen at a time, auto-advances on answer, with dot nav for
- * jumping between questions. Far less visual clutter than the 4-tile grid,
- * which made the questions easy to ignore.
- *
- * Critically: redirect is NEVER gated on completion. Parent reads the
- * answers via the onChange callback and ships whatever is set when parse
- * finishes — even an empty object is fine.
- */
-export function MidLoadQuestions({ onChange }: Props) {
-  const [answers, setAnswers] = useState<MidLoadAnswers>({});
-  const [idx, setIdx] = useState(0);
+function firstUnansweredIdx(a: MidLoadAnswers): number {
+  for (let i = 0; i < QUESTIONS.length; i++) {
+    if (!a[QUESTIONS[i].key]) return i;
+  }
+  return 0;
+}
+
+export function MidLoadQuestions({
+  onChange,
+  initialAnswers,
+  persistKey,
+  skipAnswered,
+}: Props) {
+  const [answers, setAnswers] = useState<MidLoadAnswers>(
+    () => initialAnswers ?? {}
+  );
+  const [idx, setIdx] = useState(() =>
+    skipAnswered && initialAnswers
+      ? firstUnansweredIdx(initialAnswers)
+      : 0
+  );
+
+  // Persist to localStorage when persistKey is set (phase-2 case)
+  useEffect(() => {
+    if (!persistKey) return;
+    try {
+      window.localStorage.setItem(persistKey, JSON.stringify(answers));
+    } catch {
+      // Storage quota / private-mode — silent
+    }
+  }, [answers, persistKey]);
 
   const current = QUESTIONS[idx];
   const Icon = current?.icon;
   const answeredCount = Object.values(answers).filter(Boolean).length;
   const isAnswered = !!answers[current.key];
+  const allDone = answeredCount === QUESTIONS.length;
 
   const select = (value: string) => {
     const next = { ...answers, [current.key]: value };
     setAnswers(next);
     onChange?.(next);
-    // Auto-advance to the next unanswered question — better UX than asking
-    // the user to find the right-arrow themselves.
+    // Auto-advance: skip-mode jumps to the next unanswered, otherwise just +1
     if (idx + 1 < QUESTIONS.length) {
-      setTimeout(() => setIdx(idx + 1), 250);
+      setTimeout(() => {
+        if (skipAnswered) {
+          const j = firstUnansweredIdx(next);
+          setIdx(j);
+        } else {
+          setIdx(idx + 1);
+        }
+      }, 250);
     }
   };
 
   const go = (n: number) =>
     setIdx(((n % QUESTIONS.length) + QUESTIONS.length) % QUESTIONS.length);
 
+  // Once everything is answered, render a tight "all set" confirmation
+  // instead of leaving the carousel sitting on a stale tile.
+  if (allDone) {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full bg-brand-success flex items-center justify-center shrink-0">
+          <CheckCircle2 className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <div className="text-sm font-bold text-brand-charcoal">
+            All 4 answered — thanks!
+          </div>
+          <div className="text-xs text-brand-slate">
+            We&apos;ll tailor your report with these.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl border border-brand-light-gray bg-white shadow-soft overflow-hidden">
-      {/* Compact header */}
       <div className="px-4 pt-3 pb-2 flex items-center justify-between">
         <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
-          While we read your policy
+          While we work · help us tailor your report
         </div>
         <div className="text-[10px] text-brand-slate font-medium tabular-nums">
-          {answeredCount === QUESTIONS.length
-            ? "All set ✓"
-            : `${idx + 1} / ${QUESTIONS.length}`}
+          {answeredCount} / {QUESTIONS.length} answered
         </div>
       </div>
 
-      {/* Question + options carousel */}
       <div className="relative px-12 py-4">
-        {/* Left chevron */}
         <button
           type="button"
           aria-label="Previous question"
@@ -118,8 +167,6 @@ export function MidLoadQuestions({ onChange }: Props) {
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-
-        {/* Right chevron */}
         <button
           type="button"
           aria-label="Next question"
@@ -133,7 +180,6 @@ export function MidLoadQuestions({ onChange }: Props) {
           key={idx}
           className="text-center animate-in fade-in duration-300"
         >
-          {/* Icon + prompt */}
           <div className="flex flex-col items-center gap-2 mb-3">
             <div
               className={clsx(
@@ -154,7 +200,6 @@ export function MidLoadQuestions({ onChange }: Props) {
             </div>
           </div>
 
-          {/* Options — single row */}
           <div className="flex flex-wrap items-center justify-center gap-2">
             {current.options.map((opt) => {
               const selected = answers[current.key] === opt;
@@ -178,7 +223,6 @@ export function MidLoadQuestions({ onChange }: Props) {
         </div>
       </div>
 
-      {/* Dot nav */}
       <div className="flex items-center justify-center gap-1.5 py-2.5 bg-brand-offwhite/40 border-t border-brand-light-gray">
         {QUESTIONS.map((q, i) => {
           const answered = !!answers[q.key];
@@ -212,4 +256,22 @@ export function answersToQuery(answers: MidLoadAnswers): string {
   if (answers.otherCars) params.set("oc", answers.otherCars);
   if (answers.priority) params.set("pri", answers.priority);
   return params.toString();
+}
+
+/** Storage key for phase-2 persistence. */
+export function midLoadStorageKey(reportId: string): string {
+  return `mm:midload:${reportId}`;
+}
+
+/** Read whatever's been persisted client-side. Returns {} if nothing/invalid. */
+export function readPersistedAnswers(key: string): MidLoadAnswers {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") return parsed as MidLoadAnswers;
+  } catch {
+    // ignore
+  }
+  return {};
 }

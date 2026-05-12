@@ -36,6 +36,10 @@ import { totalMoneyAtRisk } from "@/lib/claim-scenarios";
 import { NumberPlate } from "@/components/number-plate";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { ReportGuard } from "@/components/report-guard";
+import {
+  DrivingProfileCard,
+  type DrivingProfile,
+} from "@/components/driving-profile-card";
 import { Typewriter } from "@/components/typewriter";
 import { VehicleWatermark } from "@/components/vehicle-watermark";
 import { SimplifyToggle } from "@/components/simplify-toggle";
@@ -84,13 +88,6 @@ function iconForHint(hint?: string): LucideIcon {
     default:
       return Sparkles;
   }
-}
-
-interface DrivingProfile {
-  annualKm?: string;
-  drivenBy?: string;
-  otherCars?: string;
-  priority?: string;
 }
 
 interface Props {
@@ -261,7 +258,10 @@ export function ReportDisplay({
         <CoverageScoreCard score={computeCoverageScore(parsedPolicy, report)} />
 
         {/* Driving profile chips — only when the user answered the mid-load survey */}
-        {drivingProfile && <DrivingProfileCard profile={drivingProfile} />}
+        <DrivingProfileCard
+          initialProfile={drivingProfile}
+          reportId={parsedPolicy.id}
+        />
 
         {/* §1 KEY GAPS — full width, hero card. This is "what's at risk" and
          *  matches the customer's emotional reason for reading the report. */}
@@ -393,45 +393,6 @@ function VehicleHero({
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function DrivingProfileCard({ profile }: { profile: DrivingProfile }) {
-  const chips: { label: string; value: string }[] = [];
-  if (profile.annualKm)
-    chips.push({ label: "You drive", value: profile.annualKm });
-  if (profile.drivenBy)
-    chips.push({ label: "Driven by", value: profile.drivenBy });
-  if (profile.otherCars)
-    chips.push({ label: "Other cars", value: profile.otherCars });
-  if (profile.priority)
-    chips.push({ label: "Matters most", value: profile.priority });
-
-  if (chips.length === 0) return null;
-
-  return (
-    <div className="rounded-2xl border border-brand-light-gray bg-white shadow-sm overflow-hidden">
-      <div className="bg-brand-deepblue/5 px-5 py-2.5 border-b border-brand-light-gray">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
-          Tailored to your driving profile
-        </div>
-      </div>
-      <div className="px-5 py-4 flex flex-wrap gap-2">
-        {chips.map((c) => (
-          <div
-            key={c.label}
-            className="inline-flex items-center gap-1.5 rounded-full bg-brand-offwhite border border-brand-light-gray px-3 py-1.5"
-          >
-            <span className="text-[10px] uppercase tracking-wider text-brand-slate font-semibold">
-              {c.label}
-            </span>
-            <span className="text-xs font-bold text-brand-charcoal">
-              {c.value}
-            </span>
-          </div>
-        ))}
       </div>
     </div>
   );
