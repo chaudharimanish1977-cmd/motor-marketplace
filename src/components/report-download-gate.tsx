@@ -21,19 +21,20 @@ interface Props {
   variant?: "compact" | "hero";
   /** Override the trigger label. */
   label?: string;
+  /** Report ID the email pipeline should render + send a PDF for. */
+  reportId?: string;
 }
 
 /**
  * "Get the report" CTA. OTP-gated capture of mobile + email + DPDP consent;
- * on success we tell the user the report has been emailed to them. (Demo
- * doesn't actually send mail — that wiring lives in /api/register.)
- *
- * Replaces the older browser-print flow because customers asked to receive
- * the report by email rather than navigate a system print dialog.
+ * on OTP verify we POST to /api/email-report (which fires PDF generation +
+ * Resend send in the background) and immediately navigate the user to
+ * /thank-you so the UI stays snappy.
  */
 export function ReportDownloadGate({
   variant = "compact",
   label = "Get the Full Report",
+  reportId,
 }: Props = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -82,12 +83,33 @@ export function ReportDownloadGate({
 
   const handleVerifyOtp = () => {
     setError(null);
-    if (otp === "9993") {
-      const params = new URLSearchParams({ e: email });
-      router.push(`/thank-you?${params.toString()}`);
-    } else {
+    if (otp !== "9993") {
       setError("Wrong OTP. Demo OTP is 9993.");
+      return;
     }
+
+    // Fire-and-forget: trigger the PDF render + email send pipeline. The
+    // endpoint itself uses waitUntil() so we don't need to wait here either.
+    if (reportId) {
+      const url = new URL(window.location.href);
+      void fetch("/api/email-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reportId,
+          email,
+          km: url.searchParams.get("km") ?? undefined,
+          drv: url.searchParams.get("drv") ?? undefined,
+          oc: url.searchParams.get("oc") ?? undefined,
+          pri: url.searchParams.get("pri") ?? undefined,
+        }),
+      }).catch(() => {
+        // Failures are logged server-side; the user already sees /thank-you.
+      });
+    }
+
+    const params = new URLSearchParams({ e: email });
+    router.push(`/thank-you?${params.toString()}`);
   };
 
   const triggerClass =

@@ -96,6 +96,9 @@ interface Props {
   view?: "customer" | "investor";
   /** Optional answers captured during the mid-load survey on /upload. */
   drivingProfile?: DrivingProfile;
+  /** When true, hide all interactive chrome (CTAs, toggles, guard) so the
+   *  page renders cleanly for PDF generation via puppeteer. */
+  printMode?: boolean;
 }
 
 export function ReportDisplay({
@@ -103,6 +106,7 @@ export function ReportDisplay({
   report,
   view = "customer",
   drivingProfile,
+  printMode = false,
 }: Props) {
   const {
     atAGlance,
@@ -134,8 +138,8 @@ export function ReportDisplay({
 
   return (
     <div className="min-h-screen bg-brand-offwhite pb-12">
-      <ScrollProgress />
-      {view === "customer" && <ReportGuard />}
+      {!printMode && <ScrollProgress />}
+      {view === "customer" && !printMode && <ReportGuard />}
       {/* Header bar — mobile-first redesign:
        *  Row 1: "Hey Buddy" left, Shield icon right
        *  Row 2: "Your Motor Insurance at a Glance" centred
@@ -173,19 +177,21 @@ export function ReportDisplay({
             </p>
           </div>
 
-          {/* Secondary controls — desktop only */}
-          <div className="hidden md:flex items-center justify-end gap-3 print:hidden">
-            <div className="text-xs text-blue-200">
-              Generated{" "}
-              {new Date(report.generatedAt).toLocaleString("en-IN", {
-                dateStyle: "medium",
-                timeStyle: "short",
-                timeZone: "Asia/Kolkata",
-              })}{" "}
-              IST
+          {/* Secondary controls — desktop only, suppressed in print-mode */}
+          {!printMode && (
+            <div className="hidden md:flex items-center justify-end gap-3 print:hidden">
+              <div className="text-xs text-blue-200">
+                Generated{" "}
+                {new Date(report.generatedAt).toLocaleString("en-IN", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                  timeZone: "Asia/Kolkata",
+                })}{" "}
+                IST
+              </div>
+              <SimplifyToggle />
             </div>
-            <SimplifyToggle />
-          </div>
+          )}
         </div>
       </header>
 
@@ -239,7 +245,7 @@ export function ReportDisplay({
       <main
         className={clsx(
           "max-w-5xl mx-auto px-4 py-8 space-y-6",
-          view === "customer" && "report-protected"
+          view === "customer" && !printMode && "report-protected"
         )}
       >
         {/* §0a Vehicle hero — big plate + money-at-risk callout */}
@@ -307,12 +313,14 @@ export function ReportDisplay({
           <IdealInsurerProfileToggle profile={idealInsurerProfile} />
         )}
 
-        {/* §6 Key Takeaway with CTA */}
-        <KeyTakeawayCard
-          takeaway={keyTakeaway}
-          parsedPolicyId={parsedPolicy.id}
-          view={view}
-        />
+        {/* §6 Key Takeaway with CTA — skipped in print-mode (no CTA in PDF) */}
+        {!printMode && (
+          <KeyTakeawayCard
+            takeaway={keyTakeaway}
+            parsedPolicyId={parsedPolicy.id}
+            view={view}
+          />
+        )}
 
         {/* Disclaimer */}
         <div className="text-xs text-slate-400 text-center pt-4">
@@ -847,7 +855,11 @@ function KeyTakeawayCard({
         </>
       ) : (
         <>
-          <ReportDownloadGate variant="hero" label="Get the Full Report" />
+          <ReportDownloadGate
+            variant="hero"
+            label="Get the Full Report"
+            reportId={parsedPolicyId}
+          />
           <p className="text-blue-200 text-xs mt-4 max-w-md mx-auto">
             We&apos;ll email this report to you so you have it on hand at
             renewal — and send a reminder before your policy expires. No spam.

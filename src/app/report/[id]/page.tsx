@@ -12,6 +12,7 @@ interface PageProps {
   searchParams: Promise<{
     from?: string;
     demo?: string;
+    print?: string;
     km?: string;
     drv?: string;
     oc?: string;
@@ -21,8 +22,9 @@ interface PageProps {
 
 export default async function ReportPage({ params, searchParams }: PageProps) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
-  const { from, demo, km, drv, oc, pri } = sp;
+  const { from, demo, print, km, drv, oc, pri } = sp;
   const view: "investor" | "customer" = demo === "1" ? "investor" : "customer";
+  const printMode = print === "1";
 
   const drivingProfile =
     km || drv || oc || pri
@@ -65,6 +67,7 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
       report={report}
       view={view}
       drivingProfile={drivingProfile}
+      printMode={printMode}
     />
   );
 }
