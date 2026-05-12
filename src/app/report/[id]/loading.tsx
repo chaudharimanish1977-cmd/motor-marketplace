@@ -43,13 +43,9 @@ export default function Loading() {
           </div>
         )}
 
-        <div className="text-center max-w-md mx-auto">
-          {validStart !== undefined && (
-            <div className="mb-4">
-              <TimeComparison />
-            </div>
-          )}
-
+        {/* pt-16 reserves the top-right corner exclusively for the stopwatch
+         *  chip so the comparison pill never gets visually overlapped. */}
+        <div className="text-center max-w-md mx-auto pt-12">
           <div className="relative inline-block mb-4">
             <Loader2 className="w-12 h-12 animate-spin text-brand-navy" />
             <Sparkles className="w-5 h-5 text-brand-gold absolute top-0 right-0 animate-pulse" />
@@ -58,10 +54,12 @@ export default function Loading() {
           <h1 className="text-lg md:text-xl font-bold text-brand-ink">
             Generating your personalised report
           </h1>
-          <p className="text-slate-600 text-sm mt-1">
+          <p className="text-slate-600 text-sm mt-1 mb-5">
             Reading your policy and curating recommendations specific to your
             vehicle, location, and coverage gaps.
           </p>
+
+          {validStart !== undefined && <TimeComparison />}
         </div>
       </div>
 
