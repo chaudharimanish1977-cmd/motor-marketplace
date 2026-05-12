@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractPdfText } from "@/lib/pdf-parser";
 import { extractPolicyFromText } from "@/lib/policy-extractor";
-import { generateReport } from "@/lib/report-generator";
 import { appendRow, Tables } from "@/lib/db";
-import type { ParsedPolicy, PolicyReport } from "@/lib/types";
+import type { ParsedPolicy } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60; // Claude calls can take 30+ seconds total
@@ -44,7 +43,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 1: Structured extraction
+    // Structured extraction only — report generation is deferred to the
+    // /report/[id] page render. Doing both here exceeded Vercel's 60s function
+    // timeout when running from a Mumbai region against Anthropic in US-East
+    // (cross-continent latency on two sequential Claude calls).
     console.log(
       `[parse] PDF parsed: ${numPages} pages, ${text.length} chars. Calling Claude for extraction...`
     );
@@ -57,23 +59,6 @@ export async function POST(request: NextRequest) {
       Tables.PARSED_POLICIES,
       parsed
     );
-
-    // Step 2: Report generation. If this fails, the parse is still saved
-    // and the /report/[id] page can retry generation on first visit.
-    try {
-      console.log(`[parse] Generating personalised report...`);
-      const reportStart = Date.now();
-      const report = await generateReport(savedPolicy);
-      console.log(
-        `[parse] Report generated in ${Date.now() - reportStart}ms`
-      );
-      await appendRow<PolicyReport>(Tables.REPORTS, report);
-    } catch (reportErr) {
-      console.error(
-        `[parse] Report generation failed (parse saved, page will retry):`,
-        reportErr
-      );
-    }
 
     return NextResponse.json({ id: savedPolicy.id, parsed: savedPolicy });
   } catch (err) {
