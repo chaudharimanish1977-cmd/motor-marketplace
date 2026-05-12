@@ -1,0 +1,162 @@
+[
+  {
+    "id": "d0ef65ae-a68f-44f0-a79e-c4295799e3bc",
+    "parsedPolicyId": "2c97d940-bc23-4aa3-9053-988a6ed73401",
+    "policyExpiryDate": "2027-05-11T18:29:59.852Z",
+    "nudges": [
+      {
+        "id": "ae49c84e-f3c2-492c-8b87-5f7084134f30",
+        "triggerType": "60_day_pre",
+        "scheduledDate": "2027-03-12T18:29:59.852Z",
+        "channel": "email",
+        "subject": "Anju, your Audi A6 renewal is in 60 days",
+        "bodyPreview": "Hi Anju, your Audi A6 insurance expires on 11 May 2027. Lock in the best price 60 days early — explore curated offers from 3+ insurers in 60 seconds."
+      },
+      {
+        "id": "66dc47ff-8801-4e37-8068-4a66f6926428",
+        "triggerType": "30_day_pre",
+        "scheduledDate": "2027-04-11T18:29:59.852Z",
+        "channel": "sms",
+        "subject": "Renewal reminder",
+        "bodyPreview": "Motor Marketplace: Audi A6 insurance renewal in 30 days. Get curated offers: motormart.in/r"
+      },
+      {
+        "id": "e66e1621-1ba0-494f-8ca0-dbe4d4535c7c",
+        "triggerType": "15_day_pre",
+        "scheduledDate": "2027-04-26T18:29:59.852Z",
+        "channel": "telegram",
+        "subject": "Renewal in 15 days",
+        "bodyPreview": "Hi Anju 👋 Your Audi A6 insurance renewal is in 15 days. Last year's review showed 4 critical add-ons missing — let's make sure you're covered. Tap to see your curated offers."
+      },
+      {
+        "id": "e478ac03-ed85-4d3e-b728-e1a81cca3640",
+        "triggerType": "7_day_pre",
+        "scheduledDate": "2027-05-04T18:29:59.852Z",
+        "channel": "email",
+        "subject": "1 week to your Audi A6 renewal",
+        "bodyPreview": "Hi Anju, your Audi A6 policy expires on 11 May 2027. Don't lose your NCB — renew this week. Your curated offers are pre-loaded; just tap to confirm."
+      },
+      {
+        "id": "ea32e5ba-35ff-46ec-89c8-7fb1d3fca9ce",
+        "triggerType": "1_day_pre",
+        "scheduledDate": "2027-05-10T18:29:59.852Z",
+        "channel": "sms",
+        "subject": "Renewal tomorrow",
+        "bodyPreview": "URGENT: Audi A6 insurance expires tomorrow (11 May 2027). Renew in 60 sec to avoid lapse + losing NCB: motormart.in/r"
+      },
+      {
+        "id": "95763da0-db6d-471b-a4d8-3618612def48",
+        "triggerType": "expiry_day",
+        "scheduledDate": "2027-05-11T18:29:59.852Z",
+        "channel": "email",
+        "subject": "Your Audi A6 policy expires today",
+        "bodyPreview": "Today is the last day of your Audi A6 insurance. After today, lapse penalties apply and you lose your hard-earned NCB. Renew now in 60 seconds."
+      },
+      {
+        "id": "6cbd28e1-8a36-48dc-8018-0f4df0f8f040",
+        "triggerType": "post_expiry_7",
+        "scheduledDate": "2027-05-18T18:29:59.852Z",
+        "channel": "sms",
+        "subject": "Policy lapsed - act fast",
+        "bodyPreview": "Your Audi A6 policy lapsed 7 days ago. Renew within 90 days to retain partial NCB. Don't drive uninsured — TP is mandatory by law."
+      },
+      {
+        "id": "08dd9ffc-c654-4bdf-aad5-223413bc3c89",
+        "triggerType": "post_expiry_30",
+        "scheduledDate": "2027-06-10T18:29:59.852Z",
+        "channel": "telegram",
+        "subject": "Need help renewing?",
+        "bodyPreview": "Hi Anju — noticed you haven't renewed your Audi A6 insurance. Did you buy elsewhere? We can help you save next year too. Share the new policy with us."
+      },
+      {
+        "id": "e63eede3-ee19-4975-aa6d-46e7c1a84906",
+        "triggerType": "lapsed_recovery",
+        "scheduledDate": "2027-07-10T18:29:59.852Z",
+        "channel": "email",
+        "subject": "Congratulations on your renewal! 🎉",
+        "bodyPreview": "Hi Anju, hope you renewed your Audi A6 insurance with another provider. We'd love to keep helping you save — share your new policy copy and we'll set up smart reminders 60 days before next renewal so you're never without options."
+      }
+    ],
+    "generatedAt": "2026-05-11T16:39:47.863Z"
+  },
+  {
+    "id": "6ebfd4b1-2e11-4061-b759-88cf572851a4",
+    "parsedPolicyId": "7447e35c-83fd-43da-b02b-895e10e14c8b",
+    "policyExpiryDate": "2027-05-11T18:29:59.880Z",
+    "nudges": [
+      {
+        "id": "0f689b95-854b-4972-9f36-67b7576c7505",
+        "triggerType": "60_day_pre",
+        "scheduledDate": "2027-03-12T18:29:59.880Z",
+        "channel": "email",
+        "subject": "Anju, your Audi A6 renewal is in 60 days",
+        "bodyPreview": "Hi Anju, your Audi A6 insurance expires on 11 May 2027. Lock in the best price 60 days early — explore curated offers from 3+ insurers in 60 seconds."
+      },
+      {
+        "id": "49a71036-9a09-4e90-8803-133a1b8d87ec",
+        "triggerType": "30_day_pre",
+        "scheduledDate": "2027-04-11T18:29:59.880Z",
+        "channel": "sms",
+        "subject": "Renewal reminder",
+        "bodyPreview": "Motor Marketplace: Audi A6 insurance renewal in 30 days. Get curated offers: motormart.in/r"
+      },
+      {
+        "id": "fef80cef-a5aa-4c70-93fb-3cc05ea73611",
+        "triggerType": "15_day_pre",
+        "scheduledDate": "2027-04-26T18:29:59.880Z",
+        "channel": "telegram",
+        "subject": "Renewal in 15 days",
+        "bodyPreview": "Hi Anju 👋 Your Audi A6 insurance renewal is in 15 days. Last year's review showed 4 critical add-ons missing — let's make sure you're covered. Tap to see your curated offers."
+      },
+      {
+        "id": "90441748-176d-4ac0-9c6a-e3df6bd53dbd",
+        "triggerType": "7_day_pre",
+        "scheduledDate": "2027-05-04T18:29:59.880Z",
+        "channel": "email",
+        "subject": "1 week to your Audi A6 renewal",
+        "bodyPreview": "Hi Anju, your Audi A6 policy expires on 11 May 2027. Don't lose your NCB — renew this week. Your curated offers are pre-loaded; just tap to confirm."
+      },
+      {
+        "id": "840efceb-e97c-485e-a4a4-59991d5d9475",
+        "triggerType": "1_day_pre",
+        "scheduledDate": "2027-05-10T18:29:59.880Z",
+        "channel": "sms",
+        "subject": "Renewal tomorrow",
+        "bodyPreview": "URGENT: Audi A6 insurance expires tomorrow (11 May 2027). Renew in 60 sec to avoid lapse + losing NCB: motormart.in/r"
+      },
+      {
+        "id": "d5790c48-75a0-41dd-94fa-27e9b338d0c3",
+        "triggerType": "expiry_day",
+        "scheduledDate": "2027-05-11T18:29:59.880Z",
+        "channel": "email",
+        "subject": "Your Audi A6 policy expires today",
+        "bodyPreview": "Today is the last day of your Audi A6 insurance. After today, lapse penalties apply and you lose your hard-earned NCB. Renew now in 60 seconds."
+      },
+      {
+        "id": "9d42a2ee-00e9-42ee-86a1-f1ff24c2191d",
+        "triggerType": "post_expiry_7",
+        "scheduledDate": "2027-05-18T18:29:59.880Z",
+        "channel": "sms",
+        "subject": "Policy lapsed - act fast",
+        "bodyPreview": "Your Audi A6 policy lapsed 7 days ago. Renew within 90 days to retain partial NCB. Don't drive uninsured — TP is mandatory by law."
+      },
+      {
+        "id": "738ead61-cef2-4ed3-9220-bf96bbddb3e9",
+        "triggerType": "post_expiry_30",
+        "scheduledDate": "2027-06-10T18:29:59.880Z",
+        "channel": "telegram",
+        "subject": "Need help renewing?",
+        "bodyPreview": "Hi Anju — noticed you haven't renewed your Audi A6 insurance. Did you buy elsewhere? We can help you save next year too. Share the new policy with us."
+      },
+      {
+        "id": "004c592e-78f7-4b04-bffc-7c6346108a04",
+        "triggerType": "lapsed_recovery",
+        "scheduledDate": "2027-07-10T18:29:59.880Z",
+        "channel": "email",
+        "subject": "Congratulations on your renewal! 🎉",
+        "bodyPreview": "Hi Anju, hope you renewed your Audi A6 insurance with another provider. We'd love to keep helping you save — share your new policy copy and we'll set up smart reminders 60 days before next renewal so you're never without options."
+      }
+    ],
+    "generatedAt": "2026-05-11T17:06:40.892Z"
+  }
+]

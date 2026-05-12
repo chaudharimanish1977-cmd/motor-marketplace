@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1337c095-6ca5-40de-b30e-0e764afdcd14",
+    "rfqId": "08a7ea34-4014-42ed-8d12-c9013ffab66e",
+    "bidId": "14eee09f-91a0-469d-b337-76cc2491751d",
+    "userId": "demo-user",
+    "status": "issued",
+    "policyDocUrl": "/policy/1337c095-6ca5-40de-b30e-0e764afdcd14",
+    "createdAt": "2026-05-11T16:39:47.852Z",
+    "issuedAt": "2026-05-11T16:39:47.852Z"
+  },
+  {
+    "id": "8be58a65-6e59-4ae2-8f18-7733303b334f",
+    "rfqId": "387f4106-7c62-4412-85b4-ad66b8ada2df",
+    "bidId": "1babe7b7-4eba-4a99-8c25-6ead9a007f69",
+    "userId": "demo-user",
+    "status": "issued",
+    "policyDocUrl": "/policy/8be58a65-6e59-4ae2-8f18-7733303b334f",
+    "createdAt": "2026-05-11T17:06:40.880Z",
+    "issuedAt": "2026-05-11T17:06:40.880Z"
+  }
+]

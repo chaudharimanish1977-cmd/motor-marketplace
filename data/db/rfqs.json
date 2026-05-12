@@ -1,0 +1,235 @@
+[
+  {
+    "id": "7993a908-0b5d-46df-a101-c85a933afb89",
+    "parsedPolicyId": "46f9c925-bf4c-47cc-a313-b4cb43d7b747",
+    "reportId": "29eb1bd5-9589-4a53-bf50-cf6bce227a02",
+    "createdAt": "2026-05-11T15:35:19.140Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement",
+      "Loss of Personal Belongings"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "7a0b398e-263b-4feb-a25c-d2305d161ddc",
+    "parsedPolicyId": "46f9c925-bf4c-47cc-a313-b4cb43d7b747",
+    "reportId": "29eb1bd5-9589-4a53-bf50-cf6bce227a02",
+    "createdAt": "2026-05-11T15:39:07.319Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1531727,
+    "hasPreExistingClaim": true,
+    "preExistingClaimDetails": "front glass replacement"
+  },
+  {
+    "id": "846696da-e153-4cd2-81ca-d5600b5e8561",
+    "parsedPolicyId": "46f9c925-bf4c-47cc-a313-b4cb43d7b747",
+    "reportId": "29eb1bd5-9589-4a53-bf50-cf6bce227a02",
+    "createdAt": "2026-05-11T15:54:02.682Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1528727,
+    "hasPreExistingClaim": true,
+    "preExistingClaimDetails": "front glass changed"
+  },
+  {
+    "id": "08a7ea34-4014-42ed-8d12-c9013ffab66e",
+    "parsedPolicyId": "2c97d940-bc23-4aa3-9053-988a6ed73401",
+    "reportId": "1972dd29-5af0-4c4c-aad7-3dbba163ee55",
+    "createdAt": "2026-05-11T16:38:07.759Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1527727,
+    "hasPreExistingClaim": true,
+    "preExistingClaimDetails": "front glass cgange"
+  },
+  {
+    "id": "387f4106-7c62-4412-85b4-ad66b8ada2df",
+    "parsedPolicyId": "7447e35c-83fd-43da-b02b-895e10e14c8b",
+    "reportId": "432b7a64-747a-4569-8e77-4945192dc69a",
+    "createdAt": "2026-05-11T17:04:26.809Z",
+    "desiredAddOns": [
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "cbd0fe6e-5bbc-427f-bdbc-1ee0ed11fc9d",
+    "parsedPolicyId": "d959ef1e-fb03-4bcd-a6f6-7c9267b15274",
+    "reportId": "4d556866-b016-4c61-98d4-0262be9aa315",
+    "createdAt": "2026-05-11T17:18:11.753Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement",
+      "Loss of Personal Belongings"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "5eea04db-ec26-4983-9bda-5cd4e3ab0c8e",
+    "parsedPolicyId": "dd7c729b-c794-4ee7-aa91-665cd34b55a7",
+    "reportId": "627ccfc0-c6a8-4039-8921-2e8677baf86d",
+    "createdAt": "2026-05-11T17:27:44.925Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Return to Invoice",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement",
+      "Loss of Personal Belongings"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "94fc41d4-e70c-417e-a303-e90365755c56",
+    "parsedPolicyId": "dd7c729b-c794-4ee7-aa91-665cd34b55a7",
+    "reportId": "627ccfc0-c6a8-4039-8921-2e8677baf86d",
+    "createdAt": "2026-05-11T17:33:32.679Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Return to Invoice",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement",
+      "Loss of Personal Belongings"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "58b2ddee-1de9-4d6c-b703-c52fb7e3372f",
+    "parsedPolicyId": "46f9c925-bf4c-47cc-a313-b4cb43d7b747",
+    "reportId": "29eb1bd5-9589-4a53-bf50-cf6bce227a02",
+    "createdAt": "2026-05-11T17:35:19.338Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "99fbfa85-a040-4ed7-9f4b-642c21a5e66f",
+    "parsedPolicyId": "46f9c925-bf4c-47cc-a313-b4cb43d7b747",
+    "reportId": "29eb1bd5-9589-4a53-bf50-cf6bce227a02",
+    "createdAt": "2026-05-11T17:35:39.107Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "effd56b3-29b8-4b4e-bda6-6ce417df3a0d",
+    "parsedPolicyId": "46f9c925-bf4c-47cc-a313-b4cb43d7b747",
+    "reportId": "29eb1bd5-9589-4a53-bf50-cf6bce227a02",
+    "createdAt": "2026-05-11T17:40:31.922Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "41a6a364-4bd9-4662-977c-aa97240eeac0",
+    "parsedPolicyId": "c00696cc-8990-4c76-8597-4fd615bde9ba",
+    "reportId": "72c1d5b8-e682-42b1-a15c-ce7e4ffe4b1f",
+    "createdAt": "2026-05-11T17:45:57.734Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Return to Invoice",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1050000,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "70523878-220c-4655-ac94-0b626800f47e",
+    "parsedPolicyId": "7407d41b-4321-4bf3-962b-0f2118fc605c",
+    "reportId": "9ce361e0-fc88-45a8-a19f-aa5a1c31f4fe",
+    "createdAt": "2026-05-11T17:57:26.304Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Return to Invoice",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables",
+      "Key Replacement"
+    ],
+    "desiredIdv": 1050000,
+    "hasPreExistingClaim": false
+  },
+  {
+    "id": "fdff5685-f581-4f63-9845-ebffa0573d54",
+    "parsedPolicyId": "8f6411b2-908f-41d8-9c48-bc784d58f2ac",
+    "reportId": "620c10c2-0b8e-4486-8c41-9ffc9bdcad1b",
+    "createdAt": "2026-05-11T18:29:15.536Z",
+    "desiredAddOns": [
+      "Zero Depreciation",
+      "Engine Protector",
+      "Roadside Assistance",
+      "NCB Protection",
+      "Consumables"
+    ],
+    "desiredIdv": 1332620,
+    "hasPreExistingClaim": false
+  }
+]

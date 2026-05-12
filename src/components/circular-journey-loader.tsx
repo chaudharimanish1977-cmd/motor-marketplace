@@ -1,0 +1,317 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import clsx from "clsx";
+import { formatLandmarks } from "@/lib/location-data";
+import { getBodyType, type BodyType } from "@/lib/vehicle-classifier";
+import { CarByBodyType } from "@/components/car-illustrations";
+import { BackgroundScenery, ForegroundScenery } from "@/components/scenery";
+
+interface Props {
+  vehicleLabel?: string;
+  registrationNumber?: string;
+  rtoCity?: string;
+  vehicleAgeYears?: number;
+  /** Make + model used to pick the right car illustration (hatchback / sedan / SUV / luxury) */
+  vehicleMake?: string;
+  vehicleModel?: string;
+  /** Optional explicit override of body type */
+  bodyType?: BodyType;
+  stage?: "preview" | "parsing" | "curating";
+  customMessages?: string[];
+  primaryText?: string;
+  etaText?: string;
+}
+
+const MESSAGE_BANK: Record<"preview" | "parsing" | "curating", string[]> = {
+  preview: ["Opening your policy...", "Identifying your vehicle..."],
+  parsing: [
+    "Reading every line of your policy...",
+    "Identifying your coverage and add-ons...",
+    "Verifying IDV and No-Claim Bonus...",
+    "Looking for gaps in your protection...",
+    "Curating recommendations specific to your vehicle...",
+  ],
+  curating: [
+    "Inviting BharatSure, Vahana & Suraksha to bid...",
+    "Building your Basic tier (minimum premium)...",
+    "Crafting your Recommended tier (your selection priced)...",
+    "Designing your Super Cover tier (maximum protection)...",
+    "Picking the winning insurer for each tier...",
+  ],
+};
+
+/**
+ * Car-on-road loader: a single car drives forward; speed lines stream backwards
+ * behind it; road dashes scroll past underneath. Wheels spin. Car body has a
+ * subtle bounce. Personalised with the customer's vehicle plate + age + RTO.
+ *
+ * Replaces the previous circular-orbit design (which didn't read as "a moving
+ * car leaving a trail" — cars don't orbit, they drive forward).
+ */
+export function CircularJourneyLoader({
+  vehicleLabel,
+  registrationNumber,
+  rtoCity,
+  vehicleAgeYears,
+  vehicleMake,
+  vehicleModel,
+  bodyType,
+  stage = "parsing",
+  customMessages,
+  primaryText,
+  etaText,
+}: Props) {
+  const messages = customMessages ?? MESSAGE_BANK[stage];
+  const [messageIdx, setMessageIdx] = useState(0);
+  const [ageCounter, setAgeCounter] = useState(0);
+  const [landmarkIdx, setLandmarkIdx] = useState(0);
+
+  const landmarks = formatLandmarks(rtoCity, 4);
+
+  // Pick the right car illustration based on the customer's actual vehicle.
+  const resolvedBodyType: BodyType =
+    bodyType ?? getBodyType(vehicleMake, vehicleModel);
+
+  useEffect(() => {
+    if (messages.length <= 1) return;
+    const id = setInterval(() => {
+      setMessageIdx((i) => (i + 1) % messages.length);
+    }, 2400);
+    return () => clearInterval(id);
+  }, [messages.length]);
+
+  useEffect(() => {
+    if (landmarks.length <= 1) return;
+    const id = setInterval(() => {
+      setLandmarkIdx((i) => (i + 1) % landmarks.length);
+    }, 1400);
+    return () => clearInterval(id);
+  }, [landmarks.length]);
+
+  useEffect(() => {
+    if (vehicleAgeYears === undefined || vehicleAgeYears <= 0) {
+      setAgeCounter(0);
+      return;
+    }
+    const target = vehicleAgeYears;
+    const step = Math.max(1, Math.ceil(target / 20));
+    let current = 0;
+    const id = setInterval(() => {
+      current = Math.min(current + step, target);
+      setAgeCounter(current);
+      if (current >= target) clearInterval(id);
+    }, 70);
+    return () => clearInterval(id);
+  }, [vehicleAgeYears]);
+
+  return (
+    <div className="w-full max-w-2xl mx-auto py-4">
+      {/* Top: vehicle name + plate */}
+      <div className="text-center mb-4 space-y-2">
+        {vehicleLabel && (
+          <div className="text-base font-bold text-brand-charcoal leading-tight">
+            {vehicleLabel}
+          </div>
+        )}
+        {registrationNumber && registrationNumber !== "NEW" && (
+          <NumberPlate value={registrationNumber} />
+        )}
+        {registrationNumber === "NEW" && (
+          <div className="inline-flex items-center px-2.5 py-1 bg-brand-success text-white text-[10px] font-bold tracking-[0.15em] rounded shadow-soft">
+            NEW VEHICLE
+          </div>
+        )}
+      </div>
+
+      {/* The driving scene */}
+      <div className="relative w-full rounded-2xl overflow-hidden shadow-soft bg-gradient-to-b from-sky-100 via-sky-50 to-slate-200">
+        <svg
+          viewBox="0 0 400 200"
+          preserveAspectRatio="xMidYMid meet"
+          className="w-full h-auto block"
+        >
+          <defs>
+            <linearGradient id="sky-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#cfe8f4" />
+              <stop offset="100%" stopColor="#f5fafe" />
+            </linearGradient>
+            <linearGradient id="ground-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#5a6573" />
+              <stop offset="100%" stopColor="#3a4554" />
+            </linearGradient>
+            <linearGradient id="road-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#1f2933" />
+              <stop offset="100%" stopColor="#2d3436" />
+            </linearGradient>
+            <filter id="car-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" />
+            </filter>
+          </defs>
+
+          {/* Sky */}
+          <rect x="0" y="0" width="400" height="135" fill="url(#sky-grad)" />
+
+          {/* Scrolling background scenery — buildings + city monument */}
+          {/* Clip to sky area so scenery doesn't spill past the road */}
+          <clipPath id="sky-clip">
+            <rect x="0" y="0" width="400" height="135" />
+          </clipPath>
+          <g clipPath="url(#sky-clip)">
+            <BackgroundScenery city={rtoCity} />
+          </g>
+
+          {/* Ground / shoulder */}
+          <rect x="0" y="135" width="400" height="65" fill="url(#ground-grad)" />
+
+          {/* Foreground scenery (trees, lampposts) — faster scroll for parallax */}
+          <clipPath id="foreground-clip">
+            <rect x="0" y="100" width="400" height="42" />
+          </clipPath>
+          <g clipPath="url(#foreground-clip)">
+            <ForegroundScenery />
+          </g>
+
+          {/* Road surface */}
+          <rect x="0" y="142" width="400" height="50" fill="url(#road-grad)" />
+
+          {/* Top and bottom road edges (white) */}
+          <line x1="0" y1="143" x2="400" y2="143" stroke="#ffffff" strokeWidth="1.2" opacity="0.7" />
+          <line x1="0" y1="191" x2="400" y2="191" stroke="#ffffff" strokeWidth="1.2" opacity="0.7" />
+
+          {/* Centre dashed line (yellow), scrolling right-to-left */}
+          <line
+            x1="0"
+            y1="167"
+            x2="400"
+            y2="167"
+            stroke="#ffd54f"
+            strokeWidth="3"
+            strokeDasharray="30 20"
+            className="animate-road-scroll"
+          />
+
+          {/* === CAR + TRAIL === positioned over the road */}
+          {/* Speed lines (motion trail behind the car) */}
+          <g>
+            <SpeedLine y={150} length={30} className="animate-speed-1" />
+            <SpeedLine y={156} length={40} className="animate-speed-2" />
+            <SpeedLine y={163} length={28} className="animate-speed-3" />
+            <SpeedLine y={170} length={35} className="animate-speed-4" />
+            <SpeedLine y={177} length={32} className="animate-speed-5" />
+          </g>
+
+          {/* Dust cloud behind the rear wheel — subtle puff */}
+          <g className="animate-pulse-soft" opacity="0.4">
+            <ellipse cx="160" cy="184" rx="10" ry="3" fill="#b8c0c8" />
+            <ellipse cx="155" cy="180" rx="6" ry="2" fill="#d8dde2" />
+          </g>
+
+          {/* CAR — body-type matched to actual vehicle, bouncing slightly */}
+          <g className="animate-car-bounce">
+            <CarByBodyType bodyType={resolvedBodyType} x={195} y={145} />
+          </g>
+        </svg>
+      </div>
+
+      {/* Stats + messages below */}
+      <div className="mt-5 text-center space-y-2 max-w-md mx-auto">
+        {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
+          <div className="text-sm text-brand-slate">
+            <span className="text-brand-deepblue font-bold text-2xl tabular-nums">
+              {ageCounter}
+            </span>
+            <span className="ml-1.5">
+              year{ageCounter !== 1 ? "s" : ""} on Indian roads
+            </span>
+          </div>
+        )}
+
+        {primaryText && (
+          <div className="text-base font-semibold text-brand-deepblue pt-1">
+            {primaryText}
+          </div>
+        )}
+        <div
+          key={messageIdx}
+          className="text-sm text-brand-slate min-h-[20px] animate-pulse-soft"
+        >
+          {messages[messageIdx]}
+        </div>
+
+        {/* Location ticker */}
+        {landmarks.length > 0 && (
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-brand-offwhite border border-brand-light-gray rounded-full text-xs text-brand-slate">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-success animate-pulse" />
+            <span>
+              Curating for{" "}
+              <span
+                key={landmarkIdx}
+                className="font-semibold text-brand-charcoal"
+              >
+                {landmarks[landmarkIdx]}
+              </span>
+            </span>
+          </div>
+        )}
+
+        {etaText && (
+          <div className="text-xs text-brand-slate/70 mt-1">{etaText}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Speed line — single streak behind the car
+// ============================================================================
+
+function SpeedLine({
+  y,
+  length,
+  className,
+}: {
+  y: number;
+  length: number;
+  className: string;
+}) {
+  // Each line starts somewhere behind the car (x ~145-170), pointing left
+  const startX = 145;
+  return (
+    <g className={className}>
+      <line
+        x1={startX}
+        y1={y}
+        x2={startX - length}
+        y2={y}
+        stroke="#ffffff"
+        strokeWidth="2"
+        strokeLinecap="round"
+        opacity="0.75"
+      />
+    </g>
+  );
+}
+
+// ============================================================================
+// Indian private vehicle number plate (white plate, black text).
+// ============================================================================
+
+function NumberPlate({ value }: { value: string }) {
+  return (
+    <div
+      className={clsx(
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded shadow-soft",
+        "bg-white border-2 border-[#1a1a1a]"
+      )}
+    >
+      <span className="text-[7px] font-bold uppercase tracking-[0.15em] text-[#1a1a1a]">
+        IND
+      </span>
+      <span className="font-bold text-[11px] tracking-[0.08em] tabular-nums text-[#1a1a1a]">
+        {value}
+      </span>
+    </div>
+  );
+}

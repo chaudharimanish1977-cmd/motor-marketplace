@@ -1,0 +1,1954 @@
+[
+  {
+    "id": "57a77f28-bb17-40c0-b128-9b5b0d4af017",
+    "parsedPolicyId": "0c59c8dd-3782-4a67-9f4d-4f8dac9353e6",
+    "generatedAt": "2026-05-11T14:48:25.712Z",
+    "atAGlance": {
+      "policyPeriodLabel": "31 Mar 2026 – 30 Mar 2027",
+      "vehicleLabel": "Maruti Wagon R LXI 1.0 CNG (2014)",
+      "idv": 140000,
+      "ncbPercent": 50,
+      "policyTypeLabel": "Comprehensive Package"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your 12-year-old Wagon R CNG.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "Maximum 50% NCB Retained",
+          "description": "Excellent claim-free record preserved, giving you the highest possible discount on Own Damage premium.",
+          "iconHint": "badge"
+        },
+        {
+          "title": "CNG Properly Declared",
+          "description": "Bi-Fuel CNG system covered under both OD and TP, critical for Kalyan area vehicles.",
+          "iconHint": "cng"
+        },
+        {
+          "title": "No Voluntary Deductible",
+          "description": "Zero out-of-pocket deductible on claims, ideal for older vehicles with higher repair frequency.",
+          "iconHint": "deductible"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "Engine Protector Missing",
+          "description": "Critical for CNG vehicles in monsoon-prone Kalyan-Dombivali area. Water ingress and hydrostatic lock can cost ₹40,000-₹80,000 in engine repairs.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "Consumables Cover Absent",
+          "description": "For a 12-year-old vehicle, consumables (oil, nuts, bolts, filters) are deducted from every claim, reducing your payout by 10-20%.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "NCB Protection Not Added",
+          "description": "One claim wipes out your hard-earned 50% NCB (worth ₹343 annually). NCB Protection preserves this discount even after a claim.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Roadside Assistance Missing",
+          "description": "No towing, flat tyre, or battery jumpstart support. Essential for older vehicles prone to breakdowns, especially on Thane-Kalyan routes.",
+          "iconHint": "rsa"
+        },
+        {
+          "title": "Key Replacement Cover Absent",
+          "description": "Lost or damaged keys mean full lockset replacement costs. Basic mechanical keys are affordable, but coverage adds peace of mind.",
+          "iconHint": "key"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 140000,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "Verify IDV against current resale value on Cars24, Spinny, or local Kalyan dealers for 2014 Wagon R CNG models.",
+        "A slightly higher IDV (₹1,45,000-₹1,50,000) could offer better total loss protection with minimal premium increase.",
+        "Ensure IDV reflects CNG kit value and overall vehicle condition accurately."
+      ],
+      "tip": "For a 12-year-old Wagon R CNG in Kalyan, ₹1,40,000 IDV is reasonable. Compare with dealer quotes to confirm market alignment."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network in Thane-Kalyan Belt",
+          "description": "Ensure your insurer has strong cashless garage presence in Dombivali, Kalyan, Thane, and surrounding areas like Ambernath and Badlapur.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Preserve Your 50% NCB",
+          "description": "Avoid small claims under ₹10,000-₹12,000. Self-pay minor repairs to protect your maximum discount for next year.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Service Quality Over Price",
+          "description": "For a 12-year-old vehicle, fast claim settlement and good garage support matter more than saving ₹500-₹1,000 on premium.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Buy Only Practical Add-Ons",
+          "description": "Focus on Engine Protector, Consumables, NCB Protection, and Roadside Assistance. Skip Zero Dep and RTI for older vehicles.",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Use Insurance Wisely",
+          "description": "Reserve claims for major accidents, theft, flood damage, or repairs exceeding ₹15,000. Self-fund small dents and scratches.",
+          "iconHint": "wisely"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 3734,
+      "recommendedRangeMin": 4200,
+      "recommendedRangeMax": 5000,
+      "hasPremiumSavings": false,
+      "estimatedSavings": null,
+      "narrative": "Your current bare-bones policy costs ₹3,734. Adding essential add-ons (Engine Protector, Consumables, NCB Protection, Roadside Assistance) would raise premium to ₹4,200-₹5,000 — a small ₹500-₹1,300 increase. This investment prevents large claim-time losses and protects your 50% NCB, delivering far better value than saving ₹1,000 today only to lose ₹40,000 in an uncovered engine claim tomorrow.",
+      "claimTimeExample": "If your CNG engine suffers water damage during Kalyan's heavy monsoons (common in July-August), Engine Protector could save you ₹40,000-₹80,000 in repair costs — recovering 30-60 years of the ₹1,200-₹1,500 annual premium in a single claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent garage network in Thane-Kalyan belt, strong CNG vehicle claim experience, efficient digital claims process."
+        },
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Robust presence in Maharashtra, good add-on pricing for older vehicles, reliable customer support in Dombivali-Kalyan area."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Wide cashless garage coverage in Thane district, competitive pricing for 10+ year vehicles, strong local service."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Fast claim settlement, transparent pricing, good digital experience, growing garage network in Kalyan region."
+        },
+        {
+          "name": "Reliance General",
+          "reasoning": "Strong local presence in Maharashtra, good add-on bundling options, stable pricing for older CNG vehicles."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong garage network in Thane-Kalyan-Dombivali area",
+        "Efficient claim settlement with minimal documentation",
+        "Good CNG vehicle claim handling experience",
+        "Competitive add-on pricing for 10+ year vehicles",
+        "Reliable local support and customer service"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your 12-year-old Wagon R CNG needs smart, not just more, coverage.",
+      "body": "You've preserved an excellent 50% NCB and have comprehensive cover, but critical gaps (Engine Protector, Consumables, NCB Protection) leave you exposed to large claim-time losses. Adding ₹500-₹1,300 in targeted add-ons prevents ₹40,000-₹80,000 in uncovered repair costs and protects your hard-earned discount. For an older CNG vehicle in monsoon-prone Kalyan, this is essential protection, not optional luxury.",
+      "cta": "Get the Best Curated Offer"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "Not available or cost-effective for 12-year-old vehicles; depreciation benefit is minimal at this age.",
+        "estimatedAnnualPremium": 0
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for CNG vehicles in monsoon-prone Kalyan-Dombivali area; protects against water ingress and hydrostatic lock costing ₹40,000-₹80,000.",
+        "estimatedAnnualPremium": 1500
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "Not relevant for 12-year-old vehicles; invoice value vs IDV gap is negligible, making this add-on poor value.",
+        "estimatedAnnualPremium": 0
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Essential for 12-year-old vehicles prone to breakdowns; provides towing, flat tyre, and battery support on Thane-Kalyan routes.",
+        "estimatedAnnualPremium": 300
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Protects your maximum 50% NCB (worth ₹343 annually); one claim without this wipes out years of discount.",
+        "estimatedAnnualPremium": 600
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for 12-year-old vehicles; covers oil, filters, nuts, bolts deducted from every claim, saving 10-20% on repair payouts.",
+        "estimatedAnnualPremium": 900
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Basic mechanical keys are affordable to replace, but coverage adds peace of mind for lost or damaged keys.",
+        "estimatedAnnualPremium": 500
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "Not relevant for basic family vehicles like Wagon R; most owners don't carry high-value personal items.",
+        "estimatedAnnualPremium": 0
+      }
+    ]
+  },
+  {
+    "id": "9ce361e0-fc88-45a8-a19f-aa5a1c31f4fe",
+    "parsedPolicyId": "7407d41b-4321-4bf3-962b-0f2118fc605c",
+    "generatedAt": "2026-05-11T14:48:29.683Z",
+    "atAGlance": {
+      "policyPeriodLabel": "16 Apr 2026 – 15 Apr 2027 (OD) | 16 Apr 2026 – 15 Apr 2029 (TP)",
+      "vehicleLabel": "Hyundai Venue HX5 1.0 Turbo DCT Petrol (2026)",
+      "idv": 1050000,
+      "ncbPercent": 0,
+      "policyTypeLabel": "Bundle (1yr OD + 3yr TP)"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your brand-new Venue.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "Zero Depreciation Cover",
+          "description": "No depreciation deduction on parts during claims — critical for a new car.",
+          "iconHint": "zerodep"
+        },
+        {
+          "title": "Return to Invoice",
+          "description": "Get full invoice value if your Venue is stolen or totalled — bridges the IDV gap.",
+          "iconHint": "rti"
+        },
+        {
+          "title": "Engine Protector",
+          "description": "Covers hydrostatic lock and water ingress damage — essential for Kalyan's monsoon flooding.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "Consumables Cover",
+          "description": "Oil, nuts, bolts, and fluids covered in claims — saves ₹3,000-₹8,000 per repair.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "Key Replacement",
+          "description": "Smart key replacement covered up to ₹50,000 — relevant for your DCT variant's advanced key system.",
+          "iconHint": "key"
+        },
+        {
+          "title": "Roadside Assistance",
+          "description": "24/7 towing, flat tyre, battery jumpstart support across India.",
+          "iconHint": "rsa"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "NCB Protection Missing",
+          "description": "From next year, you'll earn NCB — protect it early to avoid losing 20-50% discount after one claim.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Loss of Personal Belongings — Low Value",
+          "description": "Currently included but offers minimal coverage — consider dropping at renewal to save ₹250 unless you regularly carry high-value items.",
+          "iconHint": "personal-belongings"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 1050000,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "Your IDV of ₹10,50,000 is appropriate for a brand-new 2026 Venue HX5 Turbo DCT variant.",
+        "Ensure IDV is reviewed annually to reflect depreciation — typically 5% in Year 1, 10% in Year 2.",
+        "Return to Invoice add-on already bridges any invoice-to-IDV gap for first 3 years."
+      ],
+      "tip": "For a new car, IDV should closely match ex-showroom price minus registration. Your current IDV aligns well with Venue's on-road pricing in Maharashtra."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network",
+          "description": "Ensure Magma has strong cashless garages in Kalyan, Badlapur, Ambernath, and Thane — verify Hyundai authorised service centres are empanelled.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Preserve Your NCB from Year 2",
+          "description": "Avoid small claims under ₹10,000-₹12,000 — self-pay minor scratches/dents to build NCB up to 50% over 5 years.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Add NCB Protection Next Year",
+          "description": "Once you earn 20% NCB in 2027, add NCB Protection to safeguard your discount even after one claim.",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Service Quality Over Price",
+          "description": "For a premium vehicle like Venue, prioritise insurers with fast claim settlement and good customer support over ₹1,000-₹2,000 savings.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Review Add-Ons Annually",
+          "description": "Zero Dep and RTI remain essential for 3-5 years; after that, reassess based on vehicle age and market value.",
+          "iconHint": "wisely"
+        },
+        {
+          "title": "Use Insurance for Major Events Only",
+          "description": "Reserve claims for accidents, theft, flood, or repairs above ₹15,000 — protect your future NCB and premium stability.",
+          "iconHint": "shield"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 26565,
+      "recommendedRangeMin": 25000,
+      "recommendedRangeMax": 29000,
+      "hasPremiumSavings": true,
+      "estimatedSavings": 500,
+      "narrative": "Your current premium of ₹26,565 is competitive for a brand-new Venue with comprehensive add-ons. By dropping 'Loss of Personal Belongings' (low utility for most users) and optimising insurer selection, you could save ₹500-₹1,500 while retaining all critical protections. The recommended range reflects optimal coverage with essential add-ons tailored to your vehicle and location.",
+      "claimTimeExample": "If your Venue's engine is damaged due to waterlogging during Kalyan's heavy monsoons, Engine Protector could save you ₹60,000-₹1,20,000 in repair costs — recovering 3-5 years of premium difference in a single claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent garage network in Thane/Kalyan belt, fast claim settlement, strong digital experience for new car owners."
+        },
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Wide cashless garage coverage including Hyundai authorised centres, reliable customer service, competitive pricing for new vehicles."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Strong presence in Maharashtra, good claim settlement ratio, comprehensive add-on options for premium hatchbacks/compact SUVs."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Seamless digital experience, transparent pricing, efficient claim processing — ideal for tech-savvy new car buyers."
+        },
+        {
+          "name": "Tata AIG",
+          "reasoning": "Stable pricing, good local support in Thane district, reliable for long-term policy relationships."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong garage network in Kalyan, Badlapur, Ambernath, and Thane",
+        "Efficient claim settlement with minimal documentation hassle",
+        "Empanelment of Hyundai authorised service centres for cashless repairs",
+        "Stable pricing and customer-focused service for new vehicle owners"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your brand-new Venue has excellent coverage — small tweaks can save money without compromising protection.",
+      "body": "You've secured all critical add-ons for a new car: Zero Dep, RTI, Engine Protect, and Consumables. Consider dropping 'Loss of Personal Belongings' to save ₹250, and add NCB Protection from next year once you earn your first discount. Your current premium is competitive, but comparing quotes from top insurers could unlock ₹500-₹1,500 in savings with equal or better service.",
+      "cta": "Get the Best Curated Offer"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Absolutely critical for a brand-new 2026 Venue — ensures full part replacement value without depreciation deductions for first 5 years.",
+        "estimatedAnnualPremium": 2310
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Essential for Kalyan/Badlapur area which experiences severe monsoon waterlogging — protects against hydrostatic lock and water ingress damage.",
+        "estimatedAnnualPremium": 2100
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Critical for new vehicles — bridges the IDV-to-invoice gap if your Venue is stolen or totalled in first 3 years.",
+        "estimatedAnnualPremium": 2625
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Universal utility for all vehicles — 24/7 towing, flat tyre, battery support at minimal cost of ₹51 annually.",
+        "estimatedAnnualPremium": 51
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Not applicable in Year 1 (0% NCB), but add from 2027 onwards once you earn 20% NCB — protects hard-earned discount after one claim.",
+        "estimatedAnnualPremium": 500
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Highly valuable for new cars — covers oil, nuts, bolts, fluids in claims, saving ₹3,000-₹8,000 per repair.",
+        "estimatedAnnualPremium": 1050
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": true,
+        "recommendation": "optional",
+        "reasoning": "Useful for your DCT variant's smart key system (replacement cost ₹8,000-₹15,000), but not critical — consider keeping if you're prone to losing keys.",
+        "estimatedAnnualPremium": 499
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": true,
+        "recommendation": "drop",
+        "reasoning": "Currently in your policy but offers minimal coverage for most users — dropping this saves ₹250 annually without material risk unless you regularly carry high-value items.",
+        "estimatedAnnualPremium": 250
+      }
+    ]
+  },
+  {
+    "id": "29eb1bd5-9589-4a53-bf50-cf6bce227a02",
+    "parsedPolicyId": "46f9c925-bf4c-47cc-a313-b4cb43d7b747",
+    "generatedAt": "2026-05-11T14:48:39.118Z",
+    "atAGlance": {
+      "policyPeriodLabel": "18 May 2025 – 17 May 2026",
+      "vehicleLabel": "Audi A6 35 TFSI Premium Petrol (2015)",
+      "idv": 1332620,
+      "ncbPercent": 25,
+      "policyTypeLabel": "Comprehensive Package"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your premium sedan.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "25% No Claim Bonus",
+          "description": "Strong discount earned through claim-free driving, saving you ₹1,533 on OD premium.",
+          "iconHint": "badge"
+        },
+        {
+          "title": "Personal Accident Cover",
+          "description": "Owner-driver PA cover included, plus additional cover for unnamed passengers.",
+          "iconHint": "pa"
+        },
+        {
+          "title": "Paid Driver Legal Liability",
+          "description": "Legal liability cover for your paid driver included in policy.",
+          "iconHint": "check"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "Zero Depreciation Cover Missing",
+          "description": "For your 11-year-old Audi, parts depreciation (30-50%) will be deducted from claims. Premium Audi parts are expensive—this gap could cost you ₹50,000-₹1,50,000 in a major accident.",
+          "iconHint": "zerodep"
+        },
+        {
+          "title": "Engine Protector Not Included",
+          "description": "Delhi's monsoon waterlogging poses hydrostatic lock risk. Engine repairs on German sedans run ₹1,50,000-₹3,00,000—not covered without this add-on.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "Consumables Cover Absent",
+          "description": "Oil, nuts, bolts, coolant, AC gas—all deducted from claims. For an 11-year-old vehicle needing frequent consumables, this adds up to ₹8,000-₹15,000 per claim.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "NCB Protection Not Added",
+          "description": "One claim wipes out your hard-earned 25% NCB (worth ₹1,533 annually). Protecting it costs ~₹600 but saves you years of discount rebuilding.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Roadside Assistance Missing",
+          "description": "No towing, flat tyre, battery jumpstart, or fuel delivery support. Critical for a premium sedan that may need specialized assistance.",
+          "iconHint": "rsa"
+        },
+        {
+          "title": "Key Replacement Cover Not Included",
+          "description": "Audi smart keys cost ₹15,000-₹25,000 to replace. This cover (₹500/year) pays for itself in one incident.",
+          "iconHint": "key"
+        },
+        {
+          "title": "Return to Invoice Gap",
+          "description": "In total loss/theft, you'll receive IDV (₹13,32,620) not original invoice value. For an 11-year-old vehicle, this gap is minimal, but worth considering if you financed recently.",
+          "iconHint": "rti"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 1332620,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "Verify IDV against current resale value for 2015 Audi A6 35 TFSI Premium in Delhi market.",
+        "Check platforms like Cars24, Spinny, or authorized Audi dealer quotes to ensure ₹13.3L reflects fair market value.",
+        "Consider a slightly higher IDV if your vehicle has been exceptionally maintained or has low mileage—better protection in total loss."
+      ],
+      "tip": "For an 11-year-old premium German sedan, IDV of ₹13.3L seems reasonable. Confirm with 2-3 resale quotes to ensure you're neither under-insured nor overpaying premium."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network in Delhi-NCR",
+          "description": "Ensure your insurer has strong authorized Audi service centers and quality multi-brand garages across Delhi, Gurgaon, Noida, and Faridabad for seamless claims.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Preserve Your 25% NCB",
+          "description": "Avoid claims under ₹12,000-₹15,000. Self-pay minor repairs (scratches, dents) to protect your NCB—losing it costs ₹1,533+ annually to rebuild.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Prioritize Claim Settlement Quality",
+          "description": "For a premium vehicle, cashless claim experience and settlement speed matter more than saving ₹1,000-₹2,000 on premium. Choose insurers with 95%+ claim settlement ratios.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Add Only Relevant Coverage",
+          "description": "Don't over-insure. For your 11-year-old Audi, focus on Engine Protect, Consumables, NCB Protection, and RSA—skip Return to Invoice unless recently financed.",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Use Insurance for Major Events",
+          "description": "Reserve insurance for accidents, theft, flood, fire, or repairs exceeding ₹20,000. Small claims erode NCB and future premiums.",
+          "iconHint": "wisely"
+        },
+        {
+          "title": "Review Add-Ons Annually",
+          "description": "As your Audi ages, reassess Zero Dep value vs cost. At 11 years, consumables and engine protection become more critical than depreciation cover.",
+          "iconHint": "shield-check"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 15480,
+      "recommendedRangeMin": 18500,
+      "recommendedRangeMax": 22000,
+      "hasPremiumSavings": false,
+      "estimatedSavings": null,
+      "narrative": "Your current premium of ₹15,480 is lean but leaves critical gaps for a premium German sedan. Adding essential add-ons (Engine Protect, Consumables, NCB Protection, RSA, Key Replacement) would increase premium by ₹3,000-₹6,500 to ₹18,500-₹22,000—but this is the right cover at the right price. Without these, a single major claim could cost you ₹50,000-₹2,00,000 out-of-pocket, far exceeding years of premium savings.",
+      "claimTimeExample": "If your Audi's engine suffers hydrostatic lock during Delhi monsoon flooding (common in areas like Minto Road, ITO, or Dhaula Kuan), Engine Protector could save you ₹1,50,000-₹3,00,000 in repair costs—recovering 50+ years of the ₹2,000 add-on premium in a single claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Your current insurer with continuity benefit, strong Delhi garage network, and good claim settlement ratio for premium vehicles."
+        },
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent cashless garage network in Delhi-NCR, efficient digital claims, and strong reputation for premium car segment."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Wide authorized Audi service center tie-ups, competitive pricing for older premium vehicles, and reliable claim settlement."
+        },
+        {
+          "name": "Tata AIG",
+          "reasoning": "Strong focus on customer service, good local support in Delhi, and flexible add-on bundling for premium sedans."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Fast digital claims processing, transparent pricing, and growing garage network in metro cities including Delhi."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong authorized Audi service center network in Delhi-NCR",
+        "Efficient cashless claim settlement with 95%+ settlement ratio",
+        "Stable pricing and premium vehicle expertise",
+        "Good local support and customer service in Delhi region"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your 11-year-old Audi A6 needs smart protection—not just basic cover.",
+      "body": "You've maintained excellent claim-free history (25% NCB), but your current policy leaves you exposed to ₹50,000-₹2,00,000 in out-of-pocket costs during major claims. Adding 4-5 essential add-ons (Engine Protect, Consumables, NCB Protection, RSA, Key Replacement) for ₹3,000-₹6,500 more gives you comprehensive protection tailored to your premium sedan's needs. The right coverage today prevents financial shock tomorrow.",
+      "cta": "Get the Best Curated Offer"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "At 11 years, depreciation is 50%—high cost for diminishing benefit. Consider only if you want maximum claim payout despite premium increase.",
+        "estimatedAnnualPremium": 20000
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for Delhi's monsoon waterlogging risk. Audi engine repairs cost ₹1,50,000-₹3,00,000—this add-on is non-negotiable.",
+        "estimatedAnnualPremium": 2200
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "At 11 years, invoice vs IDV gap is minimal (₹13.3L IDV vs ~₹14-15L original invoice). Not cost-effective unless recently financed.",
+        "estimatedAnnualPremium": 13300
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Universal utility for any vehicle—towing, flat tyre, battery jumpstart. Premium sedans need specialized assistance; this is a must-have.",
+        "estimatedAnnualPremium": 400
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Your 25% NCB is worth ₹1,533 annually. Protecting it for ~₹600 lets you make one claim without losing years of discount rebuilding.",
+        "estimatedAnnualPremium": 600
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "11-year-old vehicles need frequent consumables (oil, coolant, AC gas, nuts/bolts). Without this, you lose ₹8,000-₹15,000 per claim to deductions.",
+        "estimatedAnnualPremium": 1200
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Audi smart keys cost ₹15,000-₹25,000 to replace. This ₹500 add-on pays for itself in one incident—highly recommended for premium vehicles.",
+        "estimatedAnnualPremium": 500
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Useful if you regularly carry laptops, cameras, or valuables in your Audi. For typical family use, this is a nice-to-have, not essential.",
+        "estimatedAnnualPremium": 300
+      }
+    ]
+  },
+  {
+    "id": "1972dd29-5af0-4c4c-aad7-3dbba163ee55",
+    "parsedPolicyId": "2c97d940-bc23-4aa3-9053-988a6ed73401",
+    "generatedAt": "2026-05-11T16:36:39.478Z",
+    "atAGlance": {
+      "policyPeriodLabel": "18 May 2025 – 17 May 2026",
+      "vehicleLabel": "Audi A6 35 TFSI Premium Petrol (2015)",
+      "idv": 1332620,
+      "ncbPercent": 25,
+      "policyTypeLabel": "Comprehensive Package"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your premium sedan.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "25% No Claim Bonus",
+          "description": "Strong discount earned through claim-free driving, saving you ₹1,533 on OD premium.",
+          "iconHint": "badge"
+        },
+        {
+          "title": "Personal Accident Cover",
+          "description": "Owner-driver PA plus ₹1 lakh coverage for unnamed passengers included.",
+          "iconHint": "pa"
+        },
+        {
+          "title": "Paid Driver Legal Liability",
+          "description": "Legal liability cover for your employed driver is in place.",
+          "iconHint": "check"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "Zero Depreciation Cover Missing",
+          "description": "For your 11-year-old Audi, depreciation deductions (50%+ on parts) will significantly reduce claim payouts—a bumper replacement could cost you ₹25,000-₹40,000 out-of-pocket.",
+          "iconHint": "zerodep"
+        },
+        {
+          "title": "Engine Protector Not Included",
+          "description": "Delhi's monsoon flooding and waterlogged underpasses put your engine at risk—hydrostatic lock repairs can exceed ₹1.5 lakh for premium vehicles.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "Consumables Cover Absent",
+          "description": "Engine oil, nuts, bolts, coolant, and AC gas are excluded from claims—these add ₹8,000-₹15,000 to every major repair on a luxury sedan.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "No NCB Protection",
+          "description": "One claim wipes out your hard-earned 25% NCB (₹1,533 annual saving)—protecting it costs far less than losing it.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Roadside Assistance Missing",
+          "description": "Battery failures, flat tyres, or breakdowns on Delhi-NCR highways leave you stranded—RSA provides 24/7 towing and on-spot repairs.",
+          "iconHint": "rsa"
+        },
+        {
+          "title": "Key Replacement Cover Not Added",
+          "description": "Audi smart keys cost ₹15,000-₹25,000 to replace—this cover pays for itself if you lose keys even once.",
+          "iconHint": "key"
+        },
+        {
+          "title": "Return to Invoice Gap",
+          "description": "In a total loss, you'll receive only the IDV (₹13.3 lakh), not the original invoice value—RTI bridges this depreciation gap for premium vehicles.",
+          "iconHint": "rti"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 1332620,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "Verify IDV against current resale value for 2015 Audi A6 35 TFSI in Delhi market.",
+        "Consider a slightly higher IDV (₹13.5-14 lakh range) if your vehicle is well-maintained with low mileage—better protection in total loss scenarios.",
+        "Review service records and any aftermarket additions (alloys, infotainment upgrades) that may justify higher valuation."
+      ],
+      "tip": "Check resale listings on Cars24, Spinny, or CarDekho for 2015 Audi A6 models in Delhi-NCR to benchmark your IDV."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network in Delhi-NCR",
+          "description": "Ensure strong cashless garage presence in South Delhi, Gurgaon, Noida, and Faridabad—Audi-authorised or premium multi-brand workshops are critical for luxury vehicle repairs.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Prioritise Claim Settlement Quality",
+          "description": "For a premium vehicle, insurer responsiveness and fair assessments matter more than saving ₹2,000-3,000 on premium—check claim settlement ratio and customer reviews.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Protect Your 25% NCB",
+          "description": "Avoid claims under ₹15,000-₹20,000—self-pay minor scratches or dents to preserve your NCB, which saves you ₹1,533 annually and grows to 35% next year.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Add Strategic Coverage, Not Everything",
+          "description": "Focus on high-impact add-ons for your 11-year-old luxury sedan—Engine Protect, Consumables, NCB Protection, and Key Replacement deliver real value.",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Use Insurance for Major Events Only",
+          "description": "Reserve claims for accidents, theft, flood damage, or repairs exceeding ₹25,000—small claims erode NCB and future insurability.",
+          "iconHint": "wisely"
+        },
+        {
+          "title": "Review Add-Ons Annually",
+          "description": "As your Audi ages, some covers become less relevant (RTI) while others gain importance (Consumables, Engine Protect)—adjust your bundle each renewal.",
+          "iconHint": "deductible"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 15480,
+      "recommendedRangeMin": 18500,
+      "recommendedRangeMax": 22000,
+      "hasPremiumSavings": false,
+      "estimatedSavings": null,
+      "narrative": "Your current bare-bones policy leaves you exposed to ₹40,000-₹80,000 in out-of-pocket costs during claims due to depreciation, consumables exclusions, and engine damage gaps. Adding essential covers (Engine Protect, Consumables, NCB Protection, Key Replacement) increases premium by ₹3,000-6,500 but delivers right-sized protection—preventing claim-time losses that dwarf the premium difference.",
+      "claimTimeExample": "If your Audi's engine suffers hydrostatic lock during Delhi monsoon flooding (common in Minto Road, ITO, or Dhaula Kuan underpasses), Engine Protector could save you ₹1.2-1.8 lakh in repair costs—recovering 20+ years of the add-on premium in a single claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Your current insurer with proven track record on your policy; strong Delhi-NCR garage network and premium vehicle claim handling."
+        },
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent cashless garage network across Delhi-NCR including Audi-authorised centres; efficient digital claims and strong customer support."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Robust presence in luxury vehicle segment; competitive pricing on add-ons for older premium cars; good claim settlement ratio."
+        },
+        {
+          "name": "Tata AIG",
+          "reasoning": "Strong focus on premium vehicles; transparent claim processes; extensive network in South Delhi and Gurgaon."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Modern digital-first approach with quick claim approvals; competitive bundled pricing; growing garage network in Delhi-NCR."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong garage network with Audi-authorised or premium multi-brand workshops in Delhi-NCR",
+        "Efficient claim settlement with fair assessments for luxury vehicles",
+        "Stable pricing and transparent add-on bundling",
+        "Good local support and customer service responsiveness in your area"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your 11-year-old Audi A6 needs strategic, not minimal, coverage.",
+      "body": "Your current policy covers the basics but leaves you exposed to ₹40,000-₹80,000 in claim-time losses due to depreciation, consumables exclusions, and engine damage gaps. Adding 4-5 targeted add-ons increases premium by ₹3,000-6,500 but transforms your policy from bare-bones to comprehensive protection—preventing out-of-pocket shocks when you need insurance most.",
+      "cta": "Get the Best Curated Offer"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "For an 11-year-old vehicle, Zero Dep is costly and offers diminishing returns—but still valuable if you want maximum claim payouts on your premium sedan.",
+        "estimatedAnnualPremium": 20000
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for Delhi's monsoon flooding and waterlogged underpasses—hydrostatic lock repairs exceed ₹1.5 lakh for Audi engines.",
+        "estimatedAnnualPremium": 2500
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "For an 11-year-old vehicle, the gap between invoice value and IDV is minimal—this cover is no longer cost-effective.",
+        "estimatedAnnualPremium": 13300
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Universal utility for breakdowns, flat tyres, or battery failures on Delhi-NCR highways—low cost, high peace of mind.",
+        "estimatedAnnualPremium": 300
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Protects your 25% NCB (₹1,533 annual saving) from being wiped out by a single claim—costs far less than losing it.",
+        "estimatedAnnualPremium": 600
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Engine oil, coolant, AC gas, nuts, and bolts add ₹8,000-₹15,000 to every major repair on your luxury sedan—this cover pays for itself quickly.",
+        "estimatedAnnualPremium": 1200
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Audi smart keys cost ₹15,000-₹25,000 to replace—this cover pays for itself if you lose keys even once.",
+        "estimatedAnnualPremium": 800
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Useful if you regularly carry laptops, cameras, or valuables in your Audi—covers theft of personal items from the vehicle.",
+        "estimatedAnnualPremium": 400
+      }
+    ]
+  },
+  {
+    "id": "432b7a64-747a-4569-8e77-4945192dc69a",
+    "parsedPolicyId": "7447e35c-83fd-43da-b02b-895e10e14c8b",
+    "generatedAt": "2026-05-11T17:02:24.090Z",
+    "atAGlance": {
+      "policyPeriodLabel": "18 May 2025 – 17 May 2026",
+      "vehicleLabel": "Audi A6 35 TFSI Premium Petrol (2015)",
+      "idv": 1332620,
+      "ncbPercent": 25,
+      "policyTypeLabel": "Comprehensive Package"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your premium sedan.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "25% No Claim Bonus",
+          "description": "Strong discount earned through claim-free driving, saving you ₹1,533 on OD premium.",
+          "iconHint": "badge"
+        },
+        {
+          "title": "Personal Accident Cover",
+          "description": "₹1,00,000 PA cover for owner-driver included.",
+          "iconHint": "pa"
+        },
+        {
+          "title": "No Voluntary Deductible",
+          "description": "Zero out-of-pocket deductible on claims, ensuring full claim settlement without upfront costs.",
+          "iconHint": "deductible"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "Zero Depreciation Cover Not Available",
+          "description": "For your 11-year-old Audi, parts depreciation (40-50%) will significantly reduce claim payouts on expensive German components.",
+          "iconHint": "zerodep"
+        },
+        {
+          "title": "Engine Protector Missing",
+          "description": "Delhi's monsoon flooding and waterlogged underpasses pose hydrostatic lock risk to your 2.0L TFSI engine—repairs can exceed ₹2,00,000.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "Consumables Cover Absent",
+          "description": "Engine oil, coolant, nuts, bolts, and filters are excluded from claims—critical for an aging premium vehicle with higher maintenance needs.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "NCB Protection Not Included",
+          "description": "One claim will drop your 25% NCB to 0%, costing you ₹1,533 extra annually—protect your hard-earned discount.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Roadside Assistance Missing",
+          "description": "Essential for a 11-year-old luxury sedan prone to breakdowns—towing, flat battery, fuel delivery coverage absent.",
+          "iconHint": "rsa"
+        },
+        {
+          "title": "Key Replacement Cover Not Present",
+          "description": "Audi smart keys cost ₹15,000-₹25,000 to replace—this add-on would cover loss or damage.",
+          "iconHint": "key"
+        },
+        {
+          "title": "Return to Invoice Unnecessary",
+          "description": "Currently included but offers minimal value for an 11-year-old vehicle where IDV (₹13,32,620) is already close to depreciated invoice value—dropping this could save premium.",
+          "iconHint": "rti"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 1332620,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "Verify IDV against current resale value for 2015 Audi A6 35 TFSI Premium in Delhi market.",
+        "Check platforms like Cars24, Spinny, or authorized Audi dealer quotes to confirm ₹13-14 lakh range is accurate.",
+        "Consider a slightly higher IDV (₹13,80,000-₹14,00,000) if market value supports it—protects you better in total loss scenarios."
+      ],
+      "tip": "For a premium German sedan, accurate IDV is critical—underpaying by ₹50,000 saves ₹500-700 in premium but costs you ₹50,000 in a total loss claim."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network in Delhi-NCR",
+          "description": "Ensure strong presence in South Delhi, Gurgaon, Noida with authorized Audi service centers and quality multi-brand garages for cashless claims.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Preserve Your 25% NCB",
+          "description": "Avoid claims under ₹12,000-₹15,000—self-pay minor repairs like bumper scratches or headlight replacement to protect your discount.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Prioritize Claim Settlement Quality",
+          "description": "For a luxury vehicle, insurer's claim settlement ratio and cashless network quality matter more than ₹2,000-₹3,000 premium difference.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Add Only Relevant Covers",
+          "description": "Focus on Engine Protect, Consumables, NCB Protection, and RSA—skip Return to Invoice and excessive add-ons that don't fit your 11-year-old vehicle profile.",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Use Insurance for Major Events",
+          "description": "Reserve claims for accidents, theft, flood damage, or repairs exceeding ₹20,000—this maximizes value and preserves NCB.",
+          "iconHint": "wisely"
+        },
+        {
+          "title": "Review IDV Annually",
+          "description": "As your Audi ages, IDV drops 10-15% yearly—ensure it still reflects fair market value to avoid under-insurance.",
+          "iconHint": "shield-check"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 15480,
+      "recommendedRangeMin": 18500,
+      "recommendedRangeMax": 22000,
+      "hasPremiumSavings": false,
+      "estimatedSavings": null,
+      "narrative": "Your current premium of ₹15,480 is lean but leaves critical gaps for an 11-year-old luxury sedan. A well-structured policy with Engine Protector, Consumables, NCB Protection, and Roadside Assistance would cost ₹18,500-₹22,000—a ₹3,000-₹6,500 increase that delivers significantly better claim-time protection. This is the right cover at the right price for your Audi's profile.",
+      "claimTimeExample": "If your engine suffers hydrostatic lock during Delhi monsoons (a common risk in waterlogged areas like Minto Road or ITO), Engine Protector could save you ₹1,50,000-₹2,50,000 in repair costs—recovering 5-7 years of the premium difference in a single claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Your current insurer with proven track record, strong Delhi-NCR garage network including Audi authorized centers, and efficient digital claim process."
+        },
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent cashless network in Delhi-NCR, high claim settlement ratio (97%+), and strong support for premium vehicles with quick approvals."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Wide garage network across Delhi, Gurgaon, Noida with competitive pricing for older luxury vehicles and reliable claim settlement."
+        },
+        {
+          "name": "Tata AIG",
+          "reasoning": "Strong focus on premium vehicle segment, good local support in South Delhi, and flexible add-on bundling for older cars."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Fast digital claims, transparent pricing, and growing network in Delhi-NCR with focus on customer experience and quick settlements."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong garage network in Delhi-NCR with Audi authorized centers",
+        "High claim settlement ratio (95%+) and efficient processing",
+        "Experience handling premium/luxury vehicle claims",
+        "Competitive pricing with relevant add-on flexibility",
+        "Good local support and digital claim convenience"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your 11-year-old Audi A6 needs strategic coverage, not just basic protection.",
+      "body": "You've maintained a strong 25% NCB and comprehensive cover, but critical gaps—Engine Protector, Consumables, NCB Protection, and Roadside Assistance—leave you exposed to high out-of-pocket costs on expensive German components. A ₹3,000-₹6,500 premium increase delivers claim-time savings of ₹50,000-₹2,00,000 in common scenarios like engine damage, parts replacement, or breakdowns.",
+      "cta": "Get the Best Curated Offer"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "Limited benefit for an 11-year-old vehicle where parts depreciation is already 40-50%—high cost with diminishing returns compared to newer cars.",
+        "estimatedAnnualPremium": 20000
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for Delhi's monsoon flooding and waterlogged underpasses—protects your 2.0L TFSI engine from hydrostatic lock repairs exceeding ₹2,00,000.",
+        "estimatedAnnualPremium": 2200
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "Minimal value for an 11-year-old Audi where IDV (₹13,32,620) is already close to depreciated invoice value—dropping this saves ₹1,500-₹2,000 annually.",
+        "estimatedAnnualPremium": 13326
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Essential for an 11-year-old luxury sedan prone to breakdowns—covers towing, flat battery, fuel delivery, and emergency repairs across Delhi-NCR.",
+        "estimatedAnnualPremium": 500
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Protects your hard-earned 25% NCB (₹1,533 annual savings)—one claim without this drops you to 0% NCB, costing you for years.",
+        "estimatedAnnualPremium": 750
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for an 11-year-old Audi with higher maintenance needs—covers engine oil, coolant, nuts, bolts, filters excluded from standard claims.",
+        "estimatedAnnualPremium": 1200
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Audi smart keys cost ₹15,000-₹25,000 to replace—this add-on covers loss or damage, useful but not critical for all owners.",
+        "estimatedAnnualPremium": 600
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": true,
+        "recommendation": "drop",
+        "reasoning": "Currently included at ₹50 but offers minimal value (low claim frequency, capped payouts)—dropping this saves a small amount with negligible impact.",
+        "estimatedAnnualPremium": 50
+      }
+    ]
+  },
+  {
+    "id": "4d556866-b016-4c61-98d4-0262be9aa315",
+    "parsedPolicyId": "d959ef1e-fb03-4bcd-a6f6-7c9267b15274",
+    "generatedAt": "2026-05-11T17:14:37.595Z",
+    "atAGlance": {
+      "policyPeriodLabel": "18 May 2025 – 17 May 2026",
+      "vehicleLabel": "Audi A6 35 TFSI Premium Petrol (2015)",
+      "idv": 1332620,
+      "ncbPercent": 25,
+      "policyTypeLabel": "Comprehensive Package"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your premium sedan.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "25% No Claim Bonus",
+          "description": "Strong discount earned through claim-free driving, saving you ₹1,533 on OD premium.",
+          "iconHint": "badge"
+        },
+        {
+          "title": "Personal Accident Cover",
+          "description": "Owner-driver PA plus unnamed passenger cover (₹1,00,000) included.",
+          "iconHint": "pa"
+        },
+        {
+          "title": "Paid Driver Legal Liability",
+          "description": "LL cover for paid driver protects you from third-party claims involving your chauffeur.",
+          "iconHint": "check"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "Zero Depreciation Cover Missing",
+          "description": "For your 11-year-old Audi, depreciation deductions (50%+ on parts) drastically reduce claim payouts—critical gap for a premium vehicle with expensive parts.",
+          "iconHint": "zerodep"
+        },
+        {
+          "title": "Engine Protector Absent",
+          "description": "Delhi's monsoon flooding and waterlogging make engine damage a real risk—repair costs for Audi engines can exceed ₹2,00,000.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "No NCB Protection",
+          "description": "One claim wipes out your hard-earned 25% NCB (worth ₹1,533 annually)—NCB Protection preserves this for just one claim per year.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Consumables Not Covered",
+          "description": "Oil, nuts, bolts, filters, AC gas are deducted from claims—adds ₹5,000-₹15,000 out-of-pocket on typical repairs for aging luxury cars.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "Roadside Assistance Missing",
+          "description": "No towing, flat tyre, or battery jumpstart support—essential for an 11-year-old vehicle prone to breakdowns.",
+          "iconHint": "rsa"
+        },
+        {
+          "title": "Key Replacement Not Included",
+          "description": "Audi smart keys cost ₹15,000-₹25,000 to replace—this cover would save significant expense if keys are lost or stolen.",
+          "iconHint": "key"
+        },
+        {
+          "title": "Return to Invoice Gap",
+          "description": "Total loss/theft pays only IDV (₹13,32,620), not original invoice—limited relevance for 11-year-old vehicle but worth considering if you financed recently.",
+          "iconHint": "rti"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 1332620,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "Verify IDV against current resale value for 2015 Audi A6 35 TFSI on platforms like Cars24, Spinny, or OLX.",
+        "Consider a slightly higher IDV (within 10% band) if your vehicle is well-maintained with low mileage—protects better in total loss.",
+        "Avoid under-insuring to save premium—₹13.3L is reasonable for an 11-year-old premium sedan in good condition."
+      ],
+      "tip": "Check dealer trade-in quotes or certified pre-owned listings in Delhi NCR to confirm your A6's market value aligns with this IDV."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network in Delhi NCR",
+          "description": "Ensure strong presence in South Delhi, Gurgaon, Noida, and Faridabad—Audi-authorised or premium multi-brand garages are critical for your vehicle.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Preserve Your 25% NCB",
+          "description": "Avoid small claims under ₹15,000-₹20,000—self-pay minor repairs to protect your NCB and keep premiums low.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Prioritise Claim Settlement Quality",
+          "description": "For a premium vehicle, insurer responsiveness and cashless approval rates matter more than ₹2,000-₹3,000 premium difference.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Add Only Relevant Covers",
+          "description": "Focus on Engine Protect, Consumables, NCB Protection, and RSA—skip Return to Invoice (limited value for 11-year-old car).",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Use Insurance for Major Events",
+          "description": "Reserve claims for accidents, theft, flood damage, or repairs exceeding ₹25,000—small claims erode NCB and future insurability.",
+          "iconHint": "wisely"
+        },
+        {
+          "title": "Review Add-Ons Annually",
+          "description": "As your Audi ages, reassess Zero Dep and RTI relevance—shift budget toward Engine Protect and Consumables for better value.",
+          "iconHint": "deductible"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 15480,
+      "recommendedRangeMin": 18500,
+      "recommendedRangeMax": 22000,
+      "hasPremiumSavings": false,
+      "estimatedSavings": null,
+      "narrative": "Your current premium of ₹15,480 is lean but leaves critical gaps for a premium vehicle. Adding essential covers (Engine Protect, Consumables, NCB Protection, RSA) would increase premium to ₹18,500-₹22,000—a ₹3,000-₹6,500 annual investment that prevents ₹50,000-₹2,00,000 out-of-pocket expenses during claims. This is right cover at right price, not over-insurance.",
+      "claimTimeExample": "If your Audi's engine suffers hydrostatic lock during Delhi monsoon flooding (common in low-lying areas like Minto Road, ITO, or Dhaula Kuan), Engine Protector could save you ₹1,50,000-₹2,50,000 in repair costs—recovering 25-40 years of the premium difference in a single claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Your current insurer with established relationship, strong Delhi NCR garage network, and proven track record with premium vehicles."
+        },
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent claim settlement ratio (97%+), extensive Audi-authorised garage tie-ups in Delhi, and competitive pricing for luxury sedans."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Strong presence in Delhi NCR, efficient cashless approvals, and good add-on bundling for aging premium vehicles."
+        },
+        {
+          "name": "Tata AIG",
+          "reasoning": "Reliable claim processing, competitive premiums for 10+ year old luxury cars, and solid garage network in South Delhi and Gurgaon."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Tech-enabled claims, transparent pricing, and growing network of premium garages—good option for digitally savvy customers."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong garage network in Delhi NCR with Audi-authorised or premium multi-brand workshops",
+        "High claim settlement ratio (95%+) and efficient cashless approval process",
+        "Stable pricing for aging luxury vehicles with transparent add-on costs",
+        "Good local support and customer service responsiveness in your area"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your 11-year-old Audi A6 needs strategic coverage, not just basic protection.",
+      "body": "You've maintained a clean 25% NCB and comprehensive cover, but critical gaps (Engine Protect, Consumables, NCB Protection) leave you exposed to ₹50,000-₹2,00,000 out-of-pocket costs during claims. A ₹3,000-₹6,500 annual premium increase delivers exponentially better claim-time value for your premium sedan.",
+      "cta": "Get the Best Curated Offer"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Limited benefit for 11-year-old vehicle (50%+ depreciation already factored into IDV), but still valuable if you want maximum claim payouts on expensive Audi parts.",
+        "estimatedAnnualPremium": 20000
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for Delhi's monsoon waterlogging—Audi engine repairs cost ₹1,50,000-₹2,50,000, and this cover pays for itself in one flood claim.",
+        "estimatedAnnualPremium": 2200
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "Invoice vs IDV gap is minimal for 11-year-old vehicle (₹13.3L IDV likely close to original depreciated invoice)—not cost-effective.",
+        "estimatedAnnualPremium": 13300
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Universal utility for aging luxury vehicle—towing, flat tyre, battery jumpstart support for just ₹300-₹500 annually.",
+        "estimatedAnnualPremium": 400
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Preserves your 25% NCB (worth ₹1,533 annually) for one claim per year—pays for itself if you file even a single claim.",
+        "estimatedAnnualPremium": 650
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Aging Audi requires frequent consumables replacement (oil, filters, AC gas, nuts/bolts)—saves ₹5,000-₹15,000 per claim on out-of-pocket deductions.",
+        "estimatedAnnualPremium": 1200
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Audi smart keys cost ₹15,000-₹25,000 to replace—worthwhile if you've lost keys before or park in high-theft areas.",
+        "estimatedAnnualPremium": 700
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Useful if you regularly carry laptops, cameras, or valuables in your Audi—covers theft of personal items up to policy limit.",
+        "estimatedAnnualPremium": 350
+      }
+    ]
+  },
+  {
+    "id": "627ccfc0-c6a8-4039-8921-2e8677baf86d",
+    "parsedPolicyId": "dd7c729b-c794-4ee7-aa91-665cd34b55a7",
+    "generatedAt": "2026-05-11T17:27:02.135Z",
+    "atAGlance": {
+      "policyPeriodLabel": "18 May 2025 – 17 May 2026",
+      "vehicleLabel": "Audi A6 35 TFSI Premium Petrol (2015)",
+      "idv": 1332620,
+      "ncbPercent": 25,
+      "policyTypeLabel": "Comprehensive Package"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your premium sedan.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "25% No Claim Bonus",
+          "description": "Strong discount earned through claim-free driving, saving you ₹1,533 on OD premium.",
+          "iconHint": "badge"
+        },
+        {
+          "title": "Personal Accident Cover",
+          "description": "Owner-driver PA plus ₹1 lakh coverage for unnamed passengers included.",
+          "iconHint": "pa"
+        },
+        {
+          "title": "Paid Driver Legal Liability",
+          "description": "Legal liability cover for your employed driver is included.",
+          "iconHint": "check"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "Zero Depreciation Cover Missing",
+          "description": "For a 11-year-old Audi, depreciation deductions (50%+ on parts) significantly reduce claim payouts—critical for expensive German car parts.",
+          "iconHint": "zerodep"
+        },
+        {
+          "title": "Engine Protector Not Included",
+          "description": "Delhi's monsoon flooding and waterlogging risks make engine protection essential for your premium sedan—hydrostatic lock repairs can exceed ₹2 lakhs.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "Return to Invoice Cover Absent",
+          "description": "In total loss or theft, you'll receive only IDV (₹13.33 lakhs), not the original invoice value—gap coverage protects your investment.",
+          "iconHint": "rti"
+        },
+        {
+          "title": "NCB Protection Not Added",
+          "description": "One claim wipes out your hard-earned 25% NCB (₹1,533 annual saving)—protection cover preserves this for just ₹600-800/year.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Consumables Cover Missing",
+          "description": "Engine oil, nuts, bolts, coolant are deducted from claims—for an 11-year-old vehicle with higher maintenance needs, this adds up quickly.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "Roadside Assistance Not Included",
+          "description": "24x7 towing, flat tyre, battery jumpstart support is missing—essential peace of mind for a premium vehicle in Delhi-NCR traffic.",
+          "iconHint": "rsa"
+        },
+        {
+          "title": "Key Replacement Cover Absent",
+          "description": "Audi smart keys cost ₹15,000-25,000 to replace—this cover protects against loss or theft of your expensive keyless entry system.",
+          "iconHint": "key"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 1332620,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "Verify IDV matches current resale value for 2015 Audi A6 35 TFSI Premium in Delhi market.",
+        "Check platforms like Cars24, Spinny, or authorized Audi dealer quotes for 11-year-old A6 valuation.",
+        "Consider slight IDV increase (within 10%) if market value supports it—better protection in total loss scenarios."
+      ],
+      "tip": "For premium German sedans, accurate IDV is critical—underinsuring by even ₹50,000 means that shortfall comes from your pocket in a total loss claim."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network in Delhi-NCR",
+          "description": "Ensure strong authorized Audi service center coverage in Delhi, Gurgaon, Noida, and Faridabad for cashless claims.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Preserve Your 25% NCB",
+          "description": "Avoid small claims under ₹15,000—self-pay minor repairs to protect your ₹1,533 annual discount and build toward 35% NCB next year.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Prioritize Claim Settlement Quality",
+          "description": "For premium vehicles, insurer's claim settlement ratio and cashless network matter more than ₹2,000-3,000 premium difference.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Add Relevant Protection Covers",
+          "description": "Zero Dep, Engine Protect, and Consumables are essential for 11-year-old Audi—prevents large out-of-pocket expenses during claims.",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Use Insurance for Major Events",
+          "description": "Reserve claims for accidents, theft, flooding, or repairs exceeding ₹20,000—maintain your NCB progression for long-term savings.",
+          "iconHint": "wisely"
+        },
+        {
+          "title": "Review Add-Ons Annually",
+          "description": "As your Audi ages, reassess coverage needs—some add-ons become more critical, others less relevant based on vehicle condition.",
+          "iconHint": "shield-check"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 15480,
+      "recommendedRangeMin": 20500,
+      "recommendedRangeMax": 24500,
+      "hasPremiumSavings": false,
+      "estimatedSavings": null,
+      "narrative": "Your current bare-bones policy saves premium today but exposes you to significant claim-time losses. Adding essential covers (Zero Dep, Engine Protect, Consumables, RSA, NCB Protection) increases premium by ₹5,000-9,000 annually, but this investment prevents ₹50,000-2,00,000 out-of-pocket expenses in a single major claim—the right protection at the right price for your premium German sedan.",
+      "claimTimeExample": "If your Audi's engine suffers hydrostatic lock during Delhi monsoon flooding (common in areas like Minto Road, ITO, or Pul Prahladpur), Engine Protector could save you ₹1,50,000-2,50,000 in repair costs—recovering 15-25 years of the premium difference in one claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Current insurer with established relationship, strong Delhi garage network, and good premium vehicle claim experience."
+        },
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent authorized Audi service center tie-ups across Delhi-NCR, efficient cashless claim processing for luxury vehicles."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Robust claim settlement ratio (90%+), comprehensive garage network in Delhi, competitive pricing for premium sedans."
+        },
+        {
+          "name": "Tata AIG",
+          "reasoning": "Strong focus on premium vehicle segment, good customer service in Delhi metro, stable pricing year-on-year."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Digital-first approach with quick claim processing, growing authorized garage network, transparent pricing for add-ons."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong authorized Audi service center network in Delhi-NCR",
+        "High claim settlement ratio (85%+) with efficient processing",
+        "Experience handling premium German vehicle claims",
+        "Stable pricing and good local customer support in Delhi"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your 11-year-old Audi A6 needs strategic protection, not just basic coverage.",
+      "body": "You've maintained a clean 25% NCB, but critical gaps (Zero Dep, Engine Protect, Consumables) leave you exposed to large claim-time deductions on expensive German parts. Investing ₹5,000-9,000 more annually in essential add-ons prevents ₹50,000-2,00,000 out-of-pocket losses in a single major claim—smart protection for your premium sedan.",
+      "cta": "Get Your Personalised Quotes"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for 11-year-old Audi—prevents 50%+ depreciation deductions on expensive German parts during claims, saving ₹30,000-80,000 per major repair.",
+        "estimatedAnnualPremium": 6000
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Essential for Delhi's monsoon waterlogging—hydrostatic lock repairs on Audi engines exceed ₹2 lakhs, common in flood-prone areas like Minto Road and ITO.",
+        "estimatedAnnualPremium": 2200
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Optional for 11-year-old vehicle—invoice vs IDV gap is smaller now, but provides full value protection in total loss or theft scenarios.",
+        "estimatedAnnualPremium": 4000
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Essential for premium sedan in Delhi-NCR—24x7 towing, flat tyre, battery support provides peace of mind at low cost.",
+        "estimatedAnnualPremium": 400
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Essential with 25% NCB—protects your ₹1,533 annual discount from being wiped out by one claim, pays for itself in saved NCB.",
+        "estimatedAnnualPremium": 700
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Essential for 11-year-old Audi—engine oil, coolant, nuts, bolts are deducted from claims, adds up quickly with higher maintenance needs.",
+        "estimatedAnnualPremium": 1200
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Essential for Audi smart keyless entry system—replacement costs ₹15,000-25,000, cover protects against loss or theft.",
+        "estimatedAnnualPremium": 800
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Optional for premium vehicle owners who carry valuables—covers laptop, phone, bags stolen from car up to policy limit.",
+        "estimatedAnnualPremium": 400
+      }
+    ]
+  },
+  {
+    "id": "72c1d5b8-e682-42b1-a15c-ce7e4ffe4b1f",
+    "parsedPolicyId": "c00696cc-8990-4c76-8597-4fd615bde9ba",
+    "generatedAt": "2026-05-11T17:45:08.801Z",
+    "atAGlance": {
+      "policyPeriodLabel": "16 Apr 2026 – 15 Apr 2027 (OD) | 16 Apr 2026 – 15 Apr 2029 (TP)",
+      "vehicleLabel": "Hyundai Venue HX5 1.0 Turbo DCT Petrol (2026)",
+      "idv": 1050000,
+      "ncbPercent": 0,
+      "policyTypeLabel": "Bundle (1yr OD + 3yr TP)"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your brand-new Venue.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "Zero Depreciation Cover",
+          "description": "No depreciation deduction on parts during claims — critical for a new vehicle.",
+          "iconHint": "zerodep"
+        },
+        {
+          "title": "Return to Invoice",
+          "description": "Full invoice value paid in case of total loss or theft — protects your ₹10.5L+ investment.",
+          "iconHint": "rti"
+        },
+        {
+          "title": "Engine Protector",
+          "description": "Covers engine damage from water ingress — essential for Kalyan's monsoon flooding risk.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "Consumables Cover",
+          "description": "Nuts, bolts, oil, filters covered in claims — no out-of-pocket deductions.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "Key Replacement",
+          "description": "Smart key replacement covered up to ₹50,000 — important for modern keyless Venue.",
+          "iconHint": "key"
+        },
+        {
+          "title": "Roadside Assistance",
+          "description": "Emergency towing, flat tyre, battery jumpstart support included.",
+          "iconHint": "rsa"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "NCB Protection Missing",
+          "description": "You'll earn 20% NCB next year — protect it from being wiped out by a single claim.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Loss of Personal Belongings Included",
+          "description": "Currently paying ₹250 for this add-on — consider dropping it to save premium unless you regularly carry high-value items in your Venue.",
+          "iconHint": "personal-belongings"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 1050000,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "IDV of ₹10.5L is appropriate for a brand-new 2026 Venue HX5 Turbo DCT variant.",
+        "Ensure IDV is reviewed annually to reflect depreciation and market value accurately.",
+        "Return to Invoice add-on already protects you against depreciation gap in total loss scenarios."
+      ],
+      "tip": "For a new vehicle, IDV should closely match on-road price minus registration/insurance. Your ₹10.5L IDV aligns well with the Venue HX5 DCT's ex-showroom pricing."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network",
+          "description": "Ensure Magma has strong cashless garages in Kalyan, Badlapur, Ambernath, and Thane — critical for hassle-free claims on a new Hyundai.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Add NCB Protection Next Year",
+          "description": "You'll earn 20% NCB in 2027 — protect it from being lost due to a single claim. Costs ~₹500-800 annually.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Use Insurance Wisely",
+          "description": "For minor scratches or dents under ₹10,000-₹12,000, self-pay to preserve your future NCB accumulation.",
+          "iconHint": "wisely"
+        },
+        {
+          "title": "Service Quality Over Price",
+          "description": "For a premium vehicle like Venue, prioritise insurer claim settlement ratio and garage network quality over marginal premium savings.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Review Add-Ons Annually",
+          "description": "As your vehicle ages, reassess add-ons like Zero Dep and RTI — they become less cost-effective after 5 years.",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Monsoon Preparedness",
+          "description": "Kalyan and Badlapur face heavy monsoon flooding — your Engine Protector is essential. Avoid driving through deep water to prevent claims.",
+          "iconHint": "engine"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 26565,
+      "recommendedRangeMin": 25500,
+      "recommendedRangeMax": 28000,
+      "hasPremiumSavings": true,
+      "estimatedSavings": 500,
+      "narrative": "Your current premium of ₹26,565 is competitive for a brand-new Venue with comprehensive add-ons. By dropping Loss of Personal Belongings (₹250) and optimising your coverage, you could save ₹500-1,000 while maintaining excellent protection. Your policy already includes all essential add-ons for a new vehicle in a flood-prone area.",
+      "claimTimeExample": "If your Venue's engine is damaged due to waterlogging during Kalyan's monsoon season, Engine Protector could save you ₹80,000-₹1,50,000 in repair costs — recovering multiple years of premium in a single claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent garage network in Thane/Kalyan belt, strong claim settlement ratio, efficient digital claims for new vehicles."
+        },
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Premium customer service, wide cashless garage presence in Mumbai Metropolitan Region, good for new Hyundai vehicles."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Competitive pricing for new vehicles, strong local support in Badlapur/Ambernath, reliable claim processing."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Seamless digital experience, fast claim settlements, growing garage network in Thane district."
+        },
+        {
+          "name": "Tata AIG",
+          "reasoning": "Stable pricing, good customer focus, established presence in Maharashtra with strong Hyundai tie-ups."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong garage network in Kalyan, Badlapur, Ambernath, and Thane",
+        "Efficient claim settlement ratio (above 90%)",
+        "Good support for new premium vehicles like Hyundai Venue",
+        "Competitive pricing with comprehensive add-on bundles",
+        "Digital-first claims process for hassle-free experience"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your brand-new Venue has excellent coverage — smart protection for Kalyan's monsoon risks.",
+      "body": "You've made strong choices with Zero Dep, RTI, Engine Protector, and Consumables for your new Hyundai Venue. Consider dropping Loss of Personal Belongings to save ₹250, and add NCB Protection from next year onwards to safeguard your growing discount. Your ₹26,565 premium is competitive for this level of comprehensive protection.",
+      "cta": "Get the Best Curated Offer"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Critical for a brand-new 2026 Venue — ensures full part replacement value without depreciation deductions during claims.",
+        "estimatedAnnualPremium": 2310
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Essential for Kalyan/Badlapur area which faces severe monsoon waterlogging — protects against costly engine damage from hydrostatic lock.",
+        "estimatedAnnualPremium": 2100
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Critical for new vehicles — covers the depreciation gap and ensures you receive full invoice value (₹10.5L+) in case of total loss or theft.",
+        "estimatedAnnualPremium": 2625
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Universal utility for emergency towing, flat tyre, battery support — extremely low cost (₹51) for high peace-of-mind value.",
+        "estimatedAnnualPremium": 51
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Not applicable in first year (0% NCB), but essential from 2027 onwards when you earn 20% NCB — protects your hard-earned discount.",
+        "estimatedAnnualPremium": 600
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": true,
+        "recommendation": "essential",
+        "reasoning": "Valuable for new vehicles to avoid out-of-pocket costs for oil, nuts, bolts, filters during repairs — ensures zero deductions.",
+        "estimatedAnnualPremium": 1050
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": true,
+        "recommendation": "optional",
+        "reasoning": "Useful for Venue's smart keyless entry system (replacement costs ₹15,000-₹25,000), but consider dropping after 3-4 years to save premium.",
+        "estimatedAnnualPremium": 499
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": true,
+        "recommendation": "drop",
+        "reasoning": "Currently paying ₹250 — drop this to save premium unless you regularly carry high-value laptops, jewellery, or electronics in your Venue.",
+        "estimatedAnnualPremium": 250
+      }
+    ]
+  },
+  {
+    "id": "620c10c2-0b8e-4486-8c41-9ffc9bdcad1b",
+    "parsedPolicyId": "8f6411b2-908f-41d8-9c48-bc784d58f2ac",
+    "generatedAt": "2026-05-11T18:28:18.547Z",
+    "atAGlance": {
+      "policyPeriodLabel": "18 May 2025 – 17 May 2026",
+      "vehicleLabel": "Audi A6 35 TFSI Premium Petrol (2015)",
+      "idv": 1332620,
+      "ncbPercent": 25,
+      "policyTypeLabel": "Comprehensive Package"
+    },
+    "whatCoversWell": {
+      "items": [
+        {
+          "title": "Comprehensive Cover",
+          "description": "Full Own Damage + Third Party Liability protection for your premium sedan.",
+          "iconHint": "shield"
+        },
+        {
+          "title": "25% No Claim Bonus",
+          "description": "Strong discount earned through claim-free driving, saving you ₹1,533 on OD premium.",
+          "iconHint": "badge"
+        },
+        {
+          "title": "Personal Accident Cover",
+          "description": "Owner-driver PA plus coverage for unnamed passengers (₹1,00,000 each).",
+          "iconHint": "pa"
+        },
+        {
+          "title": "Paid Driver Legal Liability",
+          "description": "Legal liability coverage for your employed driver included.",
+          "iconHint": "check"
+        }
+      ]
+    },
+    "keyGaps": {
+      "items": [
+        {
+          "title": "Zero Depreciation Cover Missing",
+          "description": "For your 11-year-old Audi, parts depreciation (30-50%) significantly reduces claim payouts. Audi parts are expensive—this gap could cost you ₹50,000-₹1,50,000 in a major accident.",
+          "iconHint": "zerodep"
+        },
+        {
+          "title": "Engine Protector Not Included",
+          "description": "Delhi's monsoon flooding and waterlogging risks are real. Engine damage from water ingress can cost ₹2,00,000-₹5,00,000 on an Audi—not covered without this add-on.",
+          "iconHint": "engine"
+        },
+        {
+          "title": "NCB Protection Absent",
+          "description": "One claim wipes out your hard-earned 25% NCB (worth ₹1,533 annually). Protecting it costs ~₹800 but saves you thousands over renewal cycles.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Consumables Cover Missing",
+          "description": "Oil, nuts, bolts, coolant, AC gas—all deducted from claims. For an 11-year-old luxury car with frequent service needs, this adds ₹5,000-₹15,000 out-of-pocket per claim.",
+          "iconHint": "consumables"
+        },
+        {
+          "title": "Roadside Assistance Not Covered",
+          "description": "Battery jumpstart, flat tyre, towing—essential for a premium sedan. Costs ~₹300 annually but saves ₹2,000-₹5,000 per breakdown incident.",
+          "iconHint": "rsa"
+        },
+        {
+          "title": "Key Replacement Cover Unavailable",
+          "description": "Audi smart keys cost ₹15,000-₹25,000 to replace. This add-on (~₹500/year) covers loss or damage.",
+          "iconHint": "key"
+        }
+      ]
+    },
+    "idvCheck": {
+      "currentIdv": 1332620,
+      "assessment": "appropriate",
+      "whatToDo": [
+        "Verify IDV against current resale value for 2015 Audi A6 35 TFSI Premium in Delhi market.",
+        "Check platforms like Cars24, Spinny, or authorized Audi dealer quotes to confirm ₹13-14 lakh range is accurate.",
+        "Consider a slightly higher IDV (₹13.5-14 lakh) if market value supports it—better total loss protection for marginal premium increase."
+      ],
+      "tip": "For an 11-year-old luxury sedan, accurate IDV is critical. Compare with 3-4 resale quotes to ensure you're neither under-insured nor overpaying premium."
+    },
+    "renewalTips": {
+      "items": [
+        {
+          "title": "Check Garage Network in Pune & Delhi",
+          "description": "Ensure strong authorized Audi service centre coverage in Pune (Magarpatta area), Delhi (vehicle RTO), and NCR. Premium cars need quality repairs.",
+          "iconHint": "garage"
+        },
+        {
+          "title": "Preserve Your 25% NCB",
+          "description": "Avoid small claims under ₹15,000-₹20,000. Self-pay minor repairs to protect your NCB—one claim resets it to 0%, costing you ₹1,533+ annually.",
+          "iconHint": "ncb"
+        },
+        {
+          "title": "Prioritize Claim Settlement Quality",
+          "description": "For an Audi, cashless network quality and settlement speed matter more than saving ₹2,000-₹3,000 on premium. Choose insurers with strong luxury car expertise.",
+          "iconHint": "service"
+        },
+        {
+          "title": "Add Essential Coverage, Not Everything",
+          "description": "Focus on Engine Protect, Zero Dep (if available), NCB Protection, and Consumables. Skip unnecessary add-ons like Loss of Personal Belongings.",
+          "iconHint": "shield-check"
+        },
+        {
+          "title": "Use Insurance for Major Events Only",
+          "description": "Reserve claims for accidents, theft, flood, or repairs exceeding ₹25,000. Self-insure minor scratches and dents to keep NCB intact.",
+          "iconHint": "wisely"
+        },
+        {
+          "title": "Review Add-Ons Annually",
+          "description": "As your Audi ages, reassess which add-ons deliver value. Zero Dep becomes less cost-effective after 10 years, but Engine Protect and Consumables gain importance.",
+          "iconHint": "deductible"
+        }
+      ]
+    },
+    "pricingSnapshot": {
+      "currentPremium": 15480,
+      "recommendedRangeMin": 18500,
+      "recommendedRangeMax": 22000,
+      "hasPremiumSavings": false,
+      "estimatedSavings": null,
+      "narrative": "Your current premium of ₹15,480 is lean but leaves critical gaps. A well-rounded policy with Engine Protect, NCB Protection, Consumables, and Roadside Assistance would cost ₹18,500-₹22,000—a ₹3,000-₹6,500 increase. This isn't overpaying; it's right-sizing coverage to avoid ₹50,000-₹2,00,000+ out-of-pocket expenses during claims. For an 11-year-old Audi, the small premium bump delivers disproportionate claim-time protection.",
+      "claimTimeExample": "If your engine suffers hydrostatic lock during Delhi's monsoon flooding (common in low-lying areas), Engine Protector could save you ₹2,00,000-₹5,00,000 in repair costs—recovering 30-80 years of the ₹2,500 add-on premium in a single claim."
+    },
+    "idealInsurerProfile": {
+      "recommendedInsurers": [
+        {
+          "name": "HDFC Ergo",
+          "reasoning": "Your current insurer with continuity benefits, strong luxury car network, and proven claim experience with your vehicle."
+        },
+        {
+          "name": "ICICI Lombard",
+          "reasoning": "Excellent cashless garage network for Audi in Delhi and Pune, efficient claim settlement, competitive pricing for premium vehicles."
+        },
+        {
+          "name": "Bajaj Allianz",
+          "reasoning": "Strong presence in both Delhi and Pune, good add-on flexibility, reliable service for luxury sedans."
+        },
+        {
+          "name": "Tata AIG",
+          "reasoning": "Quality claim settlement reputation, decent authorized Audi service centre tie-ups, stable pricing."
+        },
+        {
+          "name": "Digit Insurance",
+          "reasoning": "Modern digital experience, transparent pricing, growing luxury car network, good customer support."
+        }
+      ],
+      "selectionCriteria": [
+        "Strong authorized Audi service centre network in Pune and Delhi NCR",
+        "Efficient claim settlement with luxury car expertise",
+        "Competitive pricing with flexible add-on options",
+        "Good local support and customer service in Maharashtra and Delhi"
+      ]
+    },
+    "keyTakeaway": {
+      "headline": "Your 11-year-old Audi A6 needs strategic, not minimal, coverage.",
+      "body": "Your current policy covers the basics but leaves you exposed to ₹50,000-₹5,00,000 in claim-time gaps. Adding Engine Protect, NCB Protection, Consumables, and Roadside Assistance for ₹3,000-₹6,500 more transforms your policy from bare-bones to battle-ready—critical for an aging luxury sedan in Delhi/Pune conditions. Smart coverage today prevents massive out-of-pocket costs tomorrow.",
+      "cta": "Get the Best Curated Offer"
+    },
+    "addOnRecommendations": [
+      {
+        "name": "Zero Depreciation",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Limited benefit for an 11-year-old vehicle (30-50% depreciation already baked in), but Audi parts are expensive—could still save ₹30,000-₹80,000 in a major accident if available and reasonably priced.",
+        "estimatedAnnualPremium": 20000
+      },
+      {
+        "name": "Engine Protector",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for Delhi's monsoon flooding and waterlogging risks—engine damage on an Audi costs ₹2,00,000-₹5,00,000, far exceeding years of premium.",
+        "estimatedAnnualPremium": 2500
+      },
+      {
+        "name": "Return to Invoice",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "Not relevant for an 11-year-old vehicle—invoice value vs IDV gap is minimal (₹13.3 lakh vs original ~₹45 lakh), making this add-on poor value.",
+        "estimatedAnnualPremium": 13300
+      },
+      {
+        "name": "Roadside Assistance",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Universal utility for any vehicle—battery, tyre, towing emergencies cost ₹2,000-₹5,000 each; this add-on costs ~₹300 annually.",
+        "estimatedAnnualPremium": 300
+      },
+      {
+        "name": "NCB Protection",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Your 25% NCB is worth ₹1,533 annually—one claim wipes it out. Protecting it for ~₹800 preserves thousands in future savings.",
+        "estimatedAnnualPremium": 800
+      },
+      {
+        "name": "Consumables",
+        "isInCurrentPolicy": false,
+        "recommendation": "essential",
+        "reasoning": "Critical for an 11-year-old luxury car—oil, coolant, AC gas, nuts/bolts add ₹5,000-₹15,000 out-of-pocket per claim without this cover.",
+        "estimatedAnnualPremium": 1200
+      },
+      {
+        "name": "Key Replacement",
+        "isInCurrentPolicy": false,
+        "recommendation": "optional",
+        "reasoning": "Audi smart keys cost ₹15,000-₹25,000 to replace—this ₹500 add-on is good insurance if you're prone to losing keys.",
+        "estimatedAnnualPremium": 500
+      },
+      {
+        "name": "Loss of Personal Belongings",
+        "isInCurrentPolicy": false,
+        "recommendation": "drop",
+        "reasoning": "Low utility for most customers—limited coverage (₹5,000-₹10,000) doesn't justify premium for a family sedan owner.",
+        "estimatedAnnualPremium": 250
+      }
+    ]
+  }
+]

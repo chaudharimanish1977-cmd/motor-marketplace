@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* When SimplifyToggle is on, hide detail-level prose marked with .report-detail */
+  body.report-simplified .report-detail {
+    display: none;
+  }
+}
+
+@layer utilities {
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  /* Road dashes scrolling right-to-left (car appears to drive forward) */
+  @keyframes road-scroll {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -50; }
+  }
+  .animate-road-scroll {
+    animation: road-scroll 0.5s linear infinite;
+  }
+
+  /* Wheel rotation */
+  @keyframes wheel-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-wheel-spin {
+    animation: wheel-spin 0.3s linear infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* Car body subtle bounce (suggests road undulation) */
+  @keyframes car-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-1.5px); }
+  }
+  .animate-car-bounce {
+    animation: car-bounce 0.55s ease-in-out infinite;
+  }
+
+  /* Speed lines streaming backward from the car */
+  @keyframes speed-stream {
+    0% { transform: translateX(0); opacity: 0.85; }
+    100% { transform: translateX(-70px); opacity: 0; }
+  }
+  .animate-speed-1 { animation: speed-stream 0.6s linear infinite; }
+  .animate-speed-2 { animation: speed-stream 0.7s linear infinite -0.2s; }
+  .animate-speed-3 { animation: speed-stream 0.55s linear infinite -0.4s; }
+  .animate-speed-4 { animation: speed-stream 0.8s linear infinite -0.1s; }
+  .animate-speed-5 { animation: speed-stream 0.65s linear infinite -0.3s; }
+
+  /* Parallax scenery scrolling — slower than road dashes for depth */
+  @keyframes scenery-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-400px); }
+  }
+  .animate-scenery-scroll {
+    animation: scenery-scroll 9s linear infinite;
+  }
+  /* Near-ground scenery (trees, lampposts) — faster, closer to viewer */
+  @keyframes scenery-near-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-400px); }
+  }
+  .animate-scenery-near-scroll {
+    animation: scenery-near-scroll 4s linear infinite;
+  }
+
+  /* New-row slide-in for the live bid feed */
+  @keyframes bid-slide-in {
+    from { transform: translateY(8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .animate-in-bid {
+    animation: bid-slide-in 0.35s ease-out both;
+  }
+
+  /* Typewriter caret pulse */
+  @keyframes caret-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  .animate-caret { animation: caret-blink 0.9s steps(1) infinite; }
+
+  /* Confetti fall animation */
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(115vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* Coin-pop micro-animation (used near "Save ₹X" badges) */
+  @keyframes coin-pop {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    50% { transform: scale(1.2) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .animate-coin-pop {
+    animation: coin-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
