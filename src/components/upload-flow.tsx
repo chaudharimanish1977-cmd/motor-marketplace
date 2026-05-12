@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, Shield } from "lucide-react";
 import { UploadDropzone } from "@/components/upload-dropzone";
 
 interface Props {
@@ -10,25 +8,19 @@ interface Props {
 }
 
 /**
- * Top-level upload flow. Owns the visual context (heading, privacy callout,
- * back link) so it can hide them once the dropzone enters loading state —
- * during parsing the user shouldn't see the "Upload your current policy"
- * prompt next to the loader; that's redundant noise.
+ * Top-level upload flow. Owns the heading + privacy footer so they can be
+ * hidden once the dropzone enters loading state — during parsing the user
+ * shouldn't see "Upload your current policy" next to the loader.
+ *
+ * The Back button now lives inside the upload card itself (rendered by
+ * UploadDropzone) so the page header is compact and the visible card is
+ * the single thing the eye lands on.
  */
 export function UploadFlow({ isDemo }: Props) {
   const [busy, setBusy] = useState(false);
 
   return (
     <main className="min-h-screen px-4 py-8 max-w-2xl mx-auto">
-      {/* Back link is always shown — escape hatch */}
-      <Link
-        href={isDemo ? "/investor" : "/"}
-        className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-navy mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back
-      </Link>
-
       {/* Heading + subtitle — hidden once parsing begins */}
       {!busy && (
         <div className="space-y-2 mb-6">
@@ -46,17 +38,11 @@ export function UploadFlow({ isDemo }: Props) {
         </div>
       )}
 
-      <UploadDropzone demoMode={isDemo} onBusyChange={setBusy} />
-
-      {/* Privacy footer — only meaningful when the user is still picking a file */}
-      {!busy && (
-        <div className="mt-6 flex items-center gap-2 text-xs text-brand-slate">
-          <Shield className="w-4 h-4 text-brand-slate" />
-          <span>
-            Private. Used only to generate your review and renewal reminders.
-          </span>
-        </div>
-      )}
+      <UploadDropzone
+        demoMode={isDemo}
+        onBusyChange={setBusy}
+        backHref={isDemo ? "/investor" : "/"}
+      />
     </main>
   );
 }

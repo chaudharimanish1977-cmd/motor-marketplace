@@ -79,22 +79,31 @@ export function TimeComparison({ className, intervalMs = 3500 }: Props) {
   const themeClass = THEMES[current.theme];
 
   return (
+    // Fixed-height container — reserves room for up to 2 lines of text so the
+    // layout never shifts when the next comparison happens to be longer than
+    // the previous one. Pill content vertically centres inside.
     <div
-      key={idx}
       className={clsx(
-        "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border-2 text-xs shadow-soft animate-in fade-in slide-in-from-bottom-1 duration-300",
-        themeClass,
+        "flex items-center justify-center min-h-[3.5rem] w-full",
         className
       )}
-      aria-live="polite"
     >
-      <span className="text-lg leading-none" aria-hidden>
-        {current.emoji}
-      </span>
-      <span
-        className="font-semibold"
-        dangerouslySetInnerHTML={{ __html: current.text }}
-      />
+      <div
+        key={idx}
+        className={clsx(
+          "inline-flex items-center gap-2 px-4 py-2 rounded-2xl border-2 text-xs shadow-soft animate-in fade-in slide-in-from-bottom-1 duration-300 max-w-[20rem]",
+          themeClass
+        )}
+        aria-live="polite"
+      >
+        <span className="text-lg leading-none shrink-0" aria-hidden>
+          {current.emoji}
+        </span>
+        <span
+          className="font-semibold leading-snug text-center"
+          dangerouslySetInnerHTML={{ __html: current.text }}
+        />
+      </div>
     </div>
   );
 }

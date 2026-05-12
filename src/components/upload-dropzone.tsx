@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Upload, FileText, AlertCircle } from "lucide-react";
 import clsx from "clsx";
 import { CircularJourneyLoader } from "@/components/circular-journey-loader";
 import {
@@ -29,11 +30,26 @@ interface UploadDropzoneProps {
   demoMode?: boolean;
   /** Notify parent when the dropzone enters/leaves the busy (loading) state. */
   onBusyChange?: (busy: boolean) => void;
+  /** Where the in-card Back chevron should link to. Default `/`. */
+  backHref?: string;
+}
+
+function BackChip({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      className="absolute top-3 left-3 z-10 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white border border-brand-light-gray text-brand-slate hover:text-brand-charcoal shadow-soft transition-colors print:hidden"
+      aria-label="Back"
+    >
+      <ArrowLeft className="w-4 h-4" />
+    </Link>
+  );
 }
 
 export function UploadDropzone({
   demoMode = false,
   onBusyChange,
+  backHref = "/",
 }: UploadDropzoneProps) {
   const router = useRouter();
   const [state, setState] = useState<UploadState>("idle");
@@ -144,7 +160,8 @@ export function UploadDropzone({
   if (state === "uploading" || state === "parsing" || state === "done") {
     return (
       <div className="space-y-4">
-        <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6">
+        <div className="relative rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6">
+          <BackChip href={backHref} />
           <CircularJourneyLoader
             vehicleLabel={preview?.vehicleLabel ?? undefined}
             registrationNumber={preview?.registrationNumber ?? undefined}
@@ -173,28 +190,31 @@ export function UploadDropzone({
 
   return (
     <div className="space-y-4">
-      <div
-        {...getRootProps()}
-        className={clsx(
-          "border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all bg-white",
-          isDragActive
-            ? "border-brand-deepblue bg-blue-50/40 scale-[1.01]"
-            : "border-brand-light-gray hover:border-brand-electricblue/60 hover:bg-brand-offwhite/40"
-        )}
-      >
-        <input {...getInputProps()} />
-        <Upload className="w-12 h-12 mx-auto text-brand-slate/70" />
-        <div className="mt-4 space-y-1">
-          <p className="text-lg font-semibold text-brand-charcoal">
-            Drop your policy PDF here
-          </p>
-          <p className="text-sm text-brand-slate">
-            or click to browse from your computer
-          </p>
-        </div>
-        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-brand-slate/70">
-          <FileText className="w-4 h-4" />
-          PDF only · max 10 MB
+      <div className="relative">
+        <BackChip href={backHref} />
+        <div
+          {...getRootProps()}
+          className={clsx(
+            "border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all bg-white",
+            isDragActive
+              ? "border-brand-deepblue bg-blue-50/40 scale-[1.01]"
+              : "border-brand-light-gray hover:border-brand-electricblue/60 hover:bg-brand-offwhite/40"
+          )}
+        >
+          <input {...getInputProps()} />
+          <Upload className="w-12 h-12 mx-auto text-brand-slate/70" />
+          <div className="mt-4 space-y-1">
+            <p className="text-lg font-semibold text-brand-charcoal">
+              Drop your policy PDF here
+            </p>
+            <p className="text-sm text-brand-slate">
+              or click to browse from your computer
+            </p>
+          </div>
+          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-brand-slate/70">
+            <FileText className="w-4 h-4" />
+            PDF only · max 10 MB
+          </div>
         </div>
       </div>
 
