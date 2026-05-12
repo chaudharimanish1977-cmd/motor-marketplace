@@ -126,8 +126,15 @@ export function ReportDisplay({
     parsedPolicy.vehicle.make,
     parsedPolicy.vehicle.model
   );
-  const ownerFirstName =
-    parsedPolicy.owner.name.trim().split(/\s+/)[0] ?? parsedPolicy.owner.name;
+  // Pull the first word of the owner name; fall back to a friendly default
+  // because the LLM extractor sometimes returns an empty/whitespace name when
+  // the policy PDF doesn't surface one cleanly.
+  const ownerFirstName = (() => {
+    const raw = (parsedPolicy.owner?.name ?? "").trim();
+    if (!raw) return "there";
+    const first = raw.split(/\s+/)[0];
+    return first || "there";
+  })();
 
   const vehicleAge =
     new Date().getFullYear() - parsedPolicy.vehicle.yearOfManufacture;

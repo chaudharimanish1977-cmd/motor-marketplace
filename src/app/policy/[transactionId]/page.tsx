@@ -14,8 +14,10 @@ import type {
 } from "@/lib/types";
 import { formatINR, formatDateRange } from "@/lib/format";
 
-function firstName(fullName: string): string {
-  return fullName.trim().split(/\s+/)[0] ?? fullName;
+function firstName(fullName: string | undefined | null): string {
+  const trimmed = (fullName ?? "").trim();
+  if (!trimmed) return "there";
+  return trimmed.split(/\s+/)[0] || "there";
 }
 
 interface PageProps {

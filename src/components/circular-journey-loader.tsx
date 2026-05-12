@@ -129,7 +129,62 @@ export function CircularJourneyLoader({
         )}
       </div>
 
-      {/* The driving scene */}
+      {/* HERO LIVE STATE — timer + comparison + active message + chips, ABOVE the animation */}
+      <div className="max-w-md mx-auto text-center mb-5">
+        {startedAt !== undefined && (
+          <div className="flex flex-col items-center gap-2 mb-4">
+            <ElapsedTimer
+              startedAt={startedAt}
+              size="lg"
+              className="!text-4xl text-brand-deepblue"
+            />
+            <TimeComparison />
+          </div>
+        )}
+
+        {primaryText && (
+          <div className="text-lg md:text-xl font-bold text-brand-charcoal">
+            {primaryText}
+          </div>
+        )}
+        <div
+          key={messageIdx}
+          className="text-sm text-brand-slate mt-1 min-h-[20px] animate-pulse-soft"
+        >
+          {messages[messageIdx]}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs text-brand-deepblue">
+              <span className="font-bold tabular-nums">{ageCounter}</span>
+              <span className="font-medium">
+                {ageCounter === 1 ? "year" : "years"} on Indian roads
+              </span>
+            </span>
+          )}
+          {landmarks.length > 0 && (
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs text-emerald-800">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-success animate-pulse" />
+              <span>
+                Curating for{" "}
+                <span
+                  key={landmarkIdx}
+                  className="font-bold text-emerald-900"
+                >
+                  {landmarks[landmarkIdx]}
+                </span>
+              </span>
+            </span>
+          )}
+        </div>
+
+        {etaText && (
+          <div className="text-[11px] text-brand-slate/70 mt-3">{etaText}</div>
+        )}
+      </div>
+
+      {/* The driving scene — moved BELOW the live status for visibility */}
       <div className="relative w-full rounded-2xl overflow-hidden shadow-soft bg-gradient-to-b from-sky-100 via-sky-50 to-slate-200">
         <svg
           viewBox="0 0 400 200"
@@ -219,62 +274,8 @@ export function CircularJourneyLoader({
         </svg>
       </div>
 
-      {/* Stronger hierarchy: timer is the hero, message + chips below */}
-      <div className="mt-5 max-w-md mx-auto text-center">
-        {/* HERO: large elapsed timer + comparison stacked */}
-        {startedAt !== undefined && (
-          <div className="flex flex-col items-center gap-2 mb-4">
-            <ElapsedTimer
-              startedAt={startedAt}
-              size="lg"
-              className="!text-4xl text-brand-deepblue"
-            />
-            <TimeComparison />
-          </div>
-        )}
-
-        {/* Active state line — dynamic, animates in on each new message */}
-        {primaryText && (
-          <div className="text-lg md:text-xl font-bold text-brand-charcoal">
-            {primaryText}
-          </div>
-        )}
-        <div
-          key={messageIdx}
-          className="text-sm text-brand-slate mt-1 min-h-[20px] animate-pulse-soft"
-        >
-          {messages[messageIdx]}
-        </div>
-
-        {/* Personalisation chips — age + city — visually prominent strip */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-          {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs text-brand-deepblue">
-              <span className="font-bold tabular-nums">{ageCounter}</span>
-              <span className="font-medium">
-                {ageCounter === 1 ? "year" : "years"} on Indian roads
-              </span>
-            </span>
-          )}
-          {landmarks.length > 0 && (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs text-emerald-800">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-success animate-pulse" />
-              <span>
-                Curating for{" "}
-                <span
-                  key={landmarkIdx}
-                  className="font-bold text-emerald-900"
-                >
-                  {landmarks[landmarkIdx]}
-                </span>
-              </span>
-            </span>
-          )}
-        </div>
-
-        {etaText && (
-          <div className="text-[11px] text-brand-slate/70 mt-3">{etaText}</div>
-        )}
+      {/* Live status moved above; nothing here intentionally */}
+      <div className="hidden">
       </div>
     </div>
   );
