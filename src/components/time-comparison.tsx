@@ -29,19 +29,19 @@ const COMPARISONS: {
   { emoji: "🍦", text: "Quicker than a kulfi melts in May", theme: "fuchsia", anim: "bob" },
   { emoji: "🍪", text: "Quicker than dunking a Parle-G in chai", theme: "amber", anim: "bob" },
   { emoji: "🥥", text: "Faster than cracking a tender coconut", theme: "emerald", anim: "wobble" },
-  { emoji: "🌶️", text: "Faster than the burn from a green-chilli bite", theme: "red", anim: "shake" },
+  { emoji: "🌶️", text: "Faster than the burn from a chilli bite", theme: "red", anim: "shake" },
   { emoji: "🥟", text: "Quicker than a momo cools down", theme: "amber", anim: "bob" },
   { emoji: "🧊", text: "Less time than ice melts in nimbu pani", theme: "blue", anim: "wobble" },
   { emoji: "🍯", text: "Less than honey drips off a spoon", theme: "amber", anim: "bob" },
 
   // Tech + apps
-  { emoji: "📱", text: "Quicker than UPI&apos;s busy-hour timeout", theme: "blue", anim: "pulse" },
+  { emoji: "📲", text: "Quicker than UPI&apos;s busy-hour timeout", theme: "blue", anim: "pulse" },
   { emoji: "💸", text: "Quicker than typing your UPI PIN twice", theme: "emerald", anim: "bob" },
-  { emoji: "📺", text: "Faster than skipping a YouTube ad", theme: "blue", anim: "pulse" },
+  { emoji: "▶️", text: "Faster than skipping a YouTube ad", theme: "red", anim: "pulse" },
   { emoji: "🎟️", text: "Quicker than a BookMyShow OTP arrives", theme: "orange", anim: "wobble" },
   { emoji: "📦", text: "Quicker than opening an Amazon parcel", theme: "yellow", anim: "shake" },
   { emoji: "📨", text: "Less than Gmail's smart-reply suggestion", theme: "indigo", anim: "pulse" },
-  { emoji: "🛒", text: "Faster than a Zepto 10-minute delivery", theme: "indigo", anim: "shake" },
+  { emoji: "🛒", text: "Faster than a Zepto delivery", theme: "indigo", anim: "shake" },
   { emoji: "🛵", text: "Shorter than the Swiggy rider call-back", theme: "red", anim: "shake" },
 
   // Travel + everyday
@@ -54,6 +54,7 @@ const COMPARISONS: {
 
   // Sports + entertainment
   { emoji: "🏏", text: "Shorter than one T20 over", theme: "emerald", anim: "shake" },
+  { emoji: "💯", text: "Faster than Sooryavanshi&apos;s century", theme: "red", anim: "pulse" },
   { emoji: "⚽", text: "Faster than a football half-time break", theme: "emerald", anim: "spin" },
   { emoji: "🎵", text: "Less than 2 Bollywood song hooks", theme: "purple", anim: "bob" },
   { emoji: "🎤", text: "Less than your antakshari turn", theme: "purple", anim: "pulse" },
