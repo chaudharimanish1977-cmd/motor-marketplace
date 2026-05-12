@@ -224,4 +224,15 @@
     50%      { transform: scale(1.14); }
   }
   .animate-emoji-pulse { animation: emoji-pulse 1.3s ease-in-out infinite; }
+
+  /* Pitch-deck hint fades out after 4s so it doesn't distract during the
+   * actual pitch, but is visible long enough on first load that the
+   * presenter knows the keyboard nav exists. */
+  @keyframes fade-out-slow {
+    0%, 70% { opacity: 1; }
+    100%    { opacity: 0; }
+  }
+  .animate-fade-out-slow {
+    animation: fade-out-slow 6s ease-out forwards;
+  }
 }
