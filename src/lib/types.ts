@@ -49,6 +49,11 @@ export interface ParsedPolicy {
   // Confidence flags
   parseConfidence: "high" | "medium" | "low";
   parseNotes?: string;
+
+  // Public URL to the original PDF uploaded by the customer (Vercel Blob).
+  // Stored so we can re-extract, audit, or surface the source doc later.
+  uploadedPdfUrl?: string;
+  uploadedPdfFileName?: string;
 }
 
 export type PolicyType =

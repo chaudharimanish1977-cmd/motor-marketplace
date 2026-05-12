@@ -1,14 +1,13 @@
 /**
- * Vercel Blob helpers for storing generated PDFs.
+ * Vercel Blob helpers.
  *
- * Why store, instead of email-only? Because the same PDF will be re-sent
- * over WhatsApp once that integration ships, and the Cloud API expects a
- * publicly fetchable URL. Storing once in Blob means email + WhatsApp + any
- * future channel all share the same artifact.
+ * Two flavours of PDF live here:
+ *   - `reports/<id>.pdf`   — generated review PDFs we email/WhatsApp out
+ *   - `policies/<id>.pdf`  — the original policy PDFs uploaded by customers
  *
- * Keyed by reportId so the same report is reused across resends. Public
- * access (anyone with the URL can fetch); URLs include a random suffix so
- * they aren't guessable.
+ * Both go into the same Public Blob store with `addRandomSuffix: true` so
+ * URLs are effectively unguessable. Long-term we'll route customer PDF
+ * downloads through an auth'd proxy; for now URL-as-secret is acceptable MVP.
  */
 
 import { put } from "@vercel/blob";
@@ -21,14 +20,30 @@ export async function storeReportPdf(
   const res = await put(key, pdf, {
     access: "public",
     contentType: "application/pdf",
-    // Random suffix avoids 409s on resends; trade-off is a small bit of
-    // storage bloat per regenerate. Cleanup script can dedupe later.
     addRandomSuffix: true,
   });
   return {
     url: res.url,
-    // Vercel Blob provides a separate URL that triggers a Content-Disposition
-    // attachment, which forces a download instead of an in-browser preview.
+    downloadUrl: res.downloadUrl,
+  };
+}
+
+/**
+ * Persist the ORIGINAL policy PDF the customer uploaded. Stored separately
+ * from generated reports so it's clear which is source vs derived.
+ */
+export async function storePolicyPdf(
+  policyId: string,
+  pdf: Buffer
+): Promise<{ url: string; downloadUrl: string }> {
+  const key = `policies/${policyId}.pdf`;
+  const res = await put(key, pdf, {
+    access: "public",
+    contentType: "application/pdf",
+    addRandomSuffix: true,
+  });
+  return {
+    url: res.url,
     downloadUrl: res.downloadUrl,
   };
 }
