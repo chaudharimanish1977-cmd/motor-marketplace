@@ -267,8 +267,9 @@ export function CircularJourneyLoader({
             <ellipse cx="155" cy="180" rx="6" ry="2" fill="#d8dde2" />
           </g>
 
-          {/* CAR — body-type matched to actual vehicle, bouncing slightly */}
-          <g className="animate-car-bounce">
+          {/* CAR — body-type matched to actual vehicle; held steady in place
+              so the eye isn't tugged up and down while reading the timer */}
+          <g>
             <CarByBodyType bodyType={resolvedBodyType} x={195} y={145} />
           </g>
         </svg>
