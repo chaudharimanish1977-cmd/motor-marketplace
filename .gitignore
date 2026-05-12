@@ -65,3 +65,6 @@ coverage/
 
 # Claude Code project-local settings (personal, not for the repo)
 .claude/
+
+.vercel
+.env*.local

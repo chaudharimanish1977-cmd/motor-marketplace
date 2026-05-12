@@ -26,8 +26,12 @@ export default function UploadPage() {
           Upload Your Current Policy
         </h1>
         <p className="text-slate-600 text-lg">
-          We&apos;ll read it in 30 seconds and tell you exactly what&apos;s
-          strong, what&apos;s missing, and what to look for at renewal.
+          We&apos;ll read it in{" "}
+          <span className="font-semibold text-brand-deepblue">
+            ~60 seconds
+          </span>{" "}
+          and tell you exactly what&apos;s strong, what&apos;s missing, and
+          what to look for at renewal.
         </p>
       </div>
 

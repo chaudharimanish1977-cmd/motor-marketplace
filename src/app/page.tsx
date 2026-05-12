@@ -67,8 +67,11 @@ export default async function Home() {
           <p className="text-lg md:text-xl text-brand-slate max-w-2xl mx-auto leading-relaxed">
             Upload your existing motor insurance policy. Get an AI-powered
             review of coverage gaps, the right add-ons for your car, and the
-            best curated renewal offers from leading insurers — all in under a
-            minute.
+            best curated renewal offers from leading insurers —{" "}
+            <span className="font-semibold text-brand-deepblue">
+              the right insurance in 60 seconds
+            </span>
+            .
           </p>
         </div>
 

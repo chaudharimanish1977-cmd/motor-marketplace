@@ -37,6 +37,7 @@ import { Typewriter } from "@/components/typewriter";
 import { VehicleWatermark } from "@/components/vehicle-watermark";
 import { EmailMeButton } from "@/components/email-me-button";
 import { SimplifyToggle } from "@/components/simplify-toggle";
+import { ElapsedTimer } from "@/components/elapsed-timer";
 import { getBodyType } from "@/lib/vehicle-classifier";
 
 function iconForHint(hint?: string): LucideIcon {
@@ -86,9 +87,15 @@ function iconForHint(hint?: string): LucideIcon {
 interface Props {
   parsedPolicy: ParsedPolicy;
   report: PolicyReport;
+  /** Total ms from upload click → report ready. When present, shown in the header. */
+  totalElapsedMs?: number;
 }
 
-export function ReportDisplay({ parsedPolicy, report }: Props) {
+export function ReportDisplay({
+  parsedPolicy,
+  report,
+  totalElapsedMs,
+}: Props) {
   const {
     atAGlance,
     whatCoversWell,
@@ -139,6 +146,19 @@ export function ReportDisplay({ parsedPolicy, report }: Props) {
               </div>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
+              {totalElapsedMs !== undefined && (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-gold/95 text-brand-charcoal rounded-full shadow-soft print:hidden">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em]">
+                    Ready in
+                  </span>
+                  <ElapsedTimer
+                    frozenAtMs={totalElapsedMs}
+                    size="md"
+                    showIcon={false}
+                    className="!font-bold !text-sm"
+                  />
+                </div>
+              )}
               <div className="text-xs text-blue-200 print:hidden">
                 Generated{" "}
                 {new Date(report.generatedAt).toLocaleString("en-IN", {

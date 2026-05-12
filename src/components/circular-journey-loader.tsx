@@ -6,6 +6,7 @@ import { formatLandmarks } from "@/lib/location-data";
 import { getBodyType, type BodyType } from "@/lib/vehicle-classifier";
 import { CarByBodyType } from "@/components/car-illustrations";
 import { BackgroundScenery, ForegroundScenery } from "@/components/scenery";
+import { ElapsedTimer } from "@/components/elapsed-timer";
 
 interface Props {
   vehicleLabel?: string;
@@ -21,6 +22,8 @@ interface Props {
   customMessages?: string[];
   primaryText?: string;
   etaText?: string;
+  /** Epoch ms when the user started the flow — drives the live elapsed timer */
+  startedAt?: number;
 }
 
 const MESSAGE_BANK: Record<"preview" | "parsing" | "curating", string[]> = {
@@ -61,6 +64,7 @@ export function CircularJourneyLoader({
   customMessages,
   primaryText,
   etaText,
+  startedAt,
 }: Props) {
   const messages = customMessages ?? MESSAGE_BANK[stage];
   const [messageIdx, setMessageIdx] = useState(0);
@@ -257,6 +261,16 @@ export function CircularJourneyLoader({
 
         {etaText && (
           <div className="text-xs text-brand-slate/70 mt-1">{etaText}</div>
+        )}
+
+        {startedAt !== undefined && (
+          <div className="pt-2">
+            <ElapsedTimer
+              startedAt={startedAt}
+              size="lg"
+              className="text-brand-deepblue"
+            />
+          </div>
         )}
       </div>
     </div>

@@ -1,6 +1,16 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
 import { Loader2, Sparkles } from "lucide-react";
+import { ElapsedTimer } from "@/components/elapsed-timer";
 
 export default function Loading() {
+  const params = useSearchParams();
+  const fromParam = params?.get("from");
+  const startedAt = fromParam ? parseInt(fromParam, 10) : NaN;
+  const validStart =
+    Number.isFinite(startedAt) && startedAt > 0 ? startedAt : undefined;
+
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="text-center space-y-6 max-w-md">
@@ -17,6 +27,16 @@ export default function Loading() {
             vehicle, location, and coverage gaps.
           </p>
         </div>
+
+        {validStart !== undefined && (
+          <div className="pt-2">
+            <ElapsedTimer
+              startedAt={validStart}
+              size="lg"
+              className="text-brand-deepblue"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

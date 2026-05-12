@@ -24,12 +24,15 @@ export function UploadDropzone() {
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewData | null>(null);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       if (!file) return;
 
+      const t0 = Date.now();
+      setStartedAt(t0);
       setFileName(file.name);
       setError(null);
       setState("uploading");
@@ -82,7 +85,10 @@ export function UploadDropzone() {
 
         const data = await res.json();
         setState("done");
-        setTimeout(() => router.push(`/report/${data.id}`), 600);
+        setTimeout(
+          () => router.push(`/report/${data.id}?from=${t0}`),
+          600
+        );
       } catch (err) {
         setState("error");
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -109,6 +115,7 @@ export function UploadDropzone() {
           vehicleMake={preview?.make ?? undefined}
           vehicleModel={preview?.model ?? undefined}
           stage="parsing"
+          startedAt={startedAt ?? undefined}
           primaryText={
             state === "done"
               ? "Done — loading your report..."

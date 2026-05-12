@@ -9,10 +9,11 @@ export const maxDuration = 60;
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }
 
-export default async function ReportPage({ params }: PageProps) {
-  const { id } = await params;
+export default async function ReportPage({ params, searchParams }: PageProps) {
+  const [{ id }, { from }] = await Promise.all([params, searchParams]);
 
   const parsedPolicy = await findById<ParsedPolicy>(
     Tables.PARSED_POLICIES,
@@ -35,5 +36,19 @@ export default async function ReportPage({ params }: PageProps) {
     await appendRow<PolicyReport>(Tables.REPORTS, report);
   }
 
-  return <ReportDisplay parsedPolicy={parsedPolicy} report={report} />;
+  // Total user-perceived time = now - upload start (if "from" was passed).
+  // Captured server-side at the moment the report is ready, so it includes
+  // upload + parse + report generation. This is the number we show next to
+  // the "your report is ready" badge as the marketing-grade latency claim.
+  const fromMs = from ? parseInt(from, 10) : NaN;
+  const totalElapsedMs =
+    Number.isFinite(fromMs) && fromMs > 0 ? Date.now() - fromMs : undefined;
+
+  return (
+    <ReportDisplay
+      parsedPolicy={parsedPolicy}
+      report={report}
+      totalElapsedMs={totalElapsedMs}
+    />
+  );
 }
