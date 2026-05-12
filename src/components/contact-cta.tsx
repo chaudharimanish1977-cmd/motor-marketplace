@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Mail, MessageCircle, Copy, Check, X } from "lucide-react";
+import { ArrowRight, Mail, Copy, Check, X } from "lucide-react";
 import clsx from "clsx";
 
 const CONTACT_EMAIL = "hello@rightoffer.in";
-const CONTACT_WHATSAPP = "919999999999"; // TODO: replace with real number when available
 
 interface Props {
   /** Visible label on the trigger button. */
@@ -103,7 +102,7 @@ export function ContactCTA({
             </p>
 
             {/* Email row */}
-            <div className="flex items-center gap-2 p-3 rounded-xl border border-brand-light-gray bg-brand-offwhite mb-3">
+            <div className="flex items-center gap-2 p-3 rounded-xl border border-brand-light-gray bg-brand-offwhite">
               <Mail className="w-5 h-5 text-brand-deepblue shrink-0" />
               <span className="flex-1 font-mono text-sm font-semibold text-brand-charcoal truncate">
                 {CONTACT_EMAIL}
@@ -131,27 +130,6 @@ export function ContactCTA({
                 )}
               </button>
             </div>
-
-            {/* WhatsApp row */}
-            <a
-              href={`https://wa.me/${CONTACT_WHATSAPP}?text=${encodeURIComponent(
-                "Hi RightOffer team, I just got my policy review and would like to chat about it."
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 p-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition-colors"
-            >
-              <MessageCircle className="w-5 h-5 text-emerald-700 shrink-0" />
-              <div className="flex-1">
-                <div className="text-xs text-emerald-800 font-semibold">
-                  Faster: WhatsApp us
-                </div>
-                <div className="text-[11px] text-emerald-700/80">
-                  Tap to open WhatsApp with a pre-filled message
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-emerald-700 shrink-0" />
-            </a>
 
             <p className="text-[11px] text-brand-slate mt-4 text-center">
               We never share your details. Independent advice only.

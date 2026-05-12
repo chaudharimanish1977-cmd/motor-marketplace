@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
-  Download,
   X,
   Mail,
   Phone,
@@ -11,22 +10,19 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
+  FileDown,
 } from "lucide-react";
 import clsx from "clsx";
 
-type Step = "form" | "otp" | "success" | "printing";
+type Step = "form" | "otp" | "success";
 
 /**
- * OTP-gated PDF download flow for the policy review report.
+ * "Get the report" CTA. OTP-gated capture of mobile + email + DPDP consent;
+ * on success we tell the user the report has been emailed to them. (Demo
+ * doesn't actually send mail — that wiring lives in /api/register.)
  *
- * Renders a prominent "Download PDF" button. Click → modal opens →
- *   Step 1: Mobile + Email + DPDP consent capture
- *   Step 2: 4-digit OTP entry (demo: 9993)
- *   Step 3: Success → triggers window.print() so the browser can save as PDF
- *
- * Per the locked product spec, the parse is ungated (customer sees the full
- * report) but the DOWNLOAD requires OTP. This captures the customer for the
- * renewal-cadence flywheel.
+ * Replaces the older browser-print flow because customers asked to receive
+ * the report by email rather than navigate a system print dialog.
  */
 export function ReportDownloadGate() {
   const [open, setOpen] = useState(false);
@@ -38,27 +34,14 @@ export function ReportDownloadGate() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-fire print dialog when we hit the "printing" step
-  useEffect(() => {
-    if (step !== "printing") return;
-    const t = setTimeout(() => {
-      window.print();
-      // Close modal after print dialog returns
-      const t2 = setTimeout(() => {
-        setOpen(false);
-        setStep("form");
-        setOtp("");
-      }, 1500);
-      return () => clearTimeout(t2);
-    }, 800);
-    return () => clearTimeout(t);
-  }, [step]);
-
   const reset = () => {
     setOpen(false);
-    setStep("form");
-    setOtp("");
-    setError(null);
+    // Brief delay so the closing animation doesn't show the form snapping back
+    setTimeout(() => {
+      setStep("form");
+      setOtp("");
+      setError(null);
+    }, 200);
   };
 
   const isMobileValid = /^[6-9]\d{9}$/.test(mobile);
@@ -72,11 +55,7 @@ export function ReportDownloadGate() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile,
-          email,
-          dpdpConsent: consent,
-        }),
+        body: JSON.stringify({ mobile, email, dpdpConsent: consent }),
       });
       if (!res.ok) {
         const e = await res.json();
@@ -94,7 +73,6 @@ export function ReportDownloadGate() {
     setError(null);
     if (otp === "9993") {
       setStep("success");
-      setTimeout(() => setStep("printing"), 1200);
     } else {
       setError("Wrong OTP. Demo OTP is 9993.");
     }
@@ -107,8 +85,8 @@ export function ReportDownloadGate() {
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-orange hover:brightness-110 text-white font-semibold text-sm rounded-2xl shadow-glow transition-all hover:scale-[1.02] print:hidden"
       >
-        <Download className="w-4 h-4" />
-        Download Full Report
+        <FileDown className="w-4 h-4" />
+        Get the report
       </button>
 
       {open && (
@@ -155,8 +133,9 @@ export function ReportDownloadGate() {
               />
             )}
 
-            {step === "success" && <SuccessStep mobile={mobile} />}
-            {step === "printing" && <PrintingStep />}
+            {step === "success" && (
+              <SuccessStep email={email} onClose={reset} />
+            )}
           </div>
         </div>
       )}
@@ -194,14 +173,15 @@ function FormStep({
   return (
     <div className="p-6 md:p-8">
       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue flex items-center justify-center mb-4">
-        <Download className="w-6 h-6 text-white" />
+        <FileDown className="w-6 h-6 text-white" />
       </div>
       <h2 className="text-2xl font-bold text-brand-charcoal mb-1">
-        Download your full report
+        Get your report by email
       </h2>
       <p className="text-sm text-brand-slate mb-6">
-        We&apos;ll email you a PDF copy and send renewal reminders before your
-        policy expires. No spam, ever.
+        Verify your mobile, and we&apos;ll email a PDF copy of this report to
+        you. We&apos;ll also send renewal reminders before your policy expires.
+        No spam.
       </p>
 
       <div className="space-y-4">
@@ -367,7 +347,7 @@ function OtpStep({
             : "bg-brand-light-gray text-brand-slate cursor-not-allowed"
         )}
       >
-        Verify & Download
+        Verify & Send
         <ArrowRight className="w-4 h-4" />
       </button>
 
@@ -382,36 +362,35 @@ function OtpStep({
   );
 }
 
-function SuccessStep({ mobile }: { mobile: string }) {
+function SuccessStep({
+  email,
+  onClose,
+}: {
+  email: string;
+  onClose: () => void;
+}) {
   return (
     <div className="p-8 text-center">
       <div className="inline-flex w-16 h-16 rounded-full bg-brand-success items-center justify-center shadow-elevated mb-4">
         <CheckCircle2 className="w-9 h-9 text-white" />
       </div>
       <h2 className="text-xl font-bold text-brand-charcoal">
-        OTP Verified
+        Report sent!
       </h2>
-      <p className="text-sm text-brand-slate mt-1">
-        Preparing your full report PDF...
+      <p className="text-sm text-brand-slate mt-2 leading-relaxed">
+        We&apos;ve shared your full report with{" "}
+        <span className="font-semibold text-brand-charcoal break-all">
+          {email}
+        </span>
+        . Check your inbox in the next minute.
       </p>
-      <p className="text-[11px] text-brand-slate/70 mt-3">
-        Also emailing a copy to your address · SMS sent to +91 {mobile.slice(0, 5)}{" "}
-        {mobile.slice(5)}
-      </p>
-    </div>
-  );
-}
-
-function PrintingStep() {
-  return (
-    <div className="p-8 text-center">
-      <Loader2 className="w-12 h-12 text-brand-deepblue animate-spin mx-auto mb-4" />
-      <h2 className="text-xl font-bold text-brand-charcoal">
-        Opening print dialog
-      </h2>
-      <p className="text-sm text-brand-slate mt-1">
-        Choose &ldquo;Save as PDF&rdquo; in your browser&apos;s print dialog.
-      </p>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-6 inline-flex items-center justify-center px-6 py-2.5 bg-brand-deepblue text-white text-sm font-semibold rounded-xl hover:brightness-110 transition-all"
+      >
+        Got it
+      </button>
     </div>
   );
 }

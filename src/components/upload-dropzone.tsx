@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
 import { Upload, FileText, AlertCircle } from "lucide-react";
@@ -27,33 +27,24 @@ interface UploadDropzoneProps {
   /** When true, redirects pass `demo=1` so the report page renders the full
    *  investor flow (bid CTAs, etc). Customer view leaves it false. */
   demoMode?: boolean;
+  /** Notify parent when the dropzone enters/leaves the busy (loading) state. */
+  onBusyChange?: (busy: boolean) => void;
 }
 
-export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
+export function UploadDropzone({
+  demoMode = false,
+  onBusyChange,
+}: UploadDropzoneProps) {
   const router = useRouter();
   const [state, setState] = useState<UploadState>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
 
-  // Mid-load survey state. Both halves (parse done, answers done) must
-  // resolve before we redirect — whichever finishes first waits.
-  const [parsedId, setParsedId] = useState<string | null>(null);
-  const [answers, setAnswers] = useState<MidLoadAnswers | null>(null);
+  // Refs so the async parse closure always reads the latest survey answers
+  // and timestamp without needing them in the deps array.
+  const answersRef = useRef<MidLoadAnswers>({});
   const t0Ref = useRef<number>(0);
-
-  // Trigger redirect once BOTH parse and answers have landed.
-  const tryRedirect = useCallback(
-    (id: string | null, ans: MidLoadAnswers | null) => {
-      if (!id || !ans) return;
-      const baseQuery = `from=${t0Ref.current}${demoMode ? "&demo=1" : ""}`;
-      const ansQuery = answersToQuery(ans);
-      const fullQuery = ansQuery ? `${baseQuery}&${ansQuery}` : baseQuery;
-      router.push(`/report/${id}?${fullQuery}`);
-    },
-    [router, demoMode]
-  );
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -62,11 +53,9 @@ export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
 
       const t0 = Date.now();
       t0Ref.current = t0;
+      answersRef.current = {};
       setStartedAt(t0);
-      setFileName(file.name);
       setError(null);
-      setParsedId(null);
-      setAnswers(null);
       setState("uploading");
 
       // Build the FormData once; reuse for both preview + full parse
@@ -104,7 +93,7 @@ export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
           setState((s) => (s === "uploading" ? "parsing" : s));
         }, 1200);
 
-        // Step 2: Full LLM parse + report generation (~30s)
+        // Step 2: Full LLM parse (~30s)
         const res = await fetch("/api/parse", {
           method: "POST",
           body: buildFormData(),
@@ -117,24 +106,33 @@ export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
 
         const data = await res.json();
         setState("done");
-        setParsedId(data.id);
-        // Defer to micro-task so React commits parsedId before tryRedirect reads it.
-        setTimeout(() => tryRedirect(data.id, answers), 0);
+
+        // Redirect immediately — never gate on the survey. Pass whatever
+        // answers the user has set so far (zero to four). The report page
+        // simply doesn't render the chips when no answers are present.
+        const baseQuery = `from=${t0Ref.current}${demoMode ? "&demo=1" : ""}`;
+        const ansQuery = answersToQuery(answersRef.current);
+        const fullQuery = ansQuery ? `${baseQuery}&${ansQuery}` : baseQuery;
+        router.push(`/report/${data.id}?${fullQuery}`);
       } catch (err) {
         setState("error");
         setError(err instanceof Error ? err.message : "Unknown error");
       }
     },
-    [tryRedirect, answers]
+    [router, demoMode]
   );
 
-  const handleAnswersComplete = useCallback(
-    (a: MidLoadAnswers) => {
-      setAnswers(a);
-      tryRedirect(parsedId, a);
-    },
-    [parsedId, tryRedirect]
-  );
+  const handleAnswersChange = useCallback((a: MidLoadAnswers) => {
+    answersRef.current = a;
+  }, []);
+
+  // Mirror the busy state to the parent so it can hide page chrome (heading,
+  // privacy footer) while the loader is running.
+  useEffect(() => {
+    const busy =
+      state === "uploading" || state === "parsing" || state === "done";
+    onBusyChange?.(busy);
+  }, [state, onBusyChange]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -158,24 +156,17 @@ export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
             startedAt={startedAt ?? undefined}
             primaryText={
               state === "done"
-                ? "Done — loading your report..."
-                : preview?.vehicleLabel
-                  ? "Analysing your policy"
-                  : "Reading your policy"
+                ? "Loading your report"
+                : "Reading your policy"
             }
             etaText={
               state !== "done" ? "Usually under 2 minutes" : undefined
             }
           />
-          {fileName && (
-            <div className="text-center text-[11px] text-brand-slate/70 mt-2">
-              {fileName}
-            </div>
-          )}
         </div>
 
-        {/* Productive use of the parse wait — collect 4 personalisation Qs */}
-        <MidLoadQuestions onComplete={handleAnswersComplete} />
+        {/* Productive use of the parse wait — 4 quick taps, never blocks redirect */}
+        <MidLoadQuestions onChange={handleAnswersChange} />
       </div>
     );
   }

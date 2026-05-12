@@ -219,60 +219,61 @@ export function CircularJourneyLoader({
         </svg>
       </div>
 
-      {/* Stats + messages below */}
-      <div className="mt-5 text-center space-y-2 max-w-md mx-auto">
-        {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
-          <div className="text-sm text-brand-slate">
-            <span className="text-brand-deepblue font-bold text-2xl tabular-nums">
-              {ageCounter}
-            </span>
-            <span className="ml-1.5">
-              year{ageCounter !== 1 ? "s" : ""} on Indian roads
-            </span>
+      {/* Stronger hierarchy: timer is the hero, message + chips below */}
+      <div className="mt-5 max-w-md mx-auto text-center">
+        {/* HERO: large elapsed timer + comparison stacked */}
+        {startedAt !== undefined && (
+          <div className="flex flex-col items-center gap-2 mb-4">
+            <ElapsedTimer
+              startedAt={startedAt}
+              size="lg"
+              className="!text-4xl text-brand-deepblue"
+            />
+            <TimeComparison />
           </div>
         )}
 
+        {/* Active state line — dynamic, animates in on each new message */}
         {primaryText && (
-          <div className="text-base font-semibold text-brand-deepblue pt-1">
+          <div className="text-lg md:text-xl font-bold text-brand-charcoal">
             {primaryText}
           </div>
         )}
         <div
           key={messageIdx}
-          className="text-sm text-brand-slate min-h-[20px] animate-pulse-soft"
+          className="text-sm text-brand-slate mt-1 min-h-[20px] animate-pulse-soft"
         >
           {messages[messageIdx]}
         </div>
 
-        {/* Location ticker */}
-        {landmarks.length > 0 && (
-          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-brand-offwhite border border-brand-light-gray rounded-full text-xs text-brand-slate">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-success animate-pulse" />
-            <span>
-              Curating for{" "}
-              <span
-                key={landmarkIdx}
-                className="font-semibold text-brand-charcoal"
-              >
-                {landmarks[landmarkIdx]}
+        {/* Personalisation chips — age + city — visually prominent strip */}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs text-brand-deepblue">
+              <span className="font-bold tabular-nums">{ageCounter}</span>
+              <span className="font-medium">
+                {ageCounter === 1 ? "year" : "years"} on Indian roads
               </span>
             </span>
-          </div>
-        )}
+          )}
+          {landmarks.length > 0 && (
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs text-emerald-800">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-success animate-pulse" />
+              <span>
+                Curating for{" "}
+                <span
+                  key={landmarkIdx}
+                  className="font-bold text-emerald-900"
+                >
+                  {landmarks[landmarkIdx]}
+                </span>
+              </span>
+            </span>
+          )}
+        </div>
 
         {etaText && (
-          <div className="text-xs text-brand-slate/70 mt-1">{etaText}</div>
-        )}
-
-        {startedAt !== undefined && (
-          <div className="pt-2 flex flex-col items-center gap-2">
-            <ElapsedTimer
-              startedAt={startedAt}
-              size="lg"
-              className="text-brand-deepblue"
-            />
-            <TimeComparison />
-          </div>
+          <div className="text-[11px] text-brand-slate/70 mt-3">{etaText}</div>
         )}
       </div>
     </div>

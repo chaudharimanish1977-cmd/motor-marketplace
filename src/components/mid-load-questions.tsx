@@ -8,7 +8,6 @@ import {
   Car,
   Heart,
   CheckCircle2,
-  ArrowRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -20,7 +19,8 @@ export interface MidLoadAnswers {
 }
 
 interface Props {
-  onComplete: (answers: MidLoadAnswers) => void;
+  /** Called whenever the user changes an answer — parent decides when to act on them. */
+  onChange?: (answers: MidLoadAnswers) => void;
 }
 
 interface Question {
@@ -34,149 +34,137 @@ const QUESTIONS: Question[] = [
   {
     key: "annualKm",
     icon: Gauge,
-    prompt: "How much do you drive in a year?",
-    options: [
-      "Less than 5,000 km",
-      "5,000 – 10,000 km",
-      "10,000 – 15,000 km",
-      "More than 15,000 km",
-    ],
+    prompt: "How much do you drive a year?",
+    options: ["< 5,000 km", "5–10k km", "10–15k km", "15k+ km"],
   },
   {
     key: "drivenBy",
     icon: Users,
-    prompt: "Who drives this car the most?",
-    options: [
-      "Just me",
-      "Me and a family member",
-      "A driver",
-      "Multiple drivers",
-    ],
+    prompt: "Who drives this car?",
+    options: ["Just me", "Family", "A driver", "Multiple"],
   },
   {
     key: "otherCars",
     icon: Car,
-    prompt: "Do you own more cars?",
-    options: ["Only this one", "One more", "2–3 more", "4 or more"],
+    prompt: "Any other cars?",
+    options: ["Only this", "1 more", "2–3", "4+"],
   },
   {
     key: "priority",
     icon: Heart,
-    prompt: "What matters most to you?",
-    options: [
-      "Lowest premium",
-      "Best claim experience",
-      "Wide garage network",
-      "Engine + add-on protection",
-    ],
+    prompt: "What matters most?",
+    options: ["Lowest price", "Easy claims", "Wide network", "Max coverage"],
   },
 ];
 
 /**
- * Productive 4-question survey shown WHILE the policy is parsing. Each answer
- * is captured locally then handed off via onComplete — the parent stitches
- * them into the redirect URL so the report page can show "your driving
- * profile" without needing a backend round trip.
+ * 4 questions shown side-by-side as a single compact card. The user can
+ * answer in any order, skip any of them, and the parent component decides
+ * when to act (typically: when parse finishes + user clicks "Get my report").
  *
- * Auto-advances on selection. Last question's selection triggers onComplete.
+ * Previous version was sequential one-at-a-time which gated the redirect on
+ * completion — that caused users who didn't answer to sit on the page
+ * forever even after parse was done. This version never blocks the redirect.
  */
-export function MidLoadQuestions({ onComplete }: Props) {
-  const [idx, setIdx] = useState(0);
+export function MidLoadQuestions({ onChange }: Props) {
   const [answers, setAnswers] = useState<MidLoadAnswers>({});
-  const [done, setDone] = useState(false);
 
-  const current = QUESTIONS[idx];
-  const Icon = current?.icon;
-
-  const select = (option: string) => {
-    if (!current) return;
-    const next = { ...answers, [current.key]: option };
+  const select = (key: keyof MidLoadAnswers, value: string) => {
+    const next = { ...answers, [key]: value };
     setAnswers(next);
-
-    if (idx + 1 >= QUESTIONS.length) {
-      setDone(true);
-      // Slight pause so the user sees their final selection register before
-      // the screen transitions to the loading-only state.
-      setTimeout(() => onComplete(next), 450);
-    } else {
-      setTimeout(() => setIdx((i) => i + 1), 250);
-    }
+    onChange?.(next);
   };
 
-  if (done) {
-    return (
-      <div className="rounded-2xl border border-brand-success/30 bg-emerald-50/60 p-5 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-brand-success flex items-center justify-center shrink-0">
-          <CheckCircle2 className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <div className="text-sm font-bold text-brand-charcoal">
-            Thanks — personalising your report.
-          </div>
-          <div className="text-xs text-brand-slate">
-            We&apos;ll use these answers to tailor what you see next.
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const answeredCount = Object.values(answers).filter(Boolean).length;
 
   return (
     <div className="rounded-2xl border border-brand-light-gray bg-white p-5 shadow-soft">
-      {/* Header: progress + icon */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-brand-deepblue/10 flex items-center justify-center">
-            {Icon && <Icon className="w-4 h-4 text-brand-deepblue" />}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
+            While we read your policy
           </div>
-          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-slate">
-            While we read your policy · Question {idx + 1} of {QUESTIONS.length}
+          <div className="text-sm font-semibold text-brand-charcoal">
+            Help us tailor your report — 4 quick taps
           </div>
         </div>
-        <div className="flex gap-1">
-          {QUESTIONS.map((_, i) => (
-            <div
-              key={i}
-              className={clsx(
-                "h-1 rounded-full transition-all",
-                i < idx
-                  ? "w-2 bg-brand-success"
-                  : i === idx
-                    ? "w-6 bg-brand-deepblue"
-                    : "w-2 bg-brand-light-gray"
-              )}
-            />
-          ))}
+        <div className="text-[11px] text-brand-slate font-medium">
+          {answeredCount === 0
+            ? "Tap any tile to start"
+            : answeredCount === QUESTIONS.length
+              ? "All set ✓"
+              : `${answeredCount} / ${QUESTIONS.length} answered`}
         </div>
       </div>
 
-      {/* Prompt */}
-      <div className="text-base font-semibold text-brand-charcoal mb-3">
-        {current.prompt}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {QUESTIONS.map((q) => (
+          <QuestionTile
+            key={q.key}
+            question={q}
+            selected={answers[q.key]}
+            onSelect={(v) => select(q.key, v)}
+          />
+        ))}
       </div>
+    </div>
+  );
+}
 
-      {/* Options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {current.options.map((opt) => {
-          const isSelected = answers[current.key] === opt;
+function QuestionTile({
+  question,
+  selected,
+  onSelect,
+}: {
+  question: Question;
+  selected: string | undefined;
+  onSelect: (value: string) => void;
+}) {
+  const Icon = question.icon;
+  return (
+    <div
+      className={clsx(
+        "rounded-xl border p-3 transition-colors",
+        selected
+          ? "border-brand-deepblue bg-brand-deepblue/5"
+          : "border-brand-light-gray bg-brand-offwhite/40"
+      )}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <div
+          className={clsx(
+            "w-7 h-7 rounded-lg flex items-center justify-center",
+            selected
+              ? "bg-brand-deepblue text-white"
+              : "bg-white border border-brand-light-gray text-brand-deepblue"
+          )}
+        >
+          {selected ? (
+            <CheckCircle2 className="w-4 h-4" />
+          ) : (
+            <Icon className="w-3.5 h-3.5" />
+          )}
+        </div>
+        <div className="text-xs font-semibold text-brand-charcoal">
+          {question.prompt}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        {question.options.map((opt) => {
+          const isSelected = selected === opt;
           return (
             <button
               key={opt}
               type="button"
-              onClick={() => select(opt)}
+              onClick={() => onSelect(opt)}
               className={clsx(
-                "text-left text-sm px-3 py-2.5 rounded-xl border transition-all flex items-center justify-between gap-2",
+                "text-[11px] py-1.5 px-2 rounded-md transition-colors text-center font-medium",
                 isSelected
-                  ? "border-brand-deepblue bg-brand-deepblue/5 text-brand-deepblue font-semibold"
-                  : "border-brand-light-gray bg-white text-brand-charcoal hover:border-brand-electricblue/50 hover:bg-blue-50/40"
+                  ? "bg-brand-deepblue text-white"
+                  : "bg-white border border-brand-light-gray text-brand-charcoal hover:border-brand-electricblue hover:bg-blue-50"
               )}
             >
-              <span>{opt}</span>
-              {isSelected ? (
-                <CheckCircle2 className="w-4 h-4 text-brand-deepblue shrink-0" />
-              ) : (
-                <ArrowRight className="w-4 h-4 text-brand-slate/40 shrink-0" />
-              )}
+              {opt}
             </button>
           );
         })}

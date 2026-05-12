@@ -35,7 +35,6 @@ import { ClaimSimulator } from "@/components/claim-simulator";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { Typewriter } from "@/components/typewriter";
 import { VehicleWatermark } from "@/components/vehicle-watermark";
-import { EmailMeButton } from "@/components/email-me-button";
 import { SimplifyToggle } from "@/components/simplify-toggle";
 import { ElapsedTimer } from "@/components/elapsed-timer";
 import { ContactCTA } from "@/components/contact-cta";
@@ -183,7 +182,6 @@ export function ReportDisplay({
                 IST
               </div>
               <SimplifyToggle />
-              <EmailMeButton reportId={report.id} />
               <ReportDownloadGate />
             </div>
           </div>
