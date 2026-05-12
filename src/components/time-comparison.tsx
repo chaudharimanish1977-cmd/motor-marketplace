@@ -3,19 +3,34 @@
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 
-const COMPARISONS: { emoji: string; text: string; theme: ThemeKey }[] = [
-  { emoji: "🍜", text: "Faster than your Maggi finishes cooking", theme: "amber" },
-  { emoji: "🍵", text: "Quicker than your morning chai brews", theme: "emerald" },
-  { emoji: "🛺", text: "Faster than waiting for an auto on Ola", theme: "yellow" },
-  { emoji: "📞", text: "Less time than an insurance call-centre IVR menu", theme: "rose" },
-  { emoji: "☕", text: "Quicker than your Starbucks order", theme: "orange" },
-  { emoji: "🚦", text: "Shorter than two Mumbai traffic signals", theme: "red" },
-  { emoji: "🍕", text: "Half the time of a Domino's promised delivery", theme: "rose" },
-  { emoji: "🎵", text: "Less than 2 Bollywood song hooks", theme: "purple" },
-  { emoji: "🛒", text: "Faster than a Zepto 10-minute delivery", theme: "indigo" },
-  { emoji: "📱", text: "Quicker than UPI&apos;s busy-hour timeout", theme: "blue" },
-  { emoji: "🍳", text: "Shorter than scrambling 2 eggs", theme: "yellow" },
-  { emoji: "🧋", text: "Less than your bubble tea queue", theme: "fuchsia" },
+type AnimKey = "bob" | "wobble" | "spin" | "shake" | "pulse";
+
+const ANIM_CLASS: Record<AnimKey, string> = {
+  bob: "animate-emoji-bob",
+  wobble: "animate-emoji-wobble",
+  spin: "animate-emoji-spin",
+  shake: "animate-emoji-shake",
+  pulse: "animate-emoji-pulse",
+};
+
+const COMPARISONS: {
+  emoji: string;
+  text: string;
+  theme: ThemeKey;
+  anim: AnimKey;
+}[] = [
+  { emoji: "🍜", text: "Faster than your Maggi finishes cooking", theme: "amber", anim: "bob" },
+  { emoji: "🍵", text: "Quicker than your morning chai brews", theme: "emerald", anim: "wobble" },
+  { emoji: "🛺", text: "Faster than waiting for an auto on Ola", theme: "yellow", anim: "shake" },
+  { emoji: "📞", text: "Less time than an insurance call-centre IVR menu", theme: "rose", anim: "shake" },
+  { emoji: "☕", text: "Quicker than your Starbucks order", theme: "orange", anim: "bob" },
+  { emoji: "🚦", text: "Shorter than two Mumbai traffic signals", theme: "red", anim: "pulse" },
+  { emoji: "🍕", text: "Half the time of a Domino's promised delivery", theme: "rose", anim: "spin" },
+  { emoji: "🎵", text: "Less than 2 Bollywood song hooks", theme: "purple", anim: "bob" },
+  { emoji: "🛒", text: "Faster than a Zepto 10-minute delivery", theme: "indigo", anim: "shake" },
+  { emoji: "📱", text: "Quicker than UPI&apos;s busy-hour timeout", theme: "blue", anim: "pulse" },
+  { emoji: "🍳", text: "Shorter than scrambling 2 eggs", theme: "yellow", anim: "shake" },
+  { emoji: "🧋", text: "Less than your bubble tea queue", theme: "fuchsia", anim: "wobble" },
 ];
 
 type ThemeKey =
@@ -86,6 +101,8 @@ export function TimeComparison({
   const current = picks[idx];
   const themeClass = THEMES[current.theme];
 
+  const animClass = ANIM_CLASS[current.anim];
+
   if (layout === "vertical") {
     return (
       <div
@@ -94,12 +111,21 @@ export function TimeComparison({
           className
         )}
       >
+        {/* Outer span handles the one-shot zoom-in entrance; inner span runs
+         *  the per-emoji continuous animation (bob, wobble, spin, etc). */}
         <span
           key={`emoji-${idx}`}
-          className="text-6xl md:text-7xl leading-none animate-in zoom-in-50 duration-300"
+          className="inline-block leading-none animate-in zoom-in-50 duration-300"
           aria-hidden
         >
-          {current.emoji}
+          <span
+            className={clsx(
+              "inline-block text-6xl md:text-7xl leading-none",
+              animClass
+            )}
+          >
+            {current.emoji}
+          </span>
         </span>
         <span
           key={`text-${idx}`}
@@ -119,8 +145,6 @@ export function TimeComparison({
   }
 
   return (
-    // Horizontal layout — fixed-height container reserves room for up to 2
-    // lines of pill text so the layout below never shifts.
     <div
       className={clsx(
         "flex items-center justify-center gap-3 min-h-[4rem] w-full",
@@ -129,10 +153,17 @@ export function TimeComparison({
     >
       <span
         key={`emoji-${idx}`}
-        className="text-4xl md:text-5xl leading-none shrink-0 animate-in zoom-in-50 duration-300"
+        className="inline-block leading-none shrink-0 animate-in zoom-in-50 duration-300"
         aria-hidden
       >
-        {current.emoji}
+        <span
+          className={clsx(
+            "inline-block text-4xl md:text-5xl leading-none",
+            animClass
+          )}
+        >
+          {current.emoji}
+        </span>
       </span>
       <span
         key={`text-${idx}`}

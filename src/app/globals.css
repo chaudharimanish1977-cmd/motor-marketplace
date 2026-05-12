@@ -187,4 +187,41 @@
   .animate-coin-pop {
     animation: coin-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
+
+  /* Per-emoji continuous animations on the quirky-comparison hero glyph.
+   * Different emojis get different motions so the rotating "while you wait"
+   * banner feels alive instead of static. The display:inline-block on the
+   * target span gives transform a box to operate on. */
+  @keyframes emoji-bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+  .animate-emoji-bob { animation: emoji-bob 1.4s ease-in-out infinite; }
+
+  @keyframes emoji-wobble {
+    0%, 100% { transform: rotate(-9deg); }
+    50%      { transform: rotate(9deg); }
+  }
+  .animate-emoji-wobble { animation: emoji-wobble 1.6s ease-in-out infinite; }
+
+  @keyframes emoji-spin-slow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .animate-emoji-spin { animation: emoji-spin-slow 6s linear infinite; }
+
+  @keyframes emoji-shake {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    20%      { transform: translateX(-4px) rotate(-4deg); }
+    40%      { transform: translateX(4px)  rotate(4deg); }
+    60%      { transform: translateX(-3px) rotate(-3deg); }
+    80%      { transform: translateX(3px)  rotate(3deg); }
+  }
+  .animate-emoji-shake { animation: emoji-shake 0.9s ease-in-out infinite; }
+
+  @keyframes emoji-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.14); }
+  }
+  .animate-emoji-pulse { animation: emoji-pulse 1.3s ease-in-out infinite; }
 }

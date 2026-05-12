@@ -194,12 +194,12 @@ export function CircularJourneyLoader({
               <stop offset="100%" stopColor="#f5fafe" />
             </linearGradient>
             <linearGradient id="ground-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#5a6573" />
-              <stop offset="100%" stopColor="#3a4554" />
+              <stop offset="0%" stopColor="#c5cad0" />
+              <stop offset="100%" stopColor="#9aa1a8" />
             </linearGradient>
             <linearGradient id="road-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#1f2933" />
-              <stop offset="100%" stopColor="#2d3436" />
+              <stop offset="0%" stopColor="#aab1b8" />
+              <stop offset="100%" stopColor="#7d848c" />
             </linearGradient>
             <filter id="car-shadow" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" />
