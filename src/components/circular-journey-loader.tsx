@@ -111,33 +111,13 @@ export function CircularJourneyLoader({
 
   return (
     <div className="w-full max-w-2xl mx-auto py-2">
-      {/* Top header row — vehicle name + plate inline, sitting in the same
-       *  vertical band as the BackChip (left) and StopwatchChip (right).
-       *  Horizontal padding reserves space for those absolute-positioned
-       *  chips so this row never collides with them. Fixed min-h keeps the
-       *  layout stable before the preview returns. */}
-      <div className="px-12 sm:px-14 min-h-[44px] flex flex-wrap items-center justify-center gap-2 mb-2">
-        {vehicleLabel && (
-          <span className="text-sm font-bold text-brand-charcoal leading-tight truncate max-w-[60%]">
-            {vehicleLabel}
-          </span>
-        )}
-        {registrationNumber && registrationNumber !== "NEW" && (
-          <NumberPlate value={registrationNumber} size="sm" />
-        )}
-        {registrationNumber === "NEW" && (
-          <span className="inline-flex items-center px-2 py-0.5 bg-brand-success text-white text-[9px] font-bold tracking-[0.15em] rounded shadow-soft">
-            NEW VEHICLE
-          </span>
-        )}
-      </div>
 
       {/* HERO LIVE STATE — comparison + active message + chips ABOVE the animation.
        *  Fixed min-height so the car below the live area never shifts even as
        *  comparisons / chips / preview data flow in.  Stopwatch chip lives in
        *  the top-right corner (rendered by UploadDropzone). */}
-      <div className="max-w-md mx-auto text-center mb-4 min-h-[180px] flex flex-col items-center justify-start">
-        {startedAt !== undefined && <TimeComparison />}
+      <div className="max-w-md mx-auto text-center mb-4 min-h-[220px] flex flex-col items-center justify-start">
+        {startedAt !== undefined && <TimeComparison layout="vertical" />}
 
         <div className="text-base md:text-lg font-bold text-brand-charcoal mt-2 min-h-[28px]">
           {primaryText}
@@ -183,6 +163,26 @@ export function CircularJourneyLoader({
 
       {/* The driving scene — moved BELOW the live status for visibility */}
       <div className="relative w-full rounded-2xl overflow-hidden shadow-soft bg-gradient-to-b from-sky-100 via-sky-50 to-slate-200">
+        {/* Vehicle name + plate overlaid on the SVG sky — saves the header
+         *  row entirely and reads as a "license-plate on the windshield"
+         *  visual flourish. */}
+        {(vehicleLabel || registrationNumber) && (
+          <div className="absolute top-2 left-0 right-0 z-10 flex flex-wrap items-center justify-center gap-2 px-4 pointer-events-none">
+            {vehicleLabel && (
+              <span className="px-2 py-0.5 rounded-md bg-white/80 backdrop-blur-sm text-[11px] sm:text-xs font-bold text-brand-charcoal shadow-soft leading-tight truncate max-w-[55%]">
+                {vehicleLabel}
+              </span>
+            )}
+            {registrationNumber && registrationNumber !== "NEW" && (
+              <NumberPlate value={registrationNumber} size="sm" />
+            )}
+            {registrationNumber === "NEW" && (
+              <span className="inline-flex items-center px-2 py-0.5 bg-brand-success text-white text-[9px] font-bold tracking-[0.15em] rounded shadow-soft">
+                NEW VEHICLE
+              </span>
+            )}
+          </div>
+        )}
         <svg
           viewBox="0 0 400 200"
           preserveAspectRatio="xMidYMid meet"

@@ -138,12 +138,9 @@ export function MidLoadQuestions({
 
   return (
     <div className="rounded-2xl border border-brand-light-gray bg-white shadow-soft overflow-hidden">
-      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+      <div className="px-4 pt-3 pb-2 text-center">
         <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
           While we work · help us tailor your report
-        </div>
-        <div className="text-[10px] text-brand-slate font-medium tabular-nums">
-          {answeredCount} / {QUESTIONS.length} answered
         </div>
       </div>
 
