@@ -18,6 +18,39 @@ export interface ClaimScenario {
   };
 }
 
+export function getOutOfPocket(
+  addOnName: string,
+  idv: number,
+  vehicleAge: number
+): number {
+  const s = getClaimScenario(addOnName, idv, vehicleAge);
+  if (!s) return 0;
+  return Math.max(0, s.withoutAddOn.youPay - s.withAddOn.youPay);
+}
+
+/**
+ * Sum up out-of-pocket risk across a list of gap titles. Used to compute the
+ * "money at risk" hero stat shown at the top of the report.
+ */
+export function totalMoneyAtRisk(
+  gapTitles: string[],
+  idv: number,
+  vehicleAge: number
+): { total: number; count: number } {
+  let total = 0;
+  let count = 0;
+  for (const title of gapTitles) {
+    const canonical = matchCanonicalAddOn(title);
+    if (!canonical) continue;
+    const cost = getOutOfPocket(canonical, idv, vehicleAge);
+    if (cost > 0) {
+      total += cost;
+      count += 1;
+    }
+  }
+  return { total, count };
+}
+
 export function getClaimScenario(
   addOnName: string,
   idv: number,

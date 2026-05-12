@@ -32,12 +32,14 @@ import { ReportDownloadGate } from "@/components/report-download-gate";
 import { CoverageScoreCard } from "@/components/coverage-score";
 import { computeCoverageScore } from "@/lib/coverage-score";
 import { ClaimSimulator } from "@/components/claim-simulator";
+import { totalMoneyAtRisk } from "@/lib/claim-scenarios";
+import { NumberPlate } from "@/components/number-plate";
 import { ScrollProgress } from "@/components/scroll-progress";
+import { ReportGuard } from "@/components/report-guard";
 import { Typewriter } from "@/components/typewriter";
 import { VehicleWatermark } from "@/components/vehicle-watermark";
 import { SimplifyToggle } from "@/components/simplify-toggle";
 import { ElapsedTimer } from "@/components/elapsed-timer";
-import { ContactCTA } from "@/components/contact-cta";
 import { getBodyType } from "@/lib/vehicle-classifier";
 
 function iconForHint(hint?: string): LucideIcon {
@@ -127,9 +129,18 @@ export function ReportDisplay({
   const ownerFirstName =
     parsedPolicy.owner.name.trim().split(/\s+/)[0] ?? parsedPolicy.owner.name;
 
+  const vehicleAge =
+    new Date().getFullYear() - parsedPolicy.vehicle.yearOfManufacture;
+  const moneyAtRisk = totalMoneyAtRisk(
+    keyGaps.items.map((g) => g.title),
+    parsedPolicy.idv,
+    vehicleAge
+  );
+
   return (
     <div className="min-h-screen bg-brand-offwhite pb-12">
       <ScrollProgress />
+      {view === "customer" && <ReportGuard />}
       {/* Header bar */}
       <header className="relative bg-gradient-to-r from-brand-deepblue to-brand-electricblue text-white shadow-elevated overflow-hidden">
         {/* Decorative body-type watermark */}
@@ -218,16 +229,32 @@ export function ReportDisplay({
       </section>
 
       {/* Content body — narrative order:
-       *   1. Coverage Score (anchor)
-       *   2. Driving profile (personalisation chips)
-       *   3. KEY GAPS (full-width, prominent — this is "what's at risk")
-       *   4. What Covers Well (smaller, reassurance)
-       *   5. Renewal action panel (IDV check + tips combined)
-       *   6. Pricing snapshot (investor only — implies bid flow)
-       *   7. Ideal Insurer Profile (investor only — admin)
-       *   8. Key Takeaway with CTA
+       *   1. Vehicle plate hero + money-at-risk callout
+       *   2. Coverage Score (anchor)
+       *   3. Driving profile (personalisation chips)
+       *   4. KEY GAPS (full-width, prominent — this is "what's at risk")
+       *   5. What Covers Well (smaller, reassurance)
+       *   6. Renewal action panel (IDV check + tips combined)
+       *   7. Pricing snapshot (investor only — implies bid flow)
+       *   8. Ideal Insurer Profile (investor only — admin)
+       *   9. Key Takeaway with CTA
        */}
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <main
+        className={clsx(
+          "max-w-5xl mx-auto px-4 py-8 space-y-6",
+          view === "customer" && "report-protected"
+        )}
+      >
+        {/* §0a Vehicle hero — big plate + money-at-risk callout */}
+        <VehicleHero
+          vehicleLabel={`${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`}
+          variant={parsedPolicy.vehicle.variant}
+          registrationNumber={parsedPolicy.vehicle.registrationNumber}
+          yearOfManufacture={parsedPolicy.vehicle.yearOfManufacture}
+          moneyAtRisk={moneyAtRisk.total}
+          riskGapCount={moneyAtRisk.count}
+        />
+
         {/* §0 Coverage Score — hero metric */}
         <CoverageScoreCard score={computeCoverageScore(parsedPolicy, report)} />
 
@@ -300,6 +327,74 @@ export function ReportDisplay({
 // ============================================================================
 // Sub-components
 // ============================================================================
+
+function VehicleHero({
+  vehicleLabel,
+  variant,
+  registrationNumber,
+  yearOfManufacture,
+  moneyAtRisk,
+  riskGapCount,
+}: {
+  vehicleLabel: string;
+  variant: string;
+  registrationNumber: string;
+  yearOfManufacture: number;
+  moneyAtRisk: number;
+  riskGapCount: number;
+}) {
+  const hasRisk = moneyAtRisk > 0 && riskGapCount > 0;
+  return (
+    <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft overflow-hidden">
+      <div className="p-6 md:p-8 grid md:grid-cols-2 gap-6 items-center">
+        {/* Left: huge plate + vehicle name */}
+        <div className="text-center md:text-left">
+          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-slate mb-2">
+            Your vehicle
+          </div>
+          <div className="flex justify-center md:justify-start mb-3">
+            <NumberPlate value={registrationNumber} size="lg" />
+          </div>
+          <h2 className="text-2xl md:text-3xl font-bold text-brand-charcoal leading-tight">
+            {vehicleLabel}
+          </h2>
+          <div className="text-sm text-brand-slate mt-0.5">
+            {variant} · {yearOfManufacture}
+          </div>
+        </div>
+
+        {/* Right: money-at-risk hero */}
+        {hasRisk ? (
+          <div className="rounded-2xl bg-gradient-to-br from-orange-50 via-white to-rose-50 border-2 border-brand-orange/30 p-5 md:p-6 text-center md:text-right">
+            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-orange mb-1.5">
+              At risk today, if a claim happens
+            </div>
+            <div className="text-4xl md:text-5xl font-bold tabular-nums text-brand-orange leading-none">
+              {formatINR(moneyAtRisk)}
+            </div>
+            <div className="text-xs text-brand-slate mt-2 leading-snug">
+              Estimated out-of-pocket across {riskGapCount}{" "}
+              {riskGapCount === 1 ? "gap" : "gaps"} we found in your policy.
+              Detail below.
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 border-2 border-emerald-200 p-5 md:p-6 text-center md:text-right">
+            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-700 mb-1.5">
+              Your policy looks strong
+            </div>
+            <div className="text-2xl md:text-3xl font-bold text-emerald-800 leading-tight">
+              No critical gaps detected
+            </div>
+            <div className="text-xs text-brand-slate mt-2 leading-snug">
+              Detail below — review at-renewal action items.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function DrivingProfileCard({ profile }: { profile: DrivingProfile }) {
   const chips: { label: string; value: string }[] = [];
@@ -771,11 +866,13 @@ function KeyTakeawayCard({
           </p>
         </>
       ) : (
-        <ContactCTA
-          label="Talk to a RightOffer advisor"
-          buttonClassName="bg-brand-orange text-white"
-          footnote="We'll help you understand exactly what's in this report — and what to look for at renewal — so you're never surprised at claim time."
-        />
+        <>
+          <ReportDownloadGate variant="hero" label="Get the full report by email" />
+          <p className="text-blue-200 text-xs mt-4 max-w-md mx-auto">
+            We&apos;ll email this report to you so you have it on hand at
+            renewal — and send a reminder before your policy expires. No spam.
+          </p>
+        </>
       )}
     </div>
   );

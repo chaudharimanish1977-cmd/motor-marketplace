@@ -11,6 +11,73 @@
   body.report-simplified .report-detail {
     display: none;
   }
+
+  /* Report-content screenshot/copy deterrents.
+   *   - user-select: none disables text-drag-to-copy
+   *   - -webkit-touch-callout: none hides the iOS "Copy" long-press menu
+   *   - print rules below remove the report entirely from Ctrl+P output and
+   *     replace it with a "get the report by email" message so any browser
+   *     "save as PDF" attempt produces something useless.
+   * Form inputs (in the OTP modal etc.) opt out via [data-allow-select]
+   * so users can paste their email/OTP.
+   */
+  .report-protected {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .report-protected [data-allow-select],
+  .report-protected input,
+  .report-protected textarea,
+  .report-protected button {
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+
+  /* Print-mode replacement: hide the report, show a single email-capture message */
+  @media print {
+    .report-protected,
+    .report-protected * {
+      visibility: hidden !important;
+    }
+    .report-protected::before {
+      content: "Get this report by email — visit RightOffer.in";
+      visibility: visible !important;
+      display: block !important;
+      position: fixed !important;
+      inset: 0 !important;
+      padding-top: 40vh !important;
+      text-align: center !important;
+      font-family: Inter, system-ui, sans-serif !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      color: #0A2463 !important;
+    }
+  }
+
+  /* Soft diagonal watermark across protected report content */
+  .report-protected {
+    position: relative;
+  }
+  .report-protected::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      -30deg,
+      transparent 0,
+      transparent 120px,
+      rgba(10, 36, 99, 0.04) 120px,
+      rgba(10, 36, 99, 0.04) 360px
+    );
+    z-index: 1;
+  }
+  .report-protected > * {
+    position: relative;
+    z-index: 2;
+  }
 }
 
 @layer utilities {

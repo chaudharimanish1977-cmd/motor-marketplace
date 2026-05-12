@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   X,
   Mail,
   Phone,
   Shield,
-  CheckCircle2,
   Loader2,
   AlertCircle,
   ArrowRight,
@@ -14,7 +14,14 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 
-type Step = "form" | "otp" | "success";
+type Step = "form" | "otp";
+
+interface Props {
+  /** Visual style of the trigger button. */
+  variant?: "compact" | "hero";
+  /** Override the trigger label. */
+  label?: string;
+}
 
 /**
  * "Get the report" CTA. OTP-gated capture of mobile + email + DPDP consent;
@@ -24,7 +31,11 @@ type Step = "form" | "otp" | "success";
  * Replaces the older browser-print flow because customers asked to receive
  * the report by email rather than navigate a system print dialog.
  */
-export function ReportDownloadGate() {
+export function ReportDownloadGate({
+  variant = "compact",
+  label = "Get the report",
+}: Props = {}) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("form");
   const [mobile, setMobile] = useState("");
@@ -72,21 +83,27 @@ export function ReportDownloadGate() {
   const handleVerifyOtp = () => {
     setError(null);
     if (otp === "9993") {
-      setStep("success");
+      const params = new URLSearchParams({ e: email });
+      router.push(`/thank-you?${params.toString()}`);
     } else {
       setError("Wrong OTP. Demo OTP is 9993.");
     }
   };
+
+  const triggerClass =
+    variant === "hero"
+      ? "inline-flex items-center gap-2 px-8 py-4 bg-brand-orange hover:brightness-110 text-white font-bold text-lg rounded-2xl shadow-glow transition-all hover:scale-[1.03] print:hidden"
+      : "inline-flex items-center gap-2 px-4 py-2.5 bg-brand-orange hover:brightness-110 text-white font-semibold text-sm rounded-2xl shadow-glow transition-all hover:scale-[1.02] print:hidden";
 
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-orange hover:brightness-110 text-white font-semibold text-sm rounded-2xl shadow-glow transition-all hover:scale-[1.02] print:hidden"
+        className={triggerClass}
       >
-        <FileDown className="w-4 h-4" />
-        Get the report
+        <FileDown className={variant === "hero" ? "w-5 h-5" : "w-4 h-4"} />
+        {label}
       </button>
 
       {open && (
@@ -131,10 +148,6 @@ export function ReportDownloadGate() {
                 onVerify={handleVerifyOtp}
                 onResend={() => setStep("form")}
               />
-            )}
-
-            {step === "success" && (
-              <SuccessStep email={email} onClose={reset} />
             )}
           </div>
         </div>
@@ -362,35 +375,3 @@ function OtpStep({
   );
 }
 
-function SuccessStep({
-  email,
-  onClose,
-}: {
-  email: string;
-  onClose: () => void;
-}) {
-  return (
-    <div className="p-8 text-center">
-      <div className="inline-flex w-16 h-16 rounded-full bg-brand-success items-center justify-center shadow-elevated mb-4">
-        <CheckCircle2 className="w-9 h-9 text-white" />
-      </div>
-      <h2 className="text-xl font-bold text-brand-charcoal">
-        Report sent!
-      </h2>
-      <p className="text-sm text-brand-slate mt-2 leading-relaxed">
-        We&apos;ve shared your full report with{" "}
-        <span className="font-semibold text-brand-charcoal break-all">
-          {email}
-        </span>
-        . Check your inbox in the next minute.
-      </p>
-      <button
-        type="button"
-        onClick={onClose}
-        className="mt-6 inline-flex items-center justify-center px-6 py-2.5 bg-brand-deepblue text-white text-sm font-semibold rounded-xl hover:brightness-110 transition-all"
-      >
-        Got it
-      </button>
-    </div>
-  );
-}
