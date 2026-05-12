@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 
 /**
@@ -128,17 +129,22 @@ export function PitchDeck() {
         ))}
       </div>
 
-      {/* Nav buttons (invisible click zones on left/right edges) */}
+      {/* Visible nav buttons — chevron pills, vertically centred. Keyboard
+       *  nav still works for power users; mouse users get a clear cue. */}
       <button
         onClick={() => go(idx - 1)}
-        aria-label="Previous"
-        className="absolute left-0 top-0 bottom-0 w-1/4 cursor-w-resize z-30 focus:outline-none"
-      />
+        aria-label="Previous slide"
+        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 flex items-center justify-center text-white/50 hover:text-white transition-all z-40"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
       <button
         onClick={() => go(idx + 1)}
-        aria-label="Next"
-        className="absolute right-0 top-0 bottom-0 w-1/4 cursor-e-resize z-30 focus:outline-none"
-      />
+        aria-label="Next slide"
+        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 flex items-center justify-center text-white/50 hover:text-white transition-all z-40"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
 
       {/* Hint, fades after a few seconds via CSS */}
       <div className="absolute bottom-6 right-8 text-[10px] text-white/30 font-medium tracking-wider uppercase z-40 animate-fade-out-slow">
@@ -269,7 +275,7 @@ const SLIDES: Slide[] = [
         <div className="mt-32 inline-flex flex-col items-center gap-1 text-[11px] tracking-[0.15em] uppercase text-white/40 font-semibold">
           <div>Pre-seed + Seed · $7 — 10M</div>
           <div>Manish Chaudhari · Founder &amp; CEO</div>
-          <div>2025</div>
+          <div>2026</div>
         </div>
       </div>
     ),
@@ -290,6 +296,9 @@ const SLIDES: Slide[] = [
             <Accent>₹85,000</Accent> average claim-time shortfall.
           </div>
         </div>
+        <div className="mt-12 text-[10px] md:text-[11px] tracking-[0.1em] uppercase text-white/30 font-medium">
+          Sources: IRDAI Annual Report FY24 · MoRTH Vahan Sewa · General Insurance Council · RightOffer internal analysis
+        </div>
       </div>
     ),
   },
@@ -306,7 +315,7 @@ const SLIDES: Slide[] = [
           make in <Accent>5 minutes</Accent>.
         </h1>
         <div className="mt-10 text-xl md:text-2xl text-white/50 font-medium">
-          And then live with for 5 years.
+          And then live with it.
         </div>
       </div>
     ),
@@ -338,7 +347,7 @@ const SLIDES: Slide[] = [
             </div>
           ))}
         </div>
-        <div className="mt-16 text-lg md:text-xl text-white/80 max-w-3xl">
+        <div className="mt-16 text-lg md:text-xl text-white/80 max-w-3xl mx-auto text-center">
           The market has been waiting for one player. An{" "}
           <Accent>independent AI advisor</Accent> that reads YOUR policy and curates offers around YOUR profile.
         </div>
@@ -355,7 +364,7 @@ const SLIDES: Slide[] = [
           {[
             {
               h: "AI Parser",
-              b: "Reads any Indian motor policy in 90 seconds. Works across 25+ insurer formats.",
+              b: "Reads any Indian motor policy in 90 seconds.",
             },
             {
               h: "Coverage Score + Money-at-Risk",
@@ -496,18 +505,18 @@ const SLIDES: Slide[] = [
   {
     render: () => (
       <div>
-        <Headline>
+        <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
           10% commission. <Accent>96%</Accent> gross margin.
           <br />
           One revenue line.
-        </Headline>
-        <div className="mt-16 border border-white/15 rounded-2xl overflow-hidden">
-          <table className="w-full text-sm md:text-base">
+        </h1>
+        <div className="mt-8 md:mt-10 border border-white/15 rounded-2xl overflow-hidden">
+          <table className="w-full text-xs md:text-sm">
             <thead>
               <tr className="bg-white/5">
-                <th className="text-left p-4 md:p-5 font-semibold text-white/40 text-xs md:text-sm tracking-wider uppercase">&nbsp;</th>
-                <th className="text-left p-4 md:p-5 font-bold text-white text-base md:text-lg">RightOffer</th>
-                <th className="text-left p-4 md:p-5 font-semibold text-white/50 text-base md:text-lg">PB Fintech / industry</th>
+                <th className="text-left p-3 md:p-4 font-semibold text-white/40 text-[10px] md:text-xs tracking-wider uppercase">&nbsp;</th>
+                <th className="text-left p-3 md:p-4 font-bold text-white text-sm md:text-base">RightOffer</th>
+                <th className="text-left p-3 md:p-4 font-semibold text-white/50 text-sm md:text-base">PB Fintech / industry</th>
               </tr>
             </thead>
             <tbody>
@@ -518,13 +527,10 @@ const SLIDES: Slide[] = [
                 ["LTV (3 renewals)", "₹4,200", "₹2,800"],
                 ["Payback", "< 3 months", "9–12 months"],
               ].map((row, i) => (
-                <tr
-                  key={i}
-                  className="border-t border-white/10"
-                >
-                  <td className="p-4 md:p-5 text-white/60">{row[0]}</td>
-                  <td className="p-4 md:p-5 font-bold text-white">{row[1]}</td>
-                  <td className="p-4 md:p-5 text-white/40">{row[2]}</td>
+                <tr key={i} className="border-t border-white/10">
+                  <td className="p-3 md:p-4 text-white/60">{row[0]}</td>
+                  <td className="p-3 md:p-4 font-bold text-white">{row[1]}</td>
+                  <td className="p-3 md:p-4 text-white/40">{row[2]}</td>
                 </tr>
               ))}
             </tbody>
@@ -608,7 +614,7 @@ const SLIDES: Slide[] = [
           ))}
         </ul>
         <div className="mt-12 text-sm md:text-base text-white/40 max-w-3xl">
-          Three launch partners targeted from this cohort. Conversations in motion.
+          Three launch partners targeted from this cohort.
         </div>
       </div>
     ),
@@ -722,8 +728,10 @@ const SLIDES: Slide[] = [
         </div>
         <div className="border-l border-white/10 pl-8">
           <Eyebrow>Hiring next</Eyebrow>
-          <div className="space-y-3 text-base md:text-lg font-semibold text-white">
+          <div className="space-y-2.5 text-sm md:text-base font-semibold text-white">
             <div>Founding CTO (AI/ML)</div>
+            <div>Chief Experience Officer</div>
+            <div>Chief Product Officer</div>
             <div>Head of Insurer Relationships</div>
             <div>Head of Growth</div>
           </div>
@@ -828,7 +836,7 @@ const SLIDES: Slide[] = [
           <Accent>insurance, made simple.</Accent>
         </h1>
         <div className="mt-20 text-sm md:text-base text-white/40 font-medium tracking-wider">
-          Manish Chaudhari · founder@rightoffer.in · rightoffer.in
+          Manish Chaudhari · hello@rightoffer.in
         </div>
       </div>
     ),
