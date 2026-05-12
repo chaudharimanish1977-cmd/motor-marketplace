@@ -108,11 +108,11 @@ export function ReportDownloadGate({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/40 backdrop-blur-sm animate-in fade-in duration-150 print:hidden"
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 bg-brand-charcoal/40 backdrop-blur-sm animate-in fade-in duration-150 print:hidden overflow-y-auto"
           onClick={reset}
         >
           <div
-            className="relative w-full max-w-md bg-white rounded-3xl shadow-elevated overflow-hidden"
+            className="relative w-full max-w-md bg-white rounded-3xl shadow-elevated my-4 sm:my-0 max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -184,17 +184,16 @@ function FormStep({
   onSendOtp: () => void;
 }) {
   return (
-    <div className="p-6 md:p-8">
-      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue flex items-center justify-center mb-4">
+    <div className="p-5 sm:p-6 md:p-8">
+      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue flex items-center justify-center mb-3">
         <FileDown className="w-6 h-6 text-white" />
       </div>
-      <h2 className="text-2xl font-bold text-brand-charcoal mb-1">
+      <h2 className="text-xl sm:text-2xl font-bold text-brand-charcoal mb-1">
         Get the Full Report
       </h2>
-      <p className="text-sm text-brand-slate mb-6">
+      <p className="text-sm text-brand-slate mb-5">
         Share your mobile + email, verify with a quick OTP, and we&apos;ll send
-        your full RightOffer policy review along with renewal reminders before
-        it expires. No spam.
+        your full review and renewal reminders. No spam.
       </p>
 
       <div className="space-y-4">
@@ -314,7 +313,7 @@ function OtpStep({
   const maskedMobile = `+91 ${mobile.slice(0, 5)} ${mobile.slice(5)}`;
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-5 sm:p-6 md:p-8">
       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue flex items-center justify-center mb-4">
         <Phone className="w-6 h-6 text-white" />
       </div>
