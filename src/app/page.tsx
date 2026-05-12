@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ShieldCheck, Sparkles, ArrowRight, Eye } from "lucide-react";
+import { TestimonialCarousel } from "@/components/testimonial-carousel";
 
 export const dynamic = "force-dynamic";
 
@@ -64,23 +65,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TESTIMONIAL — single hero quote, no card grid */}
-      <section className="max-w-3xl w-full mt-16">
-        <figure className="rounded-3xl bg-gradient-to-br from-white to-brand-offwhite border border-brand-light-gray shadow-soft p-7 md:p-9 text-center">
-          <div className="text-3xl text-brand-deepblue/30 leading-none mb-2">
-            &ldquo;
-          </div>
-          <blockquote className="text-base md:text-lg text-brand-charcoal leading-relaxed font-medium">
-            Saved me ₹35,000 out of pocket when my claim happened — entirely
-            borne by the insurer because of an add-on RightOffer recommended.
-            Had I continued with my old policy, that would have been my loss.
-          </blockquote>
-          <figcaption className="mt-4 text-sm">
-            <span className="font-semibold text-brand-charcoal">Arjun M.</span>
-            <span className="text-brand-slate"> · Pune · SUV owner</span>
-          </figcaption>
-        </figure>
-      </section>
+      {/* TESTIMONIAL CAROUSEL — auto-rotating, dot nav, hover to pause */}
+      <TestimonialCarousel />
 
       <p className="text-xs text-brand-slate/70 mt-16 mb-2 text-center">
         RightOffer · Independent motor insurance reviews · Made for India

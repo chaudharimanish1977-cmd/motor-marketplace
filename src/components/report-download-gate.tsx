@@ -33,7 +33,7 @@ interface Props {
  */
 export function ReportDownloadGate({
   variant = "compact",
-  label = "Get the report",
+  label = "Get the Full Report",
 }: Props = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -189,12 +189,12 @@ function FormStep({
         <FileDown className="w-6 h-6 text-white" />
       </div>
       <h2 className="text-2xl font-bold text-brand-charcoal mb-1">
-        Get your report by email
+        Get the Full Report
       </h2>
       <p className="text-sm text-brand-slate mb-6">
-        Verify your mobile, and we&apos;ll email a PDF copy of this report to
-        you. We&apos;ll also send renewal reminders before your policy expires.
-        No spam.
+        Share your mobile + email, verify with a quick OTP, and we&apos;ll send
+        your full RightOffer policy review along with renewal reminders before
+        it expires. No spam.
       </p>
 
       <div className="space-y-4">

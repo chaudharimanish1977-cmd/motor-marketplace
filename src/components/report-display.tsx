@@ -867,7 +867,7 @@ function KeyTakeawayCard({
         </>
       ) : (
         <>
-          <ReportDownloadGate variant="hero" label="Get the full report by email" />
+          <ReportDownloadGate variant="hero" label="Get the Full Report" />
           <p className="text-blue-200 text-xs mt-4 max-w-md mx-auto">
             We&apos;ll email this report to you so you have it on hand at
             renewal — and send a reminder before your policy expires. No spam.
