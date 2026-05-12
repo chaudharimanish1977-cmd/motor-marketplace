@@ -56,6 +56,10 @@ interface Props {
   className?: string;
   /** ms between rotations. Default 3500. */
   intervalMs?: number;
+  /** "horizontal" (default): emoji left, text pill right.
+   *  "vertical": emoji big at top centred, text pill below — used on the
+   *  /report/[id] loading screen where the emoji is the hero. */
+  layout?: "horizontal" | "vertical";
 }
 
 /**
@@ -64,7 +68,11 @@ interface Props {
  * Picks a random subset on mount and cycles them; each line carries its own
  * colour theme so the banner feels alive instead of one static pill.
  */
-export function TimeComparison({ className, intervalMs = 3500 }: Props) {
+export function TimeComparison({
+  className,
+  intervalMs = 3500,
+  layout = "horizontal",
+}: Props) {
   const picks = useMemo(() => pickRandom(COMPARISONS, 5), []);
   const [idx, setIdx] = useState(0);
 
@@ -78,17 +86,47 @@ export function TimeComparison({ className, intervalMs = 3500 }: Props) {
   const current = picks[idx];
   const themeClass = THEMES[current.theme];
 
+  if (layout === "vertical") {
+    return (
+      <div
+        className={clsx(
+          "flex flex-col items-center justify-center gap-2 w-full min-h-[7rem]",
+          className
+        )}
+      >
+        <span
+          key={`emoji-${idx}`}
+          className="text-6xl md:text-7xl leading-none animate-in zoom-in-50 duration-300"
+          aria-hidden
+        >
+          {current.emoji}
+        </span>
+        <span
+          key={`text-${idx}`}
+          className={clsx(
+            "inline-flex items-center px-4 py-2 rounded-2xl border-2 text-sm shadow-soft animate-in fade-in duration-300 max-w-[20rem]",
+            themeClass
+          )}
+          aria-live="polite"
+        >
+          <span
+            className="font-semibold leading-snug text-center"
+            dangerouslySetInnerHTML={{ __html: current.text }}
+          />
+        </span>
+      </div>
+    );
+  }
+
   return (
-    // Fixed-height container — reserves room for up to 2 lines of pill text so
-    // the layout below never shifts when the next comparison is longer.
+    // Horizontal layout — fixed-height container reserves room for up to 2
+    // lines of pill text so the layout below never shifts.
     <div
       className={clsx(
         "flex items-center justify-center gap-3 min-h-[4rem] w-full",
         className
       )}
     >
-      {/* Hero emoji — sized way up and pulled OUT of the pill so it reads as
-       *  the visual anchor of the message, not just decoration */}
       <span
         key={`emoji-${idx}`}
         className="text-4xl md:text-5xl leading-none shrink-0 animate-in zoom-in-50 duration-300"

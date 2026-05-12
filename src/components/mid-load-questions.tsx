@@ -3,15 +3,10 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import {
-  Gauge,
-  Users,
-  Car,
-  Heart,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 export interface MidLoadAnswers {
   annualKm?: string;
@@ -37,7 +32,6 @@ interface Props {
 
 interface Question {
   key: keyof MidLoadAnswers;
-  icon: LucideIcon;
   prompt: string;
   options: string[];
 }
@@ -45,25 +39,21 @@ interface Question {
 const QUESTIONS: Question[] = [
   {
     key: "annualKm",
-    icon: Gauge,
     prompt: "How much do you drive a year?",
     options: ["< 5,000 km", "5–10k km", "10–15k km", "15k+ km"],
   },
   {
     key: "drivenBy",
-    icon: Users,
     prompt: "Who drives this car?",
     options: ["Just me", "Family", "A driver", "Multiple"],
   },
   {
     key: "otherCars",
-    icon: Car,
     prompt: "Any other cars in the household?",
     options: ["Only this", "1 more", "2–3", "4+"],
   },
   {
     key: "priority",
-    icon: Heart,
     prompt: "What matters most to you?",
     options: ["Lowest price", "Easy claims", "Wide network", "Max coverage"],
   },
@@ -102,7 +92,6 @@ export function MidLoadQuestions({
   }, [answers, persistKey]);
 
   const current = QUESTIONS[idx];
-  const Icon = current?.icon;
   const answeredCount = Object.values(answers).filter(Boolean).length;
   const isAnswered = !!answers[current.key];
   const allDone = answeredCount === QUESTIONS.length;
@@ -180,24 +169,11 @@ export function MidLoadQuestions({
           key={idx}
           className="text-center animate-in fade-in duration-300"
         >
-          <div className="flex flex-col items-center gap-2 mb-3">
-            <div
-              className={clsx(
-                "w-9 h-9 rounded-xl flex items-center justify-center transition-colors",
-                isAnswered
-                  ? "bg-brand-deepblue text-white"
-                  : "bg-brand-deepblue/10 text-brand-deepblue"
-              )}
-            >
-              {isAnswered ? (
-                <CheckCircle2 className="w-4 h-4" />
-              ) : (
-                Icon && <Icon className="w-4 h-4" />
-              )}
-            </div>
-            <div className="text-sm font-bold text-brand-charcoal">
-              {current.prompt}
-            </div>
+          <div className="text-sm font-bold text-brand-charcoal mb-3 inline-flex items-center justify-center gap-1.5">
+            {isAnswered && (
+              <CheckCircle2 className="w-4 h-4 text-brand-success" />
+            )}
+            <span>{current.prompt}</span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2">

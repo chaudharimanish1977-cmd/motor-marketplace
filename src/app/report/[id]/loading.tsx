@@ -20,8 +20,6 @@ export default function Loading() {
   const validStart =
     Number.isFinite(startedAt) && startedAt > 0 ? startedAt : undefined;
 
-  // Phase-1 answers came in via URL — pre-populate so those questions don't
-  // re-appear on this screen.
   const initialAnswers: MidLoadAnswers = {
     annualKm: params?.get("km") ?? undefined,
     drivenBy: params?.get("drv") ?? undefined,
@@ -31,8 +29,6 @@ export default function Loading() {
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-6">
-      {/* Loader card — same architecture as the upload card so the user feels
-       *  continuity: stopwatch top-right, hero centre, questions below. */}
       <div className="relative max-w-2xl mx-auto rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6">
         {validStart !== undefined && (
           <div
@@ -43,29 +39,33 @@ export default function Loading() {
           </div>
         )}
 
-        {/* pt-16 reserves the top-right corner exclusively for the stopwatch
-         *  chip so the comparison pill never gets visually overlapped. */}
         <div className="text-center max-w-md mx-auto pt-12">
-          <div className="relative inline-block mb-4">
-            <Loader2 className="w-12 h-12 animate-spin text-brand-navy" />
-            <Sparkles className="w-5 h-5 text-brand-gold absolute top-0 right-0 animate-pulse" />
+          {/* HERO: quirky vertical — big emoji on top, message pill below */}
+          {validStart !== undefined && (
+            <div className="mb-6">
+              <TimeComparison layout="vertical" />
+            </div>
+          )}
+
+          {/* Compact spinner + heading */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative inline-block">
+              <Loader2 className="w-10 h-10 animate-spin text-brand-navy" />
+              <Sparkles className="w-4 h-4 text-brand-gold absolute top-0 right-0 animate-pulse" />
+            </div>
+            <div>
+              <h1 className="text-base md:text-lg font-bold text-brand-ink">
+                Generating your personalised report
+              </h1>
+              <p className="text-slate-600 text-xs mt-0.5">
+                Reading your policy · curating recommendations for your car.
+              </p>
+            </div>
           </div>
-
-          <h1 className="text-lg md:text-xl font-bold text-brand-ink">
-            Generating your personalised report
-          </h1>
-          <p className="text-slate-600 text-sm mt-1 mb-5">
-            Reading your policy and curating recommendations specific to your
-            vehicle, location, and coverage gaps.
-          </p>
-
-          {validStart !== undefined && <TimeComparison />}
         </div>
       </div>
 
-      {/* Questions carousel — keeps going from where phase-1 left off. Only
-       *  unanswered questions are shown; new answers persist to localStorage
-       *  and the report page merges them in once it renders. */}
+      {/* Unanswered questions — keep filling them in while the report bakes */}
       {reportId && (
         <div className="max-w-2xl mx-auto mt-4">
           <MidLoadQuestions

@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import clsx from "clsx";
 import { formatLandmarks } from "@/lib/location-data";
 import { getBodyType, type BodyType } from "@/lib/vehicle-classifier";
 import { CarByBodyType } from "@/components/car-illustrations";
 import { BackgroundScenery, ForegroundScenery } from "@/components/scenery";
 import { TimeComparison } from "@/components/time-comparison";
+import { NumberPlate } from "@/components/number-plate";
 
 interface Props {
   vehicleLabel?: string;
@@ -110,22 +110,25 @@ export function CircularJourneyLoader({
   }, [vehicleAgeYears]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto py-4">
-      {/* Top: vehicle name + plate. Fixed min-height so the car below doesn't
-       *  jump when the preview returns mid-load and these elements appear. */}
-      <div className="text-center mb-3 space-y-2 min-h-[60px] flex flex-col items-center justify-center">
+    <div className="w-full max-w-2xl mx-auto py-2">
+      {/* Top header row — vehicle name + plate inline, sitting in the same
+       *  vertical band as the BackChip (left) and StopwatchChip (right).
+       *  Horizontal padding reserves space for those absolute-positioned
+       *  chips so this row never collides with them. Fixed min-h keeps the
+       *  layout stable before the preview returns. */}
+      <div className="px-12 sm:px-14 min-h-[44px] flex flex-wrap items-center justify-center gap-2 mb-2">
         {vehicleLabel && (
-          <div className="text-base font-bold text-brand-charcoal leading-tight">
+          <span className="text-sm font-bold text-brand-charcoal leading-tight truncate max-w-[60%]">
             {vehicleLabel}
-          </div>
+          </span>
         )}
         {registrationNumber && registrationNumber !== "NEW" && (
-          <NumberPlate value={registrationNumber} />
+          <NumberPlate value={registrationNumber} size="sm" />
         )}
         {registrationNumber === "NEW" && (
-          <div className="inline-flex items-center px-2.5 py-1 bg-brand-success text-white text-[10px] font-bold tracking-[0.15em] rounded shadow-soft">
+          <span className="inline-flex items-center px-2 py-0.5 bg-brand-success text-white text-[9px] font-bold tracking-[0.15em] rounded shadow-soft">
             NEW VEHICLE
-          </div>
+          </span>
         )}
       </div>
 
@@ -311,20 +314,3 @@ function SpeedLine({
 // Indian private vehicle number plate (white plate, black text).
 // ============================================================================
 
-function NumberPlate({ value }: { value: string }) {
-  return (
-    <div
-      className={clsx(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded shadow-soft",
-        "bg-white border-2 border-[#1a1a1a]"
-      )}
-    >
-      <span className="text-[7px] font-bold uppercase tracking-[0.15em] text-[#1a1a1a]">
-        IND
-      </span>
-      <span className="font-bold text-[11px] tracking-[0.08em] tabular-nums text-[#1a1a1a]">
-        {value}
-      </span>
-    </div>
-  );
-}
