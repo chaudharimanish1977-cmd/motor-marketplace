@@ -175,7 +175,7 @@ export function ThankYouFlow({ email }: Props) {
             className="inline-flex items-center gap-1.5 text-brand-deepblue font-semibold hover:underline"
           >
             <Home className="w-4 h-4" />
-            Back to RightOffer home
+            Back to RightOffer Home
           </Link>
         </div>
       </div>
