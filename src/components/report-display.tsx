@@ -218,56 +218,70 @@ export function ReportDisplay({
         </div>
       </section>
 
-      {/* Content body */}
+      {/* Content body — narrative order:
+       *   1. Coverage Score (anchor)
+       *   2. Driving profile (personalisation chips)
+       *   3. KEY GAPS (full-width, prominent — this is "what's at risk")
+       *   4. What Covers Well (smaller, reassurance)
+       *   5. Renewal action panel (IDV check + tips combined)
+       *   6. Pricing snapshot (investor only — implies bid flow)
+       *   7. Ideal Insurer Profile (investor only — admin)
+       *   8. Key Takeaway with CTA
+       */}
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        {/* §0 Coverage Score — hero metric */}
+        <CoverageScoreCard score={computeCoverageScore(parsedPolicy, report)} />
+
         {/* Driving profile chips — only when the user answered the mid-load survey */}
         {drivingProfile && <DrivingProfileCard profile={drivingProfile} />}
 
-        {/* §0 Coverage Score — hero metric, anchors the entire report */}
-        <CoverageScoreCard score={computeCoverageScore(parsedPolicy, report)} />
-
-        {/* §1 + §2 row */}
-        <div className="grid md:grid-cols-2 gap-6">
+        {/* §1 KEY GAPS — full width, hero card. This is "what's at risk" and
+         *  matches the customer's emotional reason for reading the report. */}
+        <div id="gaps">
           <SectionCard
             number="1"
-            title="What Your Policy Covers Well"
-            color="emerald"
-            items={whatCoversWell.items}
+            title="Where you're at risk today"
+            color="rose"
+            items={keyGaps.items}
+            isGap
+            vehicleIdv={parsedPolicy.idv}
+            vehicleAge={
+              new Date().getFullYear() -
+              parsedPolicy.vehicle.yearOfManufacture
+            }
           />
-          <div id="gaps">
-            <SectionCard
-              number="2"
-              title="Key Gaps in Current Policy"
-              color="rose"
-              items={keyGaps.items}
-              isGap
-              vehicleIdv={parsedPolicy.idv}
-              vehicleAge={
-                new Date().getFullYear() -
-                parsedPolicy.vehicle.yearOfManufacture
-              }
-            />
-          </div>
         </div>
 
-        {/* §3 + §4 row */}
+        {/* §2 What Covers Well — reassurance, smaller weight (after the urgent stuff) */}
+        <SectionCard
+          number="2"
+          title="What's working in your favour"
+          color="emerald"
+          items={whatCoversWell.items}
+        />
+
+        {/* §3 Renewal action panel — IDV + renewal tips combined */}
         <div className="grid md:grid-cols-2 gap-6">
           <IdvCheckCard idvCheck={idvCheck} />
           <SectionCard
-            number="4"
-            title="Things to Keep in Mind at Renewal"
+            number="3"
+            title="Look out for at renewal"
             color="amber"
             items={renewalTips.items}
           />
         </div>
 
-        {/* §5.5 Pricing & Savings Snapshot */}
-        <PricingSnapshotCard snapshot={pricingSnapshot} />
+        {/* §4 Pricing snapshot — investor only (implies a bid flow we don't expose to customers yet) */}
+        {view === "investor" && (
+          <PricingSnapshotCard snapshot={pricingSnapshot} />
+        )}
 
-        {/* §6 Ideal Insurer Profile — HIDDEN, admin reveal */}
-        <IdealInsurerProfileToggle profile={idealInsurerProfile} />
+        {/* §5 Ideal Insurer Profile — investor admin reveal */}
+        {view === "investor" && (
+          <IdealInsurerProfileToggle profile={idealInsurerProfile} />
+        )}
 
-        {/* §7 Key Takeaway with CTA */}
+        {/* §6 Key Takeaway with CTA */}
         <KeyTakeawayCard
           takeaway={keyTakeaway}
           parsedPolicyId={parsedPolicy.id}
