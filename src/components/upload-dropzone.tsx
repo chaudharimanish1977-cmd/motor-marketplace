@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, Upload, FileText, AlertCircle } from "lucide-react";
 import clsx from "clsx";
 import { CircularJourneyLoader } from "@/components/circular-journey-loader";
+import { ElapsedTimer } from "@/components/elapsed-timer";
 import {
   MidLoadQuestions,
   answersToQuery,
@@ -43,6 +44,18 @@ function BackChip({ href }: { href: string }) {
     >
       <ArrowLeft className="w-4 h-4" />
     </Link>
+  );
+}
+
+function TimerChip({ startedAt }: { startedAt: number }) {
+  return (
+    <div className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-deepblue text-white shadow-soft print:hidden">
+      <ElapsedTimer
+        startedAt={startedAt}
+        size="sm"
+        className="!text-xs !font-bold text-white"
+      />
+    </div>
   );
 }
 
@@ -162,6 +175,7 @@ export function UploadDropzone({
       <div className="space-y-4">
         <div className="relative rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6">
           <BackChip href={backHref} />
+          {startedAt !== null && <TimerChip startedAt={startedAt} />}
           <CircularJourneyLoader
             vehicleLabel={preview?.vehicleLabel ?? undefined}
             registrationNumber={preview?.registrationNumber ?? undefined}

@@ -6,7 +6,6 @@ import { formatLandmarks } from "@/lib/location-data";
 import { getBodyType, type BodyType } from "@/lib/vehicle-classifier";
 import { CarByBodyType } from "@/components/car-illustrations";
 import { BackgroundScenery, ForegroundScenery } from "@/components/scenery";
-import { ElapsedTimer } from "@/components/elapsed-timer";
 import { TimeComparison } from "@/components/time-comparison";
 
 interface Props {
@@ -129,34 +128,27 @@ export function CircularJourneyLoader({
         )}
       </div>
 
-      {/* HERO LIVE STATE — timer + comparison + active message + chips, ABOVE the animation */}
-      <div className="max-w-md mx-auto text-center mb-5">
-        {startedAt !== undefined && (
-          <div className="flex flex-col items-center gap-2 mb-4">
-            <ElapsedTimer
-              startedAt={startedAt}
-              size="lg"
-              className="!text-4xl text-brand-deepblue"
-            />
-            <TimeComparison />
-          </div>
-        )}
+      {/* HERO LIVE STATE — comparison + active message + chips, ABOVE the animation.
+       *  Big timer lives in the top-right corner chip (rendered by UploadDropzone)
+       *  so this hero block is tighter and the questions carousel fits below the SVG. */}
+      <div className="max-w-md mx-auto text-center mb-4">
+        {startedAt !== undefined && <TimeComparison />}
 
         {primaryText && (
-          <div className="text-lg md:text-xl font-bold text-brand-charcoal">
+          <div className="text-base md:text-lg font-bold text-brand-charcoal mt-2">
             {primaryText}
           </div>
         )}
         <div
           key={messageIdx}
-          className="text-sm text-brand-slate mt-1 min-h-[20px] animate-pulse-soft"
+          className="text-xs text-brand-slate mt-0.5 min-h-[18px] animate-pulse-soft"
         >
           {messages[messageIdx]}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs text-brand-deepblue">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[11px] text-brand-deepblue">
               <span className="font-bold tabular-nums">{ageCounter}</span>
               <span className="font-medium">
                 {ageCounter === 1 ? "year" : "years"} on Indian roads
@@ -164,7 +156,7 @@ export function CircularJourneyLoader({
             </span>
           )}
           {landmarks.length > 0 && (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs text-emerald-800">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[11px] text-emerald-800">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-success animate-pulse" />
               <span>
                 Curating for{" "}
@@ -180,7 +172,7 @@ export function CircularJourneyLoader({
         </div>
 
         {etaText && (
-          <div className="text-[11px] text-brand-slate/70 mt-3">{etaText}</div>
+          <div className="text-[11px] text-brand-slate/70 mt-2">{etaText}</div>
         )}
       </div>
 
