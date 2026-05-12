@@ -6,7 +6,6 @@ import {
   Eye,
   HelpCircle,
 } from "lucide-react";
-import { RenewalPreview } from "@/components/renewal-preview";
 
 export const dynamic = "force-dynamic";
 
@@ -77,11 +76,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Why customers love us — placeholder testimonials, expanded in Batch B */}
+      {/* Why customers love us */}
       <Testimonials />
-
-      {/* Renewal flywheel teaser */}
-      <RenewalPreview />
 
       {/* Soft FAQ / trust block */}
       <section className="mt-20 max-w-3xl w-full">

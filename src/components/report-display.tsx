@@ -38,6 +38,7 @@ import { VehicleWatermark } from "@/components/vehicle-watermark";
 import { EmailMeButton } from "@/components/email-me-button";
 import { SimplifyToggle } from "@/components/simplify-toggle";
 import { ElapsedTimer } from "@/components/elapsed-timer";
+import { ContactCTA } from "@/components/contact-cta";
 import { getBodyType } from "@/lib/vehicle-classifier";
 
 function iconForHint(hint?: string): LucideIcon {
@@ -772,20 +773,11 @@ function KeyTakeawayCard({
           </p>
         </>
       ) : (
-        <>
-          <a
-            href="mailto:hello@rightoffer.in?subject=Help%20me%20understand%20my%20policy%20review"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-orange text-white font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all"
-          >
-            Talk to a RightOffer advisor
-            <ArrowRight className="w-5 h-5" />
-          </a>
-          <p className="text-blue-200 text-xs mt-4 max-w-md mx-auto">
-            We&apos;ll help you understand exactly what&apos;s in this report —
-            and what to look for at renewal — so you&apos;re never surprised at
-            claim time.
-          </p>
-        </>
+        <ContactCTA
+          label="Talk to a RightOffer advisor"
+          buttonClassName="bg-brand-orange text-white"
+          footnote="We'll help you understand exactly what's in this report — and what to look for at renewal — so you're never surprised at claim time."
+        />
       )}
     </div>
   );
