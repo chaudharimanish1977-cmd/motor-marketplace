@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import clsx from "clsx";
-import { ChevronDown, PlayCircle, AlertTriangle, Shield } from "lucide-react";
+import { ChevronDown, AlertTriangle, Shield, Wallet } from "lucide-react";
 import { formatINR } from "@/lib/format";
 import {
   getClaimScenario,
@@ -16,44 +16,64 @@ interface Props {
 }
 
 /**
- * Inline expandable claim simulator on each gap card.
- * Click "See what this could cost you" → expands into a side-by-side
- * "without vs with" claim payout comparison with concrete numbers.
+ * Inline claim simulator on each gap card. Visible by default —
+ * "what this could cost you" is the reason the gap matters, so showing it
+ * up front (instead of hiding behind a click) is the whole point.
+ *
+ * The side-by-side detail can be collapsed for users who want to skim, but
+ * the headline out-of-pocket number stays visible always.
  */
 export function ClaimSimulator({ gapTitle, idv, vehicleAge }: Props) {
-  const [open, setOpen] = useState(false);
+  const [showDetail, setShowDetail] = useState(true);
   const canonical = matchCanonicalAddOn(gapTitle);
   if (!canonical) return null;
   const scenario = getClaimScenario(canonical, idv, vehicleAge);
   if (!scenario) return null;
 
+  const outOfPocketDelta =
+    scenario.withoutAddOn.youPay - scenario.withAddOn.youPay;
+
   return (
-    <div className="mt-2">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-deepblue hover:text-brand-orange transition-colors"
-      >
-        <PlayCircle className="w-3.5 h-3.5" />
-        See what this could cost you
-        <ChevronDown
-          className={clsx(
-            "w-3.5 h-3.5 transition-transform",
-            open && "rotate-180"
-          )}
-        />
-      </button>
-
-      {open && (
-        <div className="mt-3 rounded-2xl border border-brand-light-gray bg-white p-4 space-y-3">
-          {/* Scenario narrative */}
-          <div className="text-xs text-brand-charcoal italic leading-relaxed">
-            <span className="font-semibold not-italic">Scenario: </span>
-            {scenario.scenario}
+    <div className="mt-3">
+      {/* Always-visible headline: the cost story in one line */}
+      <div className="rounded-xl border-2 border-brand-orange/30 bg-gradient-to-br from-orange-50 to-white p-3.5">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-brand-orange/15 flex items-center justify-center shrink-0">
+            <Wallet className="w-5 h-5 text-brand-orange" />
           </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-orange mb-0.5">
+              What this could cost you
+            </div>
+            <div className="text-sm text-brand-charcoal leading-snug">
+              <span className="font-bold tabular-nums text-brand-orange text-base">
+                {formatINR(outOfPocketDelta)}
+              </span>{" "}
+              out of your pocket if{" "}
+              <span className="text-brand-charcoal/80">
+                {scenario.scenario.toLowerCase()}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDetail((s) => !s)}
+            aria-label={
+              showDetail ? "Hide breakdown" : "Show breakdown"
+            }
+            className="text-brand-slate hover:text-brand-charcoal transition-colors shrink-0 p-1"
+          >
+            <ChevronDown
+              className={clsx(
+                "w-4 h-4 transition-transform",
+                !showDetail && "-rotate-90"
+              )}
+            />
+          </button>
+        </div>
 
-          {/* Side-by-side comparison */}
-          <div className="grid grid-cols-2 gap-2">
+        {showDetail && (
+          <div className="mt-3 pt-3 border-t border-brand-orange/20 grid grid-cols-2 gap-2">
             <SideCard
               title="Without"
               subtitle="Your current policy"
@@ -69,19 +89,8 @@ export function ClaimSimulator({ gapTitle, idv, vehicleAge }: Props) {
               variant="success"
             />
           </div>
-
-          {/* Net delta */}
-          <div className="text-[11px] text-center text-brand-slate pt-1">
-            Out-of-pocket difference:{" "}
-            <span className="font-bold text-brand-orange">
-              {formatINR(
-                scenario.withoutAddOn.youPay - scenario.withAddOn.youPay
-              )}
-            </span>{" "}
-            in a single incident
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

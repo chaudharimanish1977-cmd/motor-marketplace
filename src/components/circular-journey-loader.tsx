@@ -7,6 +7,7 @@ import { getBodyType, type BodyType } from "@/lib/vehicle-classifier";
 import { CarByBodyType } from "@/components/car-illustrations";
 import { BackgroundScenery, ForegroundScenery } from "@/components/scenery";
 import { ElapsedTimer } from "@/components/elapsed-timer";
+import { TimeComparison } from "@/components/time-comparison";
 
 interface Props {
   vehicleLabel?: string;
@@ -264,12 +265,13 @@ export function CircularJourneyLoader({
         )}
 
         {startedAt !== undefined && (
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col items-center gap-2">
             <ElapsedTimer
               startedAt={startedAt}
               size="lg"
               className="text-brand-deepblue"
             />
+            <TimeComparison />
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { DesktopAmbientArt } from "@/components/desktop-ambient-art";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,7 +31,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen bg-brand-offwhite text-brand-charcoal antialiased font-sans">
-        {children}
+        <DesktopAmbientArt />
+        <div className="relative z-10">{children}</div>
       </body>
     </html>
   );

@@ -84,6 +84,13 @@ function iconForHint(hint?: string): LucideIcon {
   }
 }
 
+interface DrivingProfile {
+  annualKm?: string;
+  drivenBy?: string;
+  otherCars?: string;
+  priority?: string;
+}
+
 interface Props {
   parsedPolicy: ParsedPolicy;
   report: PolicyReport;
@@ -91,6 +98,8 @@ interface Props {
   totalElapsedMs?: number;
   /** Drives CTA behaviour. Customer view ends here (no bid link). Investor sees full flow. */
   view?: "customer" | "investor";
+  /** Optional answers captured during the mid-load survey on /upload. */
+  drivingProfile?: DrivingProfile;
 }
 
 export function ReportDisplay({
@@ -98,6 +107,7 @@ export function ReportDisplay({
   report,
   totalElapsedMs,
   view = "customer",
+  drivingProfile,
 }: Props) {
   const {
     atAGlance,
@@ -210,6 +220,9 @@ export function ReportDisplay({
 
       {/* Content body */}
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        {/* Driving profile chips — only when the user answered the mid-load survey */}
+        {drivingProfile && <DrivingProfileCard profile={drivingProfile} />}
+
         {/* §0 Coverage Score — hero metric, anchors the entire report */}
         <CoverageScoreCard score={computeCoverageScore(parsedPolicy, report)} />
 
@@ -274,6 +287,45 @@ export function ReportDisplay({
 // ============================================================================
 // Sub-components
 // ============================================================================
+
+function DrivingProfileCard({ profile }: { profile: DrivingProfile }) {
+  const chips: { label: string; value: string }[] = [];
+  if (profile.annualKm)
+    chips.push({ label: "You drive", value: profile.annualKm });
+  if (profile.drivenBy)
+    chips.push({ label: "Driven by", value: profile.drivenBy });
+  if (profile.otherCars)
+    chips.push({ label: "Other cars", value: profile.otherCars });
+  if (profile.priority)
+    chips.push({ label: "Matters most", value: profile.priority });
+
+  if (chips.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-brand-light-gray bg-white shadow-sm overflow-hidden">
+      <div className="bg-brand-deepblue/5 px-5 py-2.5 border-b border-brand-light-gray">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
+          Tailored to your driving profile
+        </div>
+      </div>
+      <div className="px-5 py-4 flex flex-wrap gap-2">
+        {chips.map((c) => (
+          <div
+            key={c.label}
+            className="inline-flex items-center gap-1.5 rounded-full bg-brand-offwhite border border-brand-light-gray px-3 py-1.5"
+          >
+            <span className="text-[10px] uppercase tracking-wider text-brand-slate font-semibold">
+              {c.label}
+            </span>
+            <span className="text-xs font-bold text-brand-charcoal">
+              {c.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function Fact({
   label,

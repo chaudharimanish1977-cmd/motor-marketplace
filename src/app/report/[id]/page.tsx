@@ -9,12 +9,30 @@ export const maxDuration = 60;
 
 interface PageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ from?: string; demo?: string }>;
+  searchParams: Promise<{
+    from?: string;
+    demo?: string;
+    km?: string;
+    drv?: string;
+    oc?: string;
+    pri?: string;
+  }>;
 }
 
 export default async function ReportPage({ params, searchParams }: PageProps) {
-  const [{ id }, { from, demo }] = await Promise.all([params, searchParams]);
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const { from, demo, km, drv, oc, pri } = sp;
   const view: "investor" | "customer" = demo === "1" ? "investor" : "customer";
+
+  const drivingProfile =
+    km || drv || oc || pri
+      ? {
+          annualKm: km,
+          drivenBy: drv,
+          otherCars: oc,
+          priority: pri,
+        }
+      : undefined;
 
   const parsedPolicy = await findById<ParsedPolicy>(
     Tables.PARSED_POLICIES,
@@ -51,6 +69,7 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
       report={report}
       totalElapsedMs={totalElapsedMs}
       view={view}
+      drivingProfile={drivingProfile}
     />
   );
 }

@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
 import { Upload, FileText, AlertCircle } from "lucide-react";
 import clsx from "clsx";
 import { CircularJourneyLoader } from "@/components/circular-journey-loader";
+import {
+  MidLoadQuestions,
+  answersToQuery,
+  type MidLoadAnswers,
+} from "@/components/mid-load-questions";
 
 type UploadState = "idle" | "uploading" | "parsing" | "done" | "error";
 
@@ -32,15 +37,36 @@ export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
 
+  // Mid-load survey state. Both halves (parse done, answers done) must
+  // resolve before we redirect — whichever finishes first waits.
+  const [parsedId, setParsedId] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<MidLoadAnswers | null>(null);
+  const t0Ref = useRef<number>(0);
+
+  // Trigger redirect once BOTH parse and answers have landed.
+  const tryRedirect = useCallback(
+    (id: string | null, ans: MidLoadAnswers | null) => {
+      if (!id || !ans) return;
+      const baseQuery = `from=${t0Ref.current}${demoMode ? "&demo=1" : ""}`;
+      const ansQuery = answersToQuery(ans);
+      const fullQuery = ansQuery ? `${baseQuery}&${ansQuery}` : baseQuery;
+      router.push(`/report/${id}?${fullQuery}`);
+    },
+    [router, demoMode]
+  );
+
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       if (!file) return;
 
       const t0 = Date.now();
+      t0Ref.current = t0;
       setStartedAt(t0);
       setFileName(file.name);
       setError(null);
+      setParsedId(null);
+      setAnswers(null);
       setState("uploading");
 
       // Build the FormData once; reuse for both preview + full parse
@@ -91,18 +117,23 @@ export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
 
         const data = await res.json();
         setState("done");
-        const demoSuffix = demoMode ? "&demo=1" : "";
-        setTimeout(
-          () =>
-            router.push(`/report/${data.id}?from=${t0}${demoSuffix}`),
-          600
-        );
+        setParsedId(data.id);
+        // Defer to micro-task so React commits parsedId before tryRedirect reads it.
+        setTimeout(() => tryRedirect(data.id, answers), 0);
       } catch (err) {
         setState("error");
         setError(err instanceof Error ? err.message : "Unknown error");
       }
     },
-    [router, demoMode]
+    [tryRedirect, answers]
+  );
+
+  const handleAnswersComplete = useCallback(
+    (a: MidLoadAnswers) => {
+      setAnswers(a);
+      tryRedirect(parsedId, a);
+    },
+    [parsedId, tryRedirect]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -114,30 +145,37 @@ export function UploadDropzone({ demoMode = false }: UploadDropzoneProps) {
 
   if (state === "uploading" || state === "parsing" || state === "done") {
     return (
-      <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6">
-        <CircularJourneyLoader
-          vehicleLabel={preview?.vehicleLabel ?? undefined}
-          registrationNumber={preview?.registrationNumber ?? undefined}
-          rtoCity={preview?.rtoCity ?? undefined}
-          vehicleAgeYears={preview?.ageYears ?? undefined}
-          vehicleMake={preview?.make ?? undefined}
-          vehicleModel={preview?.model ?? undefined}
-          stage="parsing"
-          startedAt={startedAt ?? undefined}
-          primaryText={
-            state === "done"
-              ? "Done — loading your report..."
-              : preview?.vehicleLabel
-                ? "Analysing your policy"
-                : "Reading your policy"
-          }
-          etaText={state !== "done" ? "Usually 25-30 seconds" : undefined}
-        />
-        {fileName && (
-          <div className="text-center text-[11px] text-brand-slate/70 mt-2">
-            {fileName}
-          </div>
-        )}
+      <div className="space-y-4">
+        <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6">
+          <CircularJourneyLoader
+            vehicleLabel={preview?.vehicleLabel ?? undefined}
+            registrationNumber={preview?.registrationNumber ?? undefined}
+            rtoCity={preview?.rtoCity ?? undefined}
+            vehicleAgeYears={preview?.ageYears ?? undefined}
+            vehicleMake={preview?.make ?? undefined}
+            vehicleModel={preview?.model ?? undefined}
+            stage="parsing"
+            startedAt={startedAt ?? undefined}
+            primaryText={
+              state === "done"
+                ? "Done — loading your report..."
+                : preview?.vehicleLabel
+                  ? "Analysing your policy"
+                  : "Reading your policy"
+            }
+            etaText={
+              state !== "done" ? "Usually under 2 minutes" : undefined
+            }
+          />
+          {fileName && (
+            <div className="text-center text-[11px] text-brand-slate/70 mt-2">
+              {fileName}
+            </div>
+          )}
+        </div>
+
+        {/* Productive use of the parse wait — collect 4 personalisation Qs */}
+        <MidLoadQuestions onComplete={handleAnswersComplete} />
       </div>
     );
   }

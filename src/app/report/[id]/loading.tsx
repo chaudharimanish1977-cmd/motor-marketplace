@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Loader2, Sparkles } from "lucide-react";
 import { ElapsedTimer } from "@/components/elapsed-timer";
+import { TimeComparison } from "@/components/time-comparison";
 
 export default function Loading() {
   const params = useSearchParams();
@@ -29,12 +30,13 @@ export default function Loading() {
         </div>
 
         {validStart !== undefined && (
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col items-center gap-2">
             <ElapsedTimer
               startedAt={validStart}
               size="lg"
               className="text-brand-deepblue"
             />
+            <TimeComparison />
           </div>
         )}
       </div>
