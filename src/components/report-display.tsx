@@ -43,7 +43,6 @@ import {
 import { Typewriter } from "@/components/typewriter";
 import { VehicleWatermark } from "@/components/vehicle-watermark";
 import { SimplifyToggle } from "@/components/simplify-toggle";
-import { ElapsedTimer } from "@/components/elapsed-timer";
 import { getBodyType } from "@/lib/vehicle-classifier";
 
 function iconForHint(hint?: string): LucideIcon {
@@ -93,8 +92,6 @@ function iconForHint(hint?: string): LucideIcon {
 interface Props {
   parsedPolicy: ParsedPolicy;
   report: PolicyReport;
-  /** Total ms from upload click → report ready. When present, shown in the header. */
-  totalElapsedMs?: number;
   /** Drives CTA behaviour. Customer view ends here (no bid link). Investor sees full flow. */
   view?: "customer" | "investor";
   /** Optional answers captured during the mid-load survey on /upload. */
@@ -104,7 +101,6 @@ interface Props {
 export function ReportDisplay({
   parsedPolicy,
   report,
-  totalElapsedMs,
   view = "customer",
   drivingProfile,
 }: Props) {
@@ -140,73 +136,75 @@ export function ReportDisplay({
     <div className="min-h-screen bg-brand-offwhite pb-12">
       <ScrollProgress />
       {view === "customer" && <ReportGuard />}
-      {/* Header bar */}
+      {/* Header bar — mobile-first redesign:
+       *  Row 1: "Hey Buddy" left, Shield icon right
+       *  Row 2: "Your Motor Insurance at a Glance" centred
+       *  Row 3: tagline split into two centred lines
+       *  Secondary controls (SimplifyToggle + Generated date) are hidden on
+       *  small screens to keep the header airy. */}
       <header className="relative bg-gradient-to-r from-brand-deepblue to-brand-electricblue text-white shadow-elevated overflow-hidden">
-        {/* Decorative body-type watermark */}
         <div
           className="absolute right-0 bottom-0 w-[420px] max-w-[55%] text-white pointer-events-none print:hidden"
           aria-hidden
         >
           <VehicleWatermark bodyType={bodyType} className="w-full h-auto" />
         </div>
-        <div className="relative max-w-5xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                <ShieldCheck className="w-7 h-7 text-brand-gold" />
-              </div>
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-gold mb-0.5">
-                  Hey {greetingName}
-                </div>
-                <h1 className="text-xl md:text-2xl font-bold">
-                  Your Motor Insurance{" "}
-                  <span className="text-brand-gold">at a Glance</span>
-                </h1>
-                <p className="text-sm text-blue-100 mt-0.5">
-                  Smart Review Today. Stronger Protection Tomorrow.
-                </p>
-              </div>
+        <div className="relative max-w-5xl mx-auto px-4 py-5 space-y-3">
+          {/* Top row */}
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xl md:text-2xl font-bold text-brand-gold leading-tight">
+              Hey {greetingName}
+            </h2>
+            <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-6 h-6 text-brand-gold" />
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              {totalElapsedMs !== undefined && (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-gold/95 text-brand-charcoal rounded-full shadow-soft print:hidden">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.12em]">
-                    Ready in
-                  </span>
-                  <ElapsedTimer
-                    frozenAtMs={totalElapsedMs}
-                    size="md"
-                    showIcon={false}
-                    className="!font-bold !text-sm"
-                  />
-                </div>
-              )}
-              <div className="text-xs text-blue-200 print:hidden">
-                Generated{" "}
-                {new Date(report.generatedAt).toLocaleString("en-IN", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                  timeZone: "Asia/Kolkata",
-                })}{" "}
-                IST
-              </div>
-              <SimplifyToggle />
-              <ReportDownloadGate />
+          </div>
+
+          {/* Title + 2-line tagline, centred */}
+          <div className="text-center">
+            <h1 className="text-xl md:text-2xl font-bold leading-tight">
+              Your Motor Insurance{" "}
+              <span className="text-brand-gold">at a Glance</span>
+            </h1>
+            <p className="text-sm text-blue-100 mt-1.5 leading-snug">
+              Smart Review Today.
+              <br />
+              Stronger Protection Tomorrow.
+            </p>
+          </div>
+
+          {/* Secondary controls — desktop only */}
+          <div className="hidden md:flex items-center justify-end gap-3 print:hidden">
+            <div className="text-xs text-blue-200">
+              Generated{" "}
+              {new Date(report.generatedAt).toLocaleString("en-IN", {
+                dateStyle: "medium",
+                timeStyle: "short",
+                timeZone: "Asia/Kolkata",
+              })}{" "}
+              IST
             </div>
+            <SimplifyToggle />
           </div>
         </div>
       </header>
 
-      {/* At a glance — 5-fact strip */}
+      {/* At a glance — compact 5-fact strip, DD/MM/YY policy period */}
       <section className="bg-white border-b border-brand-light-gray shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-            <Fact label="Policy Period" value={atAGlance.policyPeriodLabel} />
+        <div className="max-w-5xl mx-auto px-4 py-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <Fact
+              label="Policy Period"
+              value={formatPolicyPeriodShort(
+                parsedPolicy.odPeriodStart,
+                parsedPolicy.odPeriodEnd
+              )}
+              valueClassName="text-xs sm:text-sm tabular-nums"
+            />
             <Fact
               label="Vehicle"
               value={atAGlance.vehicleLabel}
-              valueClassName="text-sm"
+              valueClassName="text-xs sm:text-sm"
             />
             <Fact
               label="IDV"
@@ -221,7 +219,7 @@ export function ReportDisplay({
             <Fact
               label="Policy Type"
               value={atAGlance.policyTypeLabel}
-              valueClassName="text-sm"
+              valueClassName="text-xs sm:text-sm"
             />
           </div>
         </div>
@@ -409,14 +407,33 @@ function Fact({
 }) {
   return (
     <div>
-      <div className="text-[10px] text-brand-slate uppercase tracking-wider font-semibold mb-1">
+      <div className="text-[9px] text-brand-slate uppercase tracking-wider font-semibold mb-0.5">
         {label}
       </div>
-      <div className={clsx("font-bold text-brand-charcoal", valueClassName)}>
+      <div
+        className={clsx(
+          "font-bold text-brand-charcoal leading-snug",
+          valueClassName ?? "text-sm"
+        )}
+      >
         {value}
       </div>
     </div>
   );
+}
+
+/** Format an ISO date pair as `DD/MM/YY – DD/MM/YY` for the at-a-glance strip. */
+function formatPolicyPeriodShort(startIso: string, endIso: string): string {
+  return `${shortDate(startIso)} – ${shortDate(endIso)}`;
+}
+
+function shortDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
 }
 
 function SectionCard({

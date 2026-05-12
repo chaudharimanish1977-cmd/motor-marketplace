@@ -55,19 +55,14 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
     await appendRow<PolicyReport>(Tables.REPORTS, report);
   }
 
-  // Total user-perceived time = now - upload start (if "from" was passed).
-  // Captured server-side at the moment the report is ready, so it includes
-  // upload + parse + report generation. This is the number we show next to
-  // the "your report is ready" badge as the marketing-grade latency claim.
-  const fromMs = from ? parseInt(from, 10) : NaN;
-  const totalElapsedMs =
-    Number.isFinite(fromMs) && fromMs > 0 ? Date.now() - fromMs : undefined;
+  // `from` is still accepted in the URL so the upload→report timer flow keeps
+  // working, but the header no longer surfaces it (removed per design ask).
+  void from;
 
   return (
     <ReportDisplay
       parsedPolicy={parsedPolicy}
       report={report}
-      totalElapsedMs={totalElapsedMs}
       view={view}
       drivingProfile={drivingProfile}
     />
