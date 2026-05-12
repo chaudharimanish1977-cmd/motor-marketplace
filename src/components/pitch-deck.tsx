@@ -80,7 +80,7 @@ export function PitchDeck() {
 
   if (printMode) {
     return (
-      <div className="bg-black text-white font-sans">
+      <div className="bg-[#0A2463] text-white font-sans">
         {slides.map((slide, i) => (
           <div
             key={i}
@@ -104,7 +104,7 @@ export function PitchDeck() {
   const slide = slides[idx];
 
   return (
-    <div className="fixed inset-0 bg-black text-white font-sans overflow-hidden">
+    <div className="fixed inset-0 bg-[#0A2463] text-white font-sans overflow-hidden">
       {/* Single slide, vertically + horizontally centered */}
       <SlideShell idx={idx} total={slides.length}>
         {slide.render()}
