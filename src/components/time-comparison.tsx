@@ -19,18 +19,51 @@ const COMPARISONS: {
   theme: ThemeKey;
   anim: AnimKey;
 }[] = [
+  // Food + drinks
   { emoji: "🍜", text: "Faster than your Maggi finishes cooking", theme: "amber", anim: "bob" },
   { emoji: "🍵", text: "Quicker than your morning chai brews", theme: "emerald", anim: "wobble" },
-  { emoji: "🛺", text: "Faster than waiting for an auto on Ola", theme: "yellow", anim: "shake" },
-  { emoji: "📞", text: "Less time than an insurance call-centre IVR menu", theme: "rose", anim: "shake" },
   { emoji: "☕", text: "Quicker than your Starbucks order", theme: "orange", anim: "bob" },
-  { emoji: "🚦", text: "Shorter than two Mumbai traffic signals", theme: "red", anim: "pulse" },
-  { emoji: "🍕", text: "Half the time of a Domino's promised delivery", theme: "rose", anim: "spin" },
-  { emoji: "🎵", text: "Less than 2 Bollywood song hooks", theme: "purple", anim: "bob" },
-  { emoji: "🛒", text: "Faster than a Zepto 10-minute delivery", theme: "indigo", anim: "shake" },
-  { emoji: "📱", text: "Quicker than UPI&apos;s busy-hour timeout", theme: "blue", anim: "pulse" },
-  { emoji: "🍳", text: "Shorter than scrambling 2 eggs", theme: "yellow", anim: "shake" },
   { emoji: "🧋", text: "Less than your bubble tea queue", theme: "fuchsia", anim: "wobble" },
+  { emoji: "🍳", text: "Shorter than scrambling 2 eggs", theme: "yellow", anim: "shake" },
+  { emoji: "🍕", text: "Half the time of a Domino's promised delivery", theme: "rose", anim: "spin" },
+  { emoji: "🍦", text: "Quicker than a kulfi melts in May", theme: "fuchsia", anim: "bob" },
+  { emoji: "🍪", text: "Quicker than dunking a Parle-G in chai", theme: "amber", anim: "bob" },
+  { emoji: "🥥", text: "Faster than cracking a tender coconut", theme: "emerald", anim: "wobble" },
+  { emoji: "🌶️", text: "Faster than the burn from a green-chilli bite", theme: "red", anim: "shake" },
+  { emoji: "🥟", text: "Quicker than a momo cools down", theme: "amber", anim: "bob" },
+  { emoji: "🧊", text: "Less time than ice melts in nimbu pani", theme: "blue", anim: "wobble" },
+  { emoji: "🍯", text: "Less than honey drips off a spoon", theme: "amber", anim: "bob" },
+
+  // Tech + apps
+  { emoji: "📱", text: "Quicker than UPI&apos;s busy-hour timeout", theme: "blue", anim: "pulse" },
+  { emoji: "💸", text: "Quicker than typing your UPI PIN twice", theme: "emerald", anim: "bob" },
+  { emoji: "📺", text: "Faster than skipping a YouTube ad", theme: "blue", anim: "pulse" },
+  { emoji: "🎟️", text: "Quicker than a BookMyShow OTP arrives", theme: "orange", anim: "wobble" },
+  { emoji: "📦", text: "Quicker than opening an Amazon parcel", theme: "yellow", anim: "shake" },
+  { emoji: "📨", text: "Less than Gmail's smart-reply suggestion", theme: "indigo", anim: "pulse" },
+  { emoji: "🛒", text: "Faster than a Zepto 10-minute delivery", theme: "indigo", anim: "shake" },
+  { emoji: "🛵", text: "Shorter than the Swiggy rider call-back", theme: "red", anim: "shake" },
+
+  // Travel + everyday
+  { emoji: "🛺", text: "Faster than waiting for an auto on Ola", theme: "yellow", anim: "shake" },
+  { emoji: "🚦", text: "Shorter than two Mumbai traffic signals", theme: "red", anim: "pulse" },
+  { emoji: "🚂", text: "Less than the IRCTC session timer", theme: "indigo", anim: "shake" },
+  { emoji: "🚎", text: "Less than the BEST bus wait at peak hour", theme: "red", anim: "shake" },
+  { emoji: "📞", text: "Less than an insurance call-centre IVR menu", theme: "rose", anim: "shake" },
+  { emoji: "🚿", text: "Less than a quick monsoon shower", theme: "blue", anim: "bob" },
+
+  // Sports + entertainment
+  { emoji: "🏏", text: "Shorter than one T20 over", theme: "emerald", anim: "shake" },
+  { emoji: "⚽", text: "Faster than a football half-time break", theme: "emerald", anim: "spin" },
+  { emoji: "🎵", text: "Less than 2 Bollywood song hooks", theme: "purple", anim: "bob" },
+  { emoji: "🎤", text: "Less than your antakshari turn", theme: "purple", anim: "pulse" },
+  { emoji: "🎢", text: "Faster than a Wonderla queue moves an inch", theme: "rose", anim: "bob" },
+
+  // Misc India-life
+  { emoji: "🪁", text: "Faster than a Sankranti patang dives", theme: "fuchsia", anim: "wobble" },
+  { emoji: "🚀", text: "Quicker than a Diwali rocket fizzles", theme: "orange", anim: "spin" },
+  { emoji: "🌧️", text: "Quicker than Mumbai's first monsoon shower", theme: "blue", anim: "bob" },
+  { emoji: "🛏️", text: "Faster than your morning snooze button", theme: "indigo", anim: "bob" },
 ];
 
 type ThemeKey =
@@ -88,7 +121,13 @@ export function TimeComparison({
   intervalMs = 3500,
   layout = "horizontal",
 }: Props) {
-  const picks = useMemo(() => pickRandom(COMPARISONS, 5), []);
+  // Shuffle the FULL pool once on mount. At ~3.5s per rotation and 35+
+  // entries we cycle for ~2 minutes before any repeat — enough to cover
+  // the longest parse + report-gen wait.
+  const picks = useMemo(
+    () => pickRandom(COMPARISONS, COMPARISONS.length),
+    []
+  );
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
