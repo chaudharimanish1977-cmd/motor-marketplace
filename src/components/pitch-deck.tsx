@@ -402,9 +402,7 @@ const SLIDES: Slide[] = [
     render: () => (
       <div>
         <Headline>
-          Insurance, the way
-          <br />
-          <Accent>WhatsApp</Accent> does conversation.
+          Insurance, made <Accent>effortless</Accent>.
         </Headline>
         <div className="mt-16 grid grid-cols-1 md:grid-cols-4 gap-6">
           {[
