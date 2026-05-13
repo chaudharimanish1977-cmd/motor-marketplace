@@ -115,7 +115,8 @@ export function ReportDownloadGate({
         });
       }
 
-      const params = new URLSearchParams({ e: email });
+      const params = new URLSearchParams({ e: email, m: mobile });
+      if (reportId) params.set("p", reportId);
       router.push(`/thank-you?${params.toString()}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");

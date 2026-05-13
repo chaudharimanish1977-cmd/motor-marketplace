@@ -324,3 +324,25 @@ export interface RenewalSchedule {
   nudges: RenewalNudge[];
   generatedAt: string;
 }
+
+/**
+ * Customer-opted-in renewal reminder subscription.
+ *
+ * Captured on /thank-you when the customer agrees to renewal nudges.
+ * A daily cron (built later) reads from here, checks if today falls in the
+ * pre-expiry window (e.g. T-60 / T-30 / T-7), and fires email + WhatsApp.
+ */
+export interface RenewalSubscription {
+  id: string;
+  parsedPolicyId: string;
+  customerEmail: string;
+  customerMobile: string;
+  /** Channels the customer agreed to. */
+  channels: ("email" | "whatsapp")[];
+  /** ISO date — derived from parsedPolicy.odPeriodEnd at subscribe time. */
+  policyExpiryDate: string;
+  status: "active" | "unsubscribed";
+  createdAt: string;
+  /** When the cron last sent a reminder (so we don't double-fire). */
+  lastNudgedAt?: string;
+}

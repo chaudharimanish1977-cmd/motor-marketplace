@@ -9,6 +9,9 @@ import {
   Star,
   Home,
   Sparkles,
+  Bell,
+  BellRing,
+  Loader2,
 } from "lucide-react";
 import { Confetti } from "@/components/confetti";
 
@@ -22,14 +25,17 @@ const RATING_LABEL: Record<number, string> = {
 
 interface Props {
   email: string;
+  mobile: string;
+  parsedPolicyId: string;
+  policyExpiryDate?: string;
 }
 
-/**
- * Single-card thank-you. Combines what was previously three stacked cards
- * (mail-sent confirmation, thank-you note, feedback) into one tightly-laid
- * panel so the user sees feedback above the fold and conversion is higher.
- */
-export function ThankYouFlow({ email }: Props) {
+export function ThankYouFlow({
+  email,
+  mobile,
+  parsedPolicyId,
+  policyExpiryDate,
+}: Props) {
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -43,10 +49,10 @@ export function ThankYouFlow({ email }: Props) {
     <main className="min-h-screen flex flex-col items-center px-4 py-10">
       <Confetti />
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md space-y-5">
+        {/* CARD 1 — mail-sent confirmation */}
         <div className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-orange-50/40 border border-emerald-200 shadow-elevated overflow-hidden">
-          {/* TOP — mail-sent confirmation + thank-you copy combined */}
-          <div className="px-6 pt-7 pb-5 text-center border-b border-brand-light-gray/70">
+          <div className="px-6 pt-7 pb-6 text-center">
             <div className="inline-flex w-14 h-14 rounded-full bg-brand-success items-center justify-center shadow-elevated mb-3">
               <CheckCircle2 className="w-8 h-8 text-white" />
             </div>
@@ -66,8 +72,20 @@ export function ThankYouFlow({ email }: Props) {
               spam.
             </div>
           </div>
+        </div>
 
-          {/* BOTTOM — feedback (or post-submit acknowledgement) */}
+        {/* CARD 2 — renewal opt-in (only when we have policy + mobile) */}
+        {parsedPolicyId && mobile && (
+          <RenewalOptInCard
+            email={email}
+            mobile={mobile}
+            parsedPolicyId={parsedPolicyId}
+            policyExpiryDate={policyExpiryDate}
+          />
+        )}
+
+        {/* CARD 3 — feedback */}
+        <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft overflow-hidden">
           <div className="px-6 py-5">
             {!submitted ? (
               <>
@@ -80,7 +98,6 @@ export function ThankYouFlow({ email }: Props) {
                   </div>
                 </div>
 
-                {/* Star rating row */}
                 <div className="flex items-center justify-center gap-1.5 mb-2">
                   {[1, 2, 3, 4, 5].map((n) => {
                     const active = rating !== null && rating >= n;
@@ -105,12 +122,10 @@ export function ThankYouFlow({ email }: Props) {
                   })}
                 </div>
 
-                {/* Rating label */}
                 <div className="text-center text-xs font-semibold text-brand-charcoal min-h-[18px] mb-3">
                   {rating !== null ? RATING_LABEL[rating] : "Tap a star"}
                 </div>
 
-                {/* Comment for low ratings only — keeps the happy-path one-tap */}
                 {rating !== null && rating <= 3 && (
                   <textarea
                     value={comment}
@@ -152,7 +167,7 @@ export function ThankYouFlow({ email }: Props) {
         </div>
 
         {/* Footer link */}
-        <div className="mt-5 text-center">
+        <div className="text-center pt-1">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-brand-deepblue text-sm font-semibold hover:underline"
@@ -163,5 +178,147 @@ export function ThankYouFlow({ email }: Props) {
         </div>
       </div>
     </main>
+  );
+}
+
+// ============================================================================
+// Renewal opt-in — captures both email + WhatsApp in one tap
+// ============================================================================
+
+function RenewalOptInCard({
+  email,
+  mobile,
+  parsedPolicyId,
+  policyExpiryDate,
+}: {
+  email: string;
+  mobile: string;
+  parsedPolicyId: string;
+  policyExpiryDate?: string;
+}) {
+  const [state, setState] = useState<"idle" | "saving" | "done" | "error">(
+    "idle"
+  );
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const niceDate = policyExpiryDate
+    ? new Date(policyExpiryDate).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+
+  const subscribe = async () => {
+    setErrorMsg(null);
+    setState("saving");
+    try {
+      const res = await fetch("/api/reminders/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parsedPolicyId, email, mobile }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.subscribed) {
+        throw new Error(data.error || "Couldn't save your preference");
+      }
+      setState("done");
+    } catch (err) {
+      setState("error");
+      setErrorMsg(err instanceof Error ? err.message : "Unknown error");
+    }
+  };
+
+  if (state === "done") {
+    return (
+      <div className="rounded-3xl bg-gradient-to-br from-orange-50 to-white border-2 border-brand-orange/30 shadow-soft overflow-hidden">
+        <div className="px-6 py-5 flex items-start gap-3">
+          <div className="w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center shrink-0">
+            <BellRing className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <div className="font-bold text-brand-charcoal text-sm md:text-base">
+              Locked in 🔒
+            </div>
+            <p className="text-xs md:text-sm text-brand-slate mt-1 leading-relaxed">
+              We&apos;ll quietly nudge you{" "}
+              {niceDate ? (
+                <>
+                  before{" "}
+                  <span className="font-semibold text-brand-charcoal">
+                    {niceDate}
+                  </span>
+                </>
+              ) : (
+                "before your policy expires"
+              )}{" "}
+              — by email and WhatsApp. Zero calls, ever. Reply STOP any time to
+              opt out.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft overflow-hidden">
+      <div className="px-6 py-5">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-brand-deepblue/10 flex items-center justify-center shrink-0">
+            <Bell className="w-5 h-5 text-brand-deepblue" />
+          </div>
+          <div className="flex-1">
+            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-deepblue mb-1">
+              Renewal reminder
+            </div>
+            <h3 className="text-base md:text-lg font-bold text-brand-charcoal leading-snug">
+              Don&apos;t ghost your renewal.
+            </h3>
+            <p className="text-xs md:text-sm text-brand-slate mt-1.5 leading-relaxed">
+              We&apos;ll send a couple of nudges{" "}
+              {niceDate ? (
+                <>
+                  before your policy expires on{" "}
+                  <span className="font-semibold text-brand-charcoal">
+                    {niceDate}
+                  </span>
+                </>
+              ) : (
+                "in the weeks leading up to your renewal"
+              )}{" "}
+              — by email and WhatsApp. Zero calls. Reply STOP any time.
+            </p>
+          </div>
+        </div>
+
+        {errorMsg && (
+          <div className="text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-3">
+            {errorMsg}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={subscribe}
+          disabled={state === "saving"}
+          className={clsx(
+            "w-full py-2.5 rounded-xl font-bold text-sm transition-all inline-flex items-center justify-center gap-2",
+            state === "saving"
+              ? "bg-brand-light-gray text-brand-slate cursor-not-allowed"
+              : "bg-brand-orange hover:brightness-110 text-white shadow-soft"
+          )}
+        >
+          {state === "saving" ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "I'm in"
+          )}
+        </button>
+      </div>
+    </div>
   );
 }

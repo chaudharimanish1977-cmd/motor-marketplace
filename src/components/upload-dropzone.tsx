@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Upload, FileText, AlertCircle } from "lucide-react";
+import { ArrowLeft, Upload, FileText, RefreshCw } from "lucide-react";
 import clsx from "clsx";
 import { CircularJourneyLoader } from "@/components/circular-journey-loader";
 import { StopwatchChip } from "@/components/stopwatch-chip";
@@ -15,6 +15,11 @@ import {
 } from "@/components/mid-load-questions";
 
 type UploadState = "idle" | "uploading" | "parsing" | "done" | "error";
+
+interface UploadError {
+  headline: string;
+  body: string;
+}
 
 interface PreviewData {
   vehicleLabel: string | null;
@@ -65,7 +70,7 @@ export function UploadDropzone({
 }: UploadDropzoneProps) {
   const router = useRouter();
   const [state, setState] = useState<UploadState>("idle");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UploadError | null>(null);
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
 
@@ -128,8 +133,17 @@ export function UploadDropzone({
         });
 
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || "Failed to analyse policy");
+          const errBody = await res.json().catch(() => ({}));
+          setState("error");
+          setError({
+            headline:
+              errBody.headline ?? "Couldn't analyse this",
+            body:
+              errBody.body ??
+              errBody.error ??
+              "Try uploading the original PDF from your insurer.",
+          });
+          return;
         }
 
         const data = await res.json();
@@ -144,7 +158,13 @@ export function UploadDropzone({
         router.push(`/report/${data.id}?${fullQuery}`);
       } catch (err) {
         setState("error");
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError({
+          headline: "Connection hiccup 📡",
+          body:
+            err instanceof Error
+              ? err.message
+              : "Couldn't reach our servers. Give it another shot in a sec.",
+        });
       }
     },
     [router, demoMode]
@@ -162,10 +182,11 @@ export function UploadDropzone({
     onBusyChange?.(busy);
   }, [state, onBusyChange]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: { "application/pdf": [".pdf"] },
     maxFiles: 1,
+    noClick: false,
     disabled: state === "uploading" || state === "parsing",
   });
 
@@ -232,13 +253,30 @@ export function UploadDropzone({
       </div>
 
       {error && (
-        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-red-900">
-              Couldn&apos;t analyse your policy
-            </p>
-            <p className="text-sm text-red-700">{error}</p>
+        <div className="rounded-2xl border-2 border-brand-orange/40 bg-gradient-to-br from-orange-50 to-white p-5 shadow-soft">
+          <div className="text-lg md:text-xl font-bold text-brand-charcoal leading-snug">
+            {error.headline}
+          </div>
+          <div className="text-sm text-brand-slate mt-1.5 leading-relaxed">
+            {error.body}
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setError(null);
+                setState("idle");
+                open();
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deepblue hover:brightness-110 text-white text-sm font-semibold shadow-soft transition-all"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try another file
+            </button>
+            <span className="text-xs text-brand-slate">
+              Private car PDFs only · max 10 MB
+            </span>
           </div>
         </div>
       )}

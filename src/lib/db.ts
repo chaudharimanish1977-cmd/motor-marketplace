@@ -133,6 +133,7 @@ export const Tables = {
   BIDS: "bids",
   TRANSACTIONS: "transactions",
   RENEWAL_SCHEDULES: "renewal_schedules",
+  RENEWAL_SUBSCRIPTIONS: "renewal_subscriptions",
 } as const;
 
 export const ALL_TABLES = Object.values(Tables);
