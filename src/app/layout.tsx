@@ -12,13 +12,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://rightoffer.in"),
-  title: "RightOffer — Right insurance, right reasons, in under 2 minutes",
+  title: "RightOffer — A simpler way to choose insurance",
   description:
-    "Upload your motor policy and get a clear AI-powered review of what's covered, what's missing, and what to look for at renewal. Independent, India-first, in under 2 minutes.",
+    "Upload your motor policy. Get a clear, independent AI review of what's covered, what's missing, and what to look for at renewal — in under 2 minutes. Most people sell insurance. We help you decide.",
   openGraph: {
-    title: "RightOffer — Smart car insurance reviews",
+    title: "RightOffer — A simpler way to choose insurance",
     description:
-      "Independent AI review of your motor policy in under 2 minutes. Understand coverage gaps before they become out-of-pocket surprises.",
+      "Independent AI review of your motor policy in under 2 minutes. Most people sell insurance. We help you decide.",
     siteName: "RightOffer",
   },
 };

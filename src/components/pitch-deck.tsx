@@ -279,8 +279,8 @@ const SLIDES: Slide[] = [
           RightOffer
         </div>
         <div className="text-xl md:text-2xl text-white/70 font-normal max-w-2xl mx-auto">
-          Insurance, the way{" "}
-          <span className="text-white font-semibold">WhatsApp</span> does conversation.
+          A simpler way to{" "}
+          <span className="text-white font-semibold">choose</span> insurance.
         </div>
         <div className="mt-32 inline-flex flex-col items-center gap-1 text-[11px] tracking-[0.15em] uppercase text-white/40 font-semibold">
           <div>Pre-seed + Seed · $7 — 10M</div>
