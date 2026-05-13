@@ -1,14 +1,17 @@
 /**
  * RightOffer brand mark.
  *
- * - Car silhouette + wordmark layout, modeled on the founder's reference image
- * - Heart-shaped "o" between "right" and "ffer" — the visual hook
- * - Brand colours pulled from the design system:
- *     Deep blue  #0A2463  — car silhouette, "right", ".in"
- *     Orange     #FF6B35  — heart, "ffer"
+ * Matches the founder-approved reference design:
+ *   - Sleek sports-coupe silhouette in brand deep blue
+ *   - Italic wordmark "right ❤ ffer .in"
+ *     · "right" + ".in" in deep blue
+ *     · heart-shaped "o" + "ffer" in brand orange
  *
- * Renders cleanly at any size because the wordmark uses live Inter typography
- * (already loaded in the app shell) and the car silhouette is a pure SVG path.
+ * Brand colours locked:
+ *   Deep blue  #0A2463  — car silhouette, "right", ".in"
+ *   Orange     #FF6B35  — heart, "ffer"
+ *
+ * Live Inter Italic typography for the wordmark; the car is a pure SVG path.
  */
 
 import clsx from "clsx";
@@ -22,96 +25,107 @@ interface Props {
   wordmarkOnly?: boolean;
   /** Hide the .in TLD (useful in cramped headers). */
   hideTld?: boolean;
+  /** Render light variant for dark backgrounds: car silhouette + "right" + ".in" become white. */
+  onDark?: boolean;
 }
 
 export function RightOfferLogo({
   className,
   wordmarkOnly = false,
   hideTld = false,
+  onDark = false,
 }: Props) {
   return (
     <div className={clsx("inline-flex flex-col items-center", className)}>
-      {!wordmarkOnly && <CarSilhouette />}
-      <Wordmark hideTld={hideTld} />
+      {!wordmarkOnly && <CarSilhouette onDark={onDark} />}
+      <Wordmark hideTld={hideTld} onDark={onDark} />
     </div>
   );
 }
 
-function CarSilhouette() {
+function CarSilhouette({ onDark }: { onDark: boolean }) {
+  const bodyColor = onDark ? "#FFFFFF" : DEEP;
+  const cutoutColor = onDark ? "#0A2463" : "#FFFFFF";
   return (
     <svg
-      viewBox="0 0 320 90"
+      viewBox="0 0 400 100"
       xmlns="http://www.w3.org/2000/svg"
       className="w-full h-auto block"
-      style={{ maxWidth: "90%" }}
+      style={{ maxWidth: "92%" }}
       aria-hidden
     >
-      {/* Sleek coupe profile — sloping roofline, long hood, raked rear.
-       *  Drawn as a single fill path so the silhouette stays clean at any size. */}
+      {/* Sleek sports-coupe body — long, low-slung, sharp lines. */}
       <path
-        d="
-          M 15 78
-          Q 22 55, 60 50
-          L 80 50
-          Q 90 26, 130 22
-          L 180 22
-          Q 220 24, 250 50
-          L 290 56
-          Q 305 60, 308 72
-          L 308 78
-          L 295 78
-          A 14 14 0 0 0 268 78
-          L 90 78
-          A 14 14 0 0 0 63 78
-          Z
-        "
-        fill={DEEP}
+        d="M 22 82
+           Q 28 64, 58 60
+           L 90 56
+           Q 110 36, 165 30
+           L 240 30
+           Q 300 32, 340 58
+           L 376 64
+           Q 388 70, 388 82
+           L 354 82
+           A 14 14 0 0 0 312 82
+           L 88 82
+           A 14 14 0 0 0 46 82
+           Z"
+        fill={bodyColor}
       />
-      {/* Window cutout — gives the silhouette air and reads as a cabin */}
+      {/* Cabin / greenhouse cutout — gives the silhouette its modern coupe profile */}
       <path
-        d="
-          M 100 48
-          Q 108 32, 130 30
-          L 180 30
-          Q 198 32, 215 48
-          Z
-        "
-        fill="#FFFFFF"
+        d="M 108 56
+           Q 120 40, 168 34
+           L 235 34
+           Q 285 36, 322 56
+           Z"
+        fill={cutoutColor}
       />
-      {/* Subtle accent line under the body — premium feel */}
+      {/* Subtle accent line under the body for premium feel */}
       <path
-        d="M 70 64 Q 160 60, 285 64"
-        stroke={DEEP}
-        strokeWidth="1.5"
+        d="M 64 70 Q 200 64, 332 70"
+        stroke={bodyColor}
+        strokeWidth="1.2"
         fill="none"
-        opacity="0.4"
+        opacity="0.35"
       />
-      {/* Wheel hubs — circular punchouts inside the wheel arches */}
-      <circle cx="77" cy="78" r="6" fill="#FFFFFF" />
-      <circle cx="282" cy="78" r="6" fill="#FFFFFF" />
-      <circle cx="77" cy="78" r="3" fill={DEEP} />
-      <circle cx="282" cy="78" r="3" fill={DEEP} />
+      {/* Wheel hubs */}
+      <circle cx="67" cy="82" r="9" fill={cutoutColor} />
+      <circle cx="333" cy="82" r="9" fill={cutoutColor} />
+      <circle cx="67" cy="82" r="4" fill={bodyColor} />
+      <circle cx="333" cy="82" r="4" fill={bodyColor} />
     </svg>
   );
 }
 
-function Wordmark({ hideTld }: { hideTld: boolean }) {
+function Wordmark({
+  hideTld,
+  onDark,
+}: {
+  hideTld: boolean;
+  onDark: boolean;
+}) {
+  const blueText = onDark ? "#FFFFFF" : DEEP;
   return (
     <div
-      className="inline-flex items-center font-extrabold tracking-tight leading-none"
+      className="inline-flex items-center font-extrabold italic tracking-tight leading-none"
       style={{
         fontFamily:
           "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif",
         fontSize: "1em",
       }}
     >
-      <span style={{ color: DEEP }}>right</span>
+      <span style={{ color: blueText }}>right</span>
       <HeartO />
       <span style={{ color: ORANGE }}>ffer</span>
       {!hideTld && (
-        <span style={{ color: DEEP, fontWeight: 700 }}>
+        <span
+          style={{ color: blueText, fontWeight: 700 }}
+          className="ml-[0.02em]"
+        >
           <span style={{ fontSize: "0.85em" }}>.</span>
-          <span style={{ fontSize: "0.6em", letterSpacing: "-0.02em" }}>in</span>
+          <span style={{ fontSize: "0.6em", letterSpacing: "-0.02em" }}>
+            in
+          </span>
         </span>
       )}
     </div>
@@ -119,9 +133,9 @@ function Wordmark({ hideTld }: { hideTld: boolean }) {
 }
 
 /**
- * Heart that visually replaces the "o" in "offer". Sized to roughly match the
- * x-height of the surrounding letters; vertical alignment tuned so it sits
- * on the baseline like a real letter.
+ * Heart that visually replaces the "o" in "offer". Sized to the x-height
+ * of the surrounding italic letters and slightly raised so it reads as a
+ * letter on the baseline.
  */
 function HeartO() {
   return (
@@ -130,10 +144,10 @@ function HeartO() {
       xmlns="http://www.w3.org/2000/svg"
       className="block"
       style={{
-        width: "0.62em",
-        height: "0.62em",
-        margin: "0 0.03em",
-        transform: "translateY(0.05em)",
+        width: "0.68em",
+        height: "0.68em",
+        margin: "0 0.04em",
+        transform: "translateY(0.05em) skewX(-6deg)",
       }}
       aria-hidden
     >
