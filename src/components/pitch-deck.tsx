@@ -25,6 +25,16 @@ export function PitchDeck() {
   const [idx, setIdx] = useState(0);
   const [printMode, setPrintMode] = useState(false);
 
+  // Enable print mode when URL contains ?print=1 — used by /api/pitch/pdf
+  // so puppeteer can render the full stacked deck headlessly without any
+  // keyboard interaction. Reads window.location at mount so we don't need
+  // useSearchParams (which would force a Suspense boundary).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("print") === "1") setPrintMode(true);
+  }, []);
+
   const go = useCallback(
     (n: number) => {
       setIdx((((n % slides.length) + slides.length) % slides.length));
