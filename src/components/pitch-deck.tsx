@@ -357,9 +357,11 @@ const SLIDES: Slide[] = [
             </div>
           ))}
         </div>
-        <div className="mt-16 text-lg md:text-xl text-white/80 max-w-3xl mx-auto text-center">
-          The market has been waiting for one player. An{" "}
-          <Accent>independent AI advisor</Accent> that reads YOUR policy and curates offers around YOUR profile.
+        <div className="mt-16 text-center">
+          <div className="text-2xl md:text-3xl font-extrabold text-white leading-tight max-w-3xl mx-auto">
+            Most people sell insurance.{" "}
+            <Accent>We help you decide.</Accent>
+          </div>
         </div>
       </div>
     ),

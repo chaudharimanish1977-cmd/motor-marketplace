@@ -341,6 +341,10 @@ export interface RenewalSubscription {
   channels: ("email" | "whatsapp")[];
   /** ISO date — derived from parsedPolicy.odPeriodEnd at subscribe time. */
   policyExpiryDate: string;
+  /** Which N-days-before checkpoints to fire reminders on (e.g. [60, 30, 7]). */
+  daysBefore: number[];
+  /** Hour of day in IST (0–23) to fire the reminder. Default 10. */
+  reminderHourIst: number;
   status: "active" | "unsubscribed";
   createdAt: string;
   /** When the cron last sent a reminder (so we don't double-fire). */

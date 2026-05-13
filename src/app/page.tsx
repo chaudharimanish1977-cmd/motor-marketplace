@@ -21,7 +21,12 @@ export default function Home() {
           </span>
         </h1>
 
-        <p className="text-base md:text-lg text-brand-slate max-w-xl mx-auto leading-relaxed mb-7">
+        <p className="text-lg md:text-xl text-brand-charcoal font-semibold max-w-xl mx-auto leading-snug mb-3">
+          Most people sell insurance.{" "}
+          <span className="text-brand-orange">We help you decide.</span>
+        </p>
+
+        <p className="text-sm md:text-base text-brand-slate max-w-xl mx-auto leading-relaxed mb-7">
           Upload your policy. Get a clear, independent review of what&apos;s
           missing — in{" "}
           <span className="font-semibold text-brand-deepblue">

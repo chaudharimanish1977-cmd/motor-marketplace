@@ -12,6 +12,8 @@ import {
   Bell,
   BellRing,
   Loader2,
+  Settings2,
+  ChevronUp,
 } from "lucide-react";
 import { Confetti } from "@/components/confetti";
 
@@ -185,6 +187,19 @@ export function ThankYouFlow({
 // Renewal opt-in — captures both email + WhatsApp in one tap
 // ============================================================================
 
+// All checkpoint options (days before renewal). User picks any subset.
+const DAYS_BEFORE_OPTIONS = [90, 60, 45, 30, 14, 7, 3, 1];
+const DEFAULT_DAYS_BEFORE = [60, 30, 7];
+
+// Time-of-day buckets in IST.
+const TIME_OPTIONS: { hour: number; label: string }[] = [
+  { hour: 9, label: "Morning · 9 AM" },
+  { hour: 12, label: "Noon · 12 PM" },
+  { hour: 17, label: "Evening · 5 PM" },
+  { hour: 20, label: "Night · 8 PM" },
+];
+const DEFAULT_HOUR = 9;
+
 function RenewalOptInCard({
   email,
   mobile,
@@ -200,6 +215,9 @@ function RenewalOptInCard({
     "idle"
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showCustomize, setShowCustomize] = useState(false);
+  const [daysBefore, setDaysBefore] = useState<number[]>(DEFAULT_DAYS_BEFORE);
+  const [reminderHour, setReminderHour] = useState<number>(DEFAULT_HOUR);
 
   const niceDate = policyExpiryDate
     ? new Date(policyExpiryDate).toLocaleDateString("en-IN", {
@@ -209,14 +227,36 @@ function RenewalOptInCard({
       })
     : null;
 
+  const sortedDaysAsc = [...daysBefore].sort((a, b) => b - a);
+  const daysSummary = sortedDaysAsc.map((d) => `${d}d`).join(" · ");
+  const timeSummary =
+    TIME_OPTIONS.find((t) => t.hour === reminderHour)?.label ??
+    `${reminderHour}:00 IST`;
+
+  const toggleDay = (d: number) => {
+    setDaysBefore((current) =>
+      current.includes(d) ? current.filter((x) => x !== d) : [...current, d]
+    );
+  };
+
   const subscribe = async () => {
+    if (daysBefore.length === 0) {
+      setErrorMsg("Pick at least one reminder checkpoint.");
+      return;
+    }
     setErrorMsg(null);
     setState("saving");
     try {
       const res = await fetch("/api/reminders/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parsedPolicyId, email, mobile }),
+        body: JSON.stringify({
+          parsedPolicyId,
+          email,
+          mobile,
+          daysBefore,
+          reminderHourIst: reminderHour,
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.subscribed) {
@@ -241,19 +281,19 @@ function RenewalOptInCard({
               Locked in 🔒
             </div>
             <p className="text-xs md:text-sm text-brand-slate mt-1 leading-relaxed">
-              We&apos;ll quietly nudge you{" "}
-              {niceDate ? (
-                <>
-                  before{" "}
-                  <span className="font-semibold text-brand-charcoal">
-                    {niceDate}
-                  </span>
-                </>
-              ) : (
-                "before your policy expires"
-              )}{" "}
-              — by email and WhatsApp. Zero calls, ever. Reply STOP any time to
-              opt out.
+              We&apos;ll nudge you at{" "}
+              <span className="font-semibold text-brand-charcoal">
+                {daysSummary}
+              </span>{" "}
+              before{" "}
+              <span className="font-semibold text-brand-charcoal">
+                {niceDate ?? "your renewal"}
+              </span>
+              , around{" "}
+              <span className="font-semibold text-brand-charcoal">
+                {timeSummary}
+              </span>{" "}
+              — by email and WhatsApp. Zero calls. Reply STOP any time.
             </p>
           </div>
         </div>
@@ -276,7 +316,7 @@ function RenewalOptInCard({
               Don&apos;t ghost your renewal.
             </h3>
             <p className="text-xs md:text-sm text-brand-slate mt-1.5 leading-relaxed">
-              We&apos;ll send a couple of nudges{" "}
+              We&apos;ll send nudges{" "}
               {niceDate ? (
                 <>
                   before your policy expires on{" "}
@@ -291,6 +331,95 @@ function RenewalOptInCard({
             </p>
           </div>
         </div>
+
+        {/* Current settings summary — always visible */}
+        <div className="rounded-xl bg-brand-offwhite border border-brand-light-gray px-3.5 py-2.5 mb-3 flex items-center justify-between gap-3">
+          <div className="text-xs text-brand-slate min-w-0 flex-1">
+            <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-brand-slate/70">
+              Reminder schedule
+            </div>
+            <div className="mt-0.5 text-brand-charcoal font-medium truncate">
+              {daysSummary} before · {timeSummary}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowCustomize((s) => !s)}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-brand-deepblue hover:underline shrink-0"
+          >
+            {showCustomize ? (
+              <>
+                <ChevronUp className="w-3.5 h-3.5" />
+                Done
+              </>
+            ) : (
+              <>
+                <Settings2 className="w-3.5 h-3.5" />
+                Customize
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Expandable customize panel */}
+        {showCustomize && (
+          <div className="border border-brand-light-gray rounded-xl p-3.5 mb-3 space-y-4 bg-white">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-slate mb-2">
+                Which checkpoints?
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {DAYS_BEFORE_OPTIONS.map((d) => {
+                  const active = daysBefore.includes(d);
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => toggleDay(d)}
+                      className={clsx(
+                        "px-2.5 py-1 rounded-full border text-xs font-semibold transition-all tabular-nums",
+                        active
+                          ? "bg-brand-deepblue text-white border-brand-deepblue"
+                          : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-electricblue"
+                      )}
+                    >
+                      {d}d before
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="text-[10px] text-brand-slate mt-1.5">
+                Pick any combination · we&apos;ll fire one nudge per checkpoint
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-slate mb-2">
+                What time of day?
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {TIME_OPTIONS.map((t) => {
+                  const active = reminderHour === t.hour;
+                  return (
+                    <button
+                      key={t.hour}
+                      type="button"
+                      onClick={() => setReminderHour(t.hour)}
+                      className={clsx(
+                        "px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all",
+                        active
+                          ? "bg-brand-deepblue text-white border-brand-deepblue"
+                          : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-electricblue"
+                      )}
+                    >
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {errorMsg && (
           <div className="text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-3">

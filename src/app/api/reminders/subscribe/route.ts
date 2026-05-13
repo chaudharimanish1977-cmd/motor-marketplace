@@ -10,7 +10,16 @@ const SubscribeSchema = z.object({
   parsedPolicyId: z.string().uuid(),
   email: z.string().email(),
   mobile: z.string().regex(/^[6-9]\d{9}$/, "Invalid 10-digit Indian mobile"),
+  daysBefore: z
+    .array(z.number().int().min(1).max(180))
+    .min(1)
+    .max(10)
+    .optional(),
+  reminderHourIst: z.number().int().min(0).max(23).optional(),
 });
+
+const DEFAULT_DAYS_BEFORE = [60, 30, 7];
+const DEFAULT_REMINDER_HOUR = 10;
 
 /**
  * Opt-in renewal reminders. Captured on /thank-you after the customer has
@@ -53,6 +62,14 @@ export async function POST(request: NextRequest) {
       (s) => s.parsedPolicyId === validated.parsedPolicyId
     );
 
+    // Normalise + sort the days-before list, dedupe, descending so the
+    // earliest reminder fires first chronologically.
+    const daysBefore = Array.from(
+      new Set(validated.daysBefore ?? DEFAULT_DAYS_BEFORE)
+    ).sort((a, b) => b - a);
+    const reminderHourIst =
+      validated.reminderHourIst ?? DEFAULT_REMINDER_HOUR;
+
     if (existing) {
       const updated = await updateById<RenewalSubscription>(
         Tables.RENEWAL_SUBSCRIPTIONS,
@@ -61,6 +78,8 @@ export async function POST(request: NextRequest) {
           customerEmail: validated.email,
           customerMobile: validated.mobile,
           channels: ["email", "whatsapp"],
+          daysBefore,
+          reminderHourIst,
           status: "active",
         }
       );
@@ -69,6 +88,8 @@ export async function POST(request: NextRequest) {
         existing: true,
         subscriptionId: updated?.id ?? existing.id,
         policyExpiryDate: expiry,
+        daysBefore,
+        reminderHourIst,
       });
     }
 
@@ -79,6 +100,8 @@ export async function POST(request: NextRequest) {
       customerMobile: validated.mobile,
       channels: ["email", "whatsapp"],
       policyExpiryDate: expiry,
+      daysBefore,
+      reminderHourIst,
       status: "active",
       createdAt: new Date().toISOString(),
     };
@@ -89,6 +112,8 @@ export async function POST(request: NextRequest) {
       existing: false,
       subscriptionId: sub.id,
       policyExpiryDate: expiry,
+      daysBefore,
+      reminderHourIst,
     });
   } catch (err) {
     if (err instanceof z.ZodError) {

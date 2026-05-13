@@ -90,8 +90,13 @@ function renderHtml({
             Have a question about anything in the report? Just reply to this email — a real person reads every one.
           </p>
         </td></tr>
-        <tr><td style="padding:16px 24px;background:#F8F9FA;border-top:1px solid #E9ECEF;font-size:11px;color:#636e72;text-align:center;">
-          RightOffer · Independent motor insurance reviews · Made for India
+        <tr><td style="padding:18px 24px;background:#F8F9FA;border-top:1px solid #E9ECEF;text-align:center;">
+          <div style="font-size:13px;font-weight:700;color:#0A2463;margin-bottom:4px;">
+            Most people sell insurance. <span style="color:#FF6B35;">We help you decide.</span>
+          </div>
+          <div style="font-size:10px;color:#636e72;">
+            RightOffer · Independent motor insurance reviews · Made for India
+          </div>
         </td></tr>
       </table>
     </td></tr>
@@ -116,6 +121,7 @@ function renderText({
     "Have a question? Just reply to this email — a real person reads every one.",
     "",
     "— Team RightOffer",
+    "Most people sell insurance. We help you decide.",
   ].join("\n");
 }
 
