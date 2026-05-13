@@ -81,35 +81,47 @@ export function ReportDownloadGate({
     }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     setError(null);
-    if (otp !== "9993") {
-      setError("Wrong OTP. Demo OTP is 9993.");
-      return;
-    }
-
-    // Fire-and-forget: trigger the PDF render + email send pipeline. The
-    // endpoint itself uses waitUntil() so we don't need to wait here either.
-    if (reportId) {
-      const url = new URL(window.location.href);
-      void fetch("/api/email-report", {
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reportId,
-          email,
-          km: url.searchParams.get("km") ?? undefined,
-          drv: url.searchParams.get("drv") ?? undefined,
-          oc: url.searchParams.get("oc") ?? undefined,
-          pri: url.searchParams.get("pri") ?? undefined,
-        }),
-      }).catch(() => {
-        // Failures are logged server-side; the user already sees /thank-you.
+        body: JSON.stringify({ mobile, otp }),
       });
-    }
+      const data = await res.json();
+      if (!res.ok || !data.verified) {
+        throw new Error(data.error || "Verification failed");
+      }
 
-    const params = new URLSearchParams({ e: email });
-    router.push(`/thank-you?${params.toString()}`);
+      // Fire-and-forget: trigger the PDF render + email send pipeline. The
+      // endpoint itself uses waitUntil() so we don't need to wait here.
+      if (reportId) {
+        const url = new URL(window.location.href);
+        void fetch("/api/email-report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reportId,
+            email,
+            km: url.searchParams.get("km") ?? undefined,
+            drv: url.searchParams.get("drv") ?? undefined,
+            oc: url.searchParams.get("oc") ?? undefined,
+            pri: url.searchParams.get("pri") ?? undefined,
+          }),
+        }).catch(() => {
+          // Failures are logged server-side; the user already sees /thank-you.
+        });
+      }
+
+      const params = new URLSearchParams({ e: email });
+      router.push(`/thank-you?${params.toString()}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const triggerClass =
@@ -164,7 +176,9 @@ export function ReportDownloadGate({
             {step === "otp" && (
               <OtpStep
                 mobile={mobile}
+                email={email}
                 otp={otp}
+                submitting={submitting}
                 error={error}
                 onOtpChange={setOtp}
                 onVerify={handleVerifyOtp}
@@ -318,38 +332,40 @@ function FormStep({
 
 function OtpStep({
   mobile,
+  email,
   otp,
+  submitting,
   error,
   onOtpChange,
   onVerify,
   onResend,
 }: {
   mobile: string;
+  email: string;
   otp: string;
+  submitting: boolean;
   error: string | null;
   onOtpChange: (v: string) => void;
   onVerify: () => void;
   onResend: () => void;
 }) {
-  const isValid = otp.length === 4;
-  const maskedMobile = `+91 ${mobile.slice(0, 5)} ${mobile.slice(5)}`;
+  void mobile;
+  const isValid = otp.length === 4 && !submitting;
 
   return (
     <div className="p-5 sm:p-6 md:p-8">
       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue flex items-center justify-center mb-4">
-        <Phone className="w-6 h-6 text-white" />
+        <Mail className="w-6 h-6 text-white" />
       </div>
-      <h2 className="text-2xl font-bold text-brand-charcoal mb-1">
-        Verify your mobile
+      <h2 className="text-xl sm:text-2xl font-bold text-brand-charcoal mb-1">
+        Check your inbox
       </h2>
-      <p className="text-sm text-brand-slate mb-1">
-        Enter the 4-digit OTP sent to{" "}
-        <span className="font-semibold text-brand-charcoal">
-          {maskedMobile}
+      <p className="text-sm text-brand-slate mb-5">
+        We emailed a 4-digit OTP to{" "}
+        <span className="font-semibold text-brand-charcoal break-all">
+          {email}
         </span>
-      </p>
-      <p className="text-[11px] text-brand-orange font-semibold mb-5">
-        Demo mode: use OTP <span className="font-mono">9993</span>
+        . Valid for 10 minutes. Peek in spam if you don&apos;t see it.
       </p>
 
       <input
@@ -381,8 +397,17 @@ function OtpStep({
             : "bg-brand-light-gray text-brand-slate cursor-not-allowed"
         )}
       >
-        Verify & Send
-        <ArrowRight className="w-4 h-4" />
+        {submitting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Verifying...
+          </>
+        ) : (
+          <>
+            Verify &amp; Send
+            <ArrowRight className="w-4 h-4" />
+          </>
+        )}
       </button>
 
       <button
@@ -390,7 +415,7 @@ function OtpStep({
         onClick={onResend}
         className="mt-3 w-full py-2 text-xs font-semibold text-brand-slate hover:text-brand-charcoal"
       >
-        Wrong number? Edit details
+        Wrong details? Go back
       </button>
     </div>
   );

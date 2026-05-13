@@ -127,3 +127,65 @@ function escape(s: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+// ============================================================================
+// OTP delivery
+// ============================================================================
+
+export async function sendOtpEmail({
+  to,
+  code,
+}: {
+  to: string;
+  code: string;
+}): Promise<void> {
+  const subject = `${code} is your RightOffer OTP`;
+
+  const html = `<!doctype html>
+<html><body style="margin:0;padding:0;background:#F8F9FA;font-family:Inter,system-ui,sans-serif;color:#2D3436;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8F9FA;padding:32px 12px;">
+    <tr><td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="480" style="max-width:480px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+        <tr><td style="background:linear-gradient(135deg,#0A2463,#247BA0);padding:22px 24px;color:#fff;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.85;">RightOffer</div>
+          <div style="font-size:20px;font-weight:700;margin-top:4px;line-height:1.2;">Verify your email</div>
+        </td></tr>
+        <tr><td style="padding:28px 24px;text-align:center;">
+          <p style="margin:0 0 16px;font-size:14px;color:#636e72;line-height:1.5;">Use this one-time code to get your full policy review by email:</p>
+          <div style="display:inline-block;padding:14px 22px;background:#F8F9FA;border-radius:12px;border:2px dashed #0A2463;font-family:'SFMono-Regular',Menlo,monospace;font-size:34px;font-weight:700;letter-spacing:0.4em;color:#0A2463;">
+            ${escape(code)}
+          </div>
+          <p style="margin:18px 0 0;font-size:12px;color:#636e72;line-height:1.55;">
+            Valid for 10 minutes. Do not share this code with anyone.
+          </p>
+        </td></tr>
+        <tr><td style="padding:14px 24px;background:#F8F9FA;border-top:1px solid #E9ECEF;font-size:11px;color:#636e72;text-align:center;">
+          RightOffer · Independent motor insurance reviews
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+
+  const text = [
+    `${code} is your RightOffer OTP.`,
+    ``,
+    `Use this code to verify your email and get your full policy review.`,
+    `Valid for 10 minutes. Do not share with anyone.`,
+    ``,
+    `— Team RightOffer`,
+  ].join("\n");
+
+  const { error } = await client().emails.send({
+    from: FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+  });
+
+  if (error) {
+    throw new Error(`Resend (OTP) failed: ${error.message}`);
+  }
+}
