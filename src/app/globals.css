@@ -45,6 +45,258 @@
   html.dark .text-brand-navy:not([class*="dark:text-"]) {
     color: #5EC8E6 !important; /* slightly lighter than brand-skyblue for AAA */
   }
+
+  /* ============================================================
+   * Tailwind named-blue light shades — flip to translucent dark
+   * blues so light pills (e.g. bg-blue-50 + border-blue-100) read
+   * as accent surfaces, not as light blocks on a dark page.
+   * ============================================================ */
+  html.dark .bg-blue-50:not([class*="dark:bg-"]) {
+    background-color: rgb(30 58 138 / 0.25) !important;
+  }
+  html.dark .bg-blue-100:not([class*="dark:bg-"]) {
+    background-color: rgb(30 58 138 / 0.35) !important;
+  }
+  html.dark .bg-blue-200:not([class*="dark:bg-"]) {
+    background-color: rgb(30 58 138 / 0.45) !important;
+  }
+  html.dark .border-blue-100:not([class*="dark:border-"]),
+  html.dark .border-blue-200:not([class*="dark:border-"]) {
+    border-color: rgb(30 58 138 / 0.55) !important;
+  }
+  html.dark .bg-gray-50:not([class*="dark:bg-"]) {
+    background-color: rgb(var(--color-surface) / 0.5) !important;
+  }
+  html.dark .bg-gray-100:not([class*="dark:bg-"]) {
+    background-color: rgb(var(--color-surface) / 0.7) !important;
+  }
+  html.dark .text-gray-500:not([class*="dark:text-"]),
+  html.dark .text-gray-600:not([class*="dark:text-"]),
+  html.dark .text-gray-700:not([class*="dark:text-"]) {
+    color: rgb(var(--color-slate)) !important;
+  }
+  html.dark .text-gray-800:not([class*="dark:text-"]),
+  html.dark .text-gray-900:not([class*="dark:text-"]) {
+    color: rgb(var(--color-charcoal)) !important;
+  }
+
+  /* ============================================================
+   * Tailwind gradient stops — Tailwind sets --tw-gradient-from/to
+   * variables directly, so a value-swap on .text-* or .bg-* misses
+   * them. Override the gradient vars for the common stops that
+   * would otherwise leave headings + card backgrounds illegible.
+   * ============================================================ */
+  /* `from-white` / `to-white` / `via-white` → flip to the surface token */
+  html.dark .from-white:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(var(--color-surface)) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(var(--color-surface) / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-white:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(var(--color-surface)) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .via-white:not([class*="dark:via-"]) {
+    --tw-gradient-via: rgb(var(--color-surface)) var(--tw-gradient-via-position) !important;
+    --tw-gradient-to: rgb(var(--color-surface) / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--color-surface)) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+
+  /* `from-brand-deepblue` / `from-brand-navy` etc. — flip to sky blue
+   * so gradient-text headings ("before it costs you.") stay readable. */
+  html.dark .from-brand-deepblue:not([class*="dark:from-"]),
+  html.dark .from-brand-navy:not([class*="dark:from-"]) {
+    --tw-gradient-from: #5EC8E6 var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(94 200 230 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-deepblue:not([class*="dark:to-"]),
+  html.dark .to-brand-navy:not([class*="dark:to-"]) {
+    --tw-gradient-to: #5EC8E6 var(--tw-gradient-to-position) !important;
+  }
+  /* brand-electricblue (#247BA0) reads as mid-dark blue on the dark page bg.
+   * Flip both gradient ends to a brighter sky tone so headings using the
+   * deepblue→electricblue gradient remain fully legible across the whole
+   * span (the trailing "." was hard to spot at the gradient's far end). */
+  html.dark .from-brand-electricblue:not([class*="dark:from-"]) {
+    --tw-gradient-from: #38BDF8 var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(56 189 248 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-electricblue:not([class*="dark:to-"]) {
+    --tw-gradient-to: #38BDF8 var(--tw-gradient-to-position) !important;
+  }
+  html.dark .text-brand-electricblue:not([class*="dark:text-"]) {
+    color: #38BDF8 !important;
+  }
+
+  /* `bg-brand-deepblue` accents (pagination dot, small chips) become
+   * invisible on a dark page. Flip the small-decoration use to skyblue.
+   * Components that want to keep the deep-blue CTA bg can opt-out with
+   * an explicit `dark:bg-brand-deepblue`. */
+  html.dark .bg-brand-deepblue:not([class*="dark:bg-"]) {
+    background-color: #1E40AF !important;
+  }
+
+  /* SVG strokes/fills authored with hardcoded brand-deepblue (#0A2463)
+   * inline. The page bg in dark mode is slate-900 — too close. Use
+   * currentColor or skyblue alternatives. We can't auto-fix inline SVGs
+   * universally, but icon containers using `text-brand-deepblue` flip
+   * via the text-color override above — `<svg stroke="currentColor">`
+   * will then inherit the readable color. */
+
+  /* ============================================================
+   * Named-color light shades used as "celebratory" / accent card
+   * backgrounds (orange/emerald/amber/etc.). In dark mode we map
+   * each light shade (-50/-100) to the matching -900 hue at low
+   * alpha, so the accent meaning is preserved but the panel sits
+   * darker than the page surface. Borders (-200/-300) get the
+   * same treatment at higher alpha. Text in -900 (often used as
+   * the card's heading color) flips to a -200 light shade.
+   *
+   * Tailwind hex anchors used (the -900 of each family):
+   *   orange  #7C2D12      red    #7F1D1D      rose   #881337
+   *   amber   #78350F      pink   #831843      fuchsia #701A75
+   *   yellow  #713F12      purple #581C87      violet #4C1D95
+   *   emerald #064E3B      indigo #312E81      sky    #0C4A6E
+   *   green   #14532D      cyan   #164E63      teal   #134E4A
+   * ============================================================ */
+
+  /* ORANGE family */
+  html.dark .bg-orange-50:not([class*="dark:bg-"]) { background-color: rgb(124 45 18 / 0.25) !important; }
+  html.dark .bg-orange-100:not([class*="dark:bg-"]) { background-color: rgb(124 45 18 / 0.35) !important; }
+  html.dark .from-orange-50:not([class*="dark:from-"]),
+  html.dark .from-orange-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(124 45 18 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(124 45 18 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-orange-50:not([class*="dark:to-"]),
+  html.dark .to-orange-100:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(124 45 18 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .border-orange-200:not([class*="dark:border-"]),
+  html.dark .border-orange-300:not([class*="dark:border-"]) { border-color: rgb(124 45 18 / 0.55) !important; }
+  html.dark .text-orange-900:not([class*="dark:text-"]) { color: #FED7AA !important; }
+
+  /* EMERALD family */
+  html.dark .bg-emerald-50:not([class*="dark:bg-"]) { background-color: rgb(6 78 59 / 0.25) !important; }
+  html.dark .bg-emerald-100:not([class*="dark:bg-"]) { background-color: rgb(6 78 59 / 0.35) !important; }
+  html.dark .from-emerald-50:not([class*="dark:from-"]),
+  html.dark .from-emerald-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(6 78 59 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(6 78 59 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-emerald-50:not([class*="dark:to-"]),
+  html.dark .to-emerald-100:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(6 78 59 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .border-emerald-200:not([class*="dark:border-"]),
+  html.dark .border-emerald-300:not([class*="dark:border-"]) { border-color: rgb(6 78 59 / 0.55) !important; }
+  html.dark .text-emerald-900:not([class*="dark:text-"]) { color: #A7F3D0 !important; }
+
+  /* AMBER / YELLOW family */
+  html.dark .bg-amber-50:not([class*="dark:bg-"]) { background-color: rgb(120 53 15 / 0.25) !important; }
+  html.dark .bg-amber-100:not([class*="dark:bg-"]) { background-color: rgb(120 53 15 / 0.35) !important; }
+  html.dark .from-amber-50:not([class*="dark:from-"]),
+  html.dark .from-amber-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(120 53 15 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(120 53 15 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-amber-50:not([class*="dark:to-"]),
+  html.dark .to-amber-100:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(120 53 15 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .border-amber-200:not([class*="dark:border-"]),
+  html.dark .border-amber-300:not([class*="dark:border-"]) { border-color: rgb(120 53 15 / 0.55) !important; }
+  html.dark .text-amber-900:not([class*="dark:text-"]) { color: #FDE68A !important; }
+  html.dark .bg-yellow-50:not([class*="dark:bg-"]) { background-color: rgb(113 63 18 / 0.25) !important; }
+  html.dark .bg-yellow-100:not([class*="dark:bg-"]) { background-color: rgb(113 63 18 / 0.35) !important; }
+  html.dark .from-yellow-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(113 63 18 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(113 63 18 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-yellow-50:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(113 63 18 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .text-yellow-900:not([class*="dark:text-"]) { color: #FEF08A !important; }
+  html.dark .border-yellow-300:not([class*="dark:border-"]) { border-color: rgb(113 63 18 / 0.55) !important; }
+
+  /* RED / ROSE / PINK family */
+  html.dark .bg-red-50:not([class*="dark:bg-"]) { background-color: rgb(127 29 29 / 0.25) !important; }
+  html.dark .bg-red-100:not([class*="dark:bg-"]) { background-color: rgb(127 29 29 / 0.35) !important; }
+  html.dark .from-red-50:not([class*="dark:from-"]),
+  html.dark .from-red-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(127 29 29 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(127 29 29 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .text-red-900:not([class*="dark:text-"]) { color: #FECACA !important; }
+  html.dark .border-red-300:not([class*="dark:border-"]) { border-color: rgb(127 29 29 / 0.55) !important; }
+  html.dark .bg-rose-50:not([class*="dark:bg-"]) { background-color: rgb(136 19 55 / 0.25) !important; }
+  html.dark .from-rose-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(136 19 55 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(136 19 55 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-rose-50:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(136 19 55 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .text-rose-900:not([class*="dark:text-"]) { color: #FECDD3 !important; }
+  html.dark .border-rose-300:not([class*="dark:border-"]) { border-color: rgb(136 19 55 / 0.55) !important; }
+
+  /* PURPLE / INDIGO family */
+  html.dark .bg-purple-50:not([class*="dark:bg-"]) { background-color: rgb(88 28 135 / 0.25) !important; }
+  html.dark .from-purple-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(88 28 135 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(88 28 135 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-purple-50:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(88 28 135 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .text-purple-900:not([class*="dark:text-"]) { color: #E9D5FF !important; }
+  html.dark .border-purple-300:not([class*="dark:border-"]) { border-color: rgb(88 28 135 / 0.55) !important; }
+  html.dark .from-indigo-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(49 46 129 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(49 46 129 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-indigo-50:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(49 46 129 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .text-indigo-900:not([class*="dark:text-"]) { color: #C7D2FE !important; }
+  html.dark .border-indigo-300:not([class*="dark:border-"]) { border-color: rgb(49 46 129 / 0.55) !important; }
+
+  /* FUCHSIA family */
+  html.dark .from-fuchsia-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(112 26 117 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(112 26 117 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-fuchsia-50:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(112 26 117 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .text-fuchsia-900:not([class*="dark:text-"]) { color: #F5D0FE !important; }
+  html.dark .border-fuchsia-300:not([class*="dark:border-"]) { border-color: rgb(112 26 117 / 0.55) !important; }
+
+  /* SKY / CYAN family — used for loaders / neutral coloured panels */
+  html.dark .bg-sky-50:not([class*="dark:bg-"]) { background-color: rgb(12 74 110 / 0.25) !important; }
+  html.dark .bg-sky-100:not([class*="dark:bg-"]) { background-color: rgb(12 74 110 / 0.35) !important; }
+  html.dark .from-sky-50:not([class*="dark:from-"]),
+  html.dark .from-sky-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(12 74 110 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(12 74 110 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .via-sky-50:not([class*="dark:via-"]) {
+    --tw-gradient-stops: var(--tw-gradient-from), rgb(12 74 110 / 0.3) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-slate-200:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(15 23 42) var(--tw-gradient-to-position) !important;
+  }
   /* When SimplifyToggle is on, hide detail-level prose marked with .report-detail */
   body.report-simplified .report-detail {
     display: none;

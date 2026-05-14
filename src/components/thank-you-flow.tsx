@@ -54,7 +54,7 @@ export function ThankYouFlow({
 
       <div className="w-full max-w-md space-y-5">
         {/* CARD 1 — mail-sent confirmation */}
-        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-orange-50/40 border border-emerald-200 shadow-elevated overflow-hidden">
+        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-orange-50/40 dark:from-emerald-900/30 dark:via-slate-800 dark:to-orange-900/20 border border-emerald-200 dark:border-emerald-800/50 shadow-elevated overflow-hidden">
           <div className="px-6 pt-7 pb-6 text-center">
             <div className="inline-flex w-14 h-14 rounded-full bg-brand-success items-center justify-center shadow-elevated mb-3">
               <CheckCircle2 className="w-8 h-8 text-white" />
@@ -342,7 +342,7 @@ function RenewalOptInCard({
 
   if (state === "done") {
     return (
-      <div className="rounded-3xl bg-gradient-to-br from-orange-50 to-white border-2 border-brand-orange/30 shadow-soft overflow-hidden">
+      <div className="rounded-3xl bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/20 dark:to-slate-800 border-2 border-brand-orange/30 dark:border-brand-orange/50 shadow-soft overflow-hidden">
         <div className="px-6 py-5 flex items-start gap-3">
           <div className="w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center shrink-0">
             <BellRing className="w-5 h-5 text-white" />
