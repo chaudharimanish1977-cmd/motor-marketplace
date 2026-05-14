@@ -361,12 +361,18 @@ function OtpStep({
       <h2 className="text-xl sm:text-2xl font-bold text-brand-charcoal mb-1">
         Check your inbox
       </h2>
-      <p className="text-sm text-brand-slate mb-5">
+      <p className="text-sm text-brand-slate mb-2">
         We emailed a 4-digit OTP to{" "}
         <span className="font-semibold text-brand-charcoal break-all">
           {email}
         </span>
-        . Valid for 10 minutes. Peek in spam if you don&apos;t see it.
+        . Valid for 10 minutes.
+      </p>
+      <p className="text-xs text-brand-slate/80 mb-5 leading-relaxed">
+        Gmail users: if you don&apos;t see it, check the{" "}
+        <span className="font-semibold">Updates</span> tab or search{" "}
+        <span className="font-semibold">&ldquo;RightOffer&rdquo;</span>. Also
+        peek in spam.
       </p>
 
       <input

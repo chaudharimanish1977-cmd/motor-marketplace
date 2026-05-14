@@ -15,6 +15,11 @@ import { Resend } from "resend";
 const FROM = "RightOffer <hello@rightoffer.in>";
 const REPLY_TO = "hello@rightoffer.in";
 
+// OTP emails use a personal-sounding From name so Gmail is more likely to
+// classify them as Primary rather than the Updates tab (where heavily-
+// branded transactional emails usually land). The mailbox stays the same.
+const OTP_FROM = "Aryan at RightOffer <hello@rightoffer.in>";
+
 let cached: Resend | null = null;
 function client(): Resend {
   if (cached) return cached;
@@ -145,45 +150,43 @@ export async function sendOtpEmail({
   to: string;
   code: string;
 }): Promise<void> {
-  const subject = `${code} is your RightOffer OTP`;
+  // Subject is intentionally code-first so Gmail's inbox preview surfaces
+  // the code without the user having to open the email at all.
+  const subject = `Your RightOffer code: ${code}`;
 
+  // Plain-text-feel HTML. No gradient header, no card chrome, no marketing
+  // footer — those are the patterns Gmail learns to bucket into "Updates".
+  // Stripe / Slack / GitHub login codes look like this. The PRE-HEADER
+  // (first hidden line) repeats the code so even when Gmail collapses the
+  // preview it stays visible.
   const html = `<!doctype html>
-<html><body style="margin:0;padding:0;background:#F8F9FA;font-family:Inter,system-ui,sans-serif;color:#2D3436;">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8F9FA;padding:32px 12px;">
-    <tr><td align="center">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="480" style="max-width:480px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
-        <tr><td style="background:linear-gradient(135deg,#0A2463,#247BA0);padding:22px 24px;color:#fff;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.85;">RightOffer</div>
-          <div style="font-size:20px;font-weight:700;margin-top:4px;line-height:1.2;">Verify your email</div>
-        </td></tr>
-        <tr><td style="padding:28px 24px;text-align:center;">
-          <p style="margin:0 0 16px;font-size:14px;color:#636e72;line-height:1.5;">Use this one-time code to get your full policy review by email:</p>
-          <div style="display:inline-block;padding:14px 22px;background:#F8F9FA;border-radius:12px;border:2px dashed #0A2463;font-family:'SFMono-Regular',Menlo,monospace;font-size:34px;font-weight:700;letter-spacing:0.4em;color:#0A2463;">
-            ${escape(code)}
-          </div>
-          <p style="margin:18px 0 0;font-size:12px;color:#636e72;line-height:1.55;">
-            Valid for 10 minutes. Do not share this code with anyone.
-          </p>
-        </td></tr>
-        <tr><td style="padding:14px 24px;background:#F8F9FA;border-top:1px solid #E9ECEF;font-size:11px;color:#636e72;text-align:center;">
-          RightOffer · Independent motor insurance reviews
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
+<html><body style="margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#202124;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Your RightOffer code is ${escape(code)} — valid for 10 minutes.
+  </div>
+  <div style="max-width:560px;">
+    <p style="margin:0 0 16px;">Hi,</p>
+    <p style="margin:0 0 16px;">Your RightOffer verification code is:</p>
+    <p style="margin:0 0 16px;font-size:30px;font-weight:bold;letter-spacing:0.12em;color:#202124;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${escape(code)}</p>
+    <p style="margin:0 0 16px;color:#5f6368;font-size:14px;">This code expires in 10 minutes. If you didn&rsquo;t ask for it, you can ignore this email.</p>
+    <p style="margin:24px 0 0;">&mdash; Aryan</p>
+  </div>
 </body></html>`;
 
   const text = [
-    `${code} is your RightOffer OTP.`,
+    `Hi,`,
     ``,
-    `Use this code to verify your email and get your full policy review.`,
-    `Valid for 10 minutes. Do not share with anyone.`,
+    `Your RightOffer verification code is:`,
     ``,
-    `— Team RightOffer`,
+    code,
+    ``,
+    `This code expires in 10 minutes. If you didn't ask for it, you can ignore this email.`,
+    ``,
+    `— Aryan`,
   ].join("\n");
 
   const { error } = await client().emails.send({
-    from: FROM,
+    from: OTP_FROM,
     replyTo: REPLY_TO,
     to,
     subject,
