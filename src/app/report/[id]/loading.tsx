@@ -50,7 +50,7 @@ export default function Loading() {
           {/* Compact spinner + heading */}
           <div className="flex flex-col items-center gap-3">
             <div className="relative inline-block">
-              <Loader2 className="w-10 h-10 animate-spin text-brand-navy" />
+              <Loader2 className="w-10 h-10 animate-spin text-brand-navy dark:text-brand-skyblue" />
               <Sparkles className="w-4 h-4 text-brand-gold absolute top-0 right-0 animate-pulse" />
             </div>
             <div>

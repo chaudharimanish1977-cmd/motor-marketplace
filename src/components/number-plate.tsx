@@ -46,10 +46,14 @@ export function NumberPlate({ value, size = "md", className }: Props) {
     );
   }
 
+  // The plate is a real-world Indian private-vehicle plate replica
+  // (white plate, black text) — keep it white-with-black-text in both
+  // light AND dark mode. `dark:bg-white` opts out of the global bg-white
+  // flip; the hex-coded text already stays dark in both modes.
   return (
     <div
       className={clsx(
-        "inline-flex items-center rounded shadow-soft bg-white border-2 border-[#1a1a1a]",
+        "inline-flex items-center rounded shadow-soft bg-white dark:bg-white border-2 border-[#1a1a1a]",
         sz.container,
         className
       )}

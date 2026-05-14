@@ -434,6 +434,32 @@
   html.dark .text-blue-800:not([class*="dark:text-"]) { color: #BFDBFE !important; }
   html.dark .text-blue-900:not([class*="dark:text-"]) { color: #DBEAFE !important; }
 
+  /* BLUE family — missed in the first sweep. TimeComparison's "blue theme"
+   * pill uses `from-blue-100 to-blue-50` and `text-blue-900`; without a
+   * gradient-stop flip the bg stayed light while my text-blue-900 flipped
+   * to light blue, producing invisible light-on-light text. */
+  html.dark .from-blue-50:not([class*="dark:from-"]),
+  html.dark .from-blue-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(30 58 138 / 0.35) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(30 58 138 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-blue-50:not([class*="dark:to-"]),
+  html.dark .to-blue-100:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(30 58 138 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .via-blue-50:not([class*="dark:via-"]) {
+    --tw-gradient-stops: var(--tw-gradient-from), rgb(30 58 138 / 0.3) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+  /* Explicit "to-*" rules for the remaining colors. My existing from-* rules
+   * already set --tw-gradient-to to 0-alpha (so the gradient fades to dark
+   * page bg), which works visually but means the right-hand side has no
+   * accent. Add proper to- stops so both sides keep a hint of the accent. */
+  html.dark .to-red-50:not([class*="dark:to-"]),
+  html.dark .to-red-100:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(127 29 29 / 0.25) var(--tw-gradient-to-position) !important;
+  }
+
   /* SKY / CYAN family — used for loaders / neutral coloured panels */
   html.dark .bg-sky-50:not([class*="dark:bg-"]) { background-color: rgb(12 74 110 / 0.25) !important; }
   html.dark .bg-sky-100:not([class*="dark:bg-"]) { background-color: rgb(12 74 110 / 0.35) !important; }
