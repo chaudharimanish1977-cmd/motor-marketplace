@@ -80,6 +80,104 @@
     color: rgb(var(--color-charcoal)) !important;
   }
 
+  /* Tailwind `slate-*` is used heavily across the bid/checkout/offer flow
+   * (`text-slate-900` for titles, `text-slate-600` for body, `bg-slate-50`
+   * for soft panels, `border-slate-200` for dividers). It's a separate
+   * palette from `gray-*` so the rules above don't reach it. Flip the
+   * darker shades to light, light shades to surface tones. */
+  html.dark .text-slate-900:not([class*="dark:text-"]),
+  html.dark .text-slate-800:not([class*="dark:text-"]) {
+    color: rgb(var(--color-charcoal)) !important;
+  }
+  html.dark .text-slate-700:not([class*="dark:text-"]),
+  html.dark .text-slate-600:not([class*="dark:text-"]) {
+    color: #CBD5E1 !important; /* slate-300 */
+  }
+  html.dark .text-slate-500:not([class*="dark:text-"]),
+  html.dark .text-slate-400:not([class*="dark:text-"]) {
+    color: #94A3B8 !important; /* slate-400 */
+  }
+  html.dark .bg-slate-50:not([class*="dark:bg-"]),
+  html.dark .bg-slate-100:not([class*="dark:bg-"]) {
+    background-color: rgb(var(--color-surface) / 0.7) !important;
+  }
+  html.dark .bg-slate-200:not([class*="dark:bg-"]) {
+    background-color: rgb(var(--color-surface)) !important;
+  }
+  html.dark .border-slate-100:not([class*="dark:border-"]),
+  html.dark .border-slate-200:not([class*="dark:border-"]),
+  html.dark .border-slate-300:not([class*="dark:border-"]) {
+    border-color: rgb(var(--color-light-gray)) !important;
+  }
+  /* Slate gradient stops (used as soft page backgrounds and panel washes) */
+  html.dark .from-slate-50:not([class*="dark:from-"]),
+  html.dark .from-slate-100:not([class*="dark:from-"]) {
+    --tw-gradient-from: rgb(var(--color-surface) / 0.6) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(var(--color-surface) / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-slate-50:not([class*="dark:to-"]),
+  html.dark .to-slate-100:not([class*="dark:to-"]) {
+    --tw-gradient-to: rgb(var(--color-surface) / 0.6) var(--tw-gradient-to-position) !important;
+  }
+  html.dark .via-slate-50:not([class*="dark:via-"]),
+  html.dark .via-slate-100:not([class*="dark:via-"]) {
+    --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--color-surface) / 0.6) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+  /* `bg-white/X` alpha-variants — sticky headers, soft overlays. Flip to
+   * surface with similar alpha so they remain subtle on dark pages. */
+  html.dark [class*="bg-white/"]:not([class*="dark:bg-"]) {
+    background-color: rgb(var(--color-surface) / 0.7) !important;
+  }
+
+  /* IMPORTANT: brand-charcoal and brand-slate are wired to CSS variables that
+   * flip light in dark mode (for body text legibility). When the SAME tokens
+   * are used as gradient BACKGROUND stops (offer-tier hero cards intend a
+   * dark gradient with white text on top), the auto-flip inverts the design
+   * and the white text becomes invisible. Re-pin those gradient stops back
+   * to their darker dark-mode equivalents so the hero card stays dark. */
+  html.dark .from-brand-charcoal:not([class*="dark:from-"]) {
+    --tw-gradient-from: #0F172A var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .via-brand-charcoal:not([class*="dark:via-"]) {
+    --tw-gradient-stops: var(--tw-gradient-from), #1E293B var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-charcoal:not([class*="dark:to-"]) {
+    --tw-gradient-to: #0F172A var(--tw-gradient-to-position) !important;
+  }
+  html.dark .from-brand-slate:not([class*="dark:from-"]) {
+    --tw-gradient-from: #334155 var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(51 65 85 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-slate:not([class*="dark:to-"]) {
+    --tw-gradient-to: #334155 var(--tw-gradient-to-position) !important;
+  }
+  /* Same for solid `bg-brand-charcoal` blocks used as dark wells */
+  html.dark .bg-brand-charcoal:not([class*="dark:bg-"]) {
+    background-color: #0F172A !important;
+  }
+
+  /* Form controls: inputs/textareas/selects use the browser default white
+   * background and inherited text color. In dark mode the inherited text
+   * flips to slate-100 (light), which becomes white-on-white if the field
+   * keeps its default white bg. Force the field bg to the dark surface and
+   * give the placeholder a muted slate color so typed text stays legible. */
+  html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([class*="dark:bg-"]),
+  html.dark textarea:not([class*="dark:bg-"]),
+  html.dark select:not([class*="dark:bg-"]) {
+    background-color: rgb(var(--color-surface)) !important;
+    color: rgb(var(--color-charcoal)) !important;
+    color-scheme: dark;
+  }
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    color: rgb(var(--color-slate)) !important;
+    opacity: 0.7;
+  }
+
   /* ============================================================
    * Tailwind gradient stops — Tailwind sets --tw-gradient-from/to
    * variables directly, so a value-swap on .text-* or .bg-* misses
@@ -101,28 +199,30 @@
     --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--color-surface)) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
   }
 
-  /* `from-brand-deepblue` / `from-brand-navy` etc. — flip to sky blue
-   * so gradient-text headings ("before it costs you.") stay readable. */
-  html.dark .from-brand-deepblue:not([class*="dark:from-"]),
-  html.dark .from-brand-navy:not([class*="dark:from-"]) {
+  /* `from-brand-deepblue` / `from-brand-navy` etc. as gradient TEXT
+   * (i.e. paired with `bg-clip-text text-transparent`) — flip to sky blue
+   * so the visible color contrasts with the dark page bg. The same brand
+   * colors are also used for solid gradient BACKGROUNDS (hero blocks,
+   * "key takeaway" cards) where white text sits on top; for those we must
+   * NOT flip — keeping the dark blue bg lets the white text stay readable
+   * and preserves the brand look. The `.bg-clip-text` qualifier separates
+   * the two cases. */
+  html.dark .bg-clip-text.from-brand-deepblue,
+  html.dark .bg-clip-text.from-brand-navy {
     --tw-gradient-from: #5EC8E6 var(--tw-gradient-from-position) !important;
     --tw-gradient-to: rgb(94 200 230 / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  html.dark .to-brand-deepblue:not([class*="dark:to-"]),
-  html.dark .to-brand-navy:not([class*="dark:to-"]) {
+  html.dark .bg-clip-text.to-brand-deepblue,
+  html.dark .bg-clip-text.to-brand-navy {
     --tw-gradient-to: #5EC8E6 var(--tw-gradient-to-position) !important;
   }
-  /* brand-electricblue (#247BA0) reads as mid-dark blue on the dark page bg.
-   * Flip both gradient ends to a brighter sky tone so headings using the
-   * deepblue→electricblue gradient remain fully legible across the whole
-   * span (the trailing "." was hard to spot at the gradient's far end). */
-  html.dark .from-brand-electricblue:not([class*="dark:from-"]) {
+  html.dark .bg-clip-text.from-brand-electricblue {
     --tw-gradient-from: #38BDF8 var(--tw-gradient-from-position) !important;
     --tw-gradient-to: rgb(56 189 248 / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  html.dark .to-brand-electricblue:not([class*="dark:to-"]) {
+  html.dark .bg-clip-text.to-brand-electricblue {
     --tw-gradient-to: #38BDF8 var(--tw-gradient-to-position) !important;
   }
   html.dark .text-brand-electricblue:not([class*="dark:text-"]) {
@@ -281,6 +381,58 @@
   }
   html.dark .text-fuchsia-900:not([class*="dark:text-"]) { color: #F5D0FE !important; }
   html.dark .border-fuchsia-300:not([class*="dark:border-"]) { border-color: rgb(112 26 117 / 0.55) !important; }
+
+  /* Alpha-variant utility classes (e.g. `bg-red-50/60`, `bg-emerald-50/40`)
+   * compile to escaped selectors `.bg-red-50\/60`. Tailwind's alpha-variant
+   * is applied before our base-class flip can take effect, so the rules
+   * above (`.bg-red-50:not(...)`) don't reach them. Catch the alpha-variants
+   * with an attribute selector that requires the trailing slash. */
+  html.dark [class*="bg-red-50/"]:not([class*="dark:bg-"]) { background-color: rgb(127 29 29 / 0.35) !important; }
+  html.dark [class*="bg-red-100/"]:not([class*="dark:bg-"]) { background-color: rgb(127 29 29 / 0.45) !important; }
+  html.dark [class*="bg-emerald-50/"]:not([class*="dark:bg-"]) { background-color: rgb(6 78 59 / 0.35) !important; }
+  html.dark [class*="bg-emerald-100/"]:not([class*="dark:bg-"]) { background-color: rgb(6 78 59 / 0.45) !important; }
+  html.dark [class*="bg-orange-50/"]:not([class*="dark:bg-"]) { background-color: rgb(124 45 18 / 0.35) !important; }
+  html.dark [class*="bg-orange-100/"]:not([class*="dark:bg-"]) { background-color: rgb(124 45 18 / 0.45) !important; }
+  html.dark [class*="bg-amber-50/"]:not([class*="dark:bg-"]) { background-color: rgb(120 53 15 / 0.35) !important; }
+  html.dark [class*="bg-amber-100/"]:not([class*="dark:bg-"]) { background-color: rgb(120 53 15 / 0.45) !important; }
+  html.dark [class*="bg-yellow-50/"]:not([class*="dark:bg-"]) { background-color: rgb(113 63 18 / 0.35) !important; }
+  html.dark [class*="bg-rose-50/"]:not([class*="dark:bg-"]) { background-color: rgb(136 19 55 / 0.35) !important; }
+  html.dark [class*="bg-purple-50/"]:not([class*="dark:bg-"]) { background-color: rgb(88 28 135 / 0.35) !important; }
+  html.dark [class*="bg-indigo-50/"]:not([class*="dark:bg-"]) { background-color: rgb(49 46 129 / 0.35) !important; }
+  html.dark [class*="bg-blue-50/"]:not([class*="dark:bg-"]) { background-color: rgb(30 58 138 / 0.35) !important; }
+  html.dark [class*="bg-sky-50/"]:not([class*="dark:bg-"]) { background-color: rgb(12 74 110 / 0.35) !important; }
+  html.dark [class*="bg-sky-100/"]:not([class*="dark:bg-"]) { background-color: rgb(12 74 110 / 0.45) !important; }
+  html.dark [class*="bg-gray-50/"]:not([class*="dark:bg-"]) { background-color: rgb(var(--color-surface) / 0.6) !important; }
+  html.dark [class*="bg-gray-100/"]:not([class*="dark:bg-"]) { background-color: rgb(var(--color-surface) / 0.7) !important; }
+
+  /* Text in -700 shades sits on those colored cards in light mode and reads
+   * fine against the bright bg. After our flip the card sits dark, so -700
+   * text becomes dark-on-dark. Flip to -300 light shades for legibility. */
+  html.dark .text-red-700:not([class*="dark:text-"]) { color: #FCA5A5 !important; }
+  html.dark .text-red-800:not([class*="dark:text-"]) { color: #FCA5A5 !important; }
+  html.dark .text-emerald-700:not([class*="dark:text-"]) { color: #6EE7B7 !important; }
+  html.dark .text-emerald-800:not([class*="dark:text-"]) { color: #A7F3D0 !important; }
+  html.dark .text-amber-700:not([class*="dark:text-"]) { color: #FCD34D !important; }
+  html.dark .text-amber-800:not([class*="dark:text-"]) { color: #FDE68A !important; }
+  html.dark .text-orange-700:not([class*="dark:text-"]) { color: #FDBA74 !important; }
+  html.dark .text-orange-800:not([class*="dark:text-"]) { color: #FED7AA !important; }
+  html.dark .text-rose-700:not([class*="dark:text-"]) { color: #FDA4AF !important; }
+  html.dark .text-rose-800:not([class*="dark:text-"]) { color: #FECDD3 !important; }
+  html.dark .text-purple-700:not([class*="dark:text-"]) { color: #D8B4FE !important; }
+  html.dark .text-purple-800:not([class*="dark:text-"]) { color: #E9D5FF !important; }
+  html.dark .text-indigo-700:not([class*="dark:text-"]) { color: #A5B4FC !important; }
+  html.dark .text-indigo-800:not([class*="dark:text-"]) { color: #C7D2FE !important; }
+  html.dark .text-sky-700:not([class*="dark:text-"]) { color: #7DD3FC !important; }
+  html.dark .text-sky-800:not([class*="dark:text-"]) { color: #BAE6FD !important; }
+  html.dark .text-sky-600:not([class*="dark:text-"]) { color: #38BDF8 !important; }
+  html.dark .text-red-600:not([class*="dark:text-"]) { color: #F87171 !important; }
+  html.dark .text-emerald-600:not([class*="dark:text-"]) { color: #34D399 !important; }
+  html.dark .text-amber-600:not([class*="dark:text-"]) { color: #FBBF24 !important; }
+  html.dark .text-orange-600:not([class*="dark:text-"]) { color: #FB923C !important; }
+  html.dark .text-blue-600:not([class*="dark:text-"]) { color: #60A5FA !important; }
+  html.dark .text-blue-700:not([class*="dark:text-"]) { color: #93C5FD !important; }
+  html.dark .text-blue-800:not([class*="dark:text-"]) { color: #BFDBFE !important; }
+  html.dark .text-blue-900:not([class*="dark:text-"]) { color: #DBEAFE !important; }
 
   /* SKY / CYAN family — used for loaders / neutral coloured panels */
   html.dark .bg-sky-50:not([class*="dark:bg-"]) { background-color: rgb(12 74 110 / 0.25) !important; }
