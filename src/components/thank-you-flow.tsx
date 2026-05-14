@@ -16,12 +16,14 @@ import {
 } from "lucide-react";
 import { Confetti } from "@/components/confetti";
 
-const RATING_LABEL: Record<number, string> = {
-  1: "Could be better",
-  2: "It was OK",
-  3: "It was helpful",
-  4: "Really useful",
-  5: "Loved it",
+// GenZ / Zomato-leaning rating copy. Index 0 = no rating yet.
+const RATING_COPY: Record<number, string> = {
+  0: "Tap a star, bestie ⭐",
+  1: "Bruh. We dropped the ball 😬",
+  2: "Mid. Roast us — what flopped?",
+  3: "Solid C+ vibes — we'll level up 📈",
+  4: "Lowkey love this 💛 thanks fr",
+  5: "POV: you just made our entire week 💅",
 };
 
 interface Props {
@@ -95,7 +97,7 @@ export function ThankYouFlow({
                     5-second feedback
                   </div>
                   <div className="text-sm font-semibold text-brand-charcoal">
-                    How was your experience?
+                    How was the vibe?
                   </div>
                 </div>
 
@@ -108,14 +110,20 @@ export function ThankYouFlow({
                         type="button"
                         aria-label={`Rate ${n} out of 5`}
                         onClick={() => setRating(n)}
-                        className="p-0.5 transition-transform hover:scale-110 active:scale-95"
+                        className="p-0.5 transition-transform hover:scale-125 hover:-rotate-6 active:scale-90"
                       >
+                        {/* Key trick: re-mount on rating change so the
+                            star-pop entrance animation re-fires every tap.
+                            Idle wiggle plays only on the first star pre-tap
+                            to nudge the user toward interacting. */}
                         <Star
+                          key={`s-${n}-${rating ?? "idle"}`}
                           className={clsx(
-                            "w-8 h-8 transition-colors",
+                            "w-9 h-9 transition-colors",
                             active
-                              ? "fill-brand-orange text-brand-orange"
-                              : "text-brand-light-gray"
+                              ? "fill-brand-orange text-brand-orange animate-star-pop"
+                              : "text-brand-light-gray",
+                            rating === null && n === 1 && "animate-star-idle"
                           )}
                         />
                       </button>
@@ -123,8 +131,8 @@ export function ThankYouFlow({
                   })}
                 </div>
 
-                <div className="text-center text-xs font-semibold text-brand-charcoal min-h-[18px] mb-3">
-                  {rating !== null ? RATING_LABEL[rating] : "Tap a star"}
+                <div className="text-center text-xs font-semibold text-brand-charcoal min-h-[20px] mb-3">
+                  {RATING_COPY[rating ?? 0]}
                 </div>
 
                 {rating !== null && rating <= 3 && (
@@ -132,7 +140,7 @@ export function ThankYouFlow({
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={2}
-                    placeholder="What could have been better? (optional)"
+                    placeholder="Spill the tea — what flopped? (optional)"
                     className="w-full px-3 py-2 mb-3 border-2 border-brand-light-gray rounded-xl text-sm text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-deepblue transition-colors resize-none"
                   />
                 )}
@@ -183,15 +191,53 @@ export function ThankYouFlow({
 }
 
 // ============================================================================
-// Renewal opt-in — captures both email + WhatsApp in one tap.
-// Flow: I'm in / I'm out → if I'm in, show checkpoint + time-of-day picker
-// pre-populated with RightOffer's default plan, then Lock in my plan.
+// "Zero calls" badge — quirky inline animated phone with a pulsing X overlay.
+// Phone is brand deep-blue (the thing being negated); X + label are orange.
 // ============================================================================
 
-// Checkpoint options (days before renewal). User picks any subset.
-const DAYS_BEFORE_OPTIONS = [90, 60, 45, 30, 14, 7, 3, 1];
+function NoCallBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 align-middle whitespace-nowrap">
+      <span className="relative inline-block w-4 h-4">
+        {/* Phone outline — wiggles like it's vibrating */}
+        <span className="absolute inset-0 animate-phone-jiggle">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-full h-full text-brand-deepblue"
+          >
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+        </span>
+        {/* Big X overlay — pulses on top, brand orange */}
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          className="absolute inset-0 w-full h-full text-brand-orange animate-x-pulse"
+        >
+          <path d="M4 4 L20 20 M20 4 L4 20" />
+        </svg>
+      </span>
+      <span className="font-bold text-brand-orange">Zero calls.</span>
+    </span>
+  );
+}
 
-// RightOffer's "I'm in" default plan: nudge at 90d, 30d, 7d, 1d at 9 AM IST.
+// ============================================================================
+// Renewal opt-in — captures both email + WhatsApp in one tap.
+// Flow: I'm in / I'm out → if I'm in, show time-of-day picker pre-populated
+// with RightOffer's default plan, then Lock in my plan.
+// ============================================================================
+
+// RightOffer's reminder plan: nudge at 90d, 30d, 7d, 1d before renewal.
+// Checkpoints are now fixed; only the time-of-day is user-configurable.
 const DEFAULT_DAYS_BEFORE = [90, 30, 7, 1];
 const DEFAULT_HOUR = 9;
 
@@ -237,7 +283,7 @@ function RenewalOptInCard({
   const [flow, setFlow] = useState<"asking" | "scheduling" | "declined">(
     "asking"
   );
-  const [daysBefore, setDaysBefore] = useState<number[]>(DEFAULT_DAYS_BEFORE);
+  const daysBefore = DEFAULT_DAYS_BEFORE;
   const [timeMode, setTimeMode] = useState<TimeMode>("pre-office");
   const [customHour, setCustomHour] = useState<number>(DEFAULT_HOUR);
 
@@ -263,12 +309,6 @@ function RenewalOptInCard({
           const b = TIME_BUCKETS.find((x) => x.id === timeMode)!;
           return `${b.label} (${b.range})`;
         })();
-
-  const toggleDay = (d: number) => {
-    setDaysBefore((current) =>
-      current.includes(d) ? current.filter((x) => x !== d) : [...current, d]
-    );
-  };
 
   const subscribe = async () => {
     if (daysBefore.length === 0) {
@@ -325,7 +365,7 @@ function RenewalOptInCard({
                 {timeSummary}
               </span>{" "}
               — by email and WhatsApp.{" "}
-              <span className="font-bold text-brand-orange">Zero calls.</span>
+              <NoCallBadge />
             </p>
           </div>
         </div>
@@ -389,44 +429,16 @@ function RenewalOptInCard({
                 "in the weeks leading up to your renewal"
               )}{" "}
               — by email and WhatsApp.{" "}
-              <span className="font-bold text-brand-orange">Zero calls.</span>
+              <NoCallBadge />
             </p>
           </div>
         </div>
 
         {/* Schedule picker — only revealed once user opts in */}
         {flow === "scheduling" && (
-          <div className="border border-brand-light-gray rounded-2xl p-4 mb-3 space-y-4 bg-brand-offwhite/40">
+          <div className="border border-brand-light-gray rounded-2xl p-4 mb-3 space-y-3 bg-brand-offwhite/40">
             <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
               Customize reminder schedule
-            </div>
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-slate mb-2">
-                Which checkpoints?
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {DAYS_BEFORE_OPTIONS.map((d) => {
-                  const active = daysBefore.includes(d);
-                  return (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => toggleDay(d)}
-                      className={clsx(
-                        "px-2.5 py-1 rounded-full border text-xs font-semibold transition-all tabular-nums",
-                        active
-                          ? "bg-brand-deepblue text-white border-brand-deepblue"
-                          : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-electricblue"
-                      )}
-                    >
-                      {d}d before
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="text-[10px] text-brand-slate mt-1.5">
-                Pick any combination · we&apos;ll fire one nudge per checkpoint
-              </div>
             </div>
 
             <div>
