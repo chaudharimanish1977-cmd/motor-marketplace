@@ -13,7 +13,7 @@
 export function DesktopAmbientArt() {
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-0 hidden lg:block overflow-hidden print:hidden"
+      className="pointer-events-none fixed inset-0 z-0 hidden lg:block overflow-hidden print:hidden dark:hidden"
       aria-hidden
     >
       {/* LEFT panel — road + horizon */}

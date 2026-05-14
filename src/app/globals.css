@@ -3,9 +3,47 @@
 @tailwind utilities;
 
 @layer base {
+  /* Theme tokens — light (default) and dark.
+   * Tailwind's brand-* neutrals (offwhite/charcoal/slate/light-gray) and the
+   * `surface` token resolve to these via rgb(var(--token) / <alpha-value>).
+   * Brand identity colors (deepblue, orange, etc.) stay fixed in tailwind.config.
+   */
+  :root {
+    --color-offwhite: 248 249 250;   /* #F8F9FA — page bg */
+    --color-charcoal: 45 52 54;      /* #2D3436 — body text */
+    --color-slate: 99 110 114;       /* #636E72 — secondary text */
+    --color-light-gray: 223 230 233; /* #DFE6E9 — borders/dividers */
+    --color-surface: 255 255 255;    /* #FFFFFF — cards/panels */
+  }
+  html.dark {
+    --color-offwhite: 15 23 42;      /* slate-900 — page bg */
+    --color-charcoal: 241 245 249;   /* slate-100 — body text */
+    --color-slate: 148 163 184;      /* slate-400 — secondary text */
+    --color-light-gray: 51 65 85;    /* slate-700 — borders */
+    --color-surface: 30 41 59;       /* slate-800 — cards */
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* In dark mode, flip the many literal `bg-white` usages across cards and
+   * panels to the surface token. Same for the few `text-black`. This avoids
+   * a 95-file audit. Anything that intentionally needs to stay white in dark
+   * mode can opt out with `dark:bg-white` (Tailwind layer overrides this). */
+  html.dark .bg-white:not([class*="dark:bg-"]) {
+    background-color: rgb(var(--color-surface)) !important;
+  }
+  html.dark .text-black:not([class*="dark:text-"]) {
+    color: rgb(var(--color-charcoal)) !important;
+  }
+  /* Brand-deepblue and -navy are used as heading/text colors throughout, but
+   * they have ~no contrast on the dark page bg (both are very dark blue).
+   * Flip them to sky blue so headings stay readable in dark mode. */
+  html.dark .text-brand-deepblue:not([class*="dark:text-"]),
+  html.dark .text-brand-navy:not([class*="dark:text-"]) {
+    color: #5EC8E6 !important; /* slightly lighter than brand-skyblue for AAA */
   }
   /* When SimplifyToggle is on, hide detail-level prose marked with .report-detail */
   body.report-simplified .report-detail {
