@@ -11,9 +11,8 @@ import {
   Sparkles,
   Bell,
   BellRing,
+  BellOff,
   Loader2,
-  Settings2,
-  ChevronUp,
 } from "lucide-react";
 import { Confetti } from "@/components/confetti";
 
@@ -184,21 +183,38 @@ export function ThankYouFlow({
 }
 
 // ============================================================================
-// Renewal opt-in — captures both email + WhatsApp in one tap
+// Renewal opt-in — captures both email + WhatsApp in one tap.
+// Flow: I'm in / I'm out → if I'm in, show checkpoint + time-of-day picker
+// pre-populated with RightOffer's default plan, then Lock in my plan.
 // ============================================================================
 
-// All checkpoint options (days before renewal). User picks any subset.
+// Checkpoint options (days before renewal). User picks any subset.
 const DAYS_BEFORE_OPTIONS = [90, 60, 45, 30, 14, 7, 3, 1];
-const DEFAULT_DAYS_BEFORE = [60, 30, 7];
 
-// Time-of-day buckets in IST.
-const TIME_OPTIONS: { hour: number; label: string }[] = [
-  { hour: 9, label: "Morning · 9 AM" },
-  { hour: 12, label: "Noon · 12 PM" },
-  { hour: 17, label: "Evening · 5 PM" },
-  { hour: 20, label: "Night · 8 PM" },
-];
+// RightOffer's "I'm in" default plan: nudge at 90d, 30d, 7d, 1d at 9 AM IST.
+const DEFAULT_DAYS_BEFORE = [90, 30, 7, 1];
 const DEFAULT_HOUR = 9;
+
+type TimeMode = "pre-office" | "lunch" | "post-office" | "custom";
+
+const TIME_BUCKETS: {
+  id: Exclude<TimeMode, "custom">;
+  label: string;
+  range: string;
+  hour: number;
+}[] = [
+  { id: "pre-office", label: "Pre-office hours", range: "8 AM – 10 AM", hour: 9 },
+  { id: "lunch", label: "Lunch hours", range: "1 PM – 3 PM", hour: 14 },
+  { id: "post-office", label: "Post-office hours", range: "6 PM – 8 PM", hour: 19 },
+];
+
+// One-hour slots, 8 AM through 7 PM IST.
+const CUSTOM_HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+
+const formatHour = (h: number) => {
+  if (h === 12) return "12 PM";
+  return h < 12 ? `${h} AM` : `${h - 12} PM`;
+};
 
 function RenewalOptInCard({
   email,
@@ -215,9 +231,15 @@ function RenewalOptInCard({
     "idle"
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [showCustomize, setShowCustomize] = useState(false);
+  // "asking"     → showing I'm in / I'm out
+  // "scheduling" → user picked I'm in, customising checkpoints + time
+  // "declined"   → user picked I'm out
+  const [flow, setFlow] = useState<"asking" | "scheduling" | "declined">(
+    "asking"
+  );
   const [daysBefore, setDaysBefore] = useState<number[]>(DEFAULT_DAYS_BEFORE);
-  const [reminderHour, setReminderHour] = useState<number>(DEFAULT_HOUR);
+  const [timeMode, setTimeMode] = useState<TimeMode>("pre-office");
+  const [customHour, setCustomHour] = useState<number>(DEFAULT_HOUR);
 
   const niceDate = policyExpiryDate
     ? new Date(policyExpiryDate).toLocaleDateString("en-IN", {
@@ -227,11 +249,20 @@ function RenewalOptInCard({
       })
     : null;
 
+  const effectiveHour =
+    timeMode === "custom"
+      ? customHour
+      : TIME_BUCKETS.find((b) => b.id === timeMode)!.hour;
+
   const sortedDaysAsc = [...daysBefore].sort((a, b) => b - a);
   const daysSummary = sortedDaysAsc.map((d) => `${d}d`).join(" · ");
   const timeSummary =
-    TIME_OPTIONS.find((t) => t.hour === reminderHour)?.label ??
-    `${reminderHour}:00 IST`;
+    timeMode === "custom"
+      ? `${formatHour(customHour)} IST`
+      : (() => {
+          const b = TIME_BUCKETS.find((x) => x.id === timeMode)!;
+          return `${b.label} (${b.range})`;
+        })();
 
   const toggleDay = (d: number) => {
     setDaysBefore((current) =>
@@ -255,7 +286,7 @@ function RenewalOptInCard({
           email,
           mobile,
           daysBefore,
-          reminderHourIst: reminderHour,
+          reminderHourIst: effectiveHour,
         }),
       });
       const data = await res.json();
@@ -293,13 +324,43 @@ function RenewalOptInCard({
               <span className="font-semibold text-brand-charcoal">
                 {timeSummary}
               </span>{" "}
-              — by email and WhatsApp. Zero calls. Reply STOP any time.
+              — by email and WhatsApp.{" "}
+              <span className="font-bold text-brand-orange">Zero calls.</span>
             </p>
           </div>
         </div>
       </div>
     );
   }
+
+  if (flow === "declined") {
+    return (
+      <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft overflow-hidden">
+        <div className="px-6 py-5 flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-light-gray flex items-center justify-center shrink-0">
+            <BellOff className="w-5 h-5 text-brand-slate" />
+          </div>
+          <div className="flex-1">
+            <div className="font-bold text-brand-charcoal text-sm md:text-base">
+              No worries — we won&apos;t bug you
+            </div>
+            <p className="text-xs md:text-sm text-brand-slate mt-1 leading-relaxed">
+              We won&apos;t send you any renewal nudges.{" "}
+              <button
+                type="button"
+                onClick={() => setFlow("asking")}
+                className="font-semibold text-brand-deepblue hover:underline"
+              >
+                Changed your mind?
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const saving = state === "saving";
 
   return (
     <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft overflow-hidden">
@@ -313,7 +374,7 @@ function RenewalOptInCard({
               Renewal reminder
             </div>
             <h3 className="text-base md:text-lg font-bold text-brand-charcoal leading-snug">
-              Don&apos;t ghost your renewal.
+              Don&apos;t worry about missing your renewal.
             </h3>
             <p className="text-xs md:text-sm text-brand-slate mt-1.5 leading-relaxed">
               We&apos;ll send nudges{" "}
@@ -327,43 +388,18 @@ function RenewalOptInCard({
               ) : (
                 "in the weeks leading up to your renewal"
               )}{" "}
-              — by email and WhatsApp. Zero calls. Reply STOP any time.
+              — by email and WhatsApp.{" "}
+              <span className="font-bold text-brand-orange">Zero calls.</span>
             </p>
           </div>
         </div>
 
-        {/* Current settings summary — always visible */}
-        <div className="rounded-xl bg-brand-offwhite border border-brand-light-gray px-3.5 py-2.5 mb-3 flex items-center justify-between gap-3">
-          <div className="text-xs text-brand-slate min-w-0 flex-1">
-            <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-brand-slate/70">
-              Reminder schedule
+        {/* Schedule picker — only revealed once user opts in */}
+        {flow === "scheduling" && (
+          <div className="border border-brand-light-gray rounded-2xl p-4 mb-3 space-y-4 bg-brand-offwhite/40">
+            <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
+              Customize reminder schedule
             </div>
-            <div className="mt-0.5 text-brand-charcoal font-medium truncate">
-              {daysSummary} before · {timeSummary}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowCustomize((s) => !s)}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-brand-deepblue hover:underline shrink-0"
-          >
-            {showCustomize ? (
-              <>
-                <ChevronUp className="w-3.5 h-3.5" />
-                Done
-              </>
-            ) : (
-              <>
-                <Settings2 className="w-3.5 h-3.5" />
-                Customize
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Expandable customize panel */}
-        {showCustomize && (
-          <div className="border border-brand-light-gray rounded-xl p-3.5 mb-3 space-y-4 bg-white">
             <div>
               <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-slate mb-2">
                 Which checkpoints?
@@ -397,25 +433,63 @@ function RenewalOptInCard({
               <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-slate mb-2">
                 What time of day?
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {TIME_OPTIONS.map((t) => {
-                  const active = reminderHour === t.hour;
+              <div className="space-y-1.5">
+                {TIME_BUCKETS.map((b) => {
+                  const active = timeMode === b.id;
                   return (
                     <button
-                      key={t.hour}
+                      key={b.id}
                       type="button"
-                      onClick={() => setReminderHour(t.hour)}
+                      onClick={() => setTimeMode(b.id)}
                       className={clsx(
-                        "px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all",
+                        "w-full text-left px-3 py-2 rounded-lg border text-xs font-semibold transition-all flex items-center justify-between gap-3",
                         active
                           ? "bg-brand-deepblue text-white border-brand-deepblue"
                           : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-electricblue"
                       )}
                     >
-                      {t.label}
+                      <span>{b.label}</span>
+                      <span
+                        className={clsx(
+                          "text-[11px] font-medium tabular-nums",
+                          active ? "text-white/80" : "text-brand-slate"
+                        )}
+                      >
+                        {b.range}
+                      </span>
                     </button>
                   );
                 })}
+
+                <div
+                  className={clsx(
+                    "w-full px-3 py-2 rounded-lg border text-xs font-semibold transition-all flex items-center justify-between gap-3",
+                    timeMode === "custom"
+                      ? "bg-brand-deepblue text-white border-brand-deepblue"
+                      : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-electricblue"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setTimeMode("custom")}
+                    className="text-left flex-1 cursor-pointer"
+                  >
+                    Choose your time slot
+                  </button>
+                  {timeMode === "custom" && (
+                    <select
+                      value={customHour}
+                      onChange={(e) => setCustomHour(Number(e.target.value))}
+                      className="text-[11px] font-semibold tabular-nums bg-white text-brand-charcoal rounded-md px-2 py-0.5 border border-white/30 focus:outline-none"
+                    >
+                      {CUSTOM_HOURS.map((h) => (
+                        <option key={h} value={h}>
+                          {formatHour(h)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -427,26 +501,57 @@ function RenewalOptInCard({
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={subscribe}
-          disabled={state === "saving"}
-          className={clsx(
-            "w-full py-2.5 rounded-xl font-bold text-sm transition-all inline-flex items-center justify-center gap-2",
-            state === "saving"
-              ? "bg-brand-light-gray text-brand-slate cursor-not-allowed"
-              : "bg-brand-orange hover:brightness-110 text-white shadow-soft"
-          )}
-        >
-          {state === "saving" ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            "I'm in"
-          )}
-        </button>
+        {/* Buttons — flow-dependent */}
+        {flow === "asking" ? (
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setFlow("scheduling")}
+              className="py-2.5 rounded-xl font-bold text-sm bg-brand-orange hover:brightness-110 text-white shadow-soft transition-all"
+            >
+              I&apos;m in
+            </button>
+            <button
+              type="button"
+              onClick={() => setFlow("declined")}
+              className="py-2.5 rounded-xl font-bold text-sm bg-brand-light-gray text-brand-slate hover:bg-brand-light-gray/70 transition-all"
+            >
+              I&apos;m out
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => subscribe()}
+              disabled={saving}
+              className={clsx(
+                "w-full py-2.5 rounded-xl font-bold text-sm transition-all inline-flex items-center justify-center gap-2",
+                saving
+                  ? "bg-brand-light-gray text-brand-slate cursor-not-allowed"
+                  : "bg-brand-orange hover:brightness-110 text-white shadow-soft"
+              )}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Lock in my plan"
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFlow("declined")}
+              disabled={saving}
+              className="w-full py-1.5 text-xs font-semibold text-brand-slate hover:text-brand-charcoal transition-colors"
+            >
+              Actually, I&apos;m out
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
