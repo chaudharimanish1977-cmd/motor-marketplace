@@ -26,6 +26,7 @@ import { ReminderSchedule } from "./reminder-schedule";
 import { SignOutButton } from "./sign-out-button";
 import { DeleteAccountCard } from "./delete-account-card";
 import { DeletePolicyButton } from "./delete-policy-button";
+import { RunComparisonButton } from "./run-comparison-button";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -125,6 +126,15 @@ export default async function PortalHome() {
                   icon={Receipt}
                   tone="info"
                   policies={quotes}
+                />
+              )}
+              {/* Comparator CTA — surfaces when the customer has at
+                  least one quote. Sends canonical (latest-parse) IDs
+                  per group so duplicate uploads don't double-compare. */}
+              {quotes.length > 0 && (
+                <ComparisonLauncher
+                  quoteIds={quotes.map((q) => q.parsed.id)}
+                  policyId={active[0]?.parsed.id}
                 />
               )}
               {expired.length > 0 && (
@@ -363,6 +373,41 @@ function Section({
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * "Run Right Offer comparison" CTA card. Visible when the customer
+ * has at least one quote uploaded. Picks the latest-parse active
+ * policy (if any) as the anchor so the comparator uses the richest
+ * profile for RCP generation.
+ */
+function ComparisonLauncher({
+  quoteIds,
+  policyId,
+}: {
+  quoteIds: string[];
+  policyId?: string;
+}) {
+  return (
+    <div className="rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue text-white p-5 md:p-6 shadow-soft">
+      <div className="flex items-start gap-4 flex-wrap">
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] opacity-90">
+            Compare your quotes
+          </div>
+          <h3 className="mt-1 text-lg md:text-xl font-bold tracking-tight">
+            Score them against the Right Offer profile
+          </h3>
+          <p className="mt-1.5 text-sm opacity-90 leading-relaxed">
+            {policyId
+              ? "We'll score every quote against what your car actually needs — and tell you straight if one of them is already the Right Offer for you."
+              : "We'll infer your car's profile from the quotes and surface which one is genuinely best — or tell you what's missing across all of them."}
+          </p>
+        </div>
+        <RunComparisonButton quoteIds={quoteIds} policyId={policyId} />
+      </div>
+    </div>
   );
 }
 

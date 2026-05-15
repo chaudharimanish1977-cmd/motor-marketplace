@@ -370,3 +370,107 @@ export interface RenewalSubscription {
   /** ISO timestamp when the customer clicked the one-click unsubscribe link. */
   unsubscribedAt?: string;
 }
+
+// ============================================================================
+// Comparison Report — the Right Offer comparator output
+// ============================================================================
+
+/**
+ * A persistent record of a Right Offer comparison run.
+ *
+ * Created when the customer triggers the comparator on a set of
+ * uploaded documents (policy + N quotes, or quotes alone). Captures
+ * inputs, computed RCP, scored quotes, auction results (when M4
+ * lands), and the final verdict — so the customer can come back via
+ * /me and re-view it, and so we accumulate the dataset moat.
+ */
+export interface ComparisonReport {
+  id: string;
+  /** Lowercased session email — primary owner key (matches /me filtering). */
+  customerEmail: string;
+  /** Human label for the vehicle, e.g. "Hyundai Verna". */
+  vehicleLabel: string;
+  /** Optional — the policy that anchored this comparison (Feature 3). */
+  policyId?: string;
+  /** Parsed-policy IDs of the uploaded quotes being compared. */
+  quoteIds: string[];
+  /** RCP captured at comparison time (snapshot — doesn't drift if the
+   *  policy report regenerates later). */
+  rcp: ComparisonRcpSnapshot;
+  /** Scoring of each quote against the RCP. */
+  quoteScores: ComparisonQuoteScore[];
+  /** Linked RFQ/Bid IDs once M4 wires the auction in. */
+  rfqId?: string;
+  bidIds?: string[];
+  /** Final verdict. */
+  verdict: ComparisonVerdict;
+  /** Has the customer chosen to reserve a recommended option? */
+  reservedAt?: string;
+  reservedOption?: ComparisonReservedOption;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Snapshot of the RCP at comparison time. Stored inline so the
+ * comparison stays stable even if the underlying report changes.
+ */
+export interface ComparisonRcpSnapshot {
+  requiredAddOns: Array<{
+    name: string;
+    why: string;
+    estimatedAnnualPremium: number;
+  }>;
+  optionalAddOns: Array<{
+    name: string;
+    why: string;
+    estimatedAnnualPremium: number;
+  }>;
+  idv: { current: number; assessment: "appropriate" | "low" | "high"; note: string };
+  requiredAddOnsPremiumTotal: number;
+}
+
+/**
+ * One uploaded quote's score against the RCP at comparison time.
+ */
+export interface ComparisonQuoteScore {
+  quoteId: string;
+  insurerName: string;
+  grandTotal: number;
+  /** RCP items the quote lacks. */
+  missingRequired: string[];
+  /** Add-ons the quote includes that aren't in the RCP (over-coverage). */
+  extraNonRcp: string[];
+  isRcpComplete: boolean;
+  isExactlyRcp: boolean;
+}
+
+export type ComparisonVerdictType =
+  /** Customer's best quote is the Right Offer. Tell them to take it. */
+  | "take_existing"
+  /** Our offer beats / fills the gap. We pitch. */
+  | "rightoffer_pitch"
+  /** Neither customer's quotes nor our offer hit the bar. Customer should
+   *  ask their insurer to add the missing RCP items, or wait for our
+   *  auction (M4) to run. */
+  | "needs_attention";
+
+export interface ComparisonVerdict {
+  type: ComparisonVerdictType;
+  /** Plain-English headline shown at the top of the comparison page. */
+  headline: string;
+  /** Body paragraph(s) explaining the reasoning. */
+  body: string;
+  /** Quote ID or bid ID being recommended — null when "needs_attention". */
+  recommendedQuoteId?: string;
+  recommendedBidId?: string;
+}
+
+/**
+ * The customer's chosen "reserve this offer" pick, persisted on the
+ * comparison so the /me portal can show conversion intent.
+ */
+export interface ComparisonReservedOption {
+  source: "customer_quote" | "rightoffer_bid";
+  refId: string;
+}
