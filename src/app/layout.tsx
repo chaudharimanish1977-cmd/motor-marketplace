@@ -4,7 +4,11 @@ import "./globals.css";
 import { DesktopAmbientArt } from "@/components/desktop-ambient-art";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SiteHeader } from "@/components/site-header";
-import { TopLoader } from "@/components/top-loader";
+// TopLoader temporarily disabled — first attempt with the nextjs-toploader
+// package + the in-tree replacement both correlate with a client-side
+// exception on /report in production. Pulling it out entirely while we
+// isolate the root cause. Click feedback can be re-added later via a
+// per-page <Link>-prefetch + button-level loading state.
 
 // Inline script that runs before React hydrates. Reads the saved theme from
 // localStorage and applies the `dark` class to <html> so there's no flash of
@@ -145,12 +149,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
-        {/* Thin brand-orange progress bar at the top during route changes —
-         *  custom component so we control the dependency surface (the
-         *  nextjs-toploader package introduced a client-side exception on
-         *  some /report renders in production — root cause unclear, our
-         *  own bar uses zero external state and is safe to mount globally). */}
-        <TopLoader />
+        {/* TopLoader removed pending diagnosis — see import comment. */}
         <DesktopAmbientArt />
         <ThemeToggle />
         <div className="relative z-10">
