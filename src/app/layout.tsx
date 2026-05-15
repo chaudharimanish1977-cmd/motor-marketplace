@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
+import NextTopLoader from "nextjs-toploader";
 import { DesktopAmbientArt } from "@/components/desktop-ambient-art";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SiteHeader } from "@/components/site-header";
@@ -143,6 +144,18 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+        {/* Thin brand-orange progress bar at the top during route changes —
+         *  gives users instant "did I click?" feedback site-wide so we don't
+         *  have to add per-button loading states on every CTA. */}
+        <NextTopLoader
+          color="#FF6B35"
+          height={3}
+          shadow="0 0 8px #FF6B35, 0 0 4px #FF6B35"
+          showSpinner={false}
+          easing="ease"
+          speed={300}
+          crawlSpeed={180}
         />
         <DesktopAmbientArt />
         <ThemeToggle />
