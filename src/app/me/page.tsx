@@ -342,6 +342,7 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
               policyExpiryDate={subscription.policyExpiryDate}
               daysBefore={subscription.daysBefore}
               nudgesFired={subscription.nudgesFired ?? []}
+              channels={subscription.channels ?? ["email"]}
               paused={subscription.status !== "active"}
             />
           )}

@@ -5,6 +5,7 @@ import type { ParsedPolicy, RenewalSubscription } from "@/lib/types";
 import { sendRenewalReminderEmail } from "@/lib/email-sender";
 import { buildUnsubscribeUrl } from "@/lib/email-token";
 import { policyGroupKey } from "@/lib/policy-group";
+import { friendlyFirstName } from "@/lib/format";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -73,6 +74,13 @@ export async function GET(request: NextRequest) {
     for (const sub of subs) {
       if (sub.status !== "active") continue;
 
+      // Respect the customer's channel preferences. Today we only
+      // implement email — if the customer dropped email from their
+      // channels, skip them entirely. WhatsApp is wiring-in-progress;
+      // when that ships, add a parallel branch here.
+      const wantsEmail = (sub.channels ?? ["email"]).includes("email");
+      if (!wantsEmail) continue;
+
       const policy = policyById.get(sub.parsedPolicyId);
       if (!policy) {
         skippedRecords.push({
@@ -109,7 +117,7 @@ export async function GET(request: NextRequest) {
       sendKeys.add(dedupeKey);
 
       try {
-        const firstName = firstNameFor(policy);
+        const firstName = friendlyFirstName(policy.owner?.name);
         const vehicleLabel =
           `${policy.vehicle.make} ${policy.vehicle.model}`.trim();
         const expiryDateLabel = new Date(
@@ -232,15 +240,6 @@ function pickCheckpoint(
 function daysBetween(fromMs: number, isoDate: string): number {
   const to = new Date(isoDate).getTime();
   return Math.ceil((to - fromMs) / (24 * 60 * 60 * 1000));
-}
-
-function firstNameFor(policy: ParsedPolicy): string {
-  const raw = (policy.owner?.name ?? "").trim();
-  if (!raw) return "there";
-  const stripped = raw.replace(/^(Mr|Mrs|Ms|Dr|Smt|Shri)\.?\s+/i, "");
-  const first = stripped.split(/\s+/)[0] ?? "";
-  if (!first) return "there";
-  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
 }
 
 function istDateString(ms: number): string {

@@ -19,10 +19,18 @@ const Schema = z
       .min(1)
       .max(10)
       .optional(),
+    channels: z
+      .array(z.enum(["email", "whatsapp"]))
+      .min(1)
+      .max(2)
+      .optional(),
   })
   .refine(
-    (v) => v.status !== undefined || v.daysBefore !== undefined,
-    { message: "Provide status or daysBefore" }
+    (v) =>
+      v.status !== undefined ||
+      v.daysBefore !== undefined ||
+      v.channels !== undefined,
+    { message: "Provide status, daysBefore, or channels" }
   );
 
 /**
@@ -156,6 +164,15 @@ function buildPatch(
     patch.daysBefore = Array.from(new Set(body.daysBefore)).sort(
       (a, b) => b - a
     );
+  }
+
+  if (body.channels !== undefined) {
+    // Dedupe; preserve email-first ordering for readability.
+    const set = new Set(body.channels);
+    const ordered: ("email" | "whatsapp")[] = [];
+    if (set.has("email")) ordered.push("email");
+    if (set.has("whatsapp")) ordered.push("whatsapp");
+    patch.channels = ordered;
   }
 
   return patch;

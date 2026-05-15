@@ -7,39 +7,41 @@ import {
   CheckCircle2,
   Edit3,
   Loader2,
+  Mail,
+  MessageCircle,
+  Send,
   X,
 } from "lucide-react";
 import clsx from "clsx";
 
 /**
- * Per-subscription reminder schedule. Two modes:
+ * Per-subscription reminder controls. Two modes:
  *
  *   - Summary (default): one-line list of upcoming fire dates with a
- *     small ✓ on checkpoints that already fired. "Edit" toggles into
- *     editor mode.
+ *     small ✓ on checkpoints that already fired. Two top-right
+ *     actions: "Send test email" (preview without waiting for cron)
+ *     and "Edit" (toggle into editor mode).
  *
- *   - Editor: a row of checkbox-buttons for [60, 45, 30, 15, 7, 3, 1]
- *     days before expiry, each showing its computed fire date. Save
- *     posts the new array to the cascading PATCH route; cancel
- *     restores the original picks. Save is disabled until the user
- *     ticks at least one checkpoint.
+ *   - Editor: a checkbox grid for [60, 45, 30, 15, 7, 3, 1] days
+ *     before expiry + channel toggles (Email always available;
+ *     WhatsApp marked "coming soon" — saves to DB so the rails are
+ *     ready once WhatsApp delivery is wired up). Save disabled
+ *     until at least one checkpoint AND one channel are ticked.
  *
- * The component is dumb about the rest of the subscription — it just
- * needs the policy expiry date, the current schedule, and the list of
- * already-fired checkpoints. The PATCH endpoint handles cascading
- * across all sibling subs in the same policy group.
+ * The PATCH endpoint handles cascading across all sibling subs in
+ * the same policy group, so the user only ever sees / acts on one
+ * schedule per car-period.
  */
 
-// Picks we offer in the editor. Anchored on common renewal milestones
-// (2-month / 1-month / 1-week / final-week). Editing happens via
-// presets — power users wanting [42, 14] aren't the V1 audience.
 const CHECKPOINT_OPTIONS = [60, 45, 30, 15, 7, 3, 1] as const;
+type Channel = "email" | "whatsapp";
 
 interface Props {
   subscriptionId: string;
   policyExpiryDate: string;
   daysBefore: number[];
   nudgesFired: number[];
+  channels: Channel[];
   paused: boolean;
 }
 
@@ -48,6 +50,7 @@ export function ReminderSchedule({
   policyExpiryDate,
   daysBefore,
   nudgesFired,
+  channels,
   paused,
 }: Props) {
   const router = useRouter();
@@ -55,15 +58,58 @@ export function ReminderSchedule({
   const [picked, setPicked] = useState<Set<number>>(
     () => new Set(daysBefore)
   );
+  const [pickedChannels, setPickedChannels] = useState<Set<Channel>>(
+    () => new Set(channels)
+  );
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [testFeedback, setTestFeedback] = useState<{
+    kind: "ok" | "err";
+    msg: string;
+  } | null>(null);
+  const [testPending, startTestTransition] = useTransition();
 
   const expiryMs = useMemo(
     () => new Date(policyExpiryDate).getTime(),
     [policyExpiryDate]
   );
 
-  // ---------- Summary mode ----------
+  // -----------------------------------------------------------
+  // Test send — works from either mode, no edit required.
+  // -----------------------------------------------------------
+  function onTestSend() {
+    if (testPending) return;
+    setTestFeedback(null);
+    startTestTransition(async () => {
+      try {
+        const res = await fetch(
+          `/api/me/reminders/${subscriptionId}/test`,
+          { method: "POST" }
+        );
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          to?: string;
+        };
+        if (!res.ok) {
+          setTestFeedback({
+            kind: "err",
+            msg: data.error ?? "Couldn't send the test.",
+          });
+          return;
+        }
+        setTestFeedback({
+          kind: "ok",
+          msg: `Test email sent to ${data.to ?? "your inbox"}.`,
+        });
+      } catch {
+        setTestFeedback({ kind: "err", msg: "Network error." });
+      }
+    });
+  }
+
+  // -----------------------------------------------------------
+  // Summary mode
+  // -----------------------------------------------------------
   if (!editing) {
     const visiblePicks = [...daysBefore].sort((a, b) => b - a);
     return (
@@ -71,14 +117,29 @@ export function ReminderSchedule({
         <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-slate">
           <Calendar className="w-3 h-3" />
           Schedule
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="ml-auto inline-flex items-center gap-1 text-[10px] font-semibold text-brand-deepblue hover:underline"
-          >
-            <Edit3 className="w-3 h-3" />
-            Edit
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onTestSend}
+              disabled={testPending}
+              className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-slate hover:text-brand-charcoal transition-colors disabled:opacity-60"
+            >
+              {testPending ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Send className="w-3 h-3" />
+              )}
+              Send test
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-deepblue hover:underline"
+            >
+              <Edit3 className="w-3 h-3" />
+              Edit
+            </button>
+          </div>
         </div>
         <ul className="text-[11px] text-brand-charcoal/90 space-y-0.5">
           {visiblePicks.map((d) => {
@@ -105,12 +166,27 @@ export function ReminderSchedule({
             );
           })}
         </ul>
+        <ChannelsLine channels={channels} />
+        {testFeedback && (
+          <p
+            className={clsx(
+              "text-[11px] leading-relaxed",
+              testFeedback.kind === "ok"
+                ? "text-emerald-700"
+                : "text-red-600"
+            )}
+          >
+            {testFeedback.msg}
+          </p>
+        )}
       </div>
     );
   }
 
-  // ---------- Editor mode ----------
-  function toggle(d: number) {
+  // -----------------------------------------------------------
+  // Editor mode
+  // -----------------------------------------------------------
+  function toggleCheckpoint(d: number) {
     setPicked((prev) => {
       const next = new Set(prev);
       if (next.has(d)) next.delete(d);
@@ -119,16 +195,32 @@ export function ReminderSchedule({
     });
   }
 
+  function toggleChannel(c: Channel) {
+    setPickedChannels((prev) => {
+      const next = new Set(prev);
+      if (next.has(c)) next.delete(c);
+      else next.add(c);
+      return next;
+    });
+  }
+
+  const canSave =
+    picked.size > 0 && pickedChannels.size > 0 && !pending;
+
   function onSave() {
-    if (pending || picked.size === 0) return;
+    if (!canSave) return;
     setError(null);
     const daysBeforeArr = Array.from(picked).sort((a, b) => b - a);
+    const channelsArr = Array.from(pickedChannels);
     startTransition(async () => {
       try {
         const res = await fetch(`/api/me/reminders/${subscriptionId}`, {
           method: "PATCH",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ daysBefore: daysBeforeArr }),
+          body: JSON.stringify({
+            daysBefore: daysBeforeArr,
+            channels: channelsArr,
+          }),
         });
         if (!res.ok) {
           const data = (await res.json().catch(() => ({}))) as {
@@ -147,6 +239,7 @@ export function ReminderSchedule({
 
   function onCancel() {
     setPicked(new Set(daysBefore));
+    setPickedChannels(new Set(channels));
     setEditing(false);
     setError(null);
   }
@@ -169,8 +262,7 @@ export function ReminderSchedule({
       </div>
 
       <div className="text-[11px] text-brand-slate leading-relaxed">
-        Tick the days before expiry on which we should email you. You
-        can change this any time.
+        Pick the days before expiry on which we should remind you.
       </div>
 
       <div className="grid grid-cols-1 gap-1.5">
@@ -190,7 +282,7 @@ export function ReminderSchedule({
               <input
                 type="checkbox"
                 checked={checked}
-                onChange={() => toggle(d)}
+                onChange={() => toggleCheckpoint(d)}
                 className="w-3.5 h-3.5 accent-brand-deepblue"
               />
               <span className="font-semibold tabular-nums w-12 shrink-0">
@@ -210,6 +302,36 @@ export function ReminderSchedule({
         })}
       </div>
 
+      {/* Channels */}
+      <div className="pt-2 border-t border-brand-light-gray space-y-1.5">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-slate">
+          Where we send
+        </div>
+        <div className="grid grid-cols-1 gap-1.5">
+          <ChannelOption
+            channel="email"
+            label="Email"
+            icon={Mail}
+            badge={null}
+            checked={pickedChannels.has("email")}
+            onToggle={() => toggleChannel("email")}
+          />
+          <ChannelOption
+            channel="whatsapp"
+            label="WhatsApp"
+            icon={MessageCircle}
+            badge="Coming soon"
+            checked={pickedChannels.has("whatsapp")}
+            onToggle={() => toggleChannel("whatsapp")}
+          />
+        </div>
+        <p className="text-[10px] text-brand-slate/80 leading-relaxed">
+          WhatsApp delivery isn&rsquo;t live yet — we&rsquo;ll switch
+          it on as soon as our Business API approval comes through.
+          You can tick it now and we&rsquo;ll honour it from day one.
+        </p>
+      </div>
+
       {error && <p className="text-[11px] text-red-600">{error}</p>}
 
       <div className="flex items-center justify-end gap-2">
@@ -224,7 +346,7 @@ export function ReminderSchedule({
         <button
           type="button"
           onClick={onSave}
-          disabled={pending || picked.size === 0}
+          disabled={!canSave}
           className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-brand-deepblue hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed px-3.5 py-1.5 rounded-lg transition-colors"
         >
           {pending ? (
@@ -237,6 +359,72 @@ export function ReminderSchedule({
           )}
         </button>
       </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------------------
+
+function ChannelOption({
+  label,
+  icon: Icon,
+  badge,
+  checked,
+  onToggle,
+}: {
+  channel: Channel;
+  label: string;
+  icon: typeof Mail;
+  badge: string | null;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <label
+      className={clsx(
+        "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[12px] cursor-pointer transition-colors",
+        checked
+          ? "bg-blue-50 border-brand-deepblue/30 text-brand-charcoal"
+          : "bg-white border-brand-light-gray text-brand-slate hover:bg-brand-offwhite"
+      )}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onToggle}
+        className="w-3.5 h-3.5 accent-brand-deepblue"
+      />
+      <Icon className="w-3.5 h-3.5 text-brand-slate" />
+      <span className="font-semibold">{label}</span>
+      {badge && (
+        <span className="ml-auto inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+          {badge}
+        </span>
+      )}
+    </label>
+  );
+}
+
+function ChannelsLine({ channels }: { channels: Channel[] }) {
+  if (!channels.length) return null;
+  return (
+    <div className="flex items-center gap-1.5 pt-1 text-[10px] text-brand-slate">
+      <span className="font-semibold uppercase tracking-[0.1em]">Via</span>
+      {channels.includes("email") && (
+        <span className="inline-flex items-center gap-1">
+          <Mail className="w-3 h-3" />
+          Email
+        </span>
+      )}
+      {channels.includes("whatsapp") && (
+        <span className="inline-flex items-center gap-1">
+          <MessageCircle className="w-3 h-3" />
+          WhatsApp
+          <span className="text-[9px] text-brand-slate/70">(soon)</span>
+        </span>
+      )}
     </div>
   );
 }
