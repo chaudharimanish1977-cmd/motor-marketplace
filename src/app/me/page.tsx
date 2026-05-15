@@ -25,6 +25,7 @@ import { ReminderToggle } from "./reminder-toggle";
 import { ReminderSchedule } from "./reminder-schedule";
 import { SignOutButton } from "./sign-out-button";
 import { DeleteAccountCard } from "./delete-account-card";
+import { DeletePolicyButton } from "./delete-policy-button";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -498,6 +499,10 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
                 View report
               </LoadingLink>
             )}
+            <DeletePolicyButton
+              policyId={parsed.id}
+              vehicleLabel={vehicleLabel}
+            />
           </div>
         </div>
       </div>
