@@ -22,6 +22,7 @@ import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 import { ReminderToggle } from "./reminder-toggle";
 import { SignOutButton } from "./sign-out-button";
+import { DeleteAccountCard } from "./delete-account-card";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -108,6 +109,14 @@ export default async function PortalHome() {
               <Upload className="w-4 h-4" />
               Get a fresh review
             </LoadingLink>
+          </div>
+
+          {/* Account controls — quiet, separate from the policy list */}
+          <div className="mt-10">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-slate mb-3">
+              Account
+            </div>
+            <DeleteAccountCard email={sessionEmail} />
           </div>
         </div>
       </main>
