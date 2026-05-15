@@ -35,6 +35,23 @@ export function PitchDeck() {
     if (sp.get("print") === "1") setPrintMode(true);
   }, []);
 
+  // The deck is intentionally dark-themed (deep-blue bg + white text +
+  // white-alpha overlays). The site-wide dark-mode CSS rules in globals.css
+  // would otherwise flip the deck's `bg-white/10`-style overlays to the
+  // generic dark surface, breaking active pagination dots, hover states,
+  // nav arrows, etc. Drop the `dark` class on <html> for the lifetime of
+  // the deck, then restore it on unmount so the user's theme preference
+  // resumes on the rest of the site.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const html = document.documentElement;
+    const wasDark = html.classList.contains("dark");
+    if (wasDark) html.classList.remove("dark");
+    return () => {
+      if (wasDark) html.classList.add("dark");
+    };
+  }, []);
+
   const go = useCallback(
     (n: number) => {
       setIdx((((n % slides.length) + slides.length) % slides.length));
@@ -180,8 +197,8 @@ function SlideShell({
   return (
     <div className="relative w-full h-full min-h-screen flex items-center justify-center p-12 md:p-20">
       {idx > 0 && (
-        <div className="absolute top-8 left-12 text-[11px] tracking-[0.15em] uppercase text-white/30 font-semibold">
-          RightOffer
+        <div className="absolute top-8 left-12 w-[120px] opacity-70">
+          <DeckLogo variant="wordmark" />
         </div>
       )}
       <div className="absolute bottom-8 left-12 text-[11px] tracking-[0.15em] uppercase text-white/30 font-semibold">
@@ -192,6 +209,50 @@ function SlideShell({
       </div>
       <div className="w-full max-w-6xl">{children}</div>
     </div>
+  );
+}
+
+/**
+ * Deck-only logo renderer. Always uses the white-on-transparent dark
+ * variant (`/logo/v*-dark.svg`) because the deck background is always
+ * the deep-blue brand colour, regardless of the site's theme toggle.
+ * Crops the section caption baked into the source SVG via overflow:hidden
+ * + a percentage `top` shift on the inner <img> (same pattern as the
+ * site-wide RightOfferLogo, but without the theme-swap stacking).
+ */
+function DeckLogo({
+  variant,
+  className,
+}: {
+  variant: "full" | "wordmark";
+  className?: string;
+}) {
+  const src = variant === "full" ? "/logo/v1-dark.svg" : "/logo/v4-dark.svg";
+  const headingPct = variant === "full" ? 0.19 : 0.28;
+  const width = variant === "full" ? 752 : 752;
+  const height = variant === "full" ? 368 : 185;
+  const cropH = height * (1 - headingPct);
+  const overflowPct = headingPct / (1 - headingPct);
+  return (
+    <span
+      className={clsx("relative block overflow-hidden w-full", className)}
+      style={{ aspectRatio: `${width} / ${cropH}` }}
+    >
+      <img
+        src={src}
+        alt="RightOffer"
+        loading="eager"
+        decoding="async"
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          width: "100%",
+          height: "auto",
+          top: `-${(overflowPct * 100).toFixed(3)}%`,
+        }}
+      />
+    </span>
   );
 }
 
@@ -275,8 +336,8 @@ const SLIDES: Slide[] = [
   {
     render: () => (
       <div className="text-center">
-        <div className="font-extrabold text-7xl md:text-9xl tracking-tight leading-none mb-6">
-          RightOffer
+        <div className="mx-auto mb-8 w-full max-w-xl">
+          <DeckLogo variant="full" />
         </div>
         <div className="text-xl md:text-2xl text-white/70 font-normal max-w-2xl mx-auto">
           A simpler way to{" "}
