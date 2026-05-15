@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import {
   Activity,
@@ -10,47 +10,52 @@ import {
 } from "lucide-react";
 import { InsurerLogo } from "@/components/insurer-logos";
 import { formatINR } from "@/lib/format";
+import type { TierSummary, Bid } from "@/lib/types";
 
 /**
- * Live bid feed — replaces the static loader during the bidding wait.
- * Plays a scripted sequence of synthetic auction events while the real
- * /api/bid call runs in parallel. Customer watches the marketplace happen.
+ * Live bid feed — animates the bidding wait. The previous version played
+ * a scripted sequence with synthetic amounts (currentPremium × tier
+ * multipliers), which read believably during the wait but didn't match
+ * the real bids the customer saw on the next screen — confusing.
  *
- * Why scripted not real-time-from-API: the API generates 9 bids in a single
- * Claude call (~22s); we'd need streaming to do real-time. For the demo the
- * scripted feed is more dramatic and predictable. The redirect to results
- * waits for both the script to finish AND the API to return.
+ * Now: the script is only generated AFTER /api/bid returns, using the
+ * REAL bid data. While the API is in flight, we show a "reaching out to
+ * insurers" stage (insurer chips fade in, no amounts). When real bids
+ * arrive, we play a quick 7s auction reveal animation using the actual
+ * winning numbers, then trigger the redirect.
+ *
+ * Total perceived time: API wait (~20-25s) + reveal animation (~7s).
+ * The reveal numbers always match the "Pick your coverage level" page
+ * because they come from the same data source.
  */
 
 interface Props {
-  /** Customer's current premium — used to seed plausible synthetic bids */
+  /** Customer's current premium — used as a fallback label. */
   currentPremium: number;
-  /** Vehicle label e.g. "Maruti Wagon R" — used in headline */
+  /** Vehicle label e.g. "Maruti Wagon R" — shown in headline */
   vehicleLabel?: string;
-  /** When true, the real API has returned and we can transition */
+  /** Set to true once /api/bid returns. */
   apiReturned: boolean;
-  /** Called when the script finishes AND apiReturned is true */
+  /** Real tier+bid data from /api/bid response. Null until apiReturned. */
+  realTiers?: TierSummary[] | null;
+  /** Called when the reveal animation finishes AND apiReturned is true. */
   onComplete: () => void;
 }
 
 interface BidEvent {
   id: number;
   type: "join" | "tier-start" | "bid" | "tier-winner" | "summary";
-  insurer?: "bharatsure" | "vahana" | "suraksha";
+  insurer?: string;
+  insurerSlug?: "bharatsure" | "vahana" | "suraksha";
   tier?: 1 | 2 | 3;
   tierLabel?: string;
   amount?: number;
   delta?: number;
   isLowest?: boolean;
   message?: string;
-  timestamp: number; // seconds since start
+  /** Seconds relative to phase start (waiting phase or reveal phase) */
+  timestamp: number;
 }
-
-const INSURER_NAMES = {
-  bharatsure: "BharatSure General",
-  vahana: "Vahana Insurance",
-  suraksha: "Suraksha Motors",
-} as const;
 
 const TIER_LABELS = {
   1: "Basic Cover",
@@ -58,286 +63,196 @@ const TIER_LABELS = {
   3: "Super Cover",
 } as const;
 
-// Multipliers vs current premium for synthetic bids (kept close to what the
-// real LLM tends to produce, so visible numbers don't feel disconnected)
-const TIER_MULTIPLIERS: Record<1 | 2 | 3, [number, number]> = {
-  1: [0.92, 1.05], // Basic: slightly below to at-current
-  2: [1.1, 1.35], // Recommended: +10-35%
-  3: [1.4, 2.2], // Super: +40-120%
+const INSURER_SLUGS = ["bharatsure", "vahana", "suraksha"] as const;
+type InsurerSlug = (typeof INSURER_SLUGS)[number];
+
+const INSURER_DISPLAY: Record<InsurerSlug, string> = {
+  bharatsure: "BharatSure General",
+  vahana: "Vahana Insurance",
+  suraksha: "Suraksha Motors",
 };
 
-function generateScript(currentPremium: number): BidEvent[] {
-  const events: BidEvent[] = [];
+/**
+ * Pick an insurer slug for the given insurerName (matching by substring).
+ * Falls back to a stable hash so unrecognised names still get a logo.
+ */
+function slugForInsurer(name: string): InsurerSlug {
+  const lower = name.toLowerCase();
+  if (lower.includes("bharat")) return "bharatsure";
+  if (lower.includes("vahana")) return "vahana";
+  if (lower.includes("suraksha")) return "suraksha";
+  // Hash the name to one of the three for unknown insurers
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return INSURER_SLUGS[Math.abs(h) % INSURER_SLUGS.length];
+}
+
+// Phase 1: insurer-join "waiting" events — same regardless of bid data.
+function waitingPhaseEvents(): BidEvent[] {
+  const out: BidEvent[] = [];
   let id = 0;
+  out.push({ id: id++, type: "join", insurerSlug: "bharatsure", insurer: INSURER_DISPLAY.bharatsure, timestamp: 0.6 });
+  out.push({ id: id++, type: "join", insurerSlug: "vahana", insurer: INSURER_DISPLAY.vahana, timestamp: 1.3 });
+  out.push({ id: id++, type: "join", insurerSlug: "suraksha", insurer: INSURER_DISPLAY.suraksha, timestamp: 2.0 });
+  return out;
+}
 
-  // Deterministic-ish jitter from premium (so re-renders don't shuffle)
-  const seed = currentPremium % 1000;
-  const jitter = (i: number, range: number) =>
-    Math.round((((seed * (i + 1) * 13) % 100) / 100) * range) - range / 2;
+// Phase 2: reveal — generated from the real tier+bid data so amounts
+// shown here always match the "Pick your coverage level" screen.
+function revealPhaseEvents(
+  realTiers: TierSummary[],
+  startId: number,
+  /** seconds from the start of the reveal phase to begin */
+  startAt = 0.2,
+): BidEvent[] {
+  const out: BidEvent[] = [];
+  let id = startId;
+  let t = startAt;
 
-  // 0-3s: insurers join
-  events.push({ id: id++, type: "join", insurer: "bharatsure", timestamp: 0.8 });
-  events.push({ id: id++, type: "join", insurer: "vahana", timestamp: 1.6 });
-  events.push({ id: id++, type: "join", insurer: "suraksha", timestamp: 2.3 });
-
-  // Tier 1 auction (4-9s)
-  events.push({
-    id: id++,
-    type: "tier-start",
-    tier: 1,
-    tierLabel: TIER_LABELS[1],
-    timestamp: 3.6,
-  });
-  const tier1Mults = TIER_MULTIPLIERS[1];
-  const t1Bids: { insurer: "bharatsure" | "vahana" | "suraksha"; amount: number }[] = [
-    {
-      insurer: "bharatsure",
-      amount: roundTo(currentPremium * (1.02 + jitter(1, 0.04)), 10),
-    },
-    {
-      insurer: "vahana",
-      amount: roundTo(currentPremium * (0.94 + jitter(2, 0.04)), 10),
-    },
-    {
-      insurer: "suraksha",
-      amount: roundTo(currentPremium * (0.98 + jitter(3, 0.04)), 10),
-    },
-  ];
-  // Clamp into Tier 1 range
-  for (const b of t1Bids) {
-    b.amount = clamp(
-      b.amount,
-      currentPremium * tier1Mults[0],
-      currentPremium * tier1Mults[1]
-    );
-    b.amount = roundTo(b.amount, 10);
-  }
-  let t1Low = Infinity;
-  t1Bids.forEach((b, i) => {
-    const isLow = b.amount < t1Low;
-    if (isLow) t1Low = b.amount;
-    events.push({
+  const sortedTiers = [...realTiers].sort((a, b) => a.tier - b.tier);
+  for (const tier of sortedTiers) {
+    if (!tier.available || tier.bids.length === 0) continue;
+    out.push({
       id: id++,
-      type: "bid",
-      insurer: b.insurer,
-      tier: 1,
-      amount: b.amount,
-      isLowest: isLow,
-      timestamp: 4.5 + i * 1.2,
+      type: "tier-start",
+      tier: tier.tier,
+      tierLabel: TIER_LABELS[tier.tier],
+      timestamp: t,
     });
-  });
-  const t1Winner = t1Bids.reduce((a, b) => (a.amount < b.amount ? a : b));
-  events.push({
-    id: id++,
-    type: "tier-winner",
-    tier: 1,
-    tierLabel: TIER_LABELS[1],
-    insurer: t1Winner.insurer,
-    amount: t1Winner.amount,
-    timestamp: 8.5,
-  });
+    t += 0.5;
 
-  // Tier 2 auction (9.5-15s)
-  events.push({
-    id: id++,
-    type: "tier-start",
-    tier: 2,
-    tierLabel: TIER_LABELS[2],
-    timestamp: 9.8,
-  });
-  const t2Bids = [
-    {
-      insurer: "bharatsure" as const,
-      amount: roundTo(currentPremium * (1.21 + jitter(4, 0.04)), 10),
-    },
-    {
-      insurer: "vahana" as const,
-      amount: roundTo(currentPremium * (1.13 + jitter(5, 0.04)), 10),
-    },
-    {
-      insurer: "suraksha" as const,
-      amount: roundTo(currentPremium * (1.16 + jitter(6, 0.04)), 10),
-    },
-  ];
-  for (const b of t2Bids) {
-    b.amount = clamp(
-      b.amount,
-      currentPremium * TIER_MULTIPLIERS[2][0],
-      currentPremium * TIER_MULTIPLIERS[2][1]
-    );
-    b.amount = roundTo(b.amount, 10);
-  }
-  let t2Low = Infinity;
-  t2Bids.forEach((b, i) => {
-    const isLow = b.amount < t2Low;
-    if (isLow) t2Low = b.amount;
-    events.push({
+    // Show all bids in ascending price order so the winning lowest is last.
+    const ordered = [...tier.bids].sort((a, b) => a.grandTotal - b.grandTotal);
+    let runningLow = Infinity;
+    // Reveal in reverse (highest first) so the "new low" lands on the winner.
+    const revealOrder = [...ordered].reverse();
+    revealOrder.forEach((bid: Bid, i) => {
+      const isLow = bid.grandTotal < runningLow;
+      if (isLow) runningLow = bid.grandTotal;
+      out.push({
+        id: id++,
+        type: "bid",
+        insurer: bid.insurerName,
+        insurerSlug: slugForInsurer(bid.insurerName),
+        tier: tier.tier,
+        amount: bid.grandTotal,
+        isLowest: isLow,
+        timestamp: t + i * 0.55,
+      });
+    });
+    t += revealOrder.length * 0.55 + 0.2;
+
+    const winner = ordered[0];
+    out.push({
       id: id++,
-      type: "bid",
-      insurer: b.insurer,
-      tier: 2,
-      amount: b.amount,
-      isLowest: isLow,
-      timestamp: 10.7 + i * 1.2,
+      type: "tier-winner",
+      tier: tier.tier,
+      tierLabel: TIER_LABELS[tier.tier],
+      insurer: winner.insurerName,
+      insurerSlug: slugForInsurer(winner.insurerName),
+      amount: winner.grandTotal,
+      timestamp: t,
     });
-  });
-  const t2Winner = t2Bids.reduce((a, b) => (a.amount < b.amount ? a : b));
-  events.push({
-    id: id++,
-    type: "tier-winner",
-    tier: 2,
-    tierLabel: TIER_LABELS[2],
-    insurer: t2Winner.insurer,
-    amount: t2Winner.amount,
-    timestamp: 14.6,
-  });
-
-  // Tier 3 auction (16-21s)
-  events.push({
-    id: id++,
-    type: "tier-start",
-    tier: 3,
-    tierLabel: TIER_LABELS[3],
-    timestamp: 15.9,
-  });
-  const t3Bids = [
-    {
-      insurer: "bharatsure" as const,
-      amount: roundTo(currentPremium * (1.78 + jitter(7, 0.06)), 10),
-    },
-    {
-      insurer: "vahana" as const,
-      amount: roundTo(currentPremium * (1.65 + jitter(8, 0.06)), 10),
-    },
-    {
-      insurer: "suraksha" as const,
-      amount: roundTo(currentPremium * (1.7 + jitter(9, 0.06)), 10),
-    },
-  ];
-  for (const b of t3Bids) {
-    b.amount = clamp(
-      b.amount,
-      currentPremium * TIER_MULTIPLIERS[3][0],
-      currentPremium * TIER_MULTIPLIERS[3][1]
-    );
-    b.amount = roundTo(b.amount, 10);
+    t += 0.9;
   }
-  let t3Low = Infinity;
-  t3Bids.forEach((b, i) => {
-    const isLow = b.amount < t3Low;
-    if (isLow) t3Low = b.amount;
-    events.push({
-      id: id++,
-      type: "bid",
-      insurer: b.insurer,
-      tier: 3,
-      amount: b.amount,
-      isLowest: isLow,
-      timestamp: 16.8 + i * 1.2,
-    });
-  });
-  const t3Winner = t3Bids.reduce((a, b) => (a.amount < b.amount ? a : b));
-  events.push({
-    id: id++,
-    type: "tier-winner",
-    tier: 3,
-    tierLabel: TIER_LABELS[3],
-    insurer: t3Winner.insurer,
-    amount: t3Winner.amount,
-    timestamp: 20.6,
-  });
 
-  // Final summary
-  events.push({
+  out.push({
     id: id++,
     type: "summary",
     message: "Auction complete · finalising your offers",
-    timestamp: 21.4,
+    timestamp: t + 0.2,
   });
-
-  return events;
+  return out;
 }
-
-function clamp(n: number, lo: number, hi: number): number {
-  return Math.max(lo, Math.min(hi, n));
-}
-function roundTo(n: number, to: number): number {
-  return Math.round(n / to) * to;
-}
-
-const TOTAL_DURATION_SEC = 22.5;
 
 export function LiveBidFeed({
-  currentPremium,
   vehicleLabel,
   apiReturned,
+  realTiers,
   onComplete,
 }: Props) {
   const [revealedIds, setRevealedIds] = useState<Set<number>>(new Set());
-  const [elapsed, setElapsed] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const completedRef = useRef(false);
 
-  const script = useState(() => generateScript(currentPremium))[0];
+  // Phase 1 events (waiting) — always the same; mount-time.
+  const waitingEvents = useMemo(() => waitingPhaseEvents(), []);
 
-  // Schedule each event reveal
+  // Phase 2 events (reveal) — generated once realTiers arrives.
+  const [revealEvents, setRevealEvents] = useState<BidEvent[] | null>(null);
+  const revealStartRef = useRef<number | null>(null);
+
+  // Schedule the waiting-phase events from mount.
   useEffect(() => {
-    const timeouts = script.map((event) =>
+    const timeouts = waitingEvents.map((e) =>
       setTimeout(
-        () => {
-          setRevealedIds((prev) => new Set(prev).add(event.id));
-        },
-        event.timestamp * 1000
-      )
+        () => setRevealedIds((prev) => new Set(prev).add(e.id)),
+        e.timestamp * 1000,
+      ),
     );
     return () => timeouts.forEach(clearTimeout);
-  }, [script]);
+  }, [waitingEvents]);
 
-  // Elapsed counter
+  // When apiReturned + realTiers both ready, build reveal events.
   useEffect(() => {
-    const start = Date.now();
-    const id = setInterval(() => {
-      const e = (Date.now() - start) / 1000;
-      setElapsed(Math.min(e, TOTAL_DURATION_SEC));
-      if (e >= TOTAL_DURATION_SEC) clearInterval(id);
-    }, 120);
-    return () => clearInterval(id);
-  }, []);
+    if (!apiReturned || !realTiers || revealEvents) return;
+    const startId = waitingEvents.length + 100;
+    const events = revealPhaseEvents(realTiers, startId);
+    setRevealEvents(events);
+    revealStartRef.current = performance.now();
+  }, [apiReturned, realTiers, revealEvents, waitingEvents.length]);
 
-  // Auto-scroll to latest event
+  // Schedule reveal-phase events relative to reveal-phase start.
+  useEffect(() => {
+    if (!revealEvents) return;
+    const timeouts = revealEvents.map((e) =>
+      setTimeout(
+        () => setRevealedIds((prev) => new Set(prev).add(e.id)),
+        e.timestamp * 1000,
+      ),
+    );
+    return () => timeouts.forEach(clearTimeout);
+  }, [revealEvents]);
+
+  // Auto-scroll to latest event.
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [revealedIds]);
 
-  // Trigger onComplete when both script finished and API returned
+  // Fire onComplete once the reveal phase finishes.
   useEffect(() => {
-    if (completedRef.current) return;
-    const scriptDone = elapsed >= TOTAL_DURATION_SEC - 0.3;
-    if (scriptDone && apiReturned) {
+    if (!revealEvents || completedRef.current) return;
+    const lastEvent = revealEvents[revealEvents.length - 1];
+    if (!lastEvent) return;
+    const totalRevealMs = (lastEvent.timestamp + 0.7) * 1000;
+    const handle = setTimeout(() => {
+      if (completedRef.current) return;
       completedRef.current = true;
-      // Brief pause for the "Auction complete" message to settle
-      setTimeout(() => onComplete(), 700);
-    }
-  }, [elapsed, apiReturned, onComplete]);
+      onComplete();
+    }, totalRevealMs);
+    return () => clearTimeout(handle);
+  }, [revealEvents, onComplete]);
 
-  // Track running-lowest across tiers for the summary line
-  const runningLowest = (() => {
-    const visibleBids = script
-      .filter((e) => revealedIds.has(e.id) && e.type === "bid" && e.amount)
-      .map((e) => ({ insurer: e.insurer!, amount: e.amount!, tier: e.tier! }));
-    if (visibleBids.length === 0) return null;
-    return visibleBids.reduce((a, b) => (a.amount < b.amount ? a : b));
-  })();
+  // Running-lowest summary across revealed real bid events only.
+  const runningLowest = useMemo(() => {
+    if (!revealEvents) return null;
+    const visible = revealEvents.filter(
+      (e) => revealedIds.has(e.id) && e.type === "bid" && e.amount,
+    );
+    if (visible.length === 0) return null;
+    return visible.reduce((a, b) => ((a.amount ?? Infinity) < (b.amount ?? Infinity) ? a : b));
+  }, [revealEvents, revealedIds]);
 
-  const progressPct = Math.min(100, (elapsed / TOTAL_DURATION_SEC) * 100);
+  const allEvents = useMemo(
+    () => [...waitingEvents, ...(revealEvents ?? [])],
+    [waitingEvents, revealEvents],
+  );
 
   return (
     <div className="w-full max-w-2xl mx-auto py-2">
-      {/* Header card */}
       <div className="rounded-2xl border border-brand-light-gray bg-white shadow-soft overflow-hidden">
-        {/* Title strip */}
         <div className="bg-gradient-to-r from-brand-deepblue to-brand-electricblue text-white px-5 py-3.5">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
@@ -351,16 +266,9 @@ export function LiveBidFeed({
                 </span>
               )}
             </div>
-            <div className="text-xs font-mono tabular-nums opacity-90">
-              {formatTime(elapsed)} / {formatTime(TOTAL_DURATION_SEC)}
-            </div>
-          </div>
-          {/* Progress bar */}
-          <div className="mt-2.5 h-1 bg-white/20 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-white rounded-full transition-all duration-100"
-              style={{ width: `${progressPct}%` }}
-            />
+            <span className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+              {revealEvents ? "Revealing bids" : "Reaching insurers…"}
+            </span>
           </div>
         </div>
 
@@ -369,21 +277,19 @@ export function LiveBidFeed({
           ref={scrollRef}
           className="max-h-[380px] overflow-y-auto px-3 py-3 space-y-1.5"
         >
-          {script
+          {allEvents
             .filter((e) => revealedIds.has(e.id))
             .map((event) => (
               <EventRow key={event.id} event={event} />
             ))}
-          {/* Pulse for "next event coming" if not done yet */}
-          {revealedIds.size < script.length && (
-            <div className="flex items-center gap-2 text-xs text-brand-slate animate-pulse-soft px-2">
+          {!revealEvents && (
+            <div className="flex items-center gap-2 text-xs text-brand-slate animate-pulse-soft px-2 pt-2">
               <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
-              Receiving next bid...
+              Insurers reviewing your profile…
             </div>
           )}
         </div>
 
-        {/* Running lowest summary */}
         {runningLowest && (
           <div className="border-t border-brand-light-gray bg-brand-offwhite/60 px-5 py-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -393,12 +299,12 @@ export function LiveBidFeed({
               </div>
               <div className="flex items-center gap-2 text-sm font-bold text-brand-charcoal tabular-nums">
                 <InsurerLogo
-                  insurerName={INSURER_NAMES[runningLowest.insurer]}
+                  insurerName={runningLowest.insurer ?? ""}
                   size={16}
                 />
-                <span>{INSURER_NAMES[runningLowest.insurer]}</span>
+                <span>{runningLowest.insurer}</span>
                 <span className="text-brand-orange">
-                  {formatINR(runningLowest.amount)}
+                  {formatINR(runningLowest.amount!)}
                 </span>
                 <span className="text-[10px] text-brand-slate font-normal">
                   · Tier {runningLowest.tier}
@@ -422,18 +328,14 @@ export function LiveBidFeed({
 // ============================================================================
 
 function EventRow({ event }: { event: BidEvent }) {
-  const ts = formatTime(event.timestamp);
-
   if (event.type === "join") {
-    const name = INSURER_NAMES[event.insurer!];
     return (
       <div className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg text-xs">
-        <span className="font-mono tabular-nums text-brand-slate/70 shrink-0 w-9">
-          {ts}
-        </span>
-        <InsurerLogo insurerName={name} size={18} />
+        <InsurerLogo insurerName={event.insurer ?? ""} size={18} />
         <span className="text-brand-slate">
-          <span className="font-semibold text-brand-charcoal">{name}</span>{" "}
+          <span className="font-semibold text-brand-charcoal">
+            {event.insurer}
+          </span>{" "}
           joined the auction
         </span>
       </div>
@@ -453,26 +355,22 @@ function EventRow({ event }: { event: BidEvent }) {
   }
 
   if (event.type === "bid") {
-    const name = INSURER_NAMES[event.insurer!];
     return (
       <div
         className={clsx(
           "flex items-center gap-2.5 py-2 px-2 rounded-lg text-xs animate-in-bid",
-          event.isLowest && "bg-emerald-50/60"
+          event.isLowest && "bg-emerald-50/60",
         )}
       >
-        <span className="font-mono tabular-nums text-brand-slate/70 shrink-0 w-9">
-          {ts}
-        </span>
-        <InsurerLogo insurerName={name} size={18} />
+        <InsurerLogo insurerName={event.insurer ?? ""} size={18} />
         <span className="flex-1 text-brand-charcoal">
-          <span className="font-semibold">{name}</span>{" "}
+          <span className="font-semibold">{event.insurer}</span>{" "}
           <span className="text-brand-slate">bids</span>
         </span>
         <span
           className={clsx(
             "font-bold tabular-nums text-sm shrink-0",
-            event.isLowest ? "text-brand-success" : "text-brand-charcoal"
+            event.isLowest ? "text-brand-success" : "text-brand-charcoal",
           )}
         >
           {formatINR(event.amount!)}
@@ -488,13 +386,12 @@ function EventRow({ event }: { event: BidEvent }) {
   }
 
   if (event.type === "tier-winner") {
-    const name = INSURER_NAMES[event.insurer!];
     return (
       <div className="flex items-center gap-2.5 py-2.5 px-3 rounded-lg bg-gradient-to-r from-brand-orange/10 to-transparent border-l-2 border-brand-orange text-xs">
         <Trophy className="w-4 h-4 text-brand-orange shrink-0" />
         <span className="flex-1 text-brand-charcoal">
           <span className="font-bold">Tier {event.tier} winner:</span>{" "}
-          <span className="font-semibold">{name}</span>
+          <span className="font-semibold">{event.insurer}</span>
         </span>
         <span className="font-bold tabular-nums text-sm text-brand-orange shrink-0">
           {formatINR(event.amount!)}
@@ -507,7 +404,7 @@ function EventRow({ event }: { event: BidEvent }) {
     return (
       <div className="flex items-center gap-2.5 py-3 px-2 text-xs animate-pulse-soft">
         <Sparkles className="w-4 h-4 text-brand-deepblue" />
-        <span className="font-semibold text-brand-deepblue">
+        <span className="font-semibold text-brand-charcoal">
           {event.message}
         </span>
       </div>
@@ -515,10 +412,4 @@ function EventRow({ event }: { event: BidEvent }) {
   }
 
   return null;
-}
-
-function formatTime(s: number): string {
-  const mm = Math.floor(s / 60);
-  const ss = Math.floor(s % 60);
-  return `${mm.toString().padStart(2, "0")}:${ss.toString().padStart(2, "0")}`;
 }

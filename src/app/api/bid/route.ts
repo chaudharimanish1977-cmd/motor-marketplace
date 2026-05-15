@@ -69,6 +69,55 @@ function fallbackAddOnRecommendations(
   });
 }
 
+/**
+ * Bump a single bid's grandTotal by `targetGrandTotal - bid.grandTotal`,
+ * applied as a pre-GST uplift to addOnPremium. CGST/SGST are recomputed
+ * proportionally so the breakdown still reconciles to grandTotal.
+ */
+function upliftBid(bid: Bid, targetGrandTotal: number): void {
+  if (bid.grandTotal >= targetGrandTotal) return;
+  const upliftPostGst = targetGrandTotal - bid.grandTotal;
+  // grandTotal = totalPackage + cgst + sgst, GST is 18% on totalPackage,
+  // so an x increment to grandTotal corresponds to x / 1.18 pre-GST.
+  const upliftPreGst = Math.round(upliftPostGst / 1.18);
+  bid.addOnPremium += upliftPreGst;
+  bid.totalPackage += upliftPreGst;
+  // Split the GST half-and-half (CGST + SGST) per the breakdown card.
+  const gstDelta = Math.round((upliftPreGst * 0.18) / 2);
+  bid.cgst += gstDelta;
+  bid.sgst += gstDelta;
+  bid.grandTotal = Math.round((bid.totalPackage + bid.cgst + bid.sgst) / 10) * 10;
+}
+
+/**
+ * Mutate the tier bids in-place so each tier's WINNING bid is at least 5%
+ * above the previous tier's winning bid. Applies a uniform uplift to ALL
+ * bids in the offending tier so the within-tier ranking is preserved.
+ */
+function enforceMonotonicTiers(tiers: { tier: BidTier; bids: Bid[] }[]): void {
+  // Sort by tier so we iterate in order 1 -> 2 -> 3.
+  const byTier = new Map(tiers.map((t) => [t.tier, t]));
+  for (const tier of [2, 3] as BidTier[]) {
+    const prev = byTier.get((tier - 1) as BidTier);
+    const cur = byTier.get(tier);
+    if (!prev || !cur) continue;
+    const prevWinner = [...prev.bids].sort((a, b) => a.grandTotal - b.grandTotal)[0];
+    const curWinner = [...cur.bids].sort((a, b) => a.grandTotal - b.grandTotal)[0];
+    if (!prevWinner || !curWinner) continue;
+    const minRequired = Math.ceil(prevWinner.grandTotal * 1.05);
+    if (curWinner.grandTotal >= minRequired) continue;
+    const upliftPostGst = minRequired - curWinner.grandTotal;
+    console.warn(
+      `[bid] Tier ${tier} winner (₹${curWinner.grandTotal}) was at/below ` +
+        `Tier ${tier - 1} winner (₹${prevWinner.grandTotal}); applying ` +
+        `₹${upliftPostGst} uplift to all ${cur.bids.length} bids in Tier ${tier}.`,
+    );
+    for (const b of cur.bids) {
+      upliftBid(b, b.grandTotal + upliftPostGst);
+    }
+  }
+}
+
 const CANONICAL_ADD_ONS = [
   "Zero Depreciation",
   "Engine Protector",
@@ -247,6 +296,13 @@ export async function POST(request: NextRequest) {
     console.log(
       `[bid] Tiered bids generated in ${Date.now() - startTime}ms`
     );
+
+    // Enforce strictly-increasing tier prices. The LLM occasionally produces
+    // degenerate output where Tier 2's winner has the same (or lower) grand
+    // total as Tier 1's, which makes the "Recommended" tier look broken
+    // against "Basic" on the next screen. Apply a deterministic uplift so
+    // each tier's winning total is at least 5% above the previous tier's.
+    enforceMonotonicTiers(tiers);
 
     // Persist all bids
     for (const tier of tiers) {

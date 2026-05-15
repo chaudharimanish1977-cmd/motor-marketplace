@@ -22,6 +22,7 @@ import type {
   ParsedPolicy,
   PolicyReport,
   AddOnRecommendation,
+  TierSummary,
 } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 
@@ -100,6 +101,7 @@ export function BundleBuilder({
   const [submitting, setSubmitting] = useState(false);
   const [apiReturned, setApiReturned] = useState(false);
   const [pendingRedirectRfq, setPendingRedirectRfq] = useState<string | null>(null);
+  const [realTiers, setRealTiers] = useState<TierSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Build a lookup of recommendations by canonical add-on name.
@@ -204,8 +206,12 @@ export function BundleBuilder({
       }
 
       const data = await res.json();
-      // API done — store rfq id; redirect happens when the live-bid script also finishes
+      // API done — store rfq id + real tier data; the live-bid feed uses
+      // the real tier amounts so the auction-reveal numbers match the
+      // "Pick your coverage level" page exactly. Redirect happens when
+      // the reveal animation finishes.
       setPendingRedirectRfq(data.rfqId);
+      setRealTiers(data.tiers ?? null);
       setApiReturned(true);
     } catch (err) {
       setSubmitting(false);
@@ -225,6 +231,7 @@ export function BundleBuilder({
         currentPremium={parsedPolicy.premium.grandTotal}
         vehicleLabel={`${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`}
         apiReturned={apiReturned}
+        realTiers={realTiers}
         onComplete={handleAuctionComplete}
       />
     );
