@@ -22,6 +22,13 @@ const REPLY_TO = "hello@rightoffer.in";
 // (RightOffer) and a human (Aryan) in the same line.
 const OTP_FROM = "RightOffer Buddy Aryan <hello@rightoffer.in>";
 
+// Renewal-reminder mail is sent as if from a human at RightOffer (Aryan).
+// Gmail's Promotions classifier weighs sender-name shape heavily — bare
+// brand names land Promotions, person-shaped names land Primary. Different
+// suffix from OTP_FROM so the two streams don't share a classifier
+// fingerprint inside Gmail's per-sender model.
+const REMINDER_FROM = "Aryan from RightOffer <hello@rightoffer.in>";
+
 let cached: Resend | null = null;
 function client(): Resend {
   if (cached) return cached;
@@ -286,17 +293,27 @@ interface ReminderArgs {
 
 /**
  * Renewal nudge email. Triggered by the daily cron when a subscription
- * hits one of its `daysBefore` checkpoints (e.g. 60 / 30 / 7 days out).
+ * hits one of its `daysBefore` checkpoints (e.g. 60 / 30 / 7 days out),
+ * or fired manually as a preview via /api/me/reminders/[id]/test.
+ *
+ * Design intent: read as a personal note from Aryan (a human at
+ * RightOffer), not a marketing blast. The previous gradient-header /
+ * orange-button / branded-footer version landed in Gmail's Promotions
+ * tab — confirmed live. This version mirrors the OTP email pattern
+ * (which lands Primary): system fonts, no gradient, no card chrome,
+ * a plain underlined link instead of a colored button, and a "PS"
+ * line for the unsubscribe link instead of a footer block.
  *
  * Compliance:
- *   - `List-Unsubscribe` + `List-Unsubscribe-Post` headers so Gmail
- *     shows a one-click "Unsubscribe" link next to the sender name
- *     (RFC 8058 / Feb 2024 Gmail sender requirements). Without these,
- *     bulk reminder mail trends to the spam folder.
- *   - Visible footer unsubscribe link as the manual fallback.
+ *   - `List-Unsubscribe` + `List-Unsubscribe-Post` headers — RFC 8058
+ *     + Feb 2024 Gmail sender requirements. Required for bulk sender
+ *     reputation regardless of body design. Gmail still respects them
+ *     for one-click unsubscribe in the UI.
+ *   - Visible unsubscribe link in the body (the PS line) as the
+ *     human fallback.
  *
- * Copy intent: warm, not pushy. The promise is "we'll review what's
- * available this year for you" — not "buy now or lose your NCB."
+ * Copy intent: warm, factual, non-pushy. "Heads up about your renewal,
+ * want a free review?" — not "Buy now! Save big! Limited time!"
  */
 export async function sendRenewalReminderEmail({
   to,
@@ -308,7 +325,10 @@ export async function sendRenewalReminderEmail({
   unsubscribeUrl,
 }: ReminderArgs): Promise<void> {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
-  const subject = `${vehicleLabel} renewal in ${daysUntilExpiry} ${dayWord} — quick review?`;
+  // Factual subject — no em-dash sales hook, no "quick review?" tail.
+  // Gmail's classifier reads punctuation patterns; "X in N days" reads
+  // informational, "X — quick review?" reads marketing.
+  const subject = `${vehicleLabel} renewal in ${daysUntilExpiry} ${dayWord}`;
 
   const html = renderReminderHtml({
     firstName,
@@ -328,7 +348,7 @@ export async function sendRenewalReminderEmail({
   });
 
   const { error } = await client().emails.send({
-    from: FROM,
+    from: REMINDER_FROM,
     replyTo: REPLY_TO,
     to,
     subject,
@@ -357,43 +377,19 @@ function renderReminderHtml({
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
 
   return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#F8F9FA;font-family:Inter,system-ui,sans-serif;color:#2D3436;">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8F9FA;padding:24px 12px;">
-    <tr><td align="center">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
-        <tr><td style="background:linear-gradient(135deg,#0A2463,#247BA0);padding:24px;color:#fff;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.9;">RightOffer · Renewal reminder</div>
-          <div style="font-size:22px;font-weight:700;margin-top:6px;line-height:1.2;">${escape(vehicleLabel)} renewal in ${daysUntilExpiry} ${dayWord}</div>
-          <div style="font-size:14px;opacity:0.88;margin-top:4px;">Expires ${escape(expiryDate)}</div>
-        </td></tr>
-        <tr><td style="padding:24px;">
-          <p style="margin:0 0 12px;font-size:15px;line-height:1.55;">Hey ${escape(firstName)},</p>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.55;">
-            Your ${escape(vehicleLabel)} insurance is up for renewal on <strong>${escape(expiryDate)}</strong>. Want a quick, independent review of this year's best options?
-          </p>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.55;">
-            Upload your renewal quote (or last year's policy) and we'll show you which add-ons matter for your car, and where the better offers are — in under 2 minutes. No sales calls, no spam.
-          </p>
-          <div style="text-align:center;margin:24px 0;">
-            <a href="${escape(reviewUrl)}" style="display:inline-block;background:#FF6B35;color:#fff;text-decoration:none;font-weight:700;padding:14px 28px;border-radius:14px;font-size:15px;">Get my free review →</a>
-          </div>
-          <p style="margin:0;font-size:13px;color:#636e72;line-height:1.55;">
-            Have a question? Just reply to this email — a real person reads every one.
-          </p>
-        </td></tr>
-        <tr><td style="padding:18px 24px;background:#F8F9FA;border-top:1px solid #E9ECEF;text-align:center;">
-          <div style="font-size:13px;font-weight:700;color:#0A2463;margin-bottom:6px;">
-            Most people sell insurance. <span style="color:#FF6B35;">We help you decide.</span>
-          </div>
-          <div style="font-size:10px;color:#636e72;line-height:1.6;">
-            RightOffer · Independent motor insurance reviews · Made for India<br/>
-            You're getting this because you asked us to remind you before your ${escape(vehicleLabel)} renewal.<br/>
-            <a href="${escape(unsubscribeUrl)}" style="color:#636e72;text-decoration:underline;">Unsubscribe from these reminders</a>
-          </div>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
+<html><body style="margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#202124;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    ${escape(vehicleLabel)} insurance renewal in ${daysUntilExpiry} ${dayWord}. Want a quick free review?
+  </div>
+  <div style="max-width:560px;">
+    <p style="margin:0 0 16px;">Hi ${escape(firstName)},</p>
+    <p style="margin:0 0 16px;">Quick heads-up &mdash; your ${escape(vehicleLabel)} insurance is up for renewal on <strong>${escape(expiryDate)}</strong>, which is ${daysUntilExpiry} ${dayWord} away.</p>
+    <p style="margin:0 0 16px;">Want me to put together a free, independent review of this year&rsquo;s options? Just drop your renewal quote (or last year&rsquo;s policy) here:</p>
+    <p style="margin:0 0 16px;"><a href="${escape(reviewUrl)}" style="color:#0A2463;">${escape(reviewUrl)}</a></p>
+    <p style="margin:0 0 16px;">Takes under 2 minutes. No sales calls.</p>
+    <p style="margin:24px 0 0;">&mdash; Aryan</p>
+    <p style="margin:32px 0 0;color:#9aa0a6;font-size:13px;line-height:1.55;">PS &mdash; If you&rsquo;d rather not get these, <a href="${escape(unsubscribeUrl)}" style="color:#9aa0a6;">click here</a> and I&rsquo;ll stop.</p>
+  </div>
 </body></html>`;
 }
 
@@ -407,21 +403,18 @@ function renderReminderText({
 }: Omit<ReminderArgs, "to">): string {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
   return [
-    `Hey ${firstName},`,
+    `Hi ${firstName},`,
     ``,
-    `Your ${vehicleLabel} insurance is up for renewal on ${expiryDate} — ${daysUntilExpiry} ${dayWord} away.`,
+    `Quick heads-up — your ${vehicleLabel} insurance is up for renewal on ${expiryDate}, which is ${daysUntilExpiry} ${dayWord} away.`,
     ``,
-    `Want a quick, independent review of this year's best options? Upload your renewal quote (or last year's policy) and we'll show you which add-ons matter for your car, and where the better offers are — in under 2 minutes. No sales calls, no spam.`,
+    `Want me to put together a free, independent review of this year's options? Just drop your renewal quote (or last year's policy) here:`,
     ``,
-    `Get your free review: ${reviewUrl}`,
+    reviewUrl,
     ``,
-    `Have a question? Just reply to this email — a real person reads every one.`,
+    `Takes under 2 minutes. No sales calls.`,
     ``,
-    `— Team RightOffer`,
-    `Most people sell insurance. We help you decide.`,
+    `— Aryan`,
     ``,
-    `---`,
-    `You're getting this because you asked us to remind you before your ${vehicleLabel} renewal.`,
-    `Unsubscribe: ${unsubscribeUrl}`,
+    `PS — If you'd rather not get these, click here and I'll stop: ${unsubscribeUrl}`,
   ].join("\n");
 }
