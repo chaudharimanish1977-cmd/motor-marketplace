@@ -117,10 +117,14 @@ export function ReportDownloadGate({
 
       const params = new URLSearchParams({ e: email, m: mobile });
       if (reportId) params.set("p", reportId);
+      // IMPORTANT: keep `submitting=true` through the navigation so the
+      // button stays in its "Verifying…" loading state. Earlier this used
+      // `finally { setSubmitting(false) }` which fired BEFORE the route
+      // change rendered, briefly flashing the orange "Verify & Send"
+      // button back at the user and reading like a failure / no-op.
       router.push(`/thank-you?${params.toString()}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
       setSubmitting(false);
     }
   };

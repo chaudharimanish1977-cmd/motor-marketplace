@@ -18,7 +18,9 @@ const REPLY_TO = "hello@rightoffer.in";
 // OTP emails use a personal-sounding From name so Gmail is more likely to
 // classify them as Primary rather than the Updates tab (where heavily-
 // branded transactional emails usually land). The mailbox stays the same.
-const OTP_FROM = "Aryan at RightOffer <hello@rightoffer.in>";
+// Format is "Brand Buddy First-Name" so the customer sees both the brand
+// (RightOffer) and a human (Aryan) in the same line.
+const OTP_FROM = "RightOffer Buddy Aryan <hello@rightoffer.in>";
 
 let cached: Resend | null = null;
 function client(): Resend {
