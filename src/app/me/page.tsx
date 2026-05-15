@@ -18,6 +18,7 @@ import type {
   RenewalSubscription,
 } from "@/lib/types";
 import { formatDateShort, formatINR } from "@/lib/format";
+import { policyGroupKey } from "@/lib/policy-group";
 import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 import { ReminderToggle } from "./reminder-toggle";
@@ -35,6 +36,12 @@ interface PortalPolicy {
   report: PolicyReport | null;
   subscription: RenewalSubscription | null;
   daysUntilExpiry: number;
+  /**
+   * How many earlier parses are silently grouped under this card.
+   * Currently hidden from the UI — the count is reserved for a
+   * future "show history" expander.
+   */
+  earlierParsesCount: number;
 }
 
 /**
@@ -143,6 +150,8 @@ async function loadPoliciesFor(email: string): Promise<PortalPolicy[]> {
     readTable<RenewalSubscription>(Tables.RENEWAL_SUBSCRIPTIONS),
   ]);
 
+  // All subscriptions owned by this customer, indexed by their target
+  // policyId so we can match siblings within a group below.
   const subByPolicy = new Map<string, RenewalSubscription>();
   for (const s of subs) {
     if ((s.customerEmail ?? "").toLowerCase() === target) {
@@ -155,34 +164,68 @@ async function loadPoliciesFor(email: string): Promise<PortalPolicy[]> {
     reportByPolicy.set(r.parsedPolicyId, r);
   }
 
-  const now = Date.now();
-  const mine: PortalPolicy[] = policies
-    .filter((p) => {
-      const ownerMatch = (p.owner?.email ?? "").toLowerCase() === target;
-      const subMatch = subByPolicy.has(p.id);
-      return ownerMatch || subMatch;
-    })
-    .map((parsed) => {
-      const expiryMs = new Date(parsed.odPeriodEnd).getTime();
-      const daysUntilExpiry = Math.ceil(
-        (expiryMs - now) / (24 * 60 * 60 * 1000)
-      );
-      return {
-        parsed,
-        report: reportByPolicy.get(parsed.id) ?? null,
-        subscription: subByPolicy.get(parsed.id) ?? null,
-        daysUntilExpiry,
-      };
-    })
-    // Soonest-to-expire first, expired pushed to the bottom (negative days).
-    .sort((a, b) => {
-      const aExpired = a.daysUntilExpiry < 0;
-      const bExpired = b.daysUntilExpiry < 0;
-      if (aExpired !== bExpired) return aExpired ? 1 : -1;
-      return a.daysUntilExpiry - b.daysUntilExpiry;
-    });
+  // 1. Pre-filter to "policies this customer can see" — either the
+  //    owner email matches, or they have a subscription on it.
+  const mine = policies.filter((p) => {
+    const ownerMatch = (p.owner?.email ?? "").toLowerCase() === target;
+    const subMatch = subByPolicy.has(p.id);
+    return ownerMatch || subMatch;
+  });
 
-  return mine;
+  // 2. Bucket by policyGroupKey so duplicate parses of the same
+  //    physical car-period collapse into one card. Picking the
+  //    "canonical" parse for the card: the most recently uploaded.
+  //    Picking the subscription to surface on the card: prefer an
+  //    active one in the group (so the toggle shows "Pause" rather
+  //    than "Resume" when even one sibling is still active),
+  //    otherwise fall back to any. Toggling that subscription
+  //    cascades to all siblings server-side — see /api/me/reminders.
+  const groups = new Map<string, ParsedPolicy[]>();
+  for (const p of mine) {
+    const key = policyGroupKey(p);
+    const arr = groups.get(key) ?? [];
+    arr.push(p);
+    groups.set(key, arr);
+  }
+
+  const now = Date.now();
+  const cards: PortalPolicy[] = Array.from(groups.values()).map((group) => {
+    const sorted = [...group].sort(
+      (a, b) =>
+        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+    );
+    const canonical = sorted[0];
+
+    // Pick the subscription to expose on the card.
+    const groupSubs = group
+      .map((p) => subByPolicy.get(p.id))
+      .filter((s): s is RenewalSubscription => !!s);
+    const exposedSub =
+      groupSubs.find((s) => s.status === "active") ?? groupSubs[0] ?? null;
+
+    const expiryMs = new Date(canonical.odPeriodEnd).getTime();
+    const daysUntilExpiry = Math.ceil(
+      (expiryMs - now) / (24 * 60 * 60 * 1000)
+    );
+
+    return {
+      parsed: canonical,
+      report: reportByPolicy.get(canonical.id) ?? null,
+      subscription: exposedSub,
+      daysUntilExpiry,
+      earlierParsesCount: group.length - 1,
+    };
+  });
+
+  // 3. Soonest-to-expire first, expired pushed to the bottom.
+  cards.sort((a, b) => {
+    const aExpired = a.daysUntilExpiry < 0;
+    const bExpired = b.daysUntilExpiry < 0;
+    if (aExpired !== bExpired) return aExpired ? 1 : -1;
+    return a.daysUntilExpiry - b.daysUntilExpiry;
+  });
+
+  return cards;
 }
 
 // ----------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import { readTable, updateById, Tables } from "@/lib/db";
 import type { ParsedPolicy, RenewalSubscription } from "@/lib/types";
 import { sendRenewalReminderEmail } from "@/lib/email-sender";
 import { buildUnsubscribeUrl } from "@/lib/email-token";
+import { policyGroupKey } from "@/lib/policy-group";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -59,6 +60,16 @@ export async function GET(request: NextRequest) {
     const sentRecords: SentRecord[] = [];
     const skippedRecords: SkippedRecord[] = [];
 
+    // Within a single cron run, dedupe by (customer email, policy
+    // group, checkpoint). A customer who has the same car-period
+    // duplicated across many subscription rows (e.g. uploaded the
+    // same PDF repeatedly while testing) would otherwise receive
+    // one email per orphan — embarrassing and a likely spam-flag.
+    // First subscription to satisfy a given (email, group, cp)
+    // wins; siblings get marked "skipped" with a clear reason so
+    // the founder digest shows what was suppressed.
+    const sendKeys = new Set<string>();
+
     for (const sub of subs) {
       if (sub.status !== "active") continue;
 
@@ -85,6 +96,17 @@ export async function GET(request: NextRequest) {
         sub.nudgesFired ?? []
       );
       if (checkpoint === null) continue;
+
+      const dedupeKey = `${sub.customerEmail.toLowerCase()}|${policyGroupKey(policy)}|${checkpoint}`;
+      if (sendKeys.has(dedupeKey)) {
+        skippedRecords.push({
+          subscriptionId: sub.id,
+          email: sub.customerEmail,
+          reason: `duplicate of already-sent group (cp=${checkpoint})`,
+        });
+        continue;
+      }
+      sendKeys.add(dedupeKey);
 
       try {
         const firstName = firstNameFor(policy);
