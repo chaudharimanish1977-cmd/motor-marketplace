@@ -3,6 +3,9 @@ import { ShieldCheck, Sparkles, ArrowRight, Eye } from "lucide-react";
 import { TestimonialCarousel } from "@/components/testimonial-carousel";
 import { RightOfferLogo } from "@/components/logo";
 
+// Header (logo + theme toggle) is mounted globally from layout.tsx via
+// <SiteHeader/>. The page just renders the hero + sections + footer.
+
 export const dynamic = "force-dynamic";
 
 export default function Home() {
@@ -21,20 +24,7 @@ export default function Home() {
         <div className="absolute bottom-[-15%] left-[20%] w-[36rem] h-[36rem] rounded-full bg-brand-orange/8 dark:bg-brand-orange/15 blur-3xl" />
       </div>
 
-      <main className="relative z-10 min-h-screen flex flex-col items-center px-4 py-6 md:py-8">
-        {/* HEADER — centered logo on both mobile and desktop. The theme
-         *  toggle (rendered from layout.tsx) lives fixed top-right and
-         *  doesn't visually compete with a centered logo. */}
-        <header className="w-full flex items-center justify-center mb-4 md:mb-8">
-          <Link
-            href="/"
-            aria-label="RightOffer home"
-            className="block w-[160px] md:w-[200px] hover:opacity-90 transition-opacity"
-          >
-            <RightOfferLogo variant="full-light" />
-          </Link>
-        </header>
-
+      <main className="relative z-10 min-h-screen flex flex-col items-center px-4 py-2 md:py-4">
         {/* HERO — fits in a single screen, no scroll needed to act */}
         <section className="max-w-3xl w-full text-center pt-4">
           <span className="inline-flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue bg-blue-50 border border-blue-100 rounded-full mb-6">

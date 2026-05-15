@@ -3,6 +3,7 @@ import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { DesktopAmbientArt } from "@/components/desktop-ambient-art";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SiteHeader } from "@/components/site-header";
 
 // Inline script that runs before React hydrates. Reads the saved theme from
 // localStorage and applies the `dark` class to <html> so there's no flash of
@@ -145,7 +146,10 @@ export default function RootLayout({
         />
         <DesktopAmbientArt />
         <ThemeToggle />
-        <div className="relative z-10">{children}</div>
+        <div className="relative z-10">
+          <SiteHeader />
+          {children}
+        </div>
       </body>
     </html>
   );
