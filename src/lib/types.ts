@@ -349,6 +349,13 @@ export interface RenewalSubscription {
   createdAt: string;
   /** When the cron last sent a reminder (so we don't double-fire). */
   lastNudgedAt?: string;
+  /**
+   * Which `daysBefore` checkpoints have already fired for this subscription.
+   * Each checkpoint fires at most once — e.g. if the customer subscribed
+   * with [60, 30, 7] and we've already sent the 60-day nudge, this field
+   * holds `[60]`. The cron skips a checkpoint if it's listed here.
+   */
+  nudgesFired?: number[];
   /** ISO timestamp when the customer clicked the one-click unsubscribe link. */
   unsubscribedAt?: string;
 }

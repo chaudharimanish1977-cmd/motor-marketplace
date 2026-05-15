@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
       daysBefore,
       reminderHourIst,
       status: "active",
+      nudgesFired: [],
       createdAt: new Date().toISOString(),
     };
     await appendRow<RenewalSubscription>(Tables.RENEWAL_SUBSCRIPTIONS, sub);

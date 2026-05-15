@@ -200,3 +200,163 @@ export async function sendOtpEmail({
     throw new Error(`Resend (OTP) failed: ${error.message}`);
   }
 }
+
+// ============================================================================
+// Renewal reminder
+// ============================================================================
+
+interface ReminderArgs {
+  to: string;
+  firstName: string;
+  vehicleLabel: string;
+  /** Formatted human-readable date, e.g. "15 Feb 2027". */
+  expiryDate: string;
+  /** Whole days remaining until policy expires (positive integer). */
+  daysUntilExpiry: number;
+  /** Where customers click to start their renewal review. */
+  reviewUrl: string;
+  /** One-click unsubscribe URL (signed token). */
+  unsubscribeUrl: string;
+}
+
+/**
+ * Renewal nudge email. Triggered by the daily cron when a subscription
+ * hits one of its `daysBefore` checkpoints (e.g. 60 / 30 / 7 days out).
+ *
+ * Compliance:
+ *   - `List-Unsubscribe` + `List-Unsubscribe-Post` headers so Gmail
+ *     shows a one-click "Unsubscribe" link next to the sender name
+ *     (RFC 8058 / Feb 2024 Gmail sender requirements). Without these,
+ *     bulk reminder mail trends to the spam folder.
+ *   - Visible footer unsubscribe link as the manual fallback.
+ *
+ * Copy intent: warm, not pushy. The promise is "we'll review what's
+ * available this year for you" — not "buy now or lose your NCB."
+ */
+export async function sendRenewalReminderEmail({
+  to,
+  firstName,
+  vehicleLabel,
+  expiryDate,
+  daysUntilExpiry,
+  reviewUrl,
+  unsubscribeUrl,
+}: ReminderArgs): Promise<void> {
+  const dayWord = daysUntilExpiry === 1 ? "day" : "days";
+  const subject = `${vehicleLabel} renewal in ${daysUntilExpiry} ${dayWord} — quick review?`;
+
+  const html = renderReminderHtml({
+    firstName,
+    vehicleLabel,
+    expiryDate,
+    daysUntilExpiry,
+    reviewUrl,
+    unsubscribeUrl,
+  });
+  const text = renderReminderText({
+    firstName,
+    vehicleLabel,
+    expiryDate,
+    daysUntilExpiry,
+    reviewUrl,
+    unsubscribeUrl,
+  });
+
+  const { error } = await client().emails.send({
+    from: FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+    headers: {
+      // Gmail/Yahoo one-click compliance (RFC 8058).
+      "List-Unsubscribe": `<${unsubscribeUrl}>, <mailto:${REPLY_TO}?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  });
+
+  if (error) {
+    throw new Error(`Resend (reminder) failed: ${error.message}`);
+  }
+}
+
+function renderReminderHtml({
+  firstName,
+  vehicleLabel,
+  expiryDate,
+  daysUntilExpiry,
+  reviewUrl,
+  unsubscribeUrl,
+}: Omit<ReminderArgs, "to">): string {
+  const dayWord = daysUntilExpiry === 1 ? "day" : "days";
+
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#F8F9FA;font-family:Inter,system-ui,sans-serif;color:#2D3436;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8F9FA;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+        <tr><td style="background:linear-gradient(135deg,#0A2463,#247BA0);padding:24px;color:#fff;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.9;">RightOffer · Renewal reminder</div>
+          <div style="font-size:22px;font-weight:700;margin-top:6px;line-height:1.2;">${escape(vehicleLabel)} renewal in ${daysUntilExpiry} ${dayWord}</div>
+          <div style="font-size:14px;opacity:0.88;margin-top:4px;">Expires ${escape(expiryDate)}</div>
+        </td></tr>
+        <tr><td style="padding:24px;">
+          <p style="margin:0 0 12px;font-size:15px;line-height:1.55;">Hey ${escape(firstName)},</p>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.55;">
+            Your ${escape(vehicleLabel)} insurance is up for renewal on <strong>${escape(expiryDate)}</strong>. Want a quick, independent review of this year's best options?
+          </p>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.55;">
+            Upload your renewal quote (or last year's policy) and we'll show you which add-ons matter for your car, and where the better offers are — in under 2 minutes. No sales calls, no spam.
+          </p>
+          <div style="text-align:center;margin:24px 0;">
+            <a href="${escape(reviewUrl)}" style="display:inline-block;background:#FF6B35;color:#fff;text-decoration:none;font-weight:700;padding:14px 28px;border-radius:14px;font-size:15px;">Get my free review →</a>
+          </div>
+          <p style="margin:0;font-size:13px;color:#636e72;line-height:1.55;">
+            Have a question? Just reply to this email — a real person reads every one.
+          </p>
+        </td></tr>
+        <tr><td style="padding:18px 24px;background:#F8F9FA;border-top:1px solid #E9ECEF;text-align:center;">
+          <div style="font-size:13px;font-weight:700;color:#0A2463;margin-bottom:6px;">
+            Most people sell insurance. <span style="color:#FF6B35;">We help you decide.</span>
+          </div>
+          <div style="font-size:10px;color:#636e72;line-height:1.6;">
+            RightOffer · Independent motor insurance reviews · Made for India<br/>
+            You're getting this because you asked us to remind you before your ${escape(vehicleLabel)} renewal.<br/>
+            <a href="${escape(unsubscribeUrl)}" style="color:#636e72;text-decoration:underline;">Unsubscribe from these reminders</a>
+          </div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
+function renderReminderText({
+  firstName,
+  vehicleLabel,
+  expiryDate,
+  daysUntilExpiry,
+  reviewUrl,
+  unsubscribeUrl,
+}: Omit<ReminderArgs, "to">): string {
+  const dayWord = daysUntilExpiry === 1 ? "day" : "days";
+  return [
+    `Hey ${firstName},`,
+    ``,
+    `Your ${vehicleLabel} insurance is up for renewal on ${expiryDate} — ${daysUntilExpiry} ${dayWord} away.`,
+    ``,
+    `Want a quick, independent review of this year's best options? Upload your renewal quote (or last year's policy) and we'll show you which add-ons matter for your car, and where the better offers are — in under 2 minutes. No sales calls, no spam.`,
+    ``,
+    `Get your free review: ${reviewUrl}`,
+    ``,
+    `Have a question? Just reply to this email — a real person reads every one.`,
+    ``,
+    `— Team RightOffer`,
+    `Most people sell insurance. We help you decide.`,
+    ``,
+    `---`,
+    `You're getting this because you asked us to remind you before your ${vehicleLabel} renewal.`,
+    `Unsubscribe: ${unsubscribeUrl}`,
+  ].join("\n");
+}
