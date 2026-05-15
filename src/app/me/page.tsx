@@ -42,11 +42,13 @@ interface PortalPolicy {
   daysUntilExpiry: number;
   bucket: CardBucket;
   /**
-   * How many earlier parses are silently grouped under this card.
-   * Currently hidden from the UI — the count is reserved for a
-   * future "show history" expander.
+   * Every parsed-policy record in this card's group, ordered most-
+   * recent-upload first. Used by the per-card delete control to
+   * surface the underlying records so the customer can pick which
+   * to remove (e.g. delete the misclassified renewal-notice but
+   * keep the bound policy).
    */
-  earlierParsesCount: number;
+  groupRecords: ParsedPolicy[];
 }
 
 /**
@@ -263,7 +265,7 @@ async function loadPoliciesFor(email: string): Promise<PortalPolicy[]> {
       subscription: exposedSub,
       daysUntilExpiry,
       bucket,
-      earlierParsesCount: group.length - 1,
+      groupRecords: sorted,
     };
   });
 
@@ -365,7 +367,8 @@ function Section({
 }
 
 function PolicyCard({ policy }: { policy: PortalPolicy }) {
-  const { parsed, report, subscription, daysUntilExpiry, bucket } = policy;
+  const { parsed, report, subscription, daysUntilExpiry, bucket, groupRecords } =
+    policy;
   const vehicleLabel = `${parsed.vehicle.make} ${parsed.vehicle.model}`.trim();
   const isQuote = bucket === "quote";
   const isExpired = bucket === "expired";
@@ -500,8 +503,14 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
               </LoadingLink>
             )}
             <DeletePolicyButton
-              policyId={parsed.id}
               vehicleLabel={vehicleLabel}
+              records={groupRecords.map((p) => ({
+                id: p.id,
+                uploadedAt: p.uploadedAt,
+                fileName: p.uploadedPdfFileName,
+                policyNumber: p.policyNumber,
+                documentType: p.documentType ?? "policy",
+              }))}
             />
           </div>
         </div>

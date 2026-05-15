@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  findById,
-  readTable,
-  writeTable,
-  Tables,
-} from "@/lib/db";
+import { z } from "zod";
+import { readTable, writeTable, Tables } from "@/lib/db";
 import { getSession } from "@/lib/session";
-import { policyGroupKey } from "@/lib/policy-group";
 import type {
   Bid,
   ParsedPolicy,
@@ -19,42 +14,55 @@ import type {
 
 export const runtime = "nodejs";
 
+// Sanity cap so a malformed client can't ask us to delete tens of
+// thousands of rows in one call. Real usage tops out at maybe 15-20
+// duplicates per group in our worst observed case.
+const Schema = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(50),
+});
+
 /**
- * Delete one policy card from the customer's portal.
+ * Delete specific parsed-policy records (and their dependents).
  *
- * "One card" = one group (a card represents a group of duplicate
- * parses of the same physical document — see policy-group.ts). So
- * this endpoint removes EVERY parsed policy in the same group as the
- * named ID, along with everything that fanned out from those policies:
- * reports, RFQs, bids (via rfqIds), transactions, renewal schedules,
- * and renewal subscriptions.
+ * Replaces the earlier single-ID endpoint. The portal sends an array
+ * because a card can represent a group of duplicate parses and the
+ * customer should be able to pick which specific records to remove
+ * (e.g. delete the misclassified renewal-notice from the group,
+ * keep the bound-policy one).
  *
  * Auth:
  *   1. Session required.
- *   2. Named policy must belong to the signed-in customer — either
- *      owner.email matches, or the customer has a subscription on it.
- *   3. Cascade only touches rows that ALSO belong to the customer —
- *      no chance of nuking a stranger's data by guessing IDs.
+ *   2. EVERY id in the request must belong to the customer — owner.email
+ *      match OR they hold a subscription targeting it. Any cross-account
+ *      id fails the whole request (404 — no partial deletes).
  *
- * Mirrors the cascade order from /api/me/delete (leaves-first writes
- * so an interrupted run prefers orphaned children to orphaned parents
- * on retry). No cross-table transactions in the prototype KV layer —
- * good enough at investor-demo scale.
+ * Cascade per id: reports / rfqs / bids / transactions / renewal
+ * schedules + subscriptions whose parent record(s) are in the delete
+ * set. Mirror of /api/me/delete's fan-out, scoped to the requested
+ * subset rather than the whole account.
+ *
+ * Order of writes: leaves-first so an interrupted run prefers
+ * orphaned children to orphaned parents on retry.
  */
-export async function POST(
-  _request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest) {
   const sessionEmail = await getSession();
   if (!sessionEmail) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
   const target = sessionEmail.toLowerCase();
 
-  const { id } = await context.params;
-  const named = await findById<ParsedPolicy>(Tables.PARSED_POLICIES, id);
-  if (!named) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  let body: { ids: string[] };
+  try {
+    const raw = await request.json();
+    body = Schema.parse(raw);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Invalid input", details: err.issues },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
 
   const [
@@ -75,8 +83,7 @@ export async function POST(
     readTable<RenewalSubscription>(Tables.RENEWAL_SUBSCRIPTIONS),
   ]);
 
-  // Customer-owned policy IDs: anything where they own the parse OR
-  // they have a subscription targeting it.
+  // Customer-owned policy IDs (owner.email OR via subscription).
   const ownedViaOwner = new Set(
     policies
       .filter((p) => (p.owner?.email ?? "").toLowerCase() === target)
@@ -89,26 +96,23 @@ export async function POST(
   );
   const customerPolicyIds = new Set([...ownedViaOwner, ...ownedViaSub]);
 
-  if (!customerPolicyIds.has(named.id)) {
-    // 404 (not 403) to keep cross-account probing useless.
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // Validate every requested id is owned. Fail the whole batch on a
+  // single mismatch — no partial deletes (avoids ambiguous outcomes
+  // and stops "delete-by-guess" probes from succeeding piecewise).
+  const requested = new Set(body.ids);
+  for (const id of requested) {
+    if (!customerPolicyIds.has(id)) {
+      // 404 (not 403) to keep cross-account probing useless.
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
   }
 
-  // Identify the group: all customer policies sharing the named one's
-  // group key. Includes duplicate parses hidden behind the card.
-  const targetGroupKey = policyGroupKey(named);
-  const policyIdsToDelete = new Set(
-    policies
-      .filter(
-        (p) =>
-          customerPolicyIds.has(p.id) && policyGroupKey(p) === targetGroupKey
-      )
-      .map((p) => p.id)
-  );
-
   // Fan out via parsedPolicyId, rfqId, bidId.
+  const policyIdsToDelete = requested;
   const rfqIdsToDelete = new Set(
-    rfqs.filter((r) => policyIdsToDelete.has(r.parsedPolicyId)).map((r) => r.id)
+    rfqs
+      .filter((r) => policyIdsToDelete.has(r.parsedPolicyId))
+      .map((r) => r.id)
   );
   const bidIdsToDelete = new Set(
     bids.filter((b) => rfqIdsToDelete.has(b.rfqId)).map((b) => b.id)
@@ -174,9 +178,6 @@ export async function POST(
     return true;
   });
 
-  // Leaves-first write order. The customer's user record + email
-  // stay untouched — they keep their account, only this one record
-  // disappears.
   await writeTable(Tables.TRANSACTIONS, nextTransactions);
   await writeTable(Tables.BIDS, nextBids);
   await writeTable(Tables.RFQS, nextRfqs);
