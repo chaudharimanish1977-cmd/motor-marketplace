@@ -112,56 +112,10 @@ export function CircularJourneyLoader({
   return (
     <div className="w-full max-w-2xl mx-auto py-2">
 
-      {/* HERO LIVE STATE — comparison + active message + chips ABOVE the animation.
-       *  Fixed min-height so the car below the live area never shifts even as
-       *  comparisons / chips / preview data flow in.  Stopwatch chip lives in
-       *  the top-right corner (rendered by UploadDropzone). */}
-      <div className="max-w-md mx-auto text-center mb-4 min-h-[220px] flex flex-col items-center justify-start">
-        {startedAt !== undefined && <TimeComparison layout="vertical" />}
-
-        <div className="text-base md:text-lg font-bold text-brand-charcoal mt-2 min-h-[28px]">
-          {primaryText}
-        </div>
-        <div
-          key={messageIdx}
-          className="text-xs text-brand-slate mt-0.5 min-h-[18px] animate-pulse-soft"
-        >
-          {messages[messageIdx]}
-        </div>
-
-        {/* Chips row — reserve a fixed min-height so empty state doesn't collapse */}
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2 min-h-[32px]">
-          {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[11px] text-brand-deepblue">
-              <span className="font-bold tabular-nums">{ageCounter}</span>
-              <span className="font-medium">
-                {ageCounter === 1 ? "year" : "years"} on Indian roads
-              </span>
-            </span>
-          )}
-          {landmarks.length > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[11px] text-emerald-800">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-success animate-pulse" />
-              <span>
-                Curating for{" "}
-                <span
-                  key={landmarkIdx}
-                  className="font-bold text-emerald-900"
-                >
-                  {landmarks[landmarkIdx]}
-                </span>
-              </span>
-            </span>
-          )}
-        </div>
-
-        {/* ETA row — always reserved so its appearance/disappearance doesn't shift the SVG */}
-        <div className="text-[11px] text-brand-slate/70 mt-2 min-h-[16px]">
-          {etaText}
-        </div>
-      </div>
-
-      {/* The driving scene — moved BELOW the live status for visibility */}
+      {/* DRIVING SCENE — moved to the TOP so the eye lands on motion first,
+       *  but the hero text immediately below is what reads as primary. The
+       *  animation now supports the work-in-progress narrative; it isn't
+       *  the hero itself. */}
       <div className="relative w-full rounded-2xl overflow-hidden shadow-soft bg-gradient-to-b from-sky-100 via-sky-50 to-slate-200">
         {/* Vehicle name + plate overlaid on the SVG sky — saves the header
          *  row entirely and reads as a "license-plate on the windshield"
@@ -272,8 +226,60 @@ export function CircularJourneyLoader({
         </svg>
       </div>
 
-      {/* Live status moved above; nothing here intentionally */}
-      <div className="hidden">
+      {/* HERO LIVE STATE — placed BELOW the driving scene now. The user's
+       *  attention enters via the animation at top, then immediately reads
+       *  "Reading your policy" as the hero. Fixed min-height so chips /
+       *  ETA / TimeComparison appearing doesn't shift the layout. */}
+      <div className="max-w-md mx-auto text-center mt-4 min-h-[220px] flex flex-col items-center justify-start">
+        <div className="text-lg md:text-xl font-bold text-brand-charcoal min-h-[28px]">
+          {primaryText}
+        </div>
+        <div
+          key={messageIdx}
+          className="text-xs text-brand-slate mt-1 min-h-[18px] animate-pulse-soft"
+        >
+          {messages[messageIdx]}
+        </div>
+
+        {/* Chips row */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2 min-h-[32px]">
+          {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[11px] text-brand-deepblue">
+              <span className="font-bold tabular-nums">{ageCounter}</span>
+              <span className="font-medium">
+                {ageCounter === 1 ? "year" : "years"} on Indian roads
+              </span>
+            </span>
+          )}
+          {landmarks.length > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[11px] text-emerald-800">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-success animate-pulse" />
+              <span>
+                Curating for{" "}
+                <span
+                  key={landmarkIdx}
+                  className="font-bold text-emerald-900"
+                >
+                  {landmarks[landmarkIdx]}
+                </span>
+              </span>
+            </span>
+          )}
+        </div>
+
+        {/* ETA row */}
+        <div className="text-[11px] text-brand-slate/70 mt-2 min-h-[16px]">
+          {etaText}
+        </div>
+
+        {/* TimeComparison "while you wait" — demoted to the very bottom as
+         *  a small playful accent. `flex-col-reverse` flips the layout so
+         *  the message reads first, the emoji sits below it. */}
+        {startedAt !== undefined && (
+          <div className="mt-4 w-full">
+            <TimeComparison layout="vertical" className="flex-col-reverse" />
+          </div>
+        )}
       </div>
     </div>
   );
