@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LoadingLink } from "@/components/loading-link";
 import clsx from "clsx";
 import {
   CheckCircle2,
@@ -199,24 +200,26 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
                       : "bg-gradient-to-r from-brand-purple to-brand-orange hover:brightness-110";
                 return (
                   <td key={tier.tier} className="p-4 space-y-2">
-                    <Link
+                    <LoadingLink
                       href={`/offer/${win.id}`}
                       className="block w-full text-center text-xs font-semibold py-2 rounded-xl border-2 border-brand-deepblue text-brand-deepblue hover:bg-blue-50"
+                      spinnerPosition="right"
                     >
                       See breakdown
-                    </Link>
-                    <Link
+                    </LoadingLink>
+                    <LoadingLink
                       href={`/checkout/${win.id}`}
                       className={clsx(
                         "block w-full text-center text-xs font-bold py-2.5 rounded-xl text-white transition-all hover:scale-[1.01]",
                         themeCta
                       )}
+                      spinnerPosition="right"
                     >
                       <span className="inline-flex items-center gap-1">
                         Buy
                         <ArrowRight className="w-3 h-3" />
                       </span>
-                    </Link>
+                    </LoadingLink>
                   </td>
                 );
               })}

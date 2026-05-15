@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { LoadingLink } from "@/components/loading-link";
 import {
   ArrowLeft,
   ArrowRight,
@@ -420,15 +421,16 @@ export function OfferDetail({
                       </span>
                     </button>
                   ) : (
-                    <Link
+                    <LoadingLink
                       href={`/checkout/${bid.id}`}
                       className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-orange hover:brightness-110 text-white shadow-glow transition-all hover:scale-[1.01]"
+                      spinnerPosition="right"
                     >
                       <span className="inline-flex items-center gap-1.5">
                         Buy this offer
                         <ArrowRight className="w-4 h-4" />
                       </span>
-                    </Link>
+                    </LoadingLink>
                   )}
                   <Link
                     href={`/bid/${parsedPolicy.id}/results`}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LoadingLink } from "@/components/loading-link";
 import {
   ShieldCheck,
   Shield,
@@ -841,13 +842,14 @@ function KeyTakeawayCard({
       </p>
       {isInvestor ? (
         <>
-          <Link
+          <LoadingLink
             href={`/bid/${parsedPolicyId}`}
             className="inline-flex items-center gap-2 px-8 py-4 bg-brand-orange text-white font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all"
+            spinnerPosition="top-right"
           >
             {takeaway.cta}
             <ArrowRight className="w-5 h-5" />
-          </Link>
+          </LoadingLink>
           <p className="text-blue-200 text-xs mt-4">
             Free to see your offers · Insurers compete for your renewal · No
             spam
