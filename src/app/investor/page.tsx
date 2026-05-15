@@ -5,12 +5,12 @@ import {
   TrendingDown,
   ArrowRight,
   Zap,
-  Lock,
 } from "lucide-react";
 import { readTable, findOne, Tables } from "@/lib/db";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 import { RenewalPreview } from "@/components/renewal-preview";
+import { BrandBlobs } from "@/components/brand-blobs";
 
 // Always re-fetch personas at request time so newly-parsed policies appear
 // immediately. Without this, the page would snapshot the DB at build time.
@@ -46,30 +46,10 @@ export default async function InvestorHome() {
   const personas = await loadDemoPersonas();
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-12">
-      {/* Investor pitch banner — clearly distinguishes this from the customer site */}
-      <div className="w-full max-w-5xl mb-8">
-        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-purple-50 border border-purple-200">
-          <div className="w-8 h-8 rounded-lg bg-purple-200 flex items-center justify-center shrink-0">
-            <Lock className="w-4 h-4 text-purple-700" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold uppercase tracking-[0.12em] text-purple-900">
-              Investor Demo View
-            </div>
-            <div className="text-xs text-purple-700">
-              Full pitch flow: parser → report → reverse-bidding → checkout →
-              renewal calendar. Customer-facing site is at{" "}
-              <Link href="/" className="underline font-semibold">
-                rightoffer.in
-              </Link>
-              .
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-3xl w-full text-center space-y-8">
+    <>
+      <BrandBlobs />
+      <main className="relative z-10 min-h-screen flex flex-col items-center px-4 py-12">
+        <div className="max-w-3xl w-full text-center space-y-8">
         {/* Eyebrow */}
         <div className="flex justify-center">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue bg-blue-50 border border-blue-100 rounded-full">
@@ -169,7 +149,8 @@ export default async function InvestorHome() {
         RightOffer · Independent motor insurance advisor for India · Investor
         demo build
       </p>
-    </main>
+      </main>
+    </>
   );
 }
 

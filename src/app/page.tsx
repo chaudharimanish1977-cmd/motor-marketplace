@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ShieldCheck, Sparkles, ArrowRight, Eye } from "lucide-react";
 import { TestimonialCarousel } from "@/components/testimonial-carousel";
 import { RightOfferLogo } from "@/components/logo";
+import { BrandBlobs } from "@/components/brand-blobs";
 
 // Header (logo + theme toggle) is mounted globally from layout.tsx via
 // <SiteHeader/>. The page just renders the hero + sections + footer.
@@ -11,18 +12,7 @@ export const dynamic = "force-dynamic";
 export default function Home() {
   return (
     <>
-      {/* Soft brand-color radial blobs sitting behind everything — adds depth
-       *  to the desktop layout where the centred hero would otherwise leave
-       *  large empty bands either side. Light + dark-mode safe via tailwind
-       *  utility opacities. Pointer-events:none so they never block clicks. */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 overflow-hidden print:hidden"
-      >
-        <div className="absolute -top-32 -left-32 w-[42rem] h-[42rem] rounded-full bg-brand-deepblue/10 dark:bg-brand-deepblue/30 blur-3xl" />
-        <div className="absolute -top-20 right-[-10%] w-[34rem] h-[34rem] rounded-full bg-brand-electricblue/10 dark:bg-brand-electricblue/25 blur-3xl" />
-        <div className="absolute bottom-[-15%] left-[20%] w-[36rem] h-[36rem] rounded-full bg-brand-orange/8 dark:bg-brand-orange/15 blur-3xl" />
-      </div>
+      <BrandBlobs />
 
       <main className="relative z-10 min-h-screen flex flex-col items-center px-4 py-2 md:py-4">
         {/* HERO — fits in a single screen, no scroll needed to act */}
