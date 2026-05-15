@@ -20,7 +20,7 @@ import { RightOfferLogo } from "@/components/logo";
  * this unconditionally and still get the right per-page behaviour.
  */
 
-const SKIP_PREFIXES = ["/pitch", "/investor", "/logo", "/api"] as const;
+const SKIP_PREFIXES = ["/pitch", "/logo", "/api"] as const;
 
 export function SiteHeader() {
   const pathname = usePathname() ?? "";
