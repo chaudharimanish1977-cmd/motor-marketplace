@@ -7,29 +7,44 @@ import type { ParsedPolicy, RenewalSubscription } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-const Schema = z.object({
-  status: z.enum(["active", "unsubscribed"]),
-});
+// Schedule sanity bounds. Customer can pick any subset of [1..180]
+// days-before, with 1-10 items. Anything beyond 180 means we'd be
+// trying to remind them more than 6 months before renewal, which is
+// pointless. Capping at 10 items keeps the email cadence sane.
+const Schema = z
+  .object({
+    status: z.enum(["active", "unsubscribed"]).optional(),
+    daysBefore: z
+      .array(z.number().int().min(1).max(180))
+      .min(1)
+      .max(10)
+      .optional(),
+  })
+  .refine(
+    (v) => v.status !== undefined || v.daysBefore !== undefined,
+    { message: "Provide status or daysBefore" }
+  );
 
 /**
- * Update a subscription's reminder status, cascading to every
- * sibling subscription that points at the same physical car-period.
+ * Update a subscription's reminder controls (status and/or daysBefore),
+ * cascading every change to all sibling subscriptions that point at
+ * the same physical car-period.
  *
- * Why cascade: a customer who uploaded the same policy multiple times
- * (e.g. while testing) has one row in /me but many subscription rows
- * underneath. Without cascading, "Pause" would silence the one we
- * happen to display while the cron still fires emails from the
- * orphans. The user would see "paused" and still get spammed.
- *
- * Auth model:
- *   1. Caller must have a session.
- *   2. The named subscription must belong to that session email.
- *   3. Cascade only updates other subs ALSO belonging to that email
- *      — no chance of toggling a stranger's reminders by guessing IDs.
+ * Why cascade: a customer who uploaded the same PDF multiple times
+ * has one row in /me but many subscription rows underneath. Without
+ * cascading, "Pause" or a schedule edit would silence/change the one
+ * we display while the cron still fires emails from the orphans using
+ * their old settings.
  *
  * Resume side-effect: clearing `unsubscribedAt` + resetting
  * `nudgesFired` to [] across the group so the cron rehydrates the
  * next-due checkpoint instead of treating it as already fired.
+ *
+ * Schedule-edit side-effect: `nudgesFired` is preserved — if the user
+ * already received the 60d nudge and adds a new 90d checkpoint that's
+ * in the past, the cron's `cp >= daysUntilExpiry` filter still
+ * prevents a re-fire. The fired list is only reset when the user
+ * EXPLICITLY resumes from a paused state.
  */
 export async function PATCH(
   request: NextRequest,
@@ -42,12 +57,17 @@ export async function PATCH(
   const target = sessionEmail.toLowerCase();
 
   const { id } = await context.params;
-  let next: "active" | "unsubscribed";
+  let body: z.infer<typeof Schema>;
   try {
-    const body = await request.json();
-    const validated = Schema.parse(body);
-    next = validated.status;
-  } catch {
+    const parsed = await request.json();
+    body = Schema.parse(parsed);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Invalid input", details: err.issues },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
 
@@ -63,44 +83,42 @@ export async function PATCH(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Find the policy this sub targets so we can compute its group key.
+  const patch = buildPatch(body);
+
+  // Resolve the named sub's policy group, then apply the patch to
+  // every sibling subscription belonging to this email in that group.
   const namedPolicy = await findById<ParsedPolicy>(
     Tables.PARSED_POLICIES,
     named.parsedPolicyId
   );
   if (!namedPolicy) {
-    // The sub is orphaned (its policy was deleted). Toggle just this
-    // one — there's nothing to cascade to.
     const updated = await updateById<RenewalSubscription>(
       Tables.RENEWAL_SUBSCRIPTIONS,
       id,
-      buildPatch(next)
+      patch
     );
     return NextResponse.json({
       ok: true,
-      status: updated?.status ?? next,
+      status: updated?.status ?? named.status,
       cascadedCount: 0,
     });
   }
   const targetGroupKey = policyGroupKey(namedPolicy);
 
-  // Find every sibling sub belonging to this email whose target
-  // policy lives in the same group.
   const [allPolicies, allSubs] = await Promise.all([
     readTable<ParsedPolicy>(Tables.PARSED_POLICIES),
     readTable<RenewalSubscription>(Tables.RENEWAL_SUBSCRIPTIONS),
   ]);
   const policyById = new Map(allPolicies.map((p) => [p.id, p]));
 
-  const siblingsToUpdate = allSubs.filter((s) => {
+  const siblings = allSubs.filter((s) => {
     if ((s.customerEmail ?? "").toLowerCase() !== target) return false;
     const p = policyById.get(s.parsedPolicyId);
     if (!p) return false;
     return policyGroupKey(p) === targetGroupKey;
   });
 
-  const patch = buildPatch(next);
-  for (const s of siblingsToUpdate) {
+  for (const s of siblings) {
     await updateById<RenewalSubscription>(
       Tables.RENEWAL_SUBSCRIPTIONS,
       s.id,
@@ -110,25 +128,35 @@ export async function PATCH(
 
   return NextResponse.json({
     ok: true,
-    status: next,
-    cascadedCount: siblingsToUpdate.length,
+    status: patch.status ?? named.status,
+    daysBefore: patch.daysBefore ?? named.daysBefore,
+    cascadedCount: siblings.length,
   });
 }
 
 function buildPatch(
-  next: "active" | "unsubscribed"
+  body: z.infer<typeof Schema>
 ): Partial<RenewalSubscription> {
-  if (next === "unsubscribed") {
-    return {
-      status: "unsubscribed",
-      unsubscribedAt: new Date().toISOString(),
-    };
+  const patch: Partial<RenewalSubscription> = {};
+
+  if (body.status === "unsubscribed") {
+    patch.status = "unsubscribed";
+    patch.unsubscribedAt = new Date().toISOString();
+  } else if (body.status === "active") {
+    patch.status = "active";
+    patch.unsubscribedAt = undefined;
+    // Resume only: reset nudgesFired so the cron can re-evaluate the
+    // schedule from scratch. Schedule-only edits don't touch this.
+    patch.nudgesFired = [];
   }
-  // Resume: clear unsubscribedAt + reset nudgesFired so the cron
-  // doesn't skip the next-due checkpoint as already-fired.
-  return {
-    status: "active",
-    unsubscribedAt: undefined,
-    nudgesFired: [],
-  };
+
+  if (body.daysBefore !== undefined) {
+    // Normalise: dedupe + sort descending so the earliest reminder
+    // fires first chronologically (matches /api/reminders/subscribe).
+    patch.daysBefore = Array.from(new Set(body.daysBefore)).sort(
+      (a, b) => b - a
+    );
+  }
+
+  return patch;
 }

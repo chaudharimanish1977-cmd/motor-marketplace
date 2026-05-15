@@ -22,6 +22,7 @@ import { policyGroupKey } from "@/lib/policy-group";
 import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 import { ReminderToggle } from "./reminder-toggle";
+import { ReminderSchedule } from "./reminder-schedule";
 import { SignOutButton } from "./sign-out-button";
 import { DeleteAccountCard } from "./delete-account-card";
 
@@ -311,7 +312,8 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
           />
         </div>
 
-        <div className="mt-4 pt-4 border-t border-brand-light-gray flex items-center justify-between gap-3 flex-wrap">
+        <div className="mt-4 pt-4 border-t border-brand-light-gray space-y-3">
+          {/* Reminder status pill */}
           <div className="flex items-center gap-2 text-xs">
             {subscription ? (
               subscription.status === "active" ? (
@@ -332,7 +334,20 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Schedule summary + inline editor (only when a subscription exists) */}
+          {subscription && (
+            <ReminderSchedule
+              subscriptionId={subscription.id}
+              policyExpiryDate={subscription.policyExpiryDate}
+              daysBefore={subscription.daysBefore}
+              nudgesFired={subscription.nudgesFired ?? []}
+              paused={subscription.status !== "active"}
+            />
+          )}
+
+          {/* Action row */}
+          <div className="flex items-center justify-end gap-2 flex-wrap">
             {subscription && (
               <ReminderToggle
                 subscriptionId={subscription.id}
