@@ -22,7 +22,7 @@ import crypto from "crypto";
 
 const SECRET_ENV = "EMAIL_TOKEN_SECRET";
 
-export type TokenType = "unsub" | "login";
+export type TokenType = "unsub" | "login" | "session";
 
 interface TokenPayload {
   t: TokenType;
@@ -120,4 +120,43 @@ export function buildUnsubscribeUrl(
   // Trim trailing slash to keep the URL canonical.
   const base = origin.replace(/\/+$/, "");
   return `${base}/unsubscribe/${token}`;
+}
+
+const FIFTEEN_MIN_MS = 15 * 60 * 1000;
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Builds a magic-link sign-in URL. 15-minute window — long enough for
+ * the customer to find the email and click, short enough to limit
+ * blast radius if the inbox is compromised.
+ *
+ * The token is stateless: anyone with the URL within 15 min can sign
+ * in as that email. Not one-shot (would need a KV write to track use),
+ * but the short window keeps the practical attack surface tiny —
+ * Substack / Linear / Cal.com all ship this trade-off.
+ */
+export function buildMagicLinkUrl(email: string, origin: string): string {
+  const token = signToken({
+    t: "login",
+    s: email.toLowerCase().trim(),
+    e: Date.now() + FIFTEEN_MIN_MS,
+  });
+  const base = origin.replace(/\/+$/, "");
+  return `${base}/me/auth/${token}`;
+}
+
+/** Default session lifetime: 30 days. */
+export const SESSION_TTL_MS = THIRTY_DAYS_MS;
+
+/**
+ * Mints a session token for the cookie. Same crypto, different `t`
+ * claim so a stolen session token can't be repurposed as a login
+ * (which would re-trigger account creation flows etc.).
+ */
+export function signSessionToken(email: string): string {
+  return signToken({
+    t: "session",
+    s: email.toLowerCase().trim(),
+    e: Date.now() + SESSION_TTL_MS,
+  });
 }

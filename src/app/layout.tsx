@@ -4,6 +4,7 @@ import "./globals.css";
 import { DesktopAmbientArt } from "@/components/desktop-ambient-art";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SiteHeader } from "@/components/site-header";
+import { getSession } from "@/lib/session";
 // TopLoader temporarily disabled — first attempt with the nextjs-toploader
 // package + the in-tree replacement both correlate with a client-side
 // exception on /report in production. Pulling it out entirely while we
@@ -130,11 +131,12 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const sessionEmail = await getSession();
   return (
     <html lang="en" className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
@@ -153,7 +155,7 @@ export default function RootLayout({
         <DesktopAmbientArt />
         <ThemeToggle />
         <div className="relative z-10">
-          <SiteHeader />
+          <SiteHeader signedIn={!!sessionEmail} />
           {children}
         </div>
       </body>

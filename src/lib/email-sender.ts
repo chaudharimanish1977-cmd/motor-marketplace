@@ -202,6 +202,71 @@ export async function sendOtpEmail({
 }
 
 // ============================================================================
+// Magic-link sign-in
+// ============================================================================
+
+interface MagicLinkArgs {
+  to: string;
+  url: string;
+}
+
+/**
+ * Sign-in email. Same plain-text-feel as OTP so Gmail treats it as a
+ * personal/transactional message rather than marketing — that keeps it
+ * out of the Updates tab where login mail is useless.
+ *
+ * Magic-link only (no 6-digit code shown). Single CTA, short body,
+ * standard "didn't ask for this?" disclaimer.
+ */
+export async function sendMagicLinkEmail({
+  to,
+  url,
+}: MagicLinkArgs): Promise<void> {
+  const subject = `Sign in to RightOffer`;
+  const html = `<!doctype html>
+<html><body style="margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#202124;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Tap the link to sign in to RightOffer. Valid for 15 minutes.
+  </div>
+  <div style="max-width:560px;">
+    <p style="margin:0 0 16px;">Hi,</p>
+    <p style="margin:0 0 16px;">Tap the button below to sign in to RightOffer:</p>
+    <p style="margin:0 0 20px;">
+      <a href="${escape(url)}" style="display:inline-block;background:#0A2463;color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:10px;font-size:15px;">Sign in to RightOffer</a>
+    </p>
+    <p style="margin:0 0 16px;color:#5f6368;font-size:13px;">Or paste this URL into your browser:<br/><span style="color:#5f6368;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">${escape(url)}</span></p>
+    <p style="margin:0 0 16px;color:#5f6368;font-size:14px;">This link expires in 15 minutes. If you didn&rsquo;t ask to sign in, you can ignore this email.</p>
+    <p style="margin:24px 0 0;">&mdash; Aryan</p>
+  </div>
+</body></html>`;
+
+  const text = [
+    `Hi,`,
+    ``,
+    `Tap the link below to sign in to RightOffer:`,
+    ``,
+    url,
+    ``,
+    `This link expires in 15 minutes. If you didn't ask to sign in, you can ignore this email.`,
+    ``,
+    `— Aryan`,
+  ].join("\n");
+
+  const { error } = await client().emails.send({
+    from: OTP_FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+  });
+
+  if (error) {
+    throw new Error(`Resend (magic-link) failed: ${error.message}`);
+  }
+}
+
+// ============================================================================
 // Renewal reminder
 // ============================================================================
 

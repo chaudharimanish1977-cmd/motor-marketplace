@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { User, FolderOpen } from "lucide-react";
 import { RightOfferLogo } from "@/components/logo";
 
 /**
@@ -18,25 +19,60 @@ import { RightOfferLogo } from "@/components/logo";
  *
  * Falls back to a `null` render on those paths so layout.tsx can mount
  * this unconditionally and still get the right per-page behaviour.
+ *
+ * Top-right corner shows a "Sign in" / "My policies" link so customers
+ * can always reach their portal. We don't read auth state here (this is
+ * a client component); the portal page itself handles the redirect to
+ * /me/login if there's no session — so the same link works for both
+ * signed-in and signed-out users.
  */
 
 const SKIP_PREFIXES = ["/pitch", "/logo", "/api"] as const;
+const HIDE_PORTAL_LINK_ON = ["/me"] as const;
 
-export function SiteHeader() {
+interface Props {
+  signedIn?: boolean;
+}
+
+export function SiteHeader({ signedIn = false }: Props) {
   const pathname = usePathname() ?? "";
   if (SKIP_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return null;
   }
 
+  const hidePortalLink = HIDE_PORTAL_LINK_ON.some(
+    (p) => pathname === p || pathname.startsWith(p + "/")
+  );
+
   return (
-    <header className="relative z-20 w-full flex items-center justify-center px-4 pt-5 md:pt-6 pb-2 print:hidden">
-      <Link
-        href="/"
-        aria-label="RightOffer home"
-        className="block w-[140px] md:w-[170px] hover:opacity-90 transition-opacity"
-      >
-        <RightOfferLogo variant="full-light" />
-      </Link>
+    <header className="relative z-20 w-full px-4 pt-5 md:pt-6 pb-2 print:hidden">
+      <div className="relative flex items-center justify-center">
+        <Link
+          href="/"
+          aria-label="RightOffer home"
+          className="block w-[140px] md:w-[170px] hover:opacity-90 transition-opacity"
+        >
+          <RightOfferLogo variant="full-light" />
+        </Link>
+        {!hidePortalLink && (
+          <Link
+            href="/me"
+            className="absolute right-0 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-slate hover:text-brand-charcoal px-3 py-1.5 rounded-xl border border-brand-light-gray bg-white/70 backdrop-blur-sm hover:bg-white transition-colors"
+          >
+            {signedIn ? (
+              <>
+                <FolderOpen className="w-3.5 h-3.5" />
+                My policies
+              </>
+            ) : (
+              <>
+                <User className="w-3.5 h-3.5" />
+                Sign in
+              </>
+            )}
+          </Link>
+        )}
+      </div>
     </header>
   );
 }
