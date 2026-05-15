@@ -22,8 +22,10 @@ export default function Home() {
       </div>
 
       <main className="relative z-10 min-h-screen flex flex-col items-center px-4 py-6 md:py-8">
-        {/* HEADER — top-left logo. Theme toggle (from layout.tsx) sits top-right. */}
-        <header className="w-full max-w-6xl flex items-center justify-between mb-2 md:mb-6">
+        {/* HEADER — centered logo on both mobile and desktop. The theme
+         *  toggle (rendered from layout.tsx) lives fixed top-right and
+         *  doesn't visually compete with a centered logo. */}
+        <header className="w-full flex items-center justify-center mb-4 md:mb-8">
           <Link
             href="/"
             aria-label="RightOffer home"
@@ -31,8 +33,6 @@ export default function Home() {
           >
             <RightOfferLogo variant="full-light" />
           </Link>
-          {/* Right-side space reserved for the theme toggle */}
-          <div className="w-12" aria-hidden />
         </header>
 
         {/* HERO — fits in a single screen, no scroll needed to act */}

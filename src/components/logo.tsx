@@ -47,15 +47,19 @@ interface SourceSpec {
   headingPct: number;
 }
 
+// Dark-mode SVGs (`v*-dark.svg`) are generated from the light ones by
+// remapping dark fills → white. Orange is preserved. Same aspect ratio as
+// the light variant, so the wrapper geometry doesn't change between
+// themes (no layout shift, no squishing in the footer).
 const SOURCES: Record<LogoVariant, SourceSpec> = {
-  "full-light": { light: "/logo/v1.svg", dark: "/logo/v2.svg", width: 752, height: 368, headingPct: 0.19 },
+  "full-light": { light: "/logo/v1.svg", dark: "/logo/v1-dark.svg", width: 752, height: 368, headingPct: 0.19 },
   "full-dark": { light: "/logo/v2.svg", dark: "/logo/v2.svg", width: 768, height: 368, headingPct: 0.19 },
-  "nav-24": { light: "/logo/v4.svg", dark: "/logo/v2.svg", width: 752, height: 185, headingPct: 0.28 },
-  "default-40": { light: "/logo/v1.svg", dark: "/logo/v2.svg", width: 752, height: 368, headingPct: 0.19 },
-  "hero-80": { light: "/logo/v1.svg", dark: "/logo/v2.svg", width: 752, height: 368, headingPct: 0.19 },
-  wordmark: { light: "/logo/v4.svg", dark: "/logo/v2.svg", width: 752, height: 185, headingPct: 0.28 },
-  "wordmark-plain": { light: "/logo/v5.svg", dark: "/logo/v2.svg", width: 768, height: 185, headingPct: 0.28 },
-  header: { light: "/logo/v6.svg", dark: "/logo/v6.svg", width: 1536, height: 205, headingPct: 0.18 },
+  "nav-24": { light: "/logo/v4.svg", dark: "/logo/v4-dark.svg", width: 752, height: 185, headingPct: 0.28 },
+  "default-40": { light: "/logo/v1.svg", dark: "/logo/v1-dark.svg", width: 752, height: 368, headingPct: 0.19 },
+  "hero-80": { light: "/logo/v1.svg", dark: "/logo/v1-dark.svg", width: 752, height: 368, headingPct: 0.19 },
+  wordmark: { light: "/logo/v4.svg", dark: "/logo/v4-dark.svg", width: 752, height: 185, headingPct: 0.28 },
+  "wordmark-plain": { light: "/logo/v5.svg", dark: "/logo/v5-dark.svg", width: 768, height: 185, headingPct: 0.28 },
+  header: { light: "/logo/v6.svg", dark: "/logo/v6-dark.svg", width: 1536, height: 205, headingPct: 0.18 },
 };
 
 /**
