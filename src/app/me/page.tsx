@@ -92,7 +92,10 @@ export default async function PortalHome() {
             </div>
           )}
 
-          {/* Footer CTA — always visible, encourages renewal upload */}
+          {/* Footer CTA — always visible, encourages renewal upload.
+              When the customer has at least one prior policy, we pass it
+              as `?renewal=<id>` so the upload page can welcome them by
+              vehicle and link the new parse back to their account. */}
           <div className="mt-10 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue text-white p-6 md:p-8 text-center shadow-soft">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight">
               Up for renewal soon?
@@ -102,7 +105,11 @@ export default async function PortalHome() {
               year&rsquo;s coverage — under 2 minutes, completely free.
             </p>
             <LoadingLink
-              href="/upload"
+              href={
+                policies.length > 0
+                  ? `/upload?renewal=${policies[0].parsed.id}`
+                  : "/upload"
+              }
               spinnerPosition="right"
               className="mt-5 inline-flex items-center justify-center gap-2 px-7 py-3 bg-brand-orange hover:brightness-110 text-white font-semibold rounded-2xl shadow-glow transition-all"
             >

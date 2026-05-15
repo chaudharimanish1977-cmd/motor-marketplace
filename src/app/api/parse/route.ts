@@ -4,6 +4,7 @@ import { extractPolicyFromText } from "@/lib/policy-extractor";
 import { classifyPolicy, rejectionMessage } from "@/lib/policy-classifier";
 import { appendRow, updateById, Tables } from "@/lib/db";
 import { storePolicyPdf } from "@/lib/blob-store";
+import { getSession } from "@/lib/session";
 import type { ParsedPolicy } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -96,6 +97,21 @@ export async function POST(request: NextRequest) {
     console.log(
       `[parse] Extraction completed in ${Date.now() - extractStart}ms. Confidence: ${parsed.parseConfidence}`
     );
+
+    // If the customer is signed in, stamp the parsed policy with their
+    // session email. That overrides whatever the PDF extraction found
+    // — the signed-in identity is the authoritative truth (e.g. a
+    // customer renewing for a spouse still wants the policy under
+    // their own portal). Without this the new policy won't appear in
+    // /me unless the PDF happened to carry the exact same address.
+    const sessionEmail = await getSession();
+    if (sessionEmail) {
+      parsed.owner = {
+        ...parsed.owner,
+        email: sessionEmail,
+      };
+    }
+
     const savedPolicy = await appendRow<ParsedPolicy>(
       Tables.PARSED_POLICIES,
       parsed

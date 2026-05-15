@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { RefreshCw, Car, MapPin } from "lucide-react";
 import { UploadDropzone } from "@/components/upload-dropzone";
+import type { RenewalContext } from "@/app/upload/page";
 
 interface Props {
   isDemo: boolean;
+  renewalContext?: RenewalContext | null;
 }
 
 /**
@@ -12,17 +15,24 @@ interface Props {
  * hidden once the dropzone enters loading state — during parsing the user
  * shouldn't see "Upload your current policy" next to the loader.
  *
- * The Back button now lives inside the upload card itself (rendered by
- * UploadDropzone) so the page header is compact and the visible card is
- * the single thing the eye lands on.
+ * When `renewalContext` is present (returning customer from /me), the
+ * heading is replaced by a personalised "Renewing your <vehicle>" banner.
+ * Otherwise the page renders the standard first-time copy.
  */
-export function UploadFlow({ isDemo }: Props) {
+export function UploadFlow({
+  isDemo,
+  renewalContext,
+}: Props) {
   const [busy, setBusy] = useState(false);
 
   return (
     <main className="min-h-screen px-4 py-8 max-w-2xl mx-auto">
-      {/* Heading + subtitle — hidden once parsing begins */}
-      {!busy && (
+      {/* Heading area — swapped for renewal banner when applicable.
+          Hidden once parsing begins so the loader stands alone. */}
+      {!busy && renewalContext && (
+        <RenewalBanner context={renewalContext} />
+      )}
+      {!busy && !renewalContext && (
         <div className="space-y-2 mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-brand-ink leading-tight">
             Upload your current policy
@@ -41,8 +51,51 @@ export function UploadFlow({ isDemo }: Props) {
       <UploadDropzone
         demoMode={isDemo}
         onBusyChange={setBusy}
-        backHref={isDemo ? "/investor" : "/"}
+        backHref={
+          renewalContext ? "/me" : isDemo ? "/investor" : "/"
+        }
       />
     </main>
+  );
+}
+
+function RenewalBanner({ context }: { context: RenewalContext }) {
+  const subline = [
+    context.registrationNumber,
+    context.rtoCity,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div className="mb-6 rounded-2xl border border-brand-electricblue/30 bg-gradient-to-br from-blue-50 to-white p-5 md:p-6">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue text-white flex items-center justify-center shadow-soft">
+          <RefreshCw className="w-5 h-5" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue">
+            Renewal review
+          </div>
+          <div className="font-bold text-brand-charcoal text-lg leading-tight mt-1 flex items-center gap-2 flex-wrap">
+            <Car className="w-4 h-4 text-brand-deepblue" />
+            Renewing your {context.vehicleLabel}
+          </div>
+          {subline && (
+            <div className="text-xs text-brand-slate mt-1 flex items-center gap-1.5">
+              {context.rtoCity && (
+                <MapPin className="w-3 h-3 text-brand-slate/70" />
+              )}
+              {subline}
+            </div>
+          )}
+          <p className="text-sm text-brand-slate mt-3 leading-relaxed">
+            Drop this year&rsquo;s renewal quote (or your latest policy) and
+            we&rsquo;ll review what&rsquo;s changed, what&rsquo;s missing, and
+            where the better offers are.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
