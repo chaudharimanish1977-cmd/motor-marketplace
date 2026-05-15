@@ -349,4 +349,6 @@ export interface RenewalSubscription {
   createdAt: string;
   /** When the cron last sent a reminder (so we don't double-fire). */
   lastNudgedAt?: string;
+  /** ISO timestamp when the customer clicked the one-click unsubscribe link. */
+  unsubscribedAt?: string;
 }
