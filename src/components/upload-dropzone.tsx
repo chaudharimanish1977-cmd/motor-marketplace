@@ -2,9 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Upload, FileText, RefreshCw } from "lucide-react";
+import { LoadingLink } from "@/components/loading-link";
+import {
+  ArrowLeft,
+  Upload,
+  FileText,
+  RefreshCw,
+  CheckCircle2,
+  Plus,
+  FolderOpen,
+  ArrowRight,
+} from "lucide-react";
 import clsx from "clsx";
 import { CircularJourneyLoader } from "@/components/circular-journey-loader";
 import { StopwatchChip } from "@/components/stopwatch-chip";
@@ -63,16 +72,32 @@ function TimerChip({ startedAt }: { startedAt: number }) {
   );
 }
 
+/**
+ * Result of a single successful parse — stored so the "Done" screen
+ * can offer a "View report" CTA pointing at the just-parsed document.
+ * Reset (along with `state`) when the user picks "Add another."
+ */
+interface ParsedDoc {
+  id: string;
+  vehicleLabel: string;
+  documentType: "policy" | "quote";
+  viewUrl: string;
+}
+
 export function UploadDropzone({
   demoMode = false,
   onBusyChange,
   backHref = "/",
 }: UploadDropzoneProps) {
-  const router = useRouter();
   const [state, setState] = useState<UploadState>("idle");
   const [error, setError] = useState<UploadError | null>(null);
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [lastDoc, setLastDoc] = useState<ParsedDoc | null>(null);
+  // How many parses have completed in this session. Surfaces a small
+  // "2 documents uploaded this session" counter on the Done screen so
+  // a returning quote-comparator user can see what's accumulating.
+  const [uploadCount, setUploadCount] = useState(0);
 
   // Refs so the async parse closure always reads the latest survey answers
   // and timestamp without needing them in the deps array.
@@ -147,15 +172,29 @@ export function UploadDropzone({
         }
 
         const data = await res.json();
-        setState("done");
 
-        // Redirect immediately — never gate on the survey. Pass whatever
-        // answers the user has set so far (zero to four). The report page
-        // simply doesn't render the chips when no answers are present.
+        // Compose the report URL once so "View report" picks it up below.
         const baseQuery = `from=${t0Ref.current}${demoMode ? "&demo=1" : ""}`;
         const ansQuery = answersToQuery(answersRef.current);
         const fullQuery = ansQuery ? `${baseQuery}&${ansQuery}` : baseQuery;
-        router.push(`/report/${data.id}?${fullQuery}`);
+        const parsed = data.parsed ?? {};
+        const documentType: "policy" | "quote" =
+          parsed.documentType === "quote" ? "quote" : "policy";
+        const vehicleLabel = parsed.vehicle
+          ? `${parsed.vehicle.make ?? ""} ${parsed.vehicle.model ?? ""}`.trim()
+          : "";
+
+        setLastDoc({
+          id: data.id,
+          vehicleLabel: vehicleLabel || "your document",
+          documentType,
+          viewUrl: `/report/${data.id}?${fullQuery}`,
+        });
+        setUploadCount((n) => n + 1);
+        setState("done");
+        // Reset survey answers so a second upload doesn't carry the first
+        // upload's chip selections into its report query.
+        answersRef.current = {};
       } catch (err) {
         setState("error");
         setError({
@@ -167,7 +206,7 @@ export function UploadDropzone({
         });
       }
     },
-    [router, demoMode]
+    [demoMode]
   );
 
   const handleAnswersChange = useCallback((a: MidLoadAnswers) => {
@@ -175,7 +214,8 @@ export function UploadDropzone({
   }, []);
 
   // Mirror the busy state to the parent so it can hide page chrome (heading,
-  // privacy footer) while the loader is running.
+  // privacy footer) while the loader or success card is showing. The done
+  // state keeps the chrome hidden so the success card stands alone.
   useEffect(() => {
     const busy =
       state === "uploading" || state === "parsing" || state === "done";
@@ -190,7 +230,8 @@ export function UploadDropzone({
     disabled: state === "uploading" || state === "parsing",
   });
 
-  if (state === "uploading" || state === "parsing" || state === "done") {
+  // ---------- Loader (uploading / parsing) ----------
+  if (state === "uploading" || state === "parsing") {
     return (
       <div className="space-y-4">
         <div className="relative rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6">
@@ -205,19 +246,88 @@ export function UploadDropzone({
             vehicleModel={preview?.model ?? undefined}
             stage="parsing"
             startedAt={startedAt ?? undefined}
-            primaryText={
-              state === "done"
-                ? "Loading your report"
-                : "Reading your policy"
-            }
-            etaText={
-              state !== "done" ? "Usually under 2 minutes" : undefined
-            }
+            primaryText="Reading your policy"
+            etaText="Usually under 2 minutes"
           />
         </div>
 
-        {/* Productive use of the parse wait — 4 quick taps, never blocks redirect */}
+        {/* Productive use of the parse wait — 4 quick taps */}
         <MidLoadQuestions onChange={handleAnswersChange} />
+      </div>
+    );
+  }
+
+  // ---------- Done — success card with two CTAs ----------
+  if (state === "done" && lastDoc) {
+    const isQuote = lastDoc.documentType === "quote";
+    return (
+      <div className="space-y-4">
+        <div className="relative rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6 md:p-8">
+          <BackChip href={backHref} />
+          <div className="flex flex-col items-center text-center pt-2">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
+              <CheckCircle2 className="w-7 h-7" />
+            </div>
+            <h2 className="mt-4 text-xl md:text-2xl font-bold text-brand-charcoal tracking-tight">
+              {isQuote ? "Quote analysed" : "Policy analysed"}
+            </h2>
+            <p className="mt-1.5 text-sm text-brand-slate">
+              <span className="font-semibold text-brand-charcoal">
+                {lastDoc.vehicleLabel}
+              </span>
+              {" · "}
+              {isQuote ? "Renewal quote" : "Insurance policy"}
+            </p>
+
+            <div className="mt-7 w-full max-w-md space-y-2">
+              <LoadingLink
+                href={lastDoc.viewUrl}
+                spinnerPosition="right"
+                className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-orange hover:brightness-110 text-white shadow-glow transition-all"
+              >
+                <span className="inline-flex items-center justify-center gap-1.5">
+                  View {isQuote ? "quote analysis" : "report"}
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </LoadingLink>
+              <button
+                type="button"
+                onClick={() => {
+                  // Soft reset for "Add another": clear per-upload state,
+                  // keep uploadCount so the counter accumulates across docs.
+                  setState("idle");
+                  setError(null);
+                  setPreview(null);
+                  setLastDoc(null);
+                  setStartedAt(null);
+                  // Survey answers already reset on parse success.
+                }}
+                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-deepblue text-brand-deepblue hover:bg-blue-50 transition-all"
+              >
+                <span className="inline-flex items-center justify-center gap-1.5">
+                  <Plus className="w-4 h-4" />
+                  Add another document
+                </span>
+              </button>
+              <LoadingLink
+                href="/me"
+                spinnerPosition="right"
+                className="block w-full py-2.5 text-center text-sm font-semibold text-brand-slate hover:text-brand-charcoal"
+              >
+                <span className="inline-flex items-center justify-center gap-1.5">
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  View all my documents
+                </span>
+              </LoadingLink>
+            </div>
+
+            {uploadCount > 1 && (
+              <p className="mt-5 text-[11px] text-brand-slate/80">
+                {uploadCount} documents uploaded this session
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
