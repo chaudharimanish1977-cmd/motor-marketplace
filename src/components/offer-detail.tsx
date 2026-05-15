@@ -56,7 +56,11 @@ const ADD_ON_CATALOG: { name: string; description: string; icon: LucideIcon }[] 
   { name: "Loss of Personal Belongings", description: "Reimburses items lost from a damaged vehicle.", icon: Briefcase },
 ];
 
-const MANDATORY_AMOUNT = 625; // PA owner + PA unnamed + LL driver
+// PA owner + PA unnamed + LL driver. Derived dynamically per-bid below from
+// `bid.totalPackage - basicOd - basicTp - addOnPremium` so the breakdown
+// reconciles to bid.grandTotal exactly; this constant is the fallback when
+// the math comes out non-positive for an unusually-shaped bid.
+const MANDATORY_FALLBACK = 625;
 
 export function OfferDetail({
   parsedPolicy,
@@ -81,18 +85,52 @@ export function OfferDetail({
     return map;
   }, [report]);
 
-  // Compute live price estimate using deterministic per-add-on prices.
-  // This is shown as the customer toggles; final price is re-quoted on Update.
+  // Derive the bid's actual mandatory amount from the bid itself so the
+  // breakdown reconciles to bid.grandTotal. Falls back to the constant if
+  // the math doesn't land on a positive number.
+  const mandatoryAmount = useMemo(() => {
+    const m = bid.totalPackage - bid.basicOd - bid.basicTp - bid.addOnPremium;
+    return m > 0 ? m : MANDATORY_FALLBACK;
+  }, [bid]);
+
+  // Scale per-add-on `estimateAddOnPremium()` values so the sum across the
+  // bid's originally-included add-ons equals the insurer's actual
+  // `bid.addOnPremium`. Without this, the customize toggles display prices
+  // that don't add up to the tier total the customer saw on the previous
+  // screen ("Pick your coverage level"), which reads as broken arithmetic.
+  // The same scale factor is used for add-ons toggled ON that weren't in
+  // the original tier (best approximation we have client-side until the
+  // re-quote endpoint runs).
+  const addOnScale = useMemo(() => {
+    const sumRawEstimates = bid.tierIncludedAddOns.reduce(
+      (s, n) => s + estimateAddOnPremium(n, rfq.desiredIdv),
+      0,
+    );
+    if (sumRawEstimates === 0) return 1;
+    return bid.addOnPremium / sumRawEstimates;
+  }, [bid, rfq]);
+
+  // Per-add-on display price (pre-GST). For tier-included add-ons these
+  // sum exactly to bid.addOnPremium. For add-ons not in the tier we apply
+  // the same scale factor — close enough that the live estimate stays
+  // close to what a re-quote would actually return.
+  const scaledAddOnEstimate = (name: string) =>
+    Math.round(estimateAddOnPremium(name, rfq.desiredIdv) * addOnScale);
+
+  // Compute live price estimate using the scaled per-add-on values + the
+  // bid's actual base components. With the customer's original selection,
+  // this resolves to bid.grandTotal exactly (rounded to 10). As toggles
+  // change, the total moves by the GST-inclusive value of each delta.
   const liveEstimate = useMemo(() => {
     const addOnsTotal = [...selectedAddOns].reduce(
-      (sum, name) => sum + estimateAddOnPremium(name, rfq.desiredIdv),
-      0
+      (sum, name) => sum + scaledAddOnEstimate(name),
+      0,
     );
-    const subtotal =
-      bid.basicOd + bid.basicTp + MANDATORY_AMOUNT + addOnsTotal;
+    const subtotal = bid.basicOd + bid.basicTp + mandatoryAmount + addOnsTotal;
     const gst = subtotal * 0.18;
     return Math.round((subtotal + gst) / 10) * 10;
-  }, [selectedAddOns, bid, rfq]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAddOns, bid, rfq, mandatoryAmount, addOnScale]);
 
   // Detect whether the customer has changed the selection from the bid's original
   const originalSet = useMemo(
@@ -274,7 +312,10 @@ export function OfferDetail({
                   const isSelected = selectedAddOns.has(cat.name);
                   const isInOriginal = originalSet.has(cat.name);
                   const rec = recommendationsByName.get(cat.name);
-                  const price = estimateAddOnPremium(cat.name, rfq.desiredIdv);
+                  // Scaled price so the sum of tier-included add-ons equals
+                  // bid.addOnPremium — matches what the customer saw on the
+                  // "Pick your coverage level" screen.
+                  const price = scaledAddOnEstimate(cat.name);
                   return (
                     <AddOnToggle
                       key={cat.name}
@@ -312,6 +353,8 @@ export function OfferDetail({
               bid={bid}
               parsedPolicy={parsedPolicy}
               rfq={rfq}
+              mandatoryAmount={mandatoryAmount}
+              addOnScale={addOnScale}
             />
 
             {/* Comparison vs current */}
@@ -319,6 +362,7 @@ export function OfferDetail({
               bid={bid}
               parsedPolicy={parsedPolicy}
               rfq={rfq}
+              addOnScale={addOnScale}
             />
 
             {/* What's covered */}
@@ -529,18 +573,24 @@ function PremiumBreakdownCard({
   bid,
   parsedPolicy,
   rfq,
+  mandatoryAmount,
+  addOnScale,
 }: {
   bid: Bid;
   parsedPolicy: ParsedPolicy;
   rfq: RFQ;
+  mandatoryAmount: number;
+  addOnScale: number;
 }) {
+  // Per-add-on cost = raw estimate * scale, so the row totals add up
+  // exactly to bid.addOnPremium — no more "Sum of estimates vs Insurer's
+  // actual" mismatch in the breakdown.
   const addOnRows = bid.tierIncludedAddOns.map((name) => ({
     name,
-    cost: estimateAddOnPremium(name, rfq.desiredIdv),
+    cost: Math.round(estimateAddOnPremium(name, rfq.desiredIdv) * addOnScale),
     isNew: !parsedPolicy.addOns.some((a) => a.name === name),
   }));
-  const addOnEstimated = addOnRows.reduce((s, a) => s + a.cost, 0);
-  const subtotal = bid.basicOd + bid.basicTp + MANDATORY_AMOUNT + bid.addOnPremium;
+  const subtotal = bid.basicOd + bid.basicTp + mandatoryAmount + bid.addOnPremium;
   const gst = bid.cgst + bid.sgst;
 
   return (
@@ -564,7 +614,7 @@ function PremiumBreakdownCard({
         <BreakdownLine
           label="Mandatory PA + LL"
           sub="Owner driver & paid driver protection"
-          amount={MANDATORY_AMOUNT}
+          amount={mandatoryAmount}
         />
 
         {addOnRows.length > 0 && (
@@ -580,10 +630,6 @@ function PremiumBreakdownCard({
                 badge={a.isNew ? "NEW" : undefined}
               />
             ))}
-            <div className="text-[11px] text-slate-400 italic mt-2">
-              Sum of estimates: {formatINR(addOnEstimated)} · Insurer&apos;s
-              actual: {formatINR(bid.addOnPremium)}
-            </div>
           </div>
         )}
 
@@ -621,11 +667,17 @@ function ComparisonCard({
   bid,
   parsedPolicy,
   rfq,
+  addOnScale,
 }: {
   bid: Bid;
   parsedPolicy: ParsedPolicy;
   rfq: RFQ;
+  addOnScale: number;
 }) {
+  // Scaled per-add-on cost so the comparison rows reconcile with the
+  // breakdown card above (same scaled values, sum to bid.addOnPremium).
+  const scaledCost = (name: string) =>
+    Math.round(estimateAddOnPremium(name, rfq.desiredIdv) * addOnScale);
   const currentPremium = parsedPolicy.premium.grandTotal;
   const currentOdAfterNcb = parsedPolicy.premium.totalOd;
   const currentTp = parsedPolicy.premium.totalTp;
@@ -653,7 +705,7 @@ function ComparisonCard({
     .map((a) => ({
       name: a.name,
       currentPrice: a.premium,
-      newPrice: estimateAddOnPremium(a.name, rfq.desiredIdv),
+      newPrice: scaledCost(a.name),
     }))
     // Only show items with a meaningful price change (>= ₹100 either way)
     .filter((a) => Math.abs(a.newPrice - a.currentPrice) >= 100);
@@ -745,7 +797,7 @@ function ComparisonCard({
               Newly added in this offer
             </div>
             {newAddOns.map((name) => {
-              const cost = estimateAddOnPremium(name, rfq.desiredIdv);
+              const cost = scaledCost(name);
               const withGst = Math.round(cost * 1.18);
               return (
                 <DeltaLine
