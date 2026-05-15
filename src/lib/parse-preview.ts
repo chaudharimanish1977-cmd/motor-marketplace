@@ -129,12 +129,38 @@ export function extractPreview(text: string): PreviewExtraction {
   }
 
   // ===== RTO (city) =====
+  // Common non-city words that follow "RTO" in policy/renewal-notice
+  // layouts and end up captured by the permissive regex below. Renewal
+  // notices in particular ("RTO   Occupants in Vehicle: 5...") have
+  // tripped this before — got rendered as "Curating for Occupants" on
+  // the loader. Filter at extraction so the bad value never propagates.
+  const NON_CITY_FIRST_TOKENS = new Set([
+    "OCCUPANTS",
+    "OWNER",
+    "INSURED",
+    "VEHICLE",
+    "DRIVER",
+    "PASSENGER",
+    "ADDRESS",
+    "CODE",
+    "OFFICE",
+    "JURISDICTION",
+    "NUMBER",
+    "REGISTRATION",
+    "CAPACITY",
+    "POLICY",
+  ]);
   let rto: string | null = null;
   // Try explicit "RTO XYZ" pattern first
   const rtoExplicit = text.match(/RTO[\s:]*([A-Z][A-Za-z\s]{2,30}?)(?:\s{2,}|\n|Vehicle|Registration|Chassis|Cubic|Year)/i);
   if (rtoExplicit) {
     const candidate = rtoExplicit[1].trim();
-    if (candidate.length > 1 && candidate.length < 35) {
+    const firstToken = (candidate.split(/\s+/)[0] ?? "").toUpperCase();
+    if (
+      candidate.length > 1 &&
+      candidate.length < 35 &&
+      !NON_CITY_FIRST_TOKENS.has(firstToken)
+    ) {
       rto = titleCase(candidate);
     }
   }

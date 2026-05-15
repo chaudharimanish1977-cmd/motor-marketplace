@@ -49,6 +49,12 @@ export function getNearbyAreas(city: string | undefined | null): string[] {
 
 /**
  * Returns up to 4 routes including the RTO city + nearest neighbours.
+ *
+ * Defensive: if the city isn't in our known list AND doesn't look like
+ * a real Indian city name, returns [] so the loader silently drops the
+ * "Curating for X" chip rather than rendering nonsense. This is the
+ * downstream safety net for parser misclassifications (e.g. a renewal
+ * notice that captured "Occupants" as the city).
  */
 export function formatLandmarks(
   city: string | null | undefined,
@@ -56,5 +62,39 @@ export function formatLandmarks(
 ): string[] {
   if (!city) return [];
   const nearby = getNearbyAreas(city);
-  return [city, ...nearby].slice(0, max);
+  // Known city — confident, include it + its neighbours.
+  if (nearby.length > 0) return [city, ...nearby].slice(0, max);
+  // Unknown city — only show it if it looks plausibly like a city
+  // name. Reject single-word matches that are obviously parser noise.
+  if (!looksLikeCity(city)) return [];
+  return [city].slice(0, max);
+}
+
+function looksLikeCity(city: string): boolean {
+  const trimmed = city.trim();
+  if (trimmed.length < 3 || trimmed.length > 30) return false;
+  // Cities don't contain digits in their names.
+  if (/\d/.test(trimmed)) return false;
+  // Reject obvious non-city words that have made it through upstream
+  // filters in the past.
+  const first = trimmed.split(/\s+/)[0].toLowerCase();
+  const NON_CITIES = new Set([
+    "occupants",
+    "owner",
+    "insured",
+    "vehicle",
+    "driver",
+    "passenger",
+    "address",
+    "code",
+    "office",
+    "jurisdiction",
+    "number",
+    "registration",
+    "capacity",
+    "policy",
+    "endorsement",
+    "proposal",
+  ]);
+  return !NON_CITIES.has(first);
 }
