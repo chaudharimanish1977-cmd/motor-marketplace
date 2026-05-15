@@ -44,7 +44,7 @@ interface Props {
 
 interface BidEvent {
   id: number;
-  type: "join" | "tier-start" | "bid" | "tier-winner" | "summary";
+  type: "join" | "activity" | "tier-start" | "bid" | "tier-winner" | "summary";
   insurer?: string;
   insurerSlug?: "bharatsure" | "vahana" | "suraksha";
   tier?: 1 | 2 | 3;
@@ -56,6 +56,28 @@ interface BidEvent {
   /** Seconds relative to phase start (waiting phase or reveal phase) */
   timestamp: number;
 }
+
+// Ambient "thinking" messages that play during the API wait so the
+// auction feed feels alive instead of dead. Cycled in order; each
+// emits ~every 1.7s starting after the join phase. Stops the moment
+// the API returns and the reveal phase takes over.
+const THINKING_MESSAGES: { insurerSlug: "bharatsure" | "vahana" | "suraksha"; verb: string }[] = [
+  { insurerSlug: "bharatsure", verb: "connected · pulling your profile" },
+  { insurerSlug: "vahana", verb: "connected · pulling your profile" },
+  { insurerSlug: "suraksha", verb: "connected · pulling your profile" },
+  { insurerSlug: "bharatsure", verb: "analysing claim history" },
+  { insurerSlug: "vahana", verb: "verifying NCB with prior insurer" },
+  { insurerSlug: "suraksha", verb: "computing IDV-anchored premium" },
+  { insurerSlug: "bharatsure", verb: "scoring add-on risk for your vehicle" },
+  { insurerSlug: "vahana", verb: "preparing Tier 1 quote (Basic)" },
+  { insurerSlug: "suraksha", verb: "preparing Tier 1 quote (Basic)" },
+  { insurerSlug: "bharatsure", verb: "preparing Tier 2 quote (Recommended)" },
+  { insurerSlug: "vahana", verb: "preparing Tier 2 quote (Recommended)" },
+  { insurerSlug: "suraksha", verb: "preparing Tier 3 quote (Super Cover)" },
+  { insurerSlug: "bharatsure", verb: "finalising tier ordering" },
+  { insurerSlug: "vahana", verb: "submitting bid to auction" },
+  { insurerSlug: "suraksha", verb: "submitting bid to auction" },
+];
 
 const TIER_LABELS = {
   1: "Basic Cover",
@@ -172,10 +194,11 @@ export function LiveBidFeed({
   onComplete,
 }: Props) {
   const [revealedIds, setRevealedIds] = useState<Set<number>>(new Set());
+  const [activityEvents, setActivityEvents] = useState<BidEvent[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const completedRef = useRef(false);
 
-  // Phase 1 events (waiting) — always the same; mount-time.
+  // Phase 1 events (waiting joins) — always the same; mount-time.
   const waitingEvents = useMemo(() => waitingPhaseEvents(), []);
 
   // Phase 2 events (reveal) — generated once realTiers arrives.
@@ -192,6 +215,43 @@ export function LiveBidFeed({
     );
     return () => timeouts.forEach(clearTimeout);
   }, [waitingEvents]);
+
+  // Ambient "thinking" stream — starts ~2.5s after mount (after the 3
+  // insurer-join events) and emits a new activity row every 1.7s until
+  // the API returns. Cycles through THINKING_MESSAGES, looping if the
+  // API takes longer than expected. Keeps the feed feeling alive while
+  // /api/bid is in flight (typically 18-25s).
+  useEffect(() => {
+    if (apiReturned) return;
+    let cancelled = false;
+    let idx = 0;
+    let nextId = 1000; // distinct from waiting / reveal event ids
+
+    const emit = () => {
+      if (cancelled) return;
+      const msg = THINKING_MESSAGES[idx % THINKING_MESSAGES.length];
+      idx += 1;
+      const event: BidEvent = {
+        id: nextId++,
+        type: "activity",
+        insurerSlug: msg.insurerSlug,
+        insurer: INSURER_DISPLAY[msg.insurerSlug],
+        message: msg.verb,
+        timestamp: 0,
+      };
+      setActivityEvents((prev) => [...prev, event]);
+      setRevealedIds((prev) => new Set(prev).add(event.id));
+    };
+
+    // First activity lands shortly after the last insurer-join.
+    const firstTimer = setTimeout(emit, 2500);
+    const interval = setInterval(emit, 1700);
+    return () => {
+      cancelled = true;
+      clearTimeout(firstTimer);
+      clearInterval(interval);
+    };
+  }, [apiReturned]);
 
   // When apiReturned + realTiers both ready, build reveal events.
   useEffect(() => {
@@ -246,8 +306,8 @@ export function LiveBidFeed({
   }, [revealEvents, revealedIds]);
 
   const allEvents = useMemo(
-    () => [...waitingEvents, ...(revealEvents ?? [])],
-    [waitingEvents, revealEvents],
+    () => [...waitingEvents, ...activityEvents, ...(revealEvents ?? [])],
+    [waitingEvents, activityEvents, revealEvents],
   );
 
   return (
@@ -338,6 +398,21 @@ function EventRow({ event }: { event: BidEvent }) {
           </span>{" "}
           joined the auction
         </span>
+      </div>
+    );
+  }
+
+  if (event.type === "activity") {
+    return (
+      <div className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg text-xs animate-in-bid">
+        <InsurerLogo insurerName={event.insurer ?? ""} size={18} />
+        <span className="text-brand-slate flex-1">
+          <span className="font-semibold text-brand-charcoal">
+            {event.insurer}
+          </span>{" "}
+          {event.message}
+        </span>
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-orange/70 animate-pulse-soft shrink-0" />
       </div>
     );
   }
