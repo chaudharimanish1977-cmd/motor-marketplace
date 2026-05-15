@@ -388,7 +388,8 @@ function renderReminderHtml({
     <p style="margin:0 0 16px;"><a href="${escape(reviewUrl)}" style="color:#0A2463;">${escape(reviewUrl)}</a></p>
     <p style="margin:0 0 16px;">Takes under 2 minutes. No sales calls.</p>
     <p style="margin:24px 0 0;">&mdash; Aryan</p>
-    <p style="margin:32px 0 0;color:#9aa0a6;font-size:13px;line-height:1.55;">PS &mdash; If you&rsquo;d rather not get these, <a href="${escape(unsubscribeUrl)}" style="color:#9aa0a6;">click here</a> and I&rsquo;ll stop.</p>
+    <p style="margin:32px 0 0;color:#9aa0a6;font-size:13px;line-height:1.55;">PS &mdash; If you&rsquo;re reading this in Promotions or Spam, drag it to Primary or add <strong style="color:#9aa0a6;">hello@rightoffer.in</strong> to your contacts so future reminders land in your inbox.</p>
+    <p style="margin:14px 0 0;color:#9aa0a6;font-size:13px;line-height:1.55;">PPS &mdash; If you&rsquo;d rather not get these at all, <a href="${escape(unsubscribeUrl)}" style="color:#9aa0a6;">click here</a> and I&rsquo;ll stop.</p>
   </div>
 </body></html>`;
 }
@@ -415,6 +416,8 @@ function renderReminderText({
     ``,
     `— Aryan`,
     ``,
-    `PS — If you'd rather not get these, click here and I'll stop: ${unsubscribeUrl}`,
+    `PS — If you're reading this in Promotions or Spam, drag it to Primary or add hello@rightoffer.in to your contacts so future reminders land in your inbox.`,
+    ``,
+    `PPS — If you'd rather not get these at all, click here and I'll stop: ${unsubscribeUrl}`,
   ].join("\n");
 }

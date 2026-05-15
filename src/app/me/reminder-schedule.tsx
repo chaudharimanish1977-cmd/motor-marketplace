@@ -167,18 +167,26 @@ export function ReminderSchedule({
           })}
         </ul>
         <ChannelsLine channels={channels} />
-        {testFeedback && (
-          <p
-            className={clsx(
-              "text-[11px] leading-relaxed",
-              testFeedback.kind === "ok"
-                ? "text-emerald-700"
-                : "text-red-600"
-            )}
-          >
-            {testFeedback.msg}
-          </p>
-        )}
+        {testFeedback &&
+          (testFeedback.kind === "ok" ? (
+            <div className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/60 p-2.5 space-y-1">
+              <p className="text-[11px] text-emerald-800 font-semibold leading-relaxed">
+                {testFeedback.msg}
+              </p>
+              <p className="text-[10px] text-emerald-900/80 leading-relaxed">
+                Can&rsquo;t find it? Check{" "}
+                <strong>Promotions</strong>, <strong>Updates</strong>, or{" "}
+                <strong>Spam</strong>. If it&rsquo;s there, drag it to your
+                Primary inbox (or add{" "}
+                <span className="font-mono">hello@rightoffer.in</span> to your
+                contacts) so future reminders come straight to your inbox.
+              </p>
+            </div>
+          ) : (
+            <p className="text-[11px] text-red-600 leading-relaxed">
+              {testFeedback.msg}
+            </p>
+          ))}
       </div>
     );
   }

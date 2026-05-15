@@ -367,6 +367,17 @@ function RenewalOptInCard({
               — by email and WhatsApp.{" "}
               <NoCallBadge />
             </p>
+            <p className="text-[11px] md:text-xs text-brand-slate/80 dark:text-slate-300 mt-2.5 leading-relaxed">
+              <span className="font-semibold text-brand-charcoal dark:text-white">
+                Tip:
+              </span>{" "}
+              add{" "}
+              <span className="font-mono text-brand-charcoal dark:text-white">
+                hello@rightoffer.in
+              </span>{" "}
+              to your contacts so the first reminder lands in your inbox
+              (not Promotions or Spam).
+            </p>
           </div>
         </div>
       </div>
