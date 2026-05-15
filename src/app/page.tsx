@@ -3,6 +3,7 @@ import { ShieldCheck, Sparkles, ArrowRight, Eye } from "lucide-react";
 import { TestimonialCarousel } from "@/components/testimonial-carousel";
 import { RightOfferLogo } from "@/components/logo";
 import { BrandBlobs } from "@/components/brand-blobs";
+import { LoadingLink } from "@/components/loading-link";
 
 // Header (logo + theme toggle) is mounted globally from layout.tsx via
 // <SiteHeader/>. The page just renders the hero + sections + footer.
@@ -44,13 +45,13 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col items-center gap-2.5">
-            <Link
+            <LoadingLink
               href="/upload"
               className="inline-flex items-center justify-center px-9 py-4 bg-brand-orange hover:brightness-110 text-white font-semibold text-lg rounded-2xl shadow-glow transition-all hover:scale-[1.03]"
             >
               Get my free policy review
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
+            </LoadingLink>
             <p className="text-xs text-brand-slate">
               Free · No spam · Independent advice
             </p>

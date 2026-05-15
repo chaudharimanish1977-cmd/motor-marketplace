@@ -11,6 +11,7 @@ import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 import { RenewalPreview } from "@/components/renewal-preview";
 import { BrandBlobs } from "@/components/brand-blobs";
+import { LoadingLink } from "@/components/loading-link";
 
 // Always re-fetch personas at request time so newly-parsed policies appear
 // immediately. Without this, the page would snapshot the DB at build time.
@@ -80,13 +81,13 @@ export default async function InvestorHome() {
 
         {/* Primary CTA */}
         <div className="pt-2 flex flex-col items-center gap-3">
-          <Link
+          <LoadingLink
             href="/upload?demo=1"
             className="inline-flex items-center justify-center px-9 py-4 bg-brand-orange hover:brightness-110 text-white font-semibold text-lg rounded-2xl shadow-glow transition-all hover:scale-[1.03]"
           >
             Get My Free Policy Review
             <ArrowRight className="w-5 h-5 ml-2" />
-          </Link>
+          </LoadingLink>
           <p className="text-sm text-brand-slate">
             Free • No spam • Your policy data stays private
           </p>
@@ -193,7 +194,7 @@ function PersonaCard({ parsed, report }: DemoPersona) {
       : "Gap-rich profile";
 
   return (
-    <Link
+    <LoadingLink
       href={`/report/${parsed.id}?demo=1`}
       className="block rounded-2xl bg-white border border-brand-light-gray hover:border-brand-electricblue/40 shadow-soft hover:shadow-elevated transition-all group overflow-hidden"
     >
@@ -234,7 +235,7 @@ function PersonaCard({ parsed, report }: DemoPersona) {
           </div>
         </div>
       </div>
-    </Link>
+    </LoadingLink>
   );
 }
 
