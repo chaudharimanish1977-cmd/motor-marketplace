@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { LoadingLink } from "@/components/loading-link";
+import { RcpSection } from "@/components/rcp-section";
+import { computeRCP } from "@/lib/recommended-coverage-profile";
 import {
   ShieldCheck,
   Shield,
@@ -128,6 +130,15 @@ export function ReportDisplay({
   // enough to surface a clean first name from every policy PDF, and a wrong
   // name reads worse than a friendly placeholder.
   const greetingName = "Buddy";
+
+  // RCP — derived from the report's per-add-on relevance tagging.
+  // First-class benchmark for the comparator/auction flows downstream
+  // (Right Offer rule). Surface it as a dedicated section so customers
+  // see the reasoning, not just the verdict.
+  const rcp = computeRCP(parsedPolicy, report);
+  const rcpVehicleLabel =
+    `${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`.trim() ||
+    "your car";
 
   const vehicleAge =
     new Date().getFullYear() - parsedPolicy.vehicle.yearOfManufacture;
@@ -267,6 +278,12 @@ export function ReportDisplay({
           initialProfile={drivingProfile}
           reportId={parsedPolicy.id}
         />
+
+        {/* RCP — The Right Offer profile for this car. Sets the
+         *  recommendation framework that the gaps + comparator are
+         *  measured against. Lives right after the verdict (score) so
+         *  the customer reads "score → why → what to fix" in order. */}
+        <RcpSection rcp={rcp} vehicleLabel={rcpVehicleLabel} />
 
         {/* §1 KEY GAPS — full width, hero card. This is "what's at risk" and
          *  matches the customer's emotional reason for reading the report. */}
