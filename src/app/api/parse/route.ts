@@ -112,6 +112,11 @@ export async function POST(request: NextRequest) {
       };
     }
 
+    // Stamp documentType from the upstream classifier. The portal
+    // bifurcates Active / Quotes / Expired off this field, and the
+    // renewal-reminder cron skips quote-typed records entirely.
+    parsed.documentType = classification.documentType;
+
     const savedPolicy = await appendRow<ParsedPolicy>(
       Tables.PARSED_POLICIES,
       parsed

@@ -91,6 +91,20 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Quote-typed documents are pre-purchase quotations / renewal
+      // notices — coverage isn't bound yet. "Your renewal is in 30
+      // days" makes no sense for a quote the customer might not even
+      // accept. Skip entirely. (Quote-typed subscriptions can exist
+      // for legacy data; the portal now hides the toggle for them.)
+      if ((policy.documentType ?? "policy") === "quote") {
+        skippedRecords.push({
+          subscriptionId: sub.id,
+          email: sub.customerEmail,
+          reason: "linked document is a quote, not a policy",
+        });
+        continue;
+      }
+
       const daysUntilExpiry = daysBetween(now, sub.policyExpiryDate);
       if (daysUntilExpiry < 0) {
         // Already expired — no pre-renewal nudges. (Post-expiry recovery

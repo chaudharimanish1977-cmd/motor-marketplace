@@ -11,6 +11,17 @@ export interface ParsedPolicy {
   id: string;
   uploadedAt: string; // ISO timestamp
 
+  /**
+   * What kind of document the customer uploaded.
+   *   "policy" = a bound insurance policy (active or expired).
+   *   "quote"  = a renewal notice / quotation / proposal — not yet bound.
+   *
+   * Classifier-supplied at parse time. Optional for backward compat —
+   * legacy rows without this field are treated as "policy" everywhere
+   * we check.
+   */
+  documentType?: "policy" | "quote";
+
   // Policy meta
   policyNumber: string;
   insurerName: string;

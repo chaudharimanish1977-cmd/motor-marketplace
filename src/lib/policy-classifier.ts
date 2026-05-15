@@ -27,40 +27,58 @@ export type PolicyCategory =
   | "not-a-policy"
   | "unknown";
 
+export type DocumentType = "policy" | "quote";
+
 export interface ClassificationResult {
   category: PolicyCategory;
+  /**
+   * Distinguishes a bound policy from a not-yet-bound quote / renewal
+   * notice. Orthogonal to `category` (both policies and quotes can be
+   * "private-car"). Defaults to "policy" if the classifier can't tell.
+   */
+  documentType: DocumentType;
   confidence: "high" | "medium" | "low";
   vehicleClass?: string;
   reasoning: string;
 }
 
-const SYSTEM_PROMPT = `You classify Indian insurance policy documents.
+const SYSTEM_PROMPT = `You classify Indian insurance policy documents on TWO axes.
 
 Analyse the document text and respond with JSON only — no markdown, no commentary, no code fences:
 
 {
   "category": "private-car" | "two-wheeler" | "commercial-vehicle" | "non-motor" | "not-a-policy" | "unknown",
+  "documentType": "policy" | "quote",
   "confidence": "high" | "medium" | "low",
   "vehicleClass": "<short label if motor — e.g. 'Hatchback', 'Sedan', 'SUV', 'Scooter', 'Goods Carrier'>",
-  "reasoning": "<one short sentence>"
+  "reasoning": "<one short sentence covering BOTH axes>"
 }
 
-Definitions:
+Axis 1 — category (what kind of insurance):
 - private-car: Private passenger car (sedan, hatchback, SUV, MPV, station wagon) for personal use. Must NOT be commercial/taxi/cab.
 - two-wheeler: Motorcycle, scooter, moped, or any 2-wheeled motor vehicle.
 - commercial-vehicle: Goods carrier (truck, tempo), taxi/cab, autorickshaw, bus, or any vehicle used for hire/reward/goods carriage.
 - non-motor: Health, life, property, travel, marine, fire, or any non-vehicle insurance.
-- not-a-policy: PDF is not an insurance document at all (could be a receipt, invoice, ID card, marketing PDF, etc.).
-- unknown: Genuinely cannot determine from the text.
+- not-a-policy: PDF is not an insurance document at all (receipt, invoice, ID card, marketing PDF, etc.).
+- unknown: Genuinely cannot determine.
 
-Watch for these signals:
-- "Private Car" / "Pvt Car" / "Passenger Car" in policy type → private-car
-- "Two Wheeler" / "Scooter" / "Motorcycle" in policy type → two-wheeler
-- "Commercial Vehicle" / "GCV" / "PCV" / "Taxi" / "Cab" / "Auto Rickshaw" / "Goods Carrying" / "Passenger Carrying" in policy type → commercial-vehicle
-- "Health" / "Mediclaim" / "Hospital" / "Critical Illness" / "Life" / "Term" / "Property" / "Home" → non-motor
-- No insurer name, no policy number, no premium → likely not-a-policy
+Axis 2 — documentType (is it a bound policy, or just a quote/notice):
+- policy: A bound, in-force or expired insurance policy. The customer has paid and the contract is live (or was live). Signals:
+    "Certificate of Insurance" / "Policy Schedule" / "Policy Document"
+    A real policy number (e.g. "Policy No: 25001234..." — not "Quote No" / "Proposal No")
+    "Period of Insurance" / "Policy Period" with definite past or current dates
+    Insurer signature block / regulatory cert (IRDAI registration etc.)
+    "Stamp Duty Paid" / "Premium Received"
+- quote: A pre-purchase quotation, renewal notice, or proposal — coverage NOT yet bound. Signals:
+    "Renewal Notice" / "Renewal Quotation" / "Quotation" / "Quote" / "Proposal" in the header
+    "Quote No" / "Proposal No" instead of policy number
+    "Proposed Premium" / "Premium Payable" / "Pay to renew" / "Renew Now"
+    Validity dates ("Quote valid till") rather than an active coverage period
+    Absence of "Premium Received" / "Stamp Duty Paid"
 
-Be decisive. Default to "unknown" only when truly ambiguous.`;
+Default to "policy" if signals are ambiguous (most uploads ARE policies; false-quote misclassification hurts more than false-policy).
+
+Be decisive on category. Default to "unknown" only when category is truly ambiguous.`;
 
 export async function classifyPolicy(
   text: string
@@ -71,6 +89,7 @@ export async function classifyPolicy(
     // on infra problems). The downstream extractor will catch garbage too.
     return {
       category: "unknown",
+      documentType: "policy",
       confidence: "low",
       reasoning: "Classifier unavailable",
     };
@@ -102,6 +121,10 @@ export async function classifyPolicy(
     const parsed = extractJSON<ClassificationResult>(textBlock.text);
     return {
       category: parsed.category ?? "unknown",
+      // Default to "policy" if the model didn't emit the field. Safer
+      // default — most uploads are policies, and a false-quote tag would
+      // remove the doc from the Active section incorrectly.
+      documentType: parsed.documentType === "quote" ? "quote" : "policy",
       confidence: parsed.confidence ?? "low",
       vehicleClass: parsed.vehicleClass,
       reasoning: parsed.reasoning ?? "",
@@ -110,6 +133,7 @@ export async function classifyPolicy(
     console.error("[classifyPolicy] Failed:", err);
     return {
       category: "unknown",
+      documentType: "policy",
       confidence: "low",
       reasoning:
         err instanceof Error ? err.message : "Classifier call failed",

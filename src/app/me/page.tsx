@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Car,
@@ -6,9 +5,10 @@ import {
   BellOff,
   Calendar,
   FileText,
-  LogOut,
   Upload,
   ShieldCheck,
+  Receipt,
+  Archive,
 } from "lucide-react";
 import { getSession } from "@/lib/session";
 import { readTable, Tables } from "@/lib/db";
@@ -32,11 +32,14 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
+type CardBucket = "active" | "quote" | "expired";
+
 interface PortalPolicy {
   parsed: ParsedPolicy;
   report: PolicyReport | null;
   subscription: RenewalSubscription | null;
   daysUntilExpiry: number;
+  bucket: CardBucket;
   /**
    * How many earlier parses are silently grouped under this card.
    * Currently hidden from the UI — the count is reserved for a
@@ -64,6 +67,16 @@ export default async function PortalHome() {
   if (!sessionEmail) redirect("/me/login");
 
   const policies = await loadPoliciesFor(sessionEmail);
+
+  const active = policies.filter((p) => p.bucket === "active");
+  const quotes = policies.filter((p) => p.bucket === "quote");
+  const expired = policies.filter((p) => p.bucket === "expired");
+
+  // The "Get a fresh review" CTA pre-fills the upload from the most
+  // recent ACTIVE policy. Falling back to expired (so a customer whose
+  // policy just lapsed still gets a personalised renewal) — never a
+  // quote (it isn't a policy yet, no point renewing it).
+  const renewalSeed = active[0]?.parsed.id ?? expired[0]?.parsed.id ?? null;
 
   return (
     <>
@@ -93,17 +106,42 @@ export default async function PortalHome() {
           {policies.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="space-y-4">
-              {policies.map((p) => (
-                <PolicyCard key={p.parsed.id} policy={p} />
-              ))}
+            <div className="space-y-8">
+              <Section
+                title="Active policies"
+                subtitle="Currently in force. Renewal reminders fire from these."
+                icon={ShieldCheck}
+                tone="success"
+                emptyHint="No active policies — upload your current policy below to add one."
+                policies={active}
+              />
+              {quotes.length > 0 && (
+                <Section
+                  title="Quotes & renewal notices"
+                  subtitle="Not yet bound. No reminders fire from these — once you receive the bound policy, upload that and it'll move to Active."
+                  icon={Receipt}
+                  tone="info"
+                  policies={quotes}
+                />
+              )}
+              {expired.length > 0 && (
+                <Section
+                  title="Expired"
+                  subtitle="Past policies, kept here for reference. Reports remain viewable."
+                  icon={Archive}
+                  tone="muted"
+                  policies={expired}
+                />
+              )}
             </div>
           )}
 
           {/* Footer CTA — always visible, encourages renewal upload.
-              When the customer has at least one prior policy, we pass it
-              as `?renewal=<id>` so the upload page can welcome them by
-              vehicle and link the new parse back to their account. */}
+              When the customer has at least one prior ACTIVE policy, we
+              pass it as `?renewal=<id>` so the upload page can welcome
+              them by vehicle and link the new parse back to their
+              account. Quotes are excluded from this seed — a quote is
+              not "the policy you're renewing." */}
           <div className="mt-10 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue text-white p-6 md:p-8 text-center shadow-soft">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight">
               Up for renewal soon?
@@ -113,11 +151,7 @@ export default async function PortalHome() {
               year&rsquo;s coverage — under 2 minutes, completely free.
             </p>
             <LoadingLink
-              href={
-                policies.length > 0
-                  ? `/upload?renewal=${policies[0].parsed.id}`
-                  : "/upload"
-              }
+              href={renewalSeed ? `/upload?renewal=${renewalSeed}` : "/upload"}
               spinnerPosition="right"
               className="mt-5 inline-flex items-center justify-center gap-2 px-7 py-3 bg-brand-orange hover:brightness-110 text-white font-semibold rounded-2xl shadow-glow transition-all"
             >
@@ -209,20 +243,38 @@ async function loadPoliciesFor(email: string): Promise<PortalPolicy[]> {
       (expiryMs - now) / (24 * 60 * 60 * 1000)
     );
 
+    // Bucket by document type first, then by date:
+    //   quote   -> always "quote" (regardless of expiry — a quote's
+    //              date is the proposed coverage window, not a binding)
+    //   policy  -> "active" if odPeriodEnd >= today, else "expired"
+    const docType: "policy" | "quote" =
+      canonical.documentType ?? "policy";
+    const bucket: CardBucket =
+      docType === "quote"
+        ? "quote"
+        : daysUntilExpiry < 0
+          ? "expired"
+          : "active";
+
     return {
       parsed: canonical,
       report: reportByPolicy.get(canonical.id) ?? null,
       subscription: exposedSub,
       daysUntilExpiry,
+      bucket,
       earlierParsesCount: group.length - 1,
     };
   });
 
-  // 3. Soonest-to-expire first, expired pushed to the bottom.
+  // 3. Within each bucket, sort sensibly:
+  //    active   -> soonest-to-expire first
+  //    quote    -> soonest-to-expire first (quote's coverage start date)
+  //    expired  -> most-recently-expired first
   cards.sort((a, b) => {
-    const aExpired = a.daysUntilExpiry < 0;
-    const bExpired = b.daysUntilExpiry < 0;
-    if (aExpired !== bExpired) return aExpired ? 1 : -1;
+    if (a.bucket !== b.bucket) return 0; // bucketing happens at render
+    if (a.bucket === "expired") {
+      return b.daysUntilExpiry - a.daysUntilExpiry;
+    }
     return a.daysUntilExpiry - b.daysUntilExpiry;
   });
 
@@ -258,23 +310,90 @@ function EmptyState() {
   );
 }
 
-function PolicyCard({ policy }: { policy: PortalPolicy }) {
-  const { parsed, report, subscription, daysUntilExpiry } = policy;
-  const vehicleLabel = `${parsed.vehicle.make} ${parsed.vehicle.model}`.trim();
-  const isExpired = daysUntilExpiry < 0;
-  const isSoon = !isExpired && daysUntilExpiry <= 60;
+function Section({
+  title,
+  subtitle,
+  icon: Icon,
+  tone,
+  emptyHint,
+  policies,
+}: {
+  title: string;
+  subtitle: string;
+  icon: typeof ShieldCheck;
+  tone: "success" | "info" | "muted";
+  emptyHint?: string;
+  policies: PortalPolicy[];
+}) {
+  const toneCls =
+    tone === "success"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+      : tone === "info"
+        ? "bg-blue-50 text-brand-deepblue border-blue-100"
+        : "bg-slate-50 text-brand-slate border-brand-light-gray";
 
-  const statusPill = isExpired
-    ? { label: "Expired", cls: "bg-rose-50 text-rose-700 border-rose-100" }
-    : isSoon
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-1.5">
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] rounded-full border ${toneCls}`}
+        >
+          <Icon className="w-3 h-3" />
+          {title}
+        </span>
+        <span className="text-[10px] text-brand-slate tabular-nums">
+          {policies.length}
+        </span>
+      </div>
+      <p className="text-xs text-brand-slate mb-3 leading-relaxed">
+        {subtitle}
+      </p>
+      {policies.length === 0 && emptyHint ? (
+        <div className="bg-white border border-dashed border-brand-light-gray rounded-2xl p-5 text-center text-xs text-brand-slate">
+          {emptyHint}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {policies.map((p) => (
+            <PolicyCard key={p.parsed.id} policy={p} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PolicyCard({ policy }: { policy: PortalPolicy }) {
+  const { parsed, report, subscription, daysUntilExpiry, bucket } = policy;
+  const vehicleLabel = `${parsed.vehicle.make} ${parsed.vehicle.model}`.trim();
+  const isQuote = bucket === "quote";
+  const isExpired = bucket === "expired";
+  const isSoon = bucket === "active" && daysUntilExpiry <= 60;
+
+  // Bucket-driven status pill. Quotes are distinct from both active
+  // and expired — they aren't bound, so neither "active" nor
+  // "expired" applies semantically.
+  const statusPill = isQuote
+    ? { label: "Quote", cls: "bg-blue-50 text-brand-deepblue border-blue-100" }
+    : isExpired
       ? {
-          label: `${daysUntilExpiry}d to expiry`,
-          cls: "bg-amber-50 text-amber-700 border-amber-100",
+          label: "Expired",
+          cls: "bg-rose-50 text-rose-700 border-rose-100",
         }
-      : {
-          label: "Active",
-          cls: "bg-emerald-50 text-emerald-700 border-emerald-100",
-        };
+      : isSoon
+        ? {
+            label: `${daysUntilExpiry}d to expiry`,
+            cls: "bg-amber-50 text-amber-700 border-amber-100",
+          }
+        : {
+            label: "Active",
+            cls: "bg-emerald-50 text-emerald-700 border-emerald-100",
+          };
+
+  // The "Expires" fact reads weirdly for quotes (the date is when
+  // coverage *would start* if you bound it, not an expiry). Rebrand
+  // the label per bucket.
+  const dateFactLabel = isQuote ? "Period ends" : "Expires";
 
   return (
     <div className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
@@ -301,7 +420,7 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
         <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-brand-light-gray">
           <Fact
             icon={Calendar}
-            label="Expires"
+            label={dateFactLabel}
             value={formatDateShort(parsed.odPeriodEnd)}
           />
           <Fact icon={ShieldCheck} label="IDV" value={formatINR(parsed.idv)} />
@@ -313,9 +432,19 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
         </div>
 
         <div className="mt-4 pt-4 border-t border-brand-light-gray space-y-3">
-          {/* Reminder status pill */}
+          {/* Reminder status row — three distinct messages by bucket */}
           <div className="flex items-center gap-2 text-xs">
-            {subscription ? (
+            {isQuote ? (
+              <span className="inline-flex items-center gap-1.5 text-brand-slate">
+                <BellOff className="w-3.5 h-3.5" />
+                Reminders don&rsquo;t apply to quotes
+              </span>
+            ) : isExpired ? (
+              <span className="inline-flex items-center gap-1.5 text-brand-slate">
+                <BellOff className="w-3.5 h-3.5" />
+                Policy expired — reminders not active
+              </span>
+            ) : subscription ? (
               subscription.status === "active" ? (
                 <span className="inline-flex items-center gap-1.5 text-emerald-700">
                   <Bell className="w-3.5 h-3.5" />
@@ -335,8 +464,12 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
             )}
           </div>
 
-          {/* Schedule summary + inline editor (only when a subscription exists) */}
-          {subscription && (
+          {/* Schedule summary + inline editor — only for ACTIVE-bucket
+              cards. Quotes don't drive reminders (no semantic meaning
+              for "60 days before quote expiry"); expired policies are
+              past the renewal window. Both hide the controls to keep
+              the card focused on what's relevant: View report. */}
+          {bucket === "active" && subscription && (
             <ReminderSchedule
               subscriptionId={subscription.id}
               policyExpiryDate={subscription.policyExpiryDate}
@@ -349,7 +482,7 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
 
           {/* Action row */}
           <div className="flex items-center justify-end gap-2 flex-wrap">
-            {subscription && (
+            {bucket === "active" && subscription && (
               <ReminderToggle
                 subscriptionId={subscription.id}
                 initialStatus={subscription.status}
