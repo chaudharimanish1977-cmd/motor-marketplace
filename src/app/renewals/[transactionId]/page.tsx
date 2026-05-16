@@ -98,7 +98,7 @@ export default async function RenewalsPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <Link
             href={`/policy/${transaction.id}`}
-            className="inline-flex items-center gap-1 text-sm text-brand-slate hover:text-brand-deepblue"
+            className="inline-flex items-center gap-1 text-sm text-brand-slate hover:text-brand-navy"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to policy
@@ -109,7 +109,7 @@ export default async function RenewalsPage({ params }: PageProps) {
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Hero */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-deepblue bg-blue-100 rounded-full">
+          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-navy bg-blue-100 rounded-full">
             <CalendarClock className="w-3.5 h-3.5" />
             Your Renewal Journey
           </div>
@@ -223,7 +223,7 @@ function KeyDate({
   const colors = {
     emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
     amber: "border-amber-200 bg-amber-50 text-amber-700",
-    blue: "border-blue-200 bg-blue-50 text-brand-deepblue",
+    blue: "border-blue-200 bg-blue-50 text-brand-navy",
   }[highlight];
   return (
     <div className={`rounded-xl border-2 p-4 text-center ${colors}`}>

@@ -36,17 +36,17 @@ export function ClaimSimulator({ gapTitle, idv, vehicleAge }: Props) {
   return (
     <div className="mt-3">
       {/* Always-visible headline: the cost story in one line */}
-      <div className="rounded-xl border-2 border-brand-orange/30 bg-gradient-to-br from-orange-50 to-white p-3.5">
+      <div className="rounded-xl border-2 border-brand-coral/30 bg-gradient-to-br from-orange-50 to-white p-3.5">
         <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-xl bg-brand-orange/15 flex items-center justify-center shrink-0">
-            <Wallet className="w-5 h-5 text-brand-orange" />
+          <div className="w-9 h-9 rounded-xl bg-brand-olive/15 flex items-center justify-center shrink-0">
+            <Wallet className="w-5 h-5 text-brand-coral" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-orange mb-0.5">
+            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-coral mb-0.5">
               What this could cost you
             </div>
             <div className="text-sm text-brand-charcoal leading-snug">
-              <span className="font-bold tabular-nums text-brand-orange text-base">
+              <span className="font-bold tabular-nums text-brand-coral text-base">
                 {formatINR(outOfPocketDelta)}
               </span>{" "}
               out of your pocket if{" "}
@@ -73,7 +73,7 @@ export function ClaimSimulator({ gapTitle, idv, vehicleAge }: Props) {
         </div>
 
         {showDetail && (
-          <div className="mt-3 pt-3 border-t border-brand-orange/20 grid grid-cols-2 gap-2">
+          <div className="mt-3 pt-3 border-t border-brand-coral/20 grid grid-cols-2 gap-2">
             <SideCard
               title="Without"
               subtitle="Your current policy"

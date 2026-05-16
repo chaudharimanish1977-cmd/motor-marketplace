@@ -357,7 +357,7 @@ export function UploadDropzone({
               <LoadingLink
                 href="/reports"
                 spinnerPosition="right"
-                className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-orange hover:brightness-110 text-white shadow-glow transition-all"
+                className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-olive hover:brightness-110 text-white shadow-glow transition-all"
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
                   See {isMulti ? "my reports" : "my report"}
@@ -367,7 +367,7 @@ export function UploadDropzone({
               <button
                 type="button"
                 onClick={resetForNext}
-                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-deepblue text-brand-deepblue hover:bg-blue-50 transition-all"
+                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-navy text-brand-navy hover:bg-blue-50 transition-all"
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
                   <Plus className="w-4 h-4" />
@@ -390,8 +390,8 @@ export function UploadDropzone({
           className={clsx(
             "border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all bg-white",
             isDragActive
-              ? "border-brand-deepblue bg-blue-50/40 scale-[1.01]"
-              : "border-brand-light-gray hover:border-brand-electricblue/60 hover:bg-brand-offwhite/40"
+              ? "border-brand-navy bg-blue-50/40 scale-[1.01]"
+              : "border-brand-light-gray hover:border-brand-navy/60 hover:bg-brand-offwhite/40"
           )}
         >
           <input {...getInputProps()} />
@@ -412,7 +412,7 @@ export function UploadDropzone({
       </div>
 
       {error && (
-        <div className="rounded-2xl border-2 border-brand-orange/40 bg-gradient-to-br from-orange-50 to-white p-5 shadow-soft">
+        <div className="rounded-2xl border-2 border-brand-coral/40 bg-gradient-to-br from-orange-50 to-white p-5 shadow-soft">
           <div className="text-lg md:text-xl font-bold text-brand-charcoal leading-snug">
             {error.headline}
           </div>
@@ -428,7 +428,7 @@ export function UploadDropzone({
                 setState("idle");
                 open();
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deepblue hover:brightness-110 text-white text-sm font-semibold shadow-soft transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-navy hover:brightness-110 text-white text-sm font-semibold shadow-soft transition-all"
             >
               <RefreshCw className="w-4 h-4" />
               Try another file

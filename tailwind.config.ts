@@ -83,11 +83,15 @@ const config: Config = {
         ],
       },
       boxShadow: {
-        // Sarvsure-tuned layered shadows for modern depth
-        soft: "0 1px 2px rgb(10 36 99 / 0.04), 0 2px 8px rgb(10 36 99 / 0.06)",
+        // Layered shadows tinted in the new navy (#1a3470 = rgb(26 52 112))
+        // for visual coherence with the v2.0 palette. The `glow` shadow
+        // sits behind primary CTAs (now olive bg) — the navy tint gives
+        // the button a subtle "editorial ink" feel rather than the
+        // bluish drop of the old deep-blue palette.
+        soft: "0 1px 2px rgb(26 52 112 / 0.04), 0 2px 8px rgb(26 52 112 / 0.06)",
         elevated:
-          "0 4px 6px rgb(10 36 99 / 0.05), 0 12px 24px rgb(10 36 99 / 0.10)",
-        glow: "0 8px 32px rgb(10 36 99 / 0.18)",
+          "0 4px 6px rgb(26 52 112 / 0.05), 0 12px 24px rgb(26 52 112 / 0.10)",
+        glow: "0 8px 32px rgb(26 52 112 / 0.18)",
       },
       backgroundImage: {
         "gradient-radial":

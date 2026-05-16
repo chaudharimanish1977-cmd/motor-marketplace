@@ -413,7 +413,7 @@ export function OfferDetail({
                   {hasChanges ? (
                     <button
                       onClick={handleUpdate}
-                      className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-deepblue hover:brightness-110 text-white shadow-soft transition-all hover:scale-[1.01]"
+                      className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-navy hover:brightness-110 text-white shadow-soft transition-all hover:scale-[1.01]"
                     >
                       <span className="inline-flex items-center gap-1.5">
                         Update offer
@@ -423,7 +423,7 @@ export function OfferDetail({
                   ) : (
                     <LoadingLink
                       href={`/checkout/${bid.id}`}
-                      className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-orange hover:brightness-110 text-white shadow-glow transition-all hover:scale-[1.01]"
+                      className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-olive hover:brightness-110 text-white shadow-glow transition-all hover:scale-[1.01]"
                       spinnerPosition="right"
                     >
                       <span className="inline-flex items-center gap-1.5">
@@ -466,11 +466,11 @@ function getTierTheme(tier: number) {
   }
   if (tier === 2) {
     return {
-      heroGradient: "from-brand-deepblue via-brand-deepblue to-brand-electricblue",
+      heroGradient: "from-brand-navy via-brand-navy to-brand-plum",
     };
   }
   return {
-    heroGradient: "from-brand-purple via-brand-purple to-brand-orange",
+    heroGradient: "from-brand-plum via-brand-plum to-brand-coral",
   };
 }
 
@@ -761,7 +761,7 @@ function ComparisonCard({
         {/* Re-priced add-ons (carried over from current policy at new market rates) */}
         {carriedOver.length > 0 && (
           <div className="pt-4 mt-3 border-t border-dashed border-slate-200">
-            <div className="text-[10px] font-bold text-brand-deepblue uppercase tracking-[0.12em] mb-2 flex items-center gap-1">
+            <div className="text-[10px] font-bold text-brand-navy uppercase tracking-[0.12em] mb-2 flex items-center gap-1">
               <RefreshCw className="w-3 h-3" />
               Re-priced at market rate (carried from current policy)
             </div>
@@ -1079,7 +1079,7 @@ function FiveYearProjection({
           <span
             className={clsx(
               "text-sm font-bold tabular-nums",
-              savings5yr > 0 ? "text-brand-success" : "text-brand-orange"
+              savings5yr > 0 ? "text-brand-success" : "text-brand-coral"
             )}
           >
             {savings5yr > 0 ? "−" : "+"}
@@ -1130,7 +1130,7 @@ function UpdatingState({ insurerName }: { insurerName: string }) {
       <div className="text-center space-y-6 max-w-md">
         <div className="relative inline-block">
           <Loader2 className="w-16 h-16 text-brand-navy animate-spin" />
-          <Sparkles className="w-6 h-6 text-brand-gold absolute top-0 right-0 animate-pulse" />
+          <Sparkles className="w-6 h-6 text-brand-olive absolute top-0 right-0 animate-pulse" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-900">

@@ -129,12 +129,12 @@ export default async function ComparisonPage({ params }: PageProps) {
 function Header({ comparison }: { comparison: ComparisonReport }) {
   return (
     <header className="space-y-2">
-      <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue bg-blue-50 border border-blue-100 rounded-full">
+      <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-blue-50 border border-blue-100 rounded-full">
         <Sparkles className="w-3.5 h-3.5" />
         Right Offer comparison
       </div>
       <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-charcoal flex items-center gap-2">
-        <Car className="w-7 h-7 text-brand-deepblue" />
+        <Car className="w-7 h-7 text-brand-navy" />
         {comparison.vehicleLabel}
       </h1>
       <p className="text-sm text-brand-slate">
@@ -155,7 +155,7 @@ function RcpBlock({ comparison }: { comparison: ComparisonReport }) {
   return (
     <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
       <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
           <ShieldCheck className="w-3.5 h-3.5" />
           What we recommend
         </div>
@@ -212,7 +212,7 @@ function RcpBlock({ comparison }: { comparison: ComparisonReport }) {
 
       {rcp.idv.note && (
         <div className="px-5 md:px-6 py-3 border-t border-brand-light-gray bg-brand-offwhite/40 text-xs text-brand-slate flex items-start gap-2">
-          <Gauge className="w-3.5 h-3.5 text-brand-deepblue shrink-0 mt-0.5" />
+          <Gauge className="w-3.5 h-3.5 text-brand-navy shrink-0 mt-0.5" />
           <span>
             <strong className="text-brand-charcoal">
               IDV {formatINR(rcp.idv.current)}
@@ -240,7 +240,7 @@ function QuotesBlock({
   return (
     <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
       <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
           <Trophy className="w-3.5 h-3.5" />
           Your quotes
         </div>
@@ -414,13 +414,13 @@ function VerdictBlock({
     tone === "emerald"
       ? "border-emerald-200 bg-emerald-50/40"
       : tone === "deepblue"
-        ? "border-brand-deepblue/30 bg-blue-50/40"
+        ? "border-brand-navy/30 bg-blue-50/40"
         : "border-amber-200 bg-amber-50/40";
   const iconCls =
     tone === "emerald"
       ? "bg-emerald-100 text-emerald-700 border-emerald-200"
       : tone === "deepblue"
-        ? "bg-blue-100 text-brand-deepblue border-blue-200"
+        ? "bg-blue-100 text-brand-navy border-blue-200"
         : "bg-amber-100 text-amber-700 border-amber-200";
 
   const recommendedQuote = verdict.recommendedQuoteId
@@ -491,7 +491,7 @@ function CtaRow({ comparison }: { comparison: ComparisonReport }) {
         <button
           type="button"
           disabled
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-orange/60 text-white font-semibold text-sm rounded-xl cursor-not-allowed opacity-80"
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-olive/60 text-white font-semibold text-sm rounded-xl cursor-not-allowed opacity-80"
           title="Reservation goes live once the RightOffer auction ships"
         >
           Reserve a RightOffer pick

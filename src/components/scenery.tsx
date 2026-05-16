@@ -128,7 +128,7 @@ function ForegroundStrip({ offsetX }: { offsetX: number }) {
 }
 
 // ============================================================================
-// Building components — silhouettes in muted brand-deepblue tones
+// Building components — silhouettes in muted brand-navy tones
 // ============================================================================
 
 function SmallBuilding({

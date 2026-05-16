@@ -145,14 +145,14 @@ export function ReportGate({ reportId: _reportId }: Props) {
   }
 
   return (
-    <div className="my-10 rounded-3xl border-2 border-brand-deepblue/30 bg-gradient-to-br from-blue-50/60 to-white shadow-elevated overflow-hidden">
+    <div className="my-10 rounded-3xl border-2 border-brand-navy/30 bg-gradient-to-br from-blue-50/60 to-white shadow-elevated overflow-hidden">
       <div className="px-6 md:px-8 py-7">
         <div className="flex items-start gap-3">
-          <div className="w-11 h-11 shrink-0 rounded-2xl bg-brand-deepblue text-white flex items-center justify-center shadow-soft">
+          <div className="w-11 h-11 shrink-0 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-soft">
             <Lock className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
               Unlock the rest of your review
             </div>
             <h3 className="mt-1 text-xl md:text-2xl font-bold text-brand-charcoal leading-tight">
@@ -187,7 +187,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   disabled={submitting}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-deepblue focus:ring-2 focus:ring-brand-deepblue/15 transition-colors disabled:opacity-60"
+                  className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors disabled:opacity-60"
                 />
               </div>
             </label>
@@ -209,7 +209,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
                   onChange={(e) => setWhatsapp(e.target.value)}
                   placeholder="9XXXXXXXXX"
                   disabled={submitting}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-deepblue focus:ring-2 focus:ring-brand-deepblue/15 transition-colors disabled:opacity-60"
+                  className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors disabled:opacity-60"
                 />
               </div>
               <p className="text-[10px] text-brand-slate/80 mt-1 leading-relaxed">
@@ -236,7 +236,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
             <button
               type="submit"
               disabled={submitting || !email}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-brand-orange hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-glow transition-all"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-brand-olive hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-glow transition-all"
             >
               {submitting ? (
                 <>
@@ -278,7 +278,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
                 }
                 placeholder="1234"
                 disabled={submitting}
-                className="w-full px-4 py-3 text-2xl font-bold text-center tracking-[0.4em] tabular-nums rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-deepblue focus:ring-2 focus:ring-brand-deepblue/15 transition-colors disabled:opacity-60"
+                className="w-full px-4 py-3 text-2xl font-bold text-center tracking-[0.4em] tabular-nums rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors disabled:opacity-60"
               />
             </label>
 
@@ -292,7 +292,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
             <button
               type="submit"
               disabled={submitting || otp.length !== 4}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-brand-orange hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-glow transition-all"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-brand-olive hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-glow transition-all"
             >
               {submitting ? (
                 <>
@@ -320,7 +320,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
                 type="button"
                 onClick={onResend}
                 disabled={resending}
-                className="font-semibold text-brand-deepblue hover:underline disabled:opacity-60"
+                className="font-semibold text-brand-navy hover:underline disabled:opacity-60"
               >
                 {resending ? "Sending..." : "Resend code"}
               </button>

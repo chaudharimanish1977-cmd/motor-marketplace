@@ -62,7 +62,7 @@ export default async function PolicyPage({ params }: PageProps) {
       <div className="max-w-4xl mx-auto px-4 mb-4 flex items-center justify-between print:hidden">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-sm text-brand-slate hover:text-brand-deepblue"
+          className="inline-flex items-center gap-1 text-sm text-brand-slate hover:text-brand-navy"
         >
           <Home className="w-4 h-4" />
           Home
@@ -71,7 +71,7 @@ export default async function PolicyPage({ params }: PageProps) {
           {schedule && (
             <Link
               href={`/renewals/${transaction.id}`}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-deepblue hover:text-blue-900 px-3 py-2 rounded-lg hover:bg-blue-50"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-navy hover:text-blue-900 px-3 py-2 rounded-lg hover:bg-blue-50"
             >
               <CalendarClock className="w-4 h-4" />
               View Renewal Calendar

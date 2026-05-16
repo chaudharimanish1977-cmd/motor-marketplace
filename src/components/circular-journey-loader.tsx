@@ -244,7 +244,7 @@ export function CircularJourneyLoader({
         {/* Chips row */}
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2 min-h-[32px]">
           {vehicleAgeYears !== undefined && vehicleAgeYears > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[11px] text-brand-deepblue">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[11px] text-brand-navy">
               <span className="font-bold tabular-nums">{ageCounter}</span>
               <span className="font-medium">
                 {ageCounter === 1 ? "year" : "years"} on Indian roads

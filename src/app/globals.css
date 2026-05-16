@@ -41,7 +41,7 @@
   /* Brand-deepblue and -navy are used as heading/text colors throughout, but
    * they have ~no contrast on the dark page bg (both are very dark blue).
    * Flip them to sky blue so headings stay readable in dark mode. */
-  html.dark .text-brand-deepblue:not([class*="dark:text-"]),
+  html.dark .text-brand-navy:not([class*="dark:text-"]),
   html.dark .text-brand-navy:not([class*="dark:text-"]) {
     color: #5EC8E6 !important; /* slightly lighter than brand-skyblue for AAA */
   }
@@ -199,7 +199,7 @@
     --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--color-surface)) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
   }
 
-  /* `from-brand-deepblue` / `from-brand-navy` etc. as gradient TEXT
+  /* `from-brand-navy` / `from-brand-navy` etc. as gradient TEXT
    * (i.e. paired with `bg-clip-text text-transparent`) — flip to sky blue
    * so the visible color contrasts with the dark page bg. The same brand
    * colors are also used for solid gradient BACKGROUNDS (hero blocks,
@@ -207,40 +207,40 @@
    * NOT flip — keeping the dark blue bg lets the white text stay readable
    * and preserves the brand look. The `.bg-clip-text` qualifier separates
    * the two cases. */
-  html.dark .bg-clip-text.from-brand-deepblue,
+  html.dark .bg-clip-text.from-brand-navy,
   html.dark .bg-clip-text.from-brand-navy {
     --tw-gradient-from: #5EC8E6 var(--tw-gradient-from-position) !important;
     --tw-gradient-to: rgb(94 200 230 / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  html.dark .bg-clip-text.to-brand-deepblue,
+  html.dark .bg-clip-text.to-brand-navy,
   html.dark .bg-clip-text.to-brand-navy {
     --tw-gradient-to: #5EC8E6 var(--tw-gradient-to-position) !important;
   }
-  html.dark .bg-clip-text.from-brand-electricblue {
+  html.dark .bg-clip-text.from-brand-plum {
     --tw-gradient-from: #38BDF8 var(--tw-gradient-from-position) !important;
     --tw-gradient-to: rgb(56 189 248 / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  html.dark .bg-clip-text.to-brand-electricblue {
+  html.dark .bg-clip-text.to-brand-plum {
     --tw-gradient-to: #38BDF8 var(--tw-gradient-to-position) !important;
   }
-  html.dark .text-brand-electricblue:not([class*="dark:text-"]) {
+  html.dark .text-brand-navy:not([class*="dark:text-"]) {
     color: #38BDF8 !important;
   }
 
-  /* `bg-brand-deepblue` accents (pagination dot, small chips) become
+  /* `bg-brand-navy` accents (pagination dot, small chips) become
    * invisible on a dark page. Flip the small-decoration use to skyblue.
    * Components that want to keep the deep-blue CTA bg can opt-out with
-   * an explicit `dark:bg-brand-deepblue`. */
-  html.dark .bg-brand-deepblue:not([class*="dark:bg-"]) {
+   * an explicit `dark:bg-brand-navy`. */
+  html.dark .bg-brand-navy:not([class*="dark:bg-"]) {
     background-color: #1E40AF !important;
   }
 
-  /* SVG strokes/fills authored with hardcoded brand-deepblue (#0A2463)
+  /* SVG strokes/fills authored with hardcoded brand-navy (#0A2463)
    * inline. The page bg in dark mode is slate-900 — too close. Use
    * currentColor or skyblue alternatives. We can't auto-fix inline SVGs
-   * universally, but icon containers using `text-brand-deepblue` flip
+   * universally, but icon containers using `text-brand-navy` flip
    * via the text-color override above — `<svg stroke="currentColor">`
    * will then inherit the readable color. */
 

@@ -200,7 +200,7 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
           type="button"
           onClick={selectAll}
           disabled={pending}
-          className="text-brand-deepblue hover:underline disabled:opacity-60"
+          className="text-brand-navy hover:underline disabled:opacity-60"
         >
           Select all
         </button>
@@ -247,7 +247,7 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
                       </span>
                     )}
                     {r.documentType === "quote" && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] rounded-full bg-blue-50 text-brand-deepblue border border-blue-100">
+                      <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] rounded-full bg-blue-50 text-brand-navy border border-blue-100">
                         Quote
                       </span>
                     )}

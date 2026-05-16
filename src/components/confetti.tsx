@@ -57,10 +57,10 @@ interface Piece {
 }
 
 const PALETTE = [
-  "#0A2463", // brand-deepblue
-  "#247BA0", // brand-electricblue
-  "#FF6B35", // brand-orange
-  "#6C3FA0", // brand-purple
+  "#0A2463", // brand-navy
+  "#247BA0", // brand-navy
+  "#FF6B35", // brand-coral
+  "#6C3FA0", // brand-plum
   "#00B894", // brand-success
   "#FFD54F", // gold/yellow
 ];

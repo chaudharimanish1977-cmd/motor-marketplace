@@ -410,7 +410,7 @@ function LockedTabPanel({
 }) {
   return (
     <div className="rounded-2xl border-2 border-dashed border-brand-light-gray bg-brand-offwhite/40 p-8 md:p-10 text-center">
-      <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 border border-blue-100 text-brand-deepblue flex items-center justify-center">
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 border border-blue-100 text-brand-navy flex items-center justify-center">
         <Lock className="w-6 h-6" />
       </div>
       <h3 className="mt-4 text-lg md:text-xl font-bold text-brand-charcoal tracking-tight">
@@ -426,7 +426,7 @@ function LockedTabPanel({
       </p>
       <Link
         href={`/reports?tab=${encodeURIComponent(firstTabId)}`}
-        className="mt-5 inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-orange hover:brightness-110 text-white font-semibold text-sm rounded-xl shadow-glow transition-all"
+        className="mt-5 inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-olive hover:brightness-110 text-white font-semibold text-sm rounded-xl shadow-glow transition-all"
       >
         Go to {firstTabLabel}
         <ArrowRight className="w-3.5 h-3.5" />
@@ -444,7 +444,7 @@ function EmptyState({ hasFullSession }: { hasFullSession: boolean }) {
       <BrandBlobs />
       <main className="relative z-10 min-h-[70vh] flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full bg-white border border-brand-light-gray rounded-2xl shadow-soft p-8 text-center">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 border border-blue-100 text-brand-deepblue flex items-center justify-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 border border-blue-100 text-brand-navy flex items-center justify-center">
             <Upload className="w-7 h-7" />
           </div>
           <h2 className="mt-5 text-xl font-bold text-brand-charcoal tracking-tight">
@@ -457,7 +457,7 @@ function EmptyState({ hasFullSession }: { hasFullSession: boolean }) {
           <LoadingLink
             href="/upload"
             spinnerPosition="right"
-            className="mt-5 inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-brand-orange hover:brightness-110 text-white font-semibold text-sm rounded-xl shadow-glow transition-all"
+            className="mt-5 inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-brand-olive hover:brightness-110 text-white font-semibold text-sm rounded-xl shadow-glow transition-all"
           >
             Upload a document
           </LoadingLink>

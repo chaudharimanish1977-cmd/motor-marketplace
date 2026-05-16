@@ -134,7 +134,7 @@ export function ReminderSchedule({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-deepblue hover:underline"
+              className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-navy hover:underline"
             >
               <Edit3 className="w-3 h-3" />
               Edit
@@ -283,7 +283,7 @@ export function ReminderSchedule({
               className={clsx(
                 "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[12px] cursor-pointer transition-colors",
                 checked
-                  ? "bg-blue-50 border-brand-deepblue/30 text-brand-charcoal"
+                  ? "bg-blue-50 border-brand-navy/30 text-brand-charcoal"
                   : "bg-white border-brand-light-gray text-brand-slate hover:bg-brand-offwhite"
               )}
             >
@@ -291,7 +291,7 @@ export function ReminderSchedule({
                 type="checkbox"
                 checked={checked}
                 onChange={() => toggleCheckpoint(d)}
-                className="w-3.5 h-3.5 accent-brand-deepblue"
+                className="w-3.5 h-3.5 accent-brand-navy"
               />
               <span className="font-semibold tabular-nums w-12 shrink-0">
                 {d}d
@@ -355,7 +355,7 @@ export function ReminderSchedule({
           type="button"
           onClick={onSave}
           disabled={!canSave}
-          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-brand-deepblue hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed px-3.5 py-1.5 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-brand-navy hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed px-3.5 py-1.5 rounded-lg transition-colors"
         >
           {pending ? (
             <>
@@ -394,7 +394,7 @@ function ChannelOption({
       className={clsx(
         "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[12px] cursor-pointer transition-colors",
         checked
-          ? "bg-blue-50 border-brand-deepblue/30 text-brand-charcoal"
+          ? "bg-blue-50 border-brand-navy/30 text-brand-charcoal"
           : "bg-white border-brand-light-gray text-brand-slate hover:bg-brand-offwhite"
       )}
     >
@@ -402,7 +402,7 @@ function ChannelOption({
         type="checkbox"
         checked={checked}
         onChange={onToggle}
-        className="w-3.5 h-3.5 accent-brand-deepblue"
+        className="w-3.5 h-3.5 accent-brand-navy"
       />
       <Icon className="w-3.5 h-3.5 text-brand-slate" />
       <span className="font-semibold">{label}</span>

@@ -139,7 +139,7 @@ export function MidLoadQuestions({
   return (
     <div className="rounded-2xl border border-brand-light-gray bg-white shadow-soft overflow-hidden">
       <div className="px-4 pt-3 pb-2 text-center">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy">
           While we work · help us tailor your report
         </div>
       </div>
@@ -184,8 +184,8 @@ export function MidLoadQuestions({
                   className={clsx(
                     "text-xs px-3 py-1.5 rounded-full border-2 font-semibold transition-all",
                     selected
-                      ? "bg-brand-deepblue text-white border-brand-deepblue scale-[1.02]"
-                      : "bg-white border-brand-light-gray text-brand-charcoal hover:border-brand-electricblue hover:bg-blue-50"
+                      ? "bg-brand-navy text-white border-brand-navy scale-[1.02]"
+                      : "bg-white border-brand-light-gray text-brand-charcoal hover:border-brand-navy hover:bg-blue-50"
                   )}
                 >
                   {opt}
@@ -208,7 +208,7 @@ export function MidLoadQuestions({
               className={clsx(
                 "h-1.5 rounded-full transition-all",
                 i === idx
-                  ? "w-6 bg-brand-deepblue"
+                  ? "w-6 bg-brand-navy"
                   : answered
                     ? "w-3 bg-brand-success"
                     : "w-2 bg-brand-light-gray hover:bg-brand-slate/40"

@@ -27,8 +27,8 @@ const BAND_THEME: Record<
   },
   good: {
     ring: "stroke-blue-500",
-    text: "text-brand-deepblue",
-    chip: "bg-blue-100 text-brand-deepblue border-blue-200",
+    text: "text-brand-navy",
+    chip: "bg-blue-100 text-brand-navy border-blue-200",
     gradient: "from-blue-50 to-white",
   },
   excellent: {
@@ -203,7 +203,7 @@ export function CoverageScoreCard({ score }: Props) {
           {score.band !== "excellent" && (
             <a
               href="#gaps"
-              className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-deepblue hover:text-brand-orange transition-colors"
+              className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-navy hover:text-brand-coral transition-colors"
             >
               See what&apos;s missing and how to fix it
               <ArrowRight className="w-4 h-4" />

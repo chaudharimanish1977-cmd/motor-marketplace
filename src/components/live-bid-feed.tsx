@@ -313,7 +313,7 @@ export function LiveBidFeed({
   return (
     <div className="w-full max-w-2xl mx-auto py-2">
       <div className="rounded-2xl border border-brand-light-gray bg-white shadow-soft overflow-hidden">
-        <div className="bg-gradient-to-r from-brand-deepblue to-brand-electricblue text-white px-5 py-3.5">
+        <div className="bg-gradient-to-r from-brand-navy to-brand-plum text-white px-5 py-3.5">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
               <Activity className="w-4 h-4 animate-pulse-soft" />
@@ -344,7 +344,7 @@ export function LiveBidFeed({
             ))}
           {!revealEvents && (
             <div className="flex items-center gap-2 text-xs text-brand-slate animate-pulse-soft px-2 pt-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-olive" />
               Insurers reviewing your profile…
             </div>
           )}
@@ -354,7 +354,7 @@ export function LiveBidFeed({
           <div className="border-t border-brand-light-gray bg-brand-offwhite/60 px-5 py-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-xs text-brand-slate">
-                <Sparkles className="w-3.5 h-3.5 text-brand-orange" />
+                <Sparkles className="w-3.5 h-3.5 text-brand-coral" />
                 <span>Best price so far</span>
               </div>
               <div className="flex items-center gap-2 text-sm font-bold text-brand-charcoal tabular-nums">
@@ -363,7 +363,7 @@ export function LiveBidFeed({
                   size={16}
                 />
                 <span>{runningLowest.insurer}</span>
-                <span className="text-brand-orange">
+                <span className="text-brand-coral">
                   {formatINR(runningLowest.amount!)}
                 </span>
                 <span className="text-[10px] text-brand-slate font-normal">
@@ -412,7 +412,7 @@ function EventRow({ event }: { event: BidEvent }) {
           </span>{" "}
           {event.message}
         </span>
-        <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-orange/70 animate-pulse-soft shrink-0" />
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-olive/70 animate-pulse-soft shrink-0" />
       </div>
     );
   }
@@ -421,7 +421,7 @@ function EventRow({ event }: { event: BidEvent }) {
     return (
       <div className="flex items-center gap-2 py-2.5 mt-2 px-2">
         <div className="h-px flex-1 bg-brand-light-gray" />
-        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-deepblue px-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-navy px-2">
           Tier {event.tier} · {event.tierLabel}
         </span>
         <div className="h-px flex-1 bg-brand-light-gray" />
@@ -462,13 +462,13 @@ function EventRow({ event }: { event: BidEvent }) {
 
   if (event.type === "tier-winner") {
     return (
-      <div className="flex items-center gap-2.5 py-2.5 px-3 rounded-lg bg-gradient-to-r from-brand-orange/10 to-transparent border-l-2 border-brand-orange text-xs">
-        <Trophy className="w-4 h-4 text-brand-orange shrink-0" />
+      <div className="flex items-center gap-2.5 py-2.5 px-3 rounded-lg bg-gradient-to-r from-brand-coral/10 to-transparent border-l-2 border-brand-coral text-xs">
+        <Trophy className="w-4 h-4 text-brand-coral shrink-0" />
         <span className="flex-1 text-brand-charcoal">
           <span className="font-bold">Tier {event.tier} winner:</span>{" "}
           <span className="font-semibold">{event.insurer}</span>
         </span>
-        <span className="font-bold tabular-nums text-sm text-brand-orange shrink-0">
+        <span className="font-bold tabular-nums text-sm text-brand-coral shrink-0">
           {formatINR(event.amount!)}
         </span>
       </div>
@@ -478,7 +478,7 @@ function EventRow({ event }: { event: BidEvent }) {
   if (event.type === "summary") {
     return (
       <div className="flex items-center gap-2.5 py-3 px-2 text-xs animate-pulse-soft">
-        <Sparkles className="w-4 h-4 text-brand-deepblue" />
+        <Sparkles className="w-4 h-4 text-brand-navy" />
         <span className="font-semibold text-brand-charcoal">
           {event.message}
         </span>

@@ -66,7 +66,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
               work. New here?{" "}
               <a
                 href="/upload"
-                className="text-brand-deepblue hover:underline font-semibold"
+                className="text-brand-navy hover:underline font-semibold"
               >
                 Upload your policy
               </a>{" "}

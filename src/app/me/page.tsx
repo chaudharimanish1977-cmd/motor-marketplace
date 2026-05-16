@@ -112,7 +112,7 @@ export default async function PortalHome() {
           {/* Header strip */}
           <div className="flex items-start justify-between mb-8 gap-4">
             <div>
-              <span className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue bg-blue-50 border border-blue-100 rounded-full">
+              <span className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-blue-50 border border-blue-100 rounded-full">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 Your portal
               </span>
@@ -202,7 +202,7 @@ export default async function PortalHome() {
               them by vehicle and link the new parse back to their
               account. Quotes are excluded from this seed — a quote is
               not "the policy you're renewing." */}
-          <div className="mt-10 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue text-white p-6 md:p-8 text-center shadow-soft">
+          <div className="mt-10 rounded-2xl bg-gradient-to-br from-brand-navy to-brand-plum text-white p-6 md:p-8 text-center shadow-soft">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight">
               Up for renewal soon?
             </h2>
@@ -213,7 +213,7 @@ export default async function PortalHome() {
             <LoadingLink
               href={renewalSeed ? `/upload?renewal=${renewalSeed}` : "/upload"}
               spinnerPosition="right"
-              className="mt-5 inline-flex items-center justify-center gap-2 px-7 py-3 bg-brand-orange hover:brightness-110 text-white font-semibold rounded-2xl shadow-glow transition-all"
+              className="mt-5 inline-flex items-center justify-center gap-2 px-7 py-3 bg-brand-olive hover:brightness-110 text-white font-semibold rounded-2xl shadow-glow transition-all"
             >
               <Upload className="w-4 h-4" />
               Get a fresh review
@@ -353,7 +353,7 @@ async function loadPoliciesFor(email: string): Promise<PortalPolicy[]> {
 function EmptyState() {
   return (
     <div className="bg-white border border-brand-light-gray rounded-2xl shadow-soft p-10 text-center">
-      <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 border border-blue-100 text-brand-deepblue flex items-center justify-center">
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 border border-blue-100 text-brand-navy flex items-center justify-center">
         <Car className="w-7 h-7" />
       </div>
       <h2 className="mt-5 text-xl font-bold text-brand-charcoal tracking-tight">
@@ -366,7 +366,7 @@ function EmptyState() {
       <LoadingLink
         href="/upload"
         spinnerPosition="right"
-        className="mt-5 inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-brand-orange hover:brightness-110 text-white font-semibold text-sm rounded-xl shadow-glow transition-all"
+        className="mt-5 inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-brand-olive hover:brightness-110 text-white font-semibold text-sm rounded-xl shadow-glow transition-all"
       >
         <Upload className="w-4 h-4" />
         Upload a policy
@@ -394,7 +394,7 @@ function Section({
     tone === "success"
       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
       : tone === "info"
-        ? "bg-blue-50 text-brand-deepblue border-blue-100"
+        ? "bg-blue-50 text-brand-navy border-blue-100"
         : "bg-slate-50 text-brand-slate border-brand-light-gray";
 
   return (
@@ -442,7 +442,7 @@ function ComparisonLauncher({
   policyId?: string;
 }) {
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue text-white p-5 md:p-6 shadow-soft">
+    <div className="rounded-2xl bg-gradient-to-br from-brand-navy to-brand-plum text-white p-5 md:p-6 shadow-soft">
       <div className="flex items-start gap-4 flex-wrap">
         <div className="min-w-0 flex-1">
           <div className="text-[11px] font-semibold uppercase tracking-[0.12em] opacity-90">
@@ -475,7 +475,7 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
   // and expired — they aren't bound, so neither "active" nor
   // "expired" applies semantically.
   const statusPill = isQuote
-    ? { label: "Quote", cls: "bg-blue-50 text-brand-deepblue border-blue-100" }
+    ? { label: "Quote", cls: "bg-blue-50 text-brand-navy border-blue-100" }
     : isExpired
       ? {
           label: "Expired",
@@ -593,7 +593,7 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
               <LoadingLink
                 href={`/report/${parsed.id}`}
                 spinnerPosition="right"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-deepblue px-3 py-1.5 rounded-xl border border-brand-deepblue/30 hover:bg-blue-50 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-navy px-3 py-1.5 rounded-xl border border-brand-navy/30 hover:bg-blue-50 transition-colors"
               >
                 <FileText className="w-3.5 h-3.5" />
                 View report

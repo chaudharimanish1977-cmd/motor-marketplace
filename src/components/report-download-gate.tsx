@@ -131,8 +131,8 @@ export function ReportDownloadGate({
 
   const triggerClass =
     variant === "hero"
-      ? "inline-flex items-center gap-2 px-8 py-4 bg-brand-orange hover:brightness-110 text-white font-bold text-lg rounded-2xl shadow-glow transition-all hover:scale-[1.03] print:hidden"
-      : "inline-flex items-center gap-2 px-4 py-2.5 bg-brand-orange hover:brightness-110 text-white font-semibold text-sm rounded-2xl shadow-glow transition-all hover:scale-[1.02] print:hidden";
+      ? "inline-flex items-center gap-2 px-8 py-4 bg-brand-olive hover:brightness-110 text-white font-bold text-lg rounded-2xl shadow-glow transition-all hover:scale-[1.03] print:hidden"
+      : "inline-flex items-center gap-2 px-4 py-2.5 bg-brand-olive hover:brightness-110 text-white font-semibold text-sm rounded-2xl shadow-glow transition-all hover:scale-[1.02] print:hidden";
 
   return (
     <>
@@ -226,7 +226,7 @@ function FormStep({
 }) {
   return (
     <div className="p-5 sm:p-6 md:p-8">
-      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue flex items-center justify-center mb-3">
+      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-navy to-brand-plum flex items-center justify-center mb-3">
         <FileDown className="w-6 h-6 text-white" />
       </div>
       <h2 className="text-xl sm:text-2xl font-bold text-brand-charcoal mb-1">
@@ -257,7 +257,7 @@ function FormStep({
                 onMobileChange(e.target.value.replace(/\D/g, ""))
               }
               placeholder="98765 43210"
-              className="w-full pl-12 pr-10 py-3 border-2 border-brand-light-gray rounded-xl text-base font-medium tabular-nums text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-deepblue transition-colors"
+              className="w-full pl-12 pr-10 py-3 border-2 border-brand-light-gray rounded-xl text-base font-medium tabular-nums text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-navy transition-colors"
             />
           </div>
         </div>
@@ -274,7 +274,7 @@ function FormStep({
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
               placeholder="you@example.com"
-              className="w-full pl-10 pr-3 py-3 border-2 border-brand-light-gray rounded-xl text-base text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-deepblue transition-colors"
+              className="w-full pl-10 pr-3 py-3 border-2 border-brand-light-gray rounded-xl text-base text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-navy transition-colors"
             />
           </div>
         </div>
@@ -285,7 +285,7 @@ function FormStep({
             type="checkbox"
             checked={consent}
             onChange={(e) => onConsentChange(e.target.checked)}
-            className="w-5 h-5 mt-0.5 accent-brand-deepblue"
+            className="w-5 h-5 mt-0.5 accent-brand-navy"
           />
           <span className="text-xs text-brand-charcoal leading-relaxed">
             I agree to receive renewal reminders and consent to my policy data
@@ -310,7 +310,7 @@ function FormStep({
         className={clsx(
           "mt-6 w-full py-3.5 rounded-2xl font-bold text-base inline-flex items-center justify-center gap-2 transition-all",
           canSendOtp && !submitting
-            ? "bg-brand-orange hover:brightness-110 text-white shadow-glow hover:scale-[1.01]"
+            ? "bg-brand-olive hover:brightness-110 text-white shadow-glow hover:scale-[1.01]"
             : "bg-brand-light-gray text-brand-slate cursor-not-allowed"
         )}
       >
@@ -359,7 +359,7 @@ function OtpStep({
 
   return (
     <div className="p-5 sm:p-6 md:p-8">
-      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue flex items-center justify-center mb-4">
+      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-navy to-brand-plum flex items-center justify-center mb-4">
         <Mail className="w-6 h-6 text-white" />
       </div>
       <h2 className="text-xl sm:text-2xl font-bold text-brand-charcoal mb-1">
@@ -387,7 +387,7 @@ function OtpStep({
         value={otp}
         onChange={(e) => onOtpChange(e.target.value.replace(/\D/g, ""))}
         placeholder="• • • •"
-        className="w-full text-center py-4 text-3xl font-bold tracking-[0.6em] tabular-nums text-brand-charcoal placeholder:text-brand-light-gray border-2 border-brand-light-gray rounded-2xl focus:outline-none focus:border-brand-deepblue"
+        className="w-full text-center py-4 text-3xl font-bold tracking-[0.6em] tabular-nums text-brand-charcoal placeholder:text-brand-light-gray border-2 border-brand-light-gray rounded-2xl focus:outline-none focus:border-brand-navy"
       />
 
       {error && (
@@ -404,7 +404,7 @@ function OtpStep({
         className={clsx(
           "mt-5 w-full py-3.5 rounded-2xl font-bold text-base inline-flex items-center justify-center gap-2 transition-all",
           isValid
-            ? "bg-brand-orange hover:brightness-110 text-white shadow-glow hover:scale-[1.01]"
+            ? "bg-brand-olive hover:brightness-110 text-white shadow-glow hover:scale-[1.01]"
             : "bg-brand-light-gray text-brand-slate cursor-not-allowed"
         )}
       >

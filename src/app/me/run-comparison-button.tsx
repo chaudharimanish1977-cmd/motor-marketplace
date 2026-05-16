@@ -48,7 +48,7 @@ export function RunComparisonButton({
       type="button"
       onClick={onRun}
       disabled={pending || quoteIds.length === 0}
-      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-deepblue hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-soft transition-all"
+      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-navy hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-soft transition-all"
     >
       {pending ? (
         <>

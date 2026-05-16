@@ -420,7 +420,7 @@ export function BundleBuilder({
           "w-full py-4 rounded-2xl text-lg font-bold transition-all",
           hasClaim === null
             ? "bg-brand-light-gray text-brand-slate cursor-not-allowed"
-            : "bg-brand-orange hover:brightness-110 text-white hover:scale-[1.01] shadow-glow"
+            : "bg-brand-olive hover:brightness-110 text-white hover:scale-[1.01] shadow-glow"
         )}
       >
         Get My 3-Tier Curated Offers →

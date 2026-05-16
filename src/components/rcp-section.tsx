@@ -29,7 +29,7 @@ export function RcpSection({ rcp, vehicleLabel }: Props) {
   return (
     <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
       <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
           <ShieldCheck className="w-3.5 h-3.5" />
           What we recommend
         </div>
@@ -90,7 +90,7 @@ export function RcpSection({ rcp, vehicleLabel }: Props) {
       {hasOptional && (
         <div className="px-5 md:px-6 py-4 border-t border-brand-light-gray bg-brand-offwhite/30">
           <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-charcoal mb-2 flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3 text-brand-deepblue" />
+            <Sparkles className="w-3 h-3 text-brand-navy" />
             Worth considering
           </div>
           <ul className="space-y-1.5">
@@ -99,7 +99,7 @@ export function RcpSection({ rcp, vehicleLabel }: Props) {
                 key={a.name}
                 className="flex items-start gap-2 text-xs leading-snug"
               >
-                <span className="mt-0.5 w-1 h-1 rounded-full bg-brand-deepblue/70 shrink-0" />
+                <span className="mt-0.5 w-1 h-1 rounded-full bg-brand-navy/70 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <span className="font-semibold text-brand-charcoal">
                     {a.name}
@@ -151,7 +151,7 @@ export function RcpSection({ rcp, vehicleLabel }: Props) {
       {/* IDV guidance */}
       <div className="px-5 md:px-6 py-4 border-t border-brand-light-gray bg-brand-offwhite/40">
         <div className="flex items-start gap-2.5">
-          <div className="w-6 h-6 shrink-0 rounded-lg bg-blue-100 text-brand-deepblue flex items-center justify-center mt-0.5">
+          <div className="w-6 h-6 shrink-0 rounded-lg bg-blue-100 text-brand-navy flex items-center justify-center mt-0.5">
             <Info className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0 flex-1">

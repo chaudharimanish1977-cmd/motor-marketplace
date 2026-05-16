@@ -111,7 +111,7 @@ export function BidResults({
               className={clsx(
                 "inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-full transition-all",
                 viewMode === "cards"
-                  ? "bg-white text-brand-deepblue shadow-soft"
+                  ? "bg-white text-brand-navy shadow-soft"
                   : "text-brand-slate hover:text-brand-charcoal"
               )}
             >
@@ -124,7 +124,7 @@ export function BidResults({
               className={clsx(
                 "inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-full transition-all",
                 viewMode === "matrix"
-                  ? "bg-white text-brand-deepblue shadow-soft"
+                  ? "bg-white text-brand-navy shadow-soft"
                   : "text-brand-slate hover:text-brand-charcoal"
               )}
             >
@@ -227,7 +227,7 @@ export function BidResults({
         <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-elevated print:hidden">
           <div className="px-4 py-3 flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-brand-deepblue">
+              <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-brand-navy">
                 Recommended
               </div>
               <div className="flex items-baseline gap-1.5">
@@ -241,14 +241,14 @@ export function BidResults({
             </div>
             <LoadingLink
               href={`/offer/${recommendedWinner.id}`}
-              className="text-xs font-semibold text-brand-deepblue px-3 py-2 rounded-xl border border-brand-deepblue/30"
+              className="text-xs font-semibold text-brand-navy px-3 py-2 rounded-xl border border-brand-navy/30"
               spinnerPosition="right"
             >
               Details
             </LoadingLink>
             <LoadingLink
               href={`/checkout/${recommendedWinner.id}`}
-              className="text-xs font-bold text-white bg-brand-orange px-4 py-2.5 rounded-xl shadow-glow inline-flex items-center gap-1"
+              className="text-xs font-bold text-white bg-brand-olive px-4 py-2.5 rounded-xl shadow-glow inline-flex items-center gap-1"
               spinnerPosition="right"
             >
               Buy
@@ -418,7 +418,7 @@ function TierCard({
         {/* HERO: See full breakdown & customize — prominent, above Buy */}
         <LoadingLink
           href={`/offer/${winner.id}`}
-          className="block w-full py-3 text-center font-bold rounded-2xl bg-white border-2 border-brand-deepblue text-brand-deepblue hover:bg-blue-50 transition-all hover:scale-[1.01] shadow-soft"
+          className="block w-full py-3 text-center font-bold rounded-2xl bg-white border-2 border-brand-navy text-brand-navy hover:bg-blue-50 transition-all hover:scale-[1.01] shadow-soft"
           spinnerPosition="right"
         >
           <span className="inline-flex items-center gap-1.5">
@@ -527,17 +527,17 @@ function tierTheme(tier: BidTier) {
     // Recommended — brand's signature gradient
     return {
       headerBg:
-        "bg-gradient-to-br from-brand-deepblue via-brand-deepblue to-brand-electricblue",
+        "bg-gradient-to-br from-brand-navy via-brand-navy to-brand-plum",
       cta:
-        "bg-brand-orange hover:brightness-110 text-white shadow-glow",
+        "bg-brand-olive hover:brightness-110 text-white shadow-glow",
     };
   }
   // Super Cover — premium accent gradient using brand secondaries
   return {
     headerBg:
-      "bg-gradient-to-br from-brand-purple via-brand-purple to-brand-orange",
+      "bg-gradient-to-br from-brand-plum via-brand-plum to-brand-coral",
     cta:
-      "bg-gradient-to-r from-brand-purple to-brand-orange hover:brightness-110 text-white shadow-elevated",
+      "bg-gradient-to-r from-brand-plum to-brand-coral hover:brightness-110 text-white shadow-elevated",
   };
 }
 
@@ -545,5 +545,5 @@ function deltaClass(delta: number) {
   if (delta < 0) return "text-brand-success";
   if (delta === 0) return "text-brand-slate";
   if (delta < 5000) return "text-brand-slate";
-  return "text-brand-orange";
+  return "text-brand-coral";
 }

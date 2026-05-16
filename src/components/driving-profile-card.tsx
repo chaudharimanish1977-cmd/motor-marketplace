@@ -62,8 +62,8 @@ export function DrivingProfileCard({ initialProfile, reportId }: Props) {
 
   return (
     <div className="rounded-2xl border border-brand-light-gray bg-white shadow-sm overflow-hidden">
-      <div className="bg-brand-deepblue/5 px-5 py-2.5 border-b border-brand-light-gray">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-deepblue">
+      <div className="bg-brand-navy/5 px-5 py-2.5 border-b border-brand-light-gray">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy">
           Tailored to your driving profile
         </div>
       </div>

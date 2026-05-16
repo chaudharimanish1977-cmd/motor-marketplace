@@ -62,7 +62,7 @@ export default function Loading() {
               typeSpeed={38}
               eraseSpeed={22}
               holdMs={1500}
-              caretClassName="bg-brand-orange"
+              caretClassName="bg-brand-olive"
             />
           </h1>
 

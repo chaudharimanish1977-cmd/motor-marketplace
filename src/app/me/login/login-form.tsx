@@ -63,7 +63,7 @@ export function LoginForm() {
             setState("idle");
             setErrorMsg(null);
           }}
-          className="mt-2 text-xs text-brand-deepblue hover:underline font-semibold"
+          className="mt-2 text-xs text-brand-navy hover:underline font-semibold"
         >
           Use a different email
         </button>
@@ -88,7 +88,7 @@ export function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-deepblue focus:ring-2 focus:ring-brand-deepblue/15 transition-colors"
+            className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors"
           />
         </div>
       </label>

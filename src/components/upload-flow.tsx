@@ -39,7 +39,7 @@ export function UploadFlow({
           </h1>
           <p className="text-slate-600">
             We&apos;ll read it in{" "}
-            <span className="font-semibold text-brand-deepblue">
+            <span className="font-semibold text-brand-navy">
               under 2 minutes
             </span>{" "}
             — and tell you what&apos;s strong, what&apos;s missing, and what
@@ -75,17 +75,17 @@ function RenewalBanner({ context }: { context: RenewalContext }) {
     .join(" · ");
 
   return (
-    <div className="mb-6 rounded-2xl border border-brand-electricblue/30 bg-gradient-to-br from-blue-50 to-white p-5 md:p-6">
+    <div className="mb-6 rounded-2xl border border-brand-navy/30 bg-gradient-to-br from-blue-50 to-white p-5 md:p-6">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-brand-deepblue to-brand-electricblue text-white flex items-center justify-center shadow-soft">
+        <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-brand-navy to-brand-plum text-white flex items-center justify-center shadow-soft">
           <RefreshCw className="w-5 h-5" />
         </div>
         <div className="min-w-0">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
             Renewal review
           </div>
           <div className="font-bold text-brand-charcoal text-lg leading-tight mt-1 flex items-center gap-2 flex-wrap">
-            <Car className="w-4 h-4 text-brand-deepblue" />
+            <Car className="w-4 h-4 text-brand-navy" />
             Renewing your {context.vehicleLabel}
           </div>
           {subline && (

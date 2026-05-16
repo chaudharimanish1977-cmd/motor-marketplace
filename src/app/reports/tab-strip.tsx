@@ -51,7 +51,7 @@ export function TabStrip({ tabs, firstTabId, isVerified }: Props) {
             className={clsx(
               "shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl transition-all",
               isActive
-                ? "bg-brand-deepblue text-white shadow-soft"
+                ? "bg-brand-navy text-white shadow-soft"
                 : "bg-white border border-brand-light-gray text-brand-charcoal hover:bg-brand-offwhite"
             )}
           >

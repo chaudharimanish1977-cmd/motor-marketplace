@@ -203,7 +203,7 @@ function ProgressBar({
       </div>
       <div className="h-1.5 bg-brand-light-gray rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-brand-deepblue via-brand-electricblue to-brand-orange transition-all"
+          className="h-full bg-gradient-to-r from-brand-navy via-brand-plum to-brand-coral transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -219,7 +219,7 @@ function OrderSummary({
   bid: Bid;
 }) {
   return (
-    <div className="bg-gradient-to-br from-brand-deepblue to-brand-electricblue text-white rounded-2xl p-5 flex items-center justify-between shadow-elevated">
+    <div className="bg-gradient-to-br from-brand-navy to-brand-plum text-white rounded-2xl p-5 flex items-center justify-between shadow-elevated">
       <div className="min-w-0 flex-1">
         <div className="text-[10px] text-white/70 uppercase tracking-[0.12em]">
           Buying from
@@ -296,7 +296,7 @@ function KycAadhaarStep({
         className={clsx(
           "w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all",
           valid
-            ? "bg-brand-deepblue hover:brightness-110 text-white"
+            ? "bg-brand-navy hover:brightness-110 text-white"
             : "bg-slate-200 text-slate-400 cursor-not-allowed"
         )}
       >
@@ -362,7 +362,7 @@ function KycPanStep({
           className={clsx(
             "flex-[2] py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all",
             valid
-              ? "bg-brand-deepblue hover:brightness-110 text-white"
+              ? "bg-brand-navy hover:brightness-110 text-white"
               : "bg-slate-200 text-slate-400 cursor-not-allowed"
           )}
         >
@@ -450,7 +450,7 @@ function KycCkycStep({
         <button
           onClick={handleConfirm}
           disabled={verifying}
-          className="flex-[2] py-3 rounded-lg font-semibold bg-brand-deepblue hover:brightness-110 text-white flex items-center justify-center gap-2"
+          className="flex-[2] py-3 rounded-lg font-semibold bg-brand-navy hover:brightness-110 text-white flex items-center justify-center gap-2"
         >
           {verifying ? (
             <>
@@ -546,7 +546,7 @@ function PayMethodStep({
         </button>
         <button
           onClick={onNext}
-          className="flex-[2] py-3 rounded-lg font-semibold bg-brand-deepblue hover:brightness-110 text-white flex items-center justify-center gap-2"
+          className="flex-[2] py-3 rounded-lg font-semibold bg-brand-navy hover:brightness-110 text-white flex items-center justify-center gap-2"
         >
           Continue <ArrowRight className="w-4 h-4" />
         </button>
@@ -648,7 +648,7 @@ function PayDetailsStep({
           className={clsx(
             "flex-[2] py-3 rounded-lg font-semibold flex items-center justify-center gap-2",
             valid
-              ? "bg-brand-deepblue hover:brightness-110 text-white"
+              ? "bg-brand-navy hover:brightness-110 text-white"
               : "bg-slate-200 text-slate-400 cursor-not-allowed"
           )}
         >
@@ -707,7 +707,7 @@ function PayConfirmStep({
         </button>
         <button
           onClick={onSubmit}
-          className="flex-[2] py-3 rounded-2xl font-bold bg-brand-orange hover:brightness-110 text-white flex items-center justify-center gap-2 shadow-glow"
+          className="flex-[2] py-3 rounded-2xl font-bold bg-brand-olive hover:brightness-110 text-white flex items-center justify-center gap-2 shadow-glow"
         >
           Pay {formatINR(bid.grandTotal)} <ArrowRight className="w-4 h-4" />
         </button>
@@ -734,11 +734,11 @@ function IssuingStep({ bid }: { bid: Bid }) {
   return (
     <div className="text-center space-y-6 py-8">
       <div className="relative inline-block">
-        <Loader2 className="w-16 h-16 text-brand-deepblue animate-spin" />
-        <Shield className="w-6 h-6 text-brand-gold absolute top-5 left-5" />
+        <Loader2 className="w-16 h-16 text-brand-navy animate-spin" />
+        <Shield className="w-6 h-6 text-brand-olive absolute top-5 left-5" />
       </div>
       <div>
-        <p className="text-lg font-semibold text-brand-deepblue">
+        <p className="text-lg font-semibold text-brand-navy">
           {messages[idx]}
         </p>
         <p className="text-sm text-brand-slate mt-2">
@@ -788,7 +788,7 @@ function Row({
       </span>
       <span
         className={clsx(
-          bold ? "text-xl font-bold text-brand-deepblue" : "font-semibold"
+          bold ? "text-xl font-bold text-brand-navy" : "font-semibold"
         )}
       >
         {value}

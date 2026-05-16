@@ -166,7 +166,7 @@ export function ReportDisplay({
        *  Row 3: tagline split into two centred lines
        *  Secondary controls (SimplifyToggle + Generated date) are hidden on
        *  small screens to keep the header airy. */}
-      <header className="relative bg-gradient-to-r from-brand-deepblue to-brand-electricblue text-white shadow-elevated overflow-hidden">
+      <header className="relative bg-gradient-to-r from-brand-navy to-brand-plum text-white shadow-elevated overflow-hidden">
         <div
           className="absolute right-0 bottom-0 w-[420px] max-w-[55%] text-white pointer-events-none print:hidden"
           aria-hidden
@@ -176,11 +176,11 @@ export function ReportDisplay({
         <div className="relative max-w-5xl mx-auto px-4 py-5 space-y-3">
           {/* Top row */}
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl md:text-2xl font-bold text-brand-gold leading-tight">
+            <h2 className="text-xl md:text-2xl font-bold text-brand-olive leading-tight">
               Hey {greetingName}
             </h2>
             <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-6 h-6 text-brand-gold" />
+              <ShieldCheck className="w-6 h-6 text-brand-olive" />
             </div>
           </div>
 
@@ -188,7 +188,7 @@ export function ReportDisplay({
           <div className="text-center">
             <h1 className="text-xl md:text-2xl font-bold leading-tight">
               Your Motor Insurance{" "}
-              <span className="text-brand-gold">at a Glance</span>
+              <span className="text-brand-olive">at a Glance</span>
             </h1>
             <p className="text-sm text-blue-100 mt-1.5 leading-snug">
               Smart Review Today.
@@ -425,11 +425,11 @@ function VehicleHero({
 
         {/* Right: money-at-risk hero */}
         {hasRisk ? (
-          <div className="rounded-2xl bg-gradient-to-br from-orange-50 via-white to-rose-50 border-2 border-brand-orange/30 p-5 md:p-6 text-center md:text-right">
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-orange mb-1.5">
+          <div className="rounded-2xl bg-gradient-to-br from-orange-50 via-white to-rose-50 border-2 border-brand-coral/30 p-5 md:p-6 text-center md:text-right">
+            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-coral mb-1.5">
               At risk today, if a claim happens
             </div>
-            <div className="text-4xl md:text-5xl font-bold tabular-nums text-brand-orange leading-none">
+            <div className="text-4xl md:text-5xl font-bold tabular-nums text-brand-coral leading-none">
               {formatINR(moneyAtRisk)}
             </div>
             <div className="text-xs text-brand-slate mt-2 leading-snug">
@@ -694,7 +694,7 @@ function PricingSnapshotCard({
         <span className="text-sm md:text-base uppercase tracking-wide">
           Pricing &amp; Savings Snapshot
         </span>
-        <span className="ml-auto text-xs font-medium px-2 py-0.5 bg-brand-gold text-brand-ink rounded">
+        <span className="ml-auto text-xs font-medium px-2 py-0.5 bg-brand-olive text-brand-ink rounded">
           NEW
         </span>
       </div>
@@ -876,7 +876,7 @@ function KeyTakeawayCard({
   const isInvestor = view === "investor";
 
   return (
-    <div className="rounded-3xl bg-gradient-to-br from-brand-deepblue via-brand-deepblue to-brand-electricblue text-white p-8 md:p-10 text-center shadow-elevated">
+    <div className="rounded-3xl bg-gradient-to-br from-brand-navy via-brand-navy to-brand-plum text-white p-8 md:p-10 text-center shadow-elevated">
       <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-semibold uppercase tracking-wider mb-5">
         <Target className="w-3.5 h-3.5" /> Key Takeaway
       </div>
@@ -885,7 +885,7 @@ function KeyTakeawayCard({
           text={takeaway.headline}
           speed={22}
           startDelay={300}
-          caretClassName="bg-brand-gold"
+          caretClassName="bg-brand-olive"
         />
       </h2>
       <p className="report-detail text-blue-100 max-w-2xl mx-auto mb-7 text-lg">
@@ -895,7 +895,7 @@ function KeyTakeawayCard({
         <>
           <LoadingLink
             href={`/bid/${parsedPolicyId}`}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-orange text-white font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-olive text-white font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all"
             spinnerPosition="top-right"
           >
             {takeaway.cta}

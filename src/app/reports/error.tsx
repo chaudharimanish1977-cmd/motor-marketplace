@@ -55,7 +55,7 @@ export default function ReportsError({
             <button
               type="button"
               onClick={reset}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-deepblue hover:brightness-110 text-white text-sm font-semibold rounded-xl transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-navy hover:brightness-110 text-white text-sm font-semibold rounded-xl transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Try again

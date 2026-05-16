@@ -18,9 +18,9 @@ export function BrandBlobs() {
       aria-hidden
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden print:hidden"
     >
-      <div className="absolute -top-32 -left-32 w-[42rem] h-[42rem] rounded-full bg-brand-deepblue/10 dark:bg-brand-deepblue/30 blur-3xl" />
-      <div className="absolute -top-20 right-[-10%] w-[34rem] h-[34rem] rounded-full bg-brand-electricblue/10 dark:bg-brand-electricblue/25 blur-3xl" />
-      <div className="absolute bottom-[-15%] left-[20%] w-[36rem] h-[36rem] rounded-full bg-brand-orange/8 dark:bg-brand-orange/15 blur-3xl" />
+      <div className="absolute -top-32 -left-32 w-[42rem] h-[42rem] rounded-full bg-brand-navy/10 dark:bg-brand-navy/30 blur-3xl" />
+      <div className="absolute -top-20 right-[-10%] w-[34rem] h-[34rem] rounded-full bg-brand-navy/10 dark:bg-brand-navy/25 blur-3xl" />
+      <div className="absolute bottom-[-15%] left-[20%] w-[36rem] h-[36rem] rounded-full bg-brand-olive/8 dark:bg-brand-olive/15 blur-3xl" />
     </div>
   );
 }
