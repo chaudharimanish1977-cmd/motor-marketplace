@@ -8,8 +8,6 @@ import type { RenewalContext } from "@/app/upload/page";
 interface Props {
   isDemo: boolean;
   renewalContext?: RenewalContext | null;
-  /** Pre-known email passed through from /upload's server resolution. */
-  knownEmail?: string;
 }
 
 /**
@@ -24,7 +22,6 @@ interface Props {
 export function UploadFlow({
   isDemo,
   renewalContext,
-  knownEmail,
 }: Props) {
   const [busy, setBusy] = useState(false);
 
@@ -64,7 +61,6 @@ export function UploadFlow({
         backHref={
           renewalContext ? "/me" : isDemo ? "/investor" : "/"
         }
-        knownEmail={knownEmail}
       />
     </main>
   );

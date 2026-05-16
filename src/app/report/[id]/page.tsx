@@ -3,6 +3,8 @@ import { findById, findOne, appendRow, Tables } from "@/lib/db";
 import { generateReport } from "@/lib/report-generator";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { ReportDisplay } from "@/components/report-display";
+import { getSession } from "@/lib/session";
+import { getUploadSession } from "@/lib/upload-session";
 
 // Allow up to 60s for on-demand report generation if it wasn't pre-generated
 export const maxDuration = 60;
@@ -61,11 +63,24 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
   // working, but the header no longer surfaces it (removed per design ask).
   void from;
 
+  // Right Offer gate: customers who haven't verified their email yet
+  // see the report up to the "what's missing" section, then a hard
+  // gate. Investor + print mode skip the gate entirely. Customers
+  // who hold either a full magic-link session OR an upload session
+  // (OTP-verified email) bypass the gate too.
+  const [fullSessionEmail, uploadSession] = await Promise.all([
+    getSession(),
+    getUploadSession(),
+  ]);
+  const hasVerifiedSession = !!(fullSessionEmail || uploadSession);
+  const showGate = view === "customer" && !printMode && !hasVerifiedSession;
+
   return (
     <ReportDisplay
       parsedPolicy={parsedPolicy}
       report={report}
       view={view}
+      showGate={showGate}
       drivingProfile={drivingProfile}
       printMode={printMode}
     />

@@ -9,6 +9,7 @@ import {
   appendDocToUploadSession,
   getUploadSession,
 } from "@/lib/upload-session";
+import { appendDocToAnonymousSession } from "@/lib/anonymous-session";
 import type { ParsedPolicy } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -128,10 +129,25 @@ export async function POST(request: NextRequest) {
       parsed
     );
 
+    // Always append to anonymous-session cookie — this is the
+    // "browser holds these docs" record that lets the customer
+    // resume on return within 7 days and that the gate uses to
+    // associate docs with the verified email at OTP time.
+    try {
+      await appendDocToAnonymousSession(savedPolicy.id);
+    } catch (err) {
+      console.error(
+        "[parse] Failed to append doc to anonymous session:",
+        err
+      );
+      // Non-fatal — doc is still saved; customer just loses
+      // browser-resume continuity if they leave and come back.
+    }
+
     // If we stamped from an upload-session, append the new doc ID to
-    // the cookie so subsequent comparator runs in this browser know
-    // about it. No-op when there's no upload-session (full-session
-    // customers find their docs via owner.email match in /me).
+    // that cookie too so subsequent comparator runs in this browser
+    // know about it. Full-session customers find their docs via
+    // owner.email match in /me.
     if (!sessionEmail && uploadSession) {
       try {
         await appendDocToUploadSession(savedPolicy.id);
@@ -140,8 +156,6 @@ export async function POST(request: NextRequest) {
           "[parse] Failed to append doc to upload session:",
           err
         );
-        // Non-fatal — doc still saved with owner.email, just not in
-        // the cookie's scope list. Customer can recover via magic link.
       }
     }
 

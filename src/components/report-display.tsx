@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LoadingLink } from "@/components/loading-link";
 import { RcpSection } from "@/components/rcp-section";
 import { computeRCP } from "@/lib/recommended-coverage-profile";
+import { ReportGate } from "@/components/report-gate";
 import {
   ShieldCheck,
   Shield,
@@ -97,6 +98,12 @@ interface Props {
   report: PolicyReport;
   /** Drives CTA behaviour. Customer view ends here (no bid link). Investor sees full flow. */
   view?: "customer" | "investor";
+  /**
+   * When true, the customer has NOT verified their email at the gate
+   * yet. We render the gate after the "what's missing" section and
+   * hide everything below it. Server-resolved by /report/[id].
+   */
+  showGate?: boolean;
   /** Optional answers captured during the mid-load survey on /upload. */
   drivingProfile?: DrivingProfile;
   /** When true, hide all interactive chrome (CTAs, toggles, guard) so the
@@ -108,6 +115,7 @@ export function ReportDisplay({
   parsedPolicy,
   report,
   view = "customer",
+  showGate = false,
   drivingProfile,
   printMode = false,
 }: Props) {
@@ -302,49 +310,75 @@ export function ReportDisplay({
           />
         </div>
 
-        {/* §2 What Covers Well — reassurance, smaller weight (after the urgent stuff) */}
-        <SectionCard
-          number="2"
-          title="What's working in your favour"
-          color="emerald"
-          items={whatCoversWell.items}
-        />
-
-        {/* §3 Renewal action panel — IDV + renewal tips combined */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <IdvCheckCard idvCheck={idvCheck} />
-          <SectionCard
-            number="3"
-            title="Look out for at renewal"
-            color="amber"
-            items={renewalTips.items}
-          />
-        </div>
-
-        {/* §4 Pricing snapshot — investor only (implies a bid flow we don't expose to customers yet) */}
-        {view === "investor" && (
-          <PricingSnapshotCard snapshot={pricingSnapshot} />
+        {/* THE GATE — appears right after the gaps section (highest-
+         *  emotion content). When showGate is true, the customer hasn't
+         *  verified their email yet — gate is rendered and EVERY
+         *  section below this point is hidden until they do.
+         *  Customer view only — investors / print-mode never see it. */}
+        {showGate && view === "customer" && !printMode && (
+          <>
+            <ReportGate reportId={parsedPolicy.id} />
+            {/* Skip rest of report until verified. The customer's report
+             *  data is already loaded server-side; they're not waiting
+             *  on anything other than the OTP exchange. */}
+            <p className="text-center text-xs text-brand-slate/70 italic">
+              The Right Offer Recommendation, your quote comparison, and
+              the PDF unlock once you verify your email above.
+            </p>
+          </>
         )}
 
-        {/* §5 Ideal Insurer Profile — investor admin reveal */}
-        {view === "investor" && (
-          <IdealInsurerProfileToggle profile={idealInsurerProfile} />
-        )}
+        {/* Everything below this point is hidden when the gate is
+         *  active (anonymous customer view, not yet OTP-verified).
+         *  Investor + print-mode views always see everything. */}
+        {(!showGate || view === "investor" || printMode) && (
+          <>
+            {/* §2 What Covers Well — reassurance, smaller weight (after the urgent stuff) */}
+            <SectionCard
+              number="2"
+              title="What's working in your favour"
+              color="emerald"
+              items={whatCoversWell.items}
+            />
 
-        {/* §6 Key Takeaway with CTA — skipped in print-mode (no CTA in PDF) */}
-        {!printMode && (
-          <KeyTakeawayCard
-            takeaway={keyTakeaway}
-            parsedPolicyId={parsedPolicy.id}
-            view={view}
-          />
-        )}
+            {/* §3 Renewal action panel — IDV + renewal tips combined */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <IdvCheckCard idvCheck={idvCheck} />
+              <SectionCard
+                number="3"
+                title="Look out for at renewal"
+                color="amber"
+                items={renewalTips.items}
+              />
+            </div>
 
-        {/* Disclaimer */}
-        <div className="text-xs text-slate-400 text-center pt-4">
-          Disclaimer: This is a general information guide. Please refer to
-          policy wordings for exact terms, conditions, limits & exclusions.
-        </div>
+            {/* §4 Pricing snapshot — investor only (implies a bid flow we don't expose to customers yet) */}
+            {view === "investor" && (
+              <PricingSnapshotCard snapshot={pricingSnapshot} />
+            )}
+
+            {/* §5 Ideal Insurer Profile — investor admin reveal */}
+            {view === "investor" && (
+              <IdealInsurerProfileToggle profile={idealInsurerProfile} />
+            )}
+
+            {/* §6 Key Takeaway with CTA — skipped in print-mode (no CTA in PDF) */}
+            {!printMode && (
+              <KeyTakeawayCard
+                takeaway={keyTakeaway}
+                parsedPolicyId={parsedPolicy.id}
+                view={view}
+              />
+            )}
+
+            {/* Disclaimer */}
+            <div className="text-xs text-slate-400 text-center pt-4">
+              Disclaimer: This is a general information guide. Please refer
+              to policy wordings for exact terms, conditions, limits &amp;
+              exclusions.
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

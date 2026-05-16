@@ -1,7 +1,5 @@
 import { UploadFlow } from "@/components/upload-flow";
 import { findById, Tables } from "@/lib/db";
-import { getSession } from "@/lib/session";
-import { getUploadSession } from "@/lib/upload-session";
 import type { ParsedPolicy } from "@/lib/types";
 
 export const metadata = {
@@ -36,20 +34,12 @@ interface PageProps {
  */
 export default async function UploadPage({ searchParams }: PageProps) {
   const { demo, renewal } = await searchParams;
-  const [renewalContext, fullSessionEmail, uploadSession] = await Promise.all([
-    renewal ? loadRenewalContext(renewal) : Promise.resolve(null),
-    getSession(),
-    getUploadSession(),
-  ]);
-  // If either session type is present, the email is already known — the
-  // capture form on the dropzone will skip itself. Full session wins.
-  const knownEmail = fullSessionEmail ?? uploadSession?.email ?? undefined;
+  const renewalContext = renewal ? await loadRenewalContext(renewal) : null;
 
   return (
     <UploadFlow
       isDemo={demo === "1"}
       renewalContext={renewalContext}
-      knownEmail={knownEmail}
     />
   );
 }
