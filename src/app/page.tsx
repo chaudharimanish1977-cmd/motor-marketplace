@@ -1,22 +1,23 @@
 /**
  * Home page — Reading Room edition.
  *
- * An editorial newspaper-style landing page. Direct adaptation of the
- * Reading Room brand mockup (downloads/home page_files/reading-motor.jsx)
- * to Next.js/Tailwind. Twelve sections in order:
+ * An editorial newspaper-style landing page. Adapted from the Reading
+ * Room brand mockup (downloads/home page_files/reading-motor.jsx),
+ * trimmed down for the V1 marketing surface. Ten sections in order:
  *
- *    1. Brand row    · wordmark + nav + plum CTA
- *    2. Issue masthead · letter number, date, byline (mono uppercase)
- *    3. Headline      · "Most insurance is sold. We thought it should be read."
- *    4. Lead          · drop cap "I" + 3-column with margin annotations
- *    5. Hero          · desk sketch + "Read what you'll drive away with."
- *    6. § I How it works · 3 numbered steps with sketches
- *    7. § II Case study  · sample anonymised review card
- *    8. § III Three rules · principle statements
- *    9. Quote         · large italic blockquote
- *   10. Stats         · 4 big serif numbers
- *   11. CTA           · "Decide for yourself."
- *   12. Footer        · monospace uppercase legal row
+ *    1. Brand row    · wordmark + centered Upload CTA + sign-in
+ *    2. Headline     · "Understand your insurance before it costs you."
+ *                      with subhead "Most people sell insurance. We
+ *                      help you decide."
+ *    3. Hero         · "We will read what you are driving with." +
+ *                      IDV/NCB body + animated car + Review CTA
+ *    4. § I How it works · 3 numbered steps with sketches
+ *    5. § II Case study  · sample anonymised review card
+ *    6. § III Three rules · principle statements
+ *    7. Quote        · large italic blockquote
+ *    8. Stats        · 4 big serif numbers
+ *    9. CTA          · "Decide for yourself."
+ *   10. Footer       · monospace uppercase legal row
  *
  * BrandBlobs is intentionally absent — the Reading Room calls for a pure
  * white (light) / warm-near-black (dark) page surface. The SiteHeader
@@ -30,7 +31,6 @@ import { getUploadSession } from "@/lib/upload-session";
 import {
   SketchCar,
   SketchCarStatic,
-  SketchDesk,
   SketchDoc,
   SketchLoupe,
   SketchSedan,
@@ -53,7 +53,6 @@ export default async function Home() {
     <article className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-16">
       <V7Brand signedIn={signedIn} />
       <V7Headline />
-      <V7Lead />
       <V7Hero />
       <V7HowItWorks />
       <V7CaseStudy />
@@ -138,116 +137,52 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
 /* ─── 2. Headline ───────────────────────────────────────────────────────── */
 function V7Headline() {
   return (
-    <section className="pt-20 pb-6 text-center">
-      <h1 className="font-serif font-medium text-5xl md:text-7xl lg:text-[92px] leading-[1] tracking-[-0.028em] max-w-5xl mx-auto text-balance text-brand-charcoal">
-        Most insurance is{" "}
-        <span className="italic text-brand-plum">sold.</span>
-        <br />
-        We thought it should be{" "}
-        <span className="italic text-brand-sage">read.</span>
+    <section className="pt-20 pb-4 text-center">
+      <h1 className="font-serif font-medium text-5xl md:text-7xl lg:text-[88px] leading-[1] tracking-[-0.028em] max-w-5xl mx-auto text-balance text-brand-charcoal">
+        Understand your insurance{" "}
+        <span className="italic text-brand-plum">before it costs you.</span>
       </h1>
+      <p className="mt-7 font-serif text-2xl md:text-3xl leading-[1.25] text-brand-slate max-w-3xl mx-auto text-balance">
+        Most people sell insurance.{" "}
+        <span className="italic text-brand-sage">We help you decide.</span>
+      </p>
     </section>
   );
 }
 
-/* ─── 4. Lead — drop cap + margin annotations ───────────────────────────── */
-function V7Lead() {
-  return (
-    <section className="pb-8 grid md:grid-cols-[1fr_minmax(0,660px)_1fr] gap-6">
-      {/* Left margin — footnote */}
-      <aside className="hidden md:block text-right pt-3 font-mono text-[10.5px] uppercase tracking-[0.1em] leading-relaxed text-brand-plum">
-        ¹ The average motor
-        <br />
-        policy document
-        <br />
-        runs 28 pages —
-        <br />
-        almost none of them
-        <br />
-        for the owner.
-      </aside>
-
-      {/* Lead body with drop cap */}
-      <div>
-        <p className="font-serif text-[20px] md:text-[22px] leading-[1.55] tracking-[-0.005em] text-balance text-brand-charcoal m-0">
-          <span
-            className="font-serif italic font-bold text-[80px] leading-[0.85] text-brand-sage float-left mr-3 mt-1.5"
-            aria-hidden
-          >
-            I
-          </span>
-          n India, you can pay a phone bill, file taxes, and move a lakh
-          between banks before your second cup of chai. But when it comes to
-          motor insurance — the most consequential decision you make for your
-          vehicle each year — you&apos;re still expected to read a 28-page
-          document, written by a lawyer, designed for the seller.
-          <sup className="text-brand-sage">1</sup>
-        </p>
-        <p className="mt-6 font-serif text-[18px] md:text-[19px] leading-[1.6] tracking-[-0.005em] text-brand-slate text-balance">
-          We built a tool that reads it for you. In under two minutes. For
-          free. We don&apos;t earn from insurers, we don&apos;t take
-          commission, and we don&apos;t pick up the phone. The product is
-          independence; everything else is consequence.
-        </p>
-      </div>
-
-      {/* Right margin — reading time */}
-      <aside className="hidden md:block pt-3 font-mono text-[10.5px] uppercase tracking-[0.1em] leading-relaxed text-brand-slate">
-        <span className="font-bold text-brand-plum">Reading time</span>
-        <br />
-        2 minutes.
-        <br />
-        About as long
-        <br />
-        as one Reel —
-        <br />
-        but for your
-        <br />
-        bank balance.
-      </aside>
-    </section>
-  );
-}
-
-/* ─── 5. Hero — desk sketch + headline + CTA ────────────────────────────── */
+/* ─── 3. Hero — sub-headline + body + animated car + CTA ────────────────── */
+/* Replaces the prior Lead + Hero combo. Single centered vertical column:
+ * a short serif headline, the IDV/NCB body line, the animated ink-line
+ * car running across a dashed road, and the primary "Review my car
+ * policy" pill underneath. No margin annotations, no drop-cap, no desk
+ * sketch — the editorial weight is carried by typography and motion. */
 function V7Hero() {
   return (
-    <section className="py-8 md:py-14 border-b border-brand-charcoal/10">
-      <div className="grid md:grid-cols-[1.05fr_1fr] gap-10 md:gap-14 items-center">
-        <div className="relative">
-          <SketchDesk width={520} color="currentColor" accent="currentColor" />
-          <div className="mt-2.5 font-serif italic text-[13.5px] text-brand-slate">
-            ↑ The page you&apos;re reading, in object form.
-          </div>
-        </div>
-        <div>
-          <h2 className="font-serif font-medium text-[44px] md:text-[60px] leading-[1] tracking-[-0.025em] text-balance text-brand-charcoal m-0">
-            Read what you&apos;ll{" "}
-            <em className="italic text-brand-sage">drive away</em> with.
-          </h2>
-          <p className="mt-4 font-serif text-[17px] leading-[1.6] text-brand-slate max-w-md text-balance">
-            IDV, NCB, Zero-Dep, engine cover, cashless networks — we check the
-            twelve things that decide whether your claim gets paid in full or
-            in fragments.
-          </p>
-          <div className="mt-6 flex items-end justify-between gap-6">
-            <LoadingLink
-              href="/upload"
-              className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-6 py-3.5 rounded-full font-serif italic font-medium text-[17px] hover:opacity-90 transition-opacity"
-            >
-              Review my motor policy <span aria-hidden>→</span>
-            </LoadingLink>
-            <div className="hidden sm:block text-brand-plum">
-              <SketchCar width={220} color="currentColor" />
-            </div>
-          </div>
-        </div>
+    <section className="py-10 md:py-14 text-center border-b border-brand-charcoal/10">
+      <h2 className="font-serif font-medium text-[36px] md:text-[48px] leading-[1.05] tracking-[-0.02em] text-balance text-brand-charcoal max-w-3xl mx-auto m-0">
+        We will read what you are{" "}
+        <em className="italic text-brand-sage">driving</em> with.
+      </h2>
+      <p className="mt-5 font-serif text-[17px] md:text-[19px] leading-[1.6] text-brand-slate max-w-2xl mx-auto text-balance">
+        IDV, NCB, Zero-Dep, engine cover, cashless networks — we check things
+        that decide whether your claim gets paid in full or in fragments.
+      </p>
+      <div className="mt-9 flex justify-center text-brand-plum">
+        <SketchCar width={260} color="currentColor" />
+      </div>
+      <div className="mt-6">
+        <LoadingLink
+          href="/upload"
+          className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[18px] hover:opacity-90 transition-opacity"
+        >
+          Review my car policy <span aria-hidden>→</span>
+        </LoadingLink>
       </div>
     </section>
   );
 }
 
-/* ─── 6. § I · How it works ─────────────────────────────────────────────── */
+/* ─── 4. § I · How it works ─────────────────────────────────────────────── */
 function V7HowItWorks() {
   const steps = [
     {
@@ -317,7 +252,7 @@ function V7HowItWorks() {
   );
 }
 
-/* ─── 7. § II · Case study ──────────────────────────────────────────────── */
+/* ─── 5. § II · Case study ──────────────────────────────────────────────── */
 function V7CaseStudy() {
   const findings = [
     {
@@ -458,7 +393,7 @@ function V7CaseStudy() {
   );
 }
 
-/* ─── 8. § III · Three rules ────────────────────────────────────────────── */
+/* ─── 6. § III · Three rules ────────────────────────────────────────────── */
 function V7Rules() {
   const rules = [
     {
@@ -512,7 +447,7 @@ function V7Rules() {
   );
 }
 
-/* ─── 9. Quote ──────────────────────────────────────────────────────────── */
+/* ─── 7. Quote ──────────────────────────────────────────────────────────── */
 function V7Quote() {
   return (
     <section className="py-16 text-center">
@@ -541,7 +476,7 @@ function V7Quote() {
   );
 }
 
-/* ─── 10. Stats ─────────────────────────────────────────────────────────── */
+/* ─── 8. Stats ──────────────────────────────────────────────────────────── */
 function V7Stats() {
   const stats: [string, string, "plum" | "sage"][] = [
     ["14,200", "policies reviewed", "plum"],
@@ -576,7 +511,7 @@ function V7Stats() {
   );
 }
 
-/* ─── 11. CTA ───────────────────────────────────────────────────────────── */
+/* ─── 9. CTA ────────────────────────────────────────────────────────────── */
 function V7CTA() {
   return (
     <section className="pt-20 pb-12 text-center relative">
@@ -599,7 +534,7 @@ function V7CTA() {
   );
 }
 
-/* ─── 12. Footer ────────────────────────────────────────────────────────── */
+/* ─── 10. Footer ────────────────────────────────────────────────────────── */
 function V7Foot() {
   return (
     <footer className="py-5 mt-10 border-t border-brand-charcoal/10 flex flex-col md:flex-row gap-2 md:gap-0 items-start md:items-center justify-between font-mono text-[10.5px] uppercase tracking-[0.12em] text-brand-slate">
