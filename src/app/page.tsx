@@ -71,10 +71,10 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
   return (
     <header className="relative py-6 flex items-center justify-between gap-4">
       {/* Wordmark on the left — italic serif "r" + small-caps RightOffer +
-       *  sage MOTOR pill. */}
+       *  sage CAR pill. */}
       <Link
         href="/"
-        aria-label="RightOffer Motor — home"
+        aria-label="RightOffer Car — home"
         className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
       >
         <span
@@ -90,7 +90,7 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
           RightOffer
         </span>
         <span className="ml-2 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.12em] bg-brand-sage text-brand-offwhite rounded-sm">
-          MOTOR
+          CAR
         </span>
       </Link>
 

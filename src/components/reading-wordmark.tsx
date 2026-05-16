@@ -5,7 +5,7 @@
  * the wordmark as:
  *   · italic serif lowercase "r"   (plum accent · A1)
  *   · small-caps "RightOffer"      (body fg · charcoal)
- *   · uppercase mono "MOTOR" pill  (sage bg · A2, body bg · fg)
+ *   · uppercase mono "CAR" pill    (sage bg · A2, body bg · fg)
  *
  * No SVG logo, no stamp-ring. The wordmark IS the typography.
  *
@@ -15,7 +15,7 @@
 import Link from "next/link";
 
 interface ReadingWordmarkProps {
-  /** Show the "MOTOR" sage pill alongside the wordmark. Default: true. */
+  /** Show the "CAR" sage pill alongside the wordmark. Default: true. */
   showPill?: boolean;
   /** Wrap the wordmark in a Link to "/". Default: true. */
   asLink?: boolean;
@@ -54,11 +54,11 @@ export function ReadingWordmark({
         <span
           className={`ml-1 px-2 py-0.5 font-mono ${pillSize} font-bold tracking-[0.12em] bg-brand-sage text-brand-offwhite rounded-sm`}
         >
-          MOTOR
+          CAR
         </span>
       )}
       {/* Screen-reader full name */}
-      <span className="sr-only">RightOffer Motor</span>
+      <span className="sr-only">RightOffer Car</span>
     </span>
   );
 

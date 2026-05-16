@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
  * Site-wide header — Reading Room edition.
  *
  * Renders the editorial wordmark (italic serif "r" + small-caps RightOffer
- * + sage "MOTOR" pill) and a discreet sign-in entry on every internal
+ * + sage "CAR" pill) and a discreet sign-in entry on every internal
  * surface. The home page mounts its own brand row (V7Brand in app/page.tsx)
  * with full nav, so we skip rendering here on "/" to avoid stacking.
  *
@@ -50,7 +50,7 @@ export function SiteHeader({ signedIn = false }: Props) {
     <header className="relative z-20 w-full px-6 md:px-12 pt-5 pb-3 print:hidden">
       <div className="relative flex items-center justify-between gap-4">
         {/* Reading Room wordmark — italic serif r + small-caps RightOffer
-         *  + sage MOTOR pill, all text, no SVG. Links to /. */}
+         *  + sage CAR pill, all text, no SVG. Links to /. */}
         <Link
           href="/"
           aria-label="RightOffer home"
@@ -69,9 +69,9 @@ export function SiteHeader({ signedIn = false }: Props) {
             RightOffer
           </span>
           <span className="px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.12em] bg-brand-sage text-brand-offwhite rounded-sm">
-            MOTOR
+            CAR
           </span>
-          <span className="sr-only">RightOffer Motor</span>
+          <span className="sr-only">RightOffer Car</span>
         </Link>
 
         {!hidePortalLink && (

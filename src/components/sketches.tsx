@@ -389,7 +389,7 @@ export function SketchDesk({
           fill={color}
           stroke="none"
         >
-          MOTOR
+          CAR
         </text>
         {/* Stamped lines on cover */}
         <line x1="28" y1="44" x2="140" y2="44" />
