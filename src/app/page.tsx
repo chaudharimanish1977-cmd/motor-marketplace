@@ -500,8 +500,9 @@ function V7CTA() {
         Decide for <em className="italic text-brand-sage">yourself.</em>
       </h3>
       <p className="mt-4 font-serif italic text-[17px] text-brand-slate max-w-xl mx-auto">
-        Free. No card. No sales calls. The verdict appears in your browser,
-        mail box, and WhatsApp.
+        Free. No card. No sales calls.
+        <br />
+        The verdict appears in your browser, mail box, and WhatsApp.
       </p>
       <LoadingLink
         href="/upload"
