@@ -171,12 +171,12 @@ function V7Hero() {
   return (
     <section className="pt-4 md:pt-6 pb-10 md:pb-12 text-center border-b border-brand-charcoal/10">
       <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.05] tracking-[-0.02em] text-balance text-brand-charcoal max-w-3xl mx-auto m-0">
-        We will read what you are{" "}
+        We read what you are{" "}
         <em className="italic text-brand-sage">driving</em> with.
       </h2>
       <p className="mt-3 font-serif text-[17px] md:text-[19px] leading-[1.55] text-brand-slate max-w-2xl mx-auto text-balance">
-        IDV, NCB, Zero-Dep, engine cover, cashless networks — we check things
-        that decide whether your claim gets paid in full or in fragments.
+        IDV, NCB, Zero-Dep, engine cover, cashless networks — things that
+        decide whether your claim gets paid in full or in fragments.
       </p>
       <div className="mt-6">
         <LoadingLink
