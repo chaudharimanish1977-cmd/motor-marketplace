@@ -546,6 +546,12 @@ function V7Foot() {
           HELLO@RIGHTOFFER.IN
         </a>
         <Link
+          href="/sample-review"
+          className="hover:text-brand-charcoal transition-colors"
+        >
+          SAMPLE
+        </Link>
+        <Link
           href="/privacy"
           className="hover:text-brand-charcoal transition-colors"
         >

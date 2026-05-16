@@ -22,6 +22,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { LoadingLink } from "@/components/loading-link";
 
 type Priority = "pay_less" | "worry_less" | null;
@@ -99,6 +100,15 @@ export function HeadlineCTA() {
       <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage">
         · Trusted by 1,000+ Indian car owners ·
       </p>
+
+      {/* Soft escape hatch for visitors who aren't ready to upload yet —
+       *  small italic-serif link to three anonymised sample reviews. */}
+      <Link
+        href="/sample-review"
+        className="mt-3 font-serif italic text-[14px] text-brand-slate hover:text-brand-plum transition-colors"
+      >
+        or see a sample review →
+      </Link>
     </div>
   );
 }
