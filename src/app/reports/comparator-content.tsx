@@ -7,6 +7,8 @@ import {
   X as XIcon,
   ChevronRight,
   CheckCircle2,
+  Award,
+  Building2,
 } from "lucide-react";
 import { formatINR } from "@/lib/format";
 import { ReportGate } from "@/components/report-gate";
@@ -16,6 +18,7 @@ import type {
   ComparisonVerdict,
   ParsedPolicy,
 } from "@/lib/types";
+import type { RightOfferPick } from "@/lib/rightoffer-pick";
 
 /**
  * Comparator content — server component. Renders the multi-doc verdict
@@ -35,6 +38,7 @@ interface Props {
   quoteScores: ComparisonQuoteScore[];
   verdict: ComparisonVerdict;
   docs: ParsedPolicy[];
+  rightOfferPick: RightOfferPick;
   showGate: boolean;
 }
 
@@ -44,6 +48,7 @@ export function ComparatorContent({
   quoteScores,
   verdict,
   docs,
+  rightOfferPick,
   showGate,
 }: Props) {
   const docById = new Map(docs.map((d) => [d.id, d]));
@@ -71,10 +76,8 @@ export function ComparatorContent({
 
       {!showGate && (
         <>
-          <QuotesBlock
-            quoteScores={quoteScores}
-            docById={docById}
-          />
+          <QuotesBlock quoteScores={quoteScores} docById={docById} />
+          <RightOfferPickCard pick={rightOfferPick} />
           <VerdictBlock verdict={verdict} docs={docs} />
         </>
       )}
@@ -295,6 +298,143 @@ function QuoteCard({
         </div>
       )}
     </article>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Right Offer pick — our indicative offer, between Quotes and Verdict
+// ----------------------------------------------------------------------------
+function RightOfferPickCard({ pick }: { pick: RightOfferPick }) {
+  const beatBadge =
+    pick.beatsCustomerOn === "price"
+      ? { label: "Beats your best price", tone: "emerald" }
+      : pick.beatsCustomerOn === "missing_essentials"
+        ? { label: "Covers what's missing", tone: "deepblue" }
+        : pick.beatsCustomerOn === "features"
+          ? { label: "Equal coverage", tone: "amber" }
+          : { label: "Your quote wins", tone: "slate" };
+
+  const badgeCls =
+    beatBadge.tone === "emerald"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+      : beatBadge.tone === "deepblue"
+        ? "bg-blue-50 text-brand-deepblue border-blue-100"
+        : beatBadge.tone === "amber"
+          ? "bg-amber-50 text-amber-700 border-amber-100"
+          : "bg-slate-50 text-brand-slate border-brand-light-gray";
+
+  return (
+    <section className="rounded-2xl border-2 border-brand-orange/30 bg-gradient-to-br from-orange-50/40 to-white shadow-elevated overflow-hidden">
+      <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray flex items-start justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-orange">
+            <Award className="w-3.5 h-3.5" />
+            Our pick · Right Offer
+          </div>
+          <h2 className="mt-1.5 text-xl md:text-2xl font-bold text-brand-charcoal tracking-tight flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-brand-orange" />
+            {pick.insurerName}
+          </h2>
+          {pick.tagline && (
+            <p className="text-xs text-brand-slate mt-0.5">{pick.tagline}</p>
+          )}
+        </div>
+        <div className="text-right">
+          <div className="font-bold text-brand-charcoal text-xl tabular-nums">
+            ₹{formatINR(pick.grandTotal).replace("₹", "")}
+          </div>
+          <div className="text-[10px] text-brand-slate">total premium</div>
+        </div>
+      </header>
+
+      <div className="px-5 md:px-6 py-4 space-y-3">
+        {/* Why this is the Right Offer */}
+        <div className="flex items-start gap-2 text-sm text-brand-charcoal leading-relaxed">
+          <CheckCircle2 className="w-4 h-4 text-brand-orange shrink-0 mt-0.5" />
+          <span>{pick.beatSummary}</span>
+        </div>
+
+        {/* Badges row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-full border ${badgeCls}`}
+          >
+            {beatBadge.label}
+          </span>
+          {pick.priceVsCustomerBest < 0 && (
+            <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+              Save ₹
+              {formatINR(Math.abs(pick.priceVsCustomerBest)).replace(
+                "₹",
+                ""
+              )}
+            </span>
+          )}
+        </div>
+
+        {/* What's included */}
+        {pick.includedAddOns.length > 0 && (
+          <div className="pt-2 border-t border-brand-light-gray">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-charcoal mb-1.5">
+              Included add-ons
+            </div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+              {pick.includedAddOns.map((name) => (
+                <li
+                  key={name}
+                  className="flex items-center gap-1.5 text-xs text-brand-slate"
+                >
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                  {name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Premium breakdown */}
+        <div className="pt-2 border-t border-brand-light-gray grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+          <div>
+            <div className="text-brand-slate uppercase tracking-[0.08em] text-[9px] font-semibold">
+              Basic OD
+            </div>
+            <div className="text-brand-charcoal font-semibold tabular-nums">
+              {formatINR(pick.basicOd)}
+            </div>
+          </div>
+          <div>
+            <div className="text-brand-slate uppercase tracking-[0.08em] text-[9px] font-semibold">
+              Basic TP
+            </div>
+            <div className="text-brand-charcoal font-semibold tabular-nums">
+              {formatINR(pick.basicTp)}
+            </div>
+          </div>
+          <div>
+            <div className="text-brand-slate uppercase tracking-[0.08em] text-[9px] font-semibold">
+              Add-ons
+            </div>
+            <div className="text-brand-charcoal font-semibold tabular-nums">
+              {formatINR(pick.addOnPremium)}
+            </div>
+          </div>
+          <div>
+            <div className="text-brand-slate uppercase tracking-[0.08em] text-[9px] font-semibold">
+              GST 18%
+            </div>
+            <div className="text-brand-charcoal font-semibold tabular-nums">
+              {formatINR(pick.cgst + pick.sgst)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-5 md:px-6 py-3 border-t border-brand-light-gray bg-brand-offwhite/40 text-[10px] text-brand-slate leading-relaxed">
+        <strong className="font-semibold text-brand-charcoal">Indicative offer</strong>{" "}
+        arranged by RightOffer Brokers Pvt Ltd. Final terms and binding
+        underwriting confirmed at purchase.
+      </div>
+    </section>
   );
 }
 

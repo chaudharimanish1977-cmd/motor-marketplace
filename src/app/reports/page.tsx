@@ -7,6 +7,10 @@ import {
   computeRCP,
   scoreAgainstRcp,
 } from "@/lib/recommended-coverage-profile";
+import {
+  generateRightOfferPick,
+  type RightOfferPick,
+} from "@/lib/rightoffer-pick";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 import { getAnonymousSession } from "@/lib/anonymous-session";
@@ -179,7 +183,27 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         isExactlyRcp: result.isExactlyRcp,
       };
     });
-    const verdict = computeVerdict(quoteScores);
+    // Generate our indicative Right Offer pick — the differentiated
+    // recommendation we pitch alongside the customer's quotes.
+    const rightOfferPick = generateRightOfferPick({
+      rcp: rcpFull,
+      customerQuotes: quoteScores.map((qs) => {
+        const doc = sortedDocs.find((d) => d.id === qs.quoteId);
+        return {
+          grandTotal: qs.grandTotal,
+          basicOd: doc?.premium?.basicOd,
+          basicTp: doc?.premium?.basicTp,
+          isRcpComplete: qs.isRcpComplete,
+          isExactlyRcp: qs.isExactlyRcp,
+          missingRequired: qs.missingRequired,
+          extraNonRcp: qs.extraNonRcp,
+          insurerName: qs.insurerName,
+        };
+      }),
+      anchor,
+    });
+
+    const verdict = computeVerdict(quoteScores, rightOfferPick);
     const vehicleLabel =
       `${anchor.vehicle.make} ${anchor.vehicle.model}`.trim() ||
       "your car";
@@ -191,6 +215,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         quoteScores={quoteScores}
         verdict={verdict}
         docs={sortedDocs}
+        rightOfferPick={rightOfferPick}
         showGate={showGate}
       />
     );
@@ -240,10 +265,23 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 }
 
 // ----------------------------------------------------------------------------
-// Verdict (mirror of comparison API)
+// Verdict — now factors in the RightOffer pick as a competing option.
+//
+// The "Right Offer rule" decision tree:
+//   1. If a customer quote is isExactlyRcp AND <= our pick's price
+//      → "take_existing" (your quote is the Right Offer)
+//   2. Else if a customer quote is isRcpComplete (with extras) AND
+//      cheaper than our pick → "take_existing" with over-coverage note
+//   3. Else our pick wins → "rightoffer_pitch"
+//
+// The pick is always RCP-complete by construction (lib/rightoffer-pick),
+// so we never end up in a "needs_attention" verdict unless the customer
+// has uploaded zero quotes (handled upstream — comparator tab itself
+// only renders for 2+ docs).
 // ----------------------------------------------------------------------------
 function computeVerdict(
-  quoteScores: ComparisonQuoteScore[]
+  quoteScores: ComparisonQuoteScore[],
+  rightOfferPick: RightOfferPick
 ): ComparisonVerdict {
   if (quoteScores.length === 0) {
     return {
@@ -253,46 +291,52 @@ function computeVerdict(
         "Upload at least one renewal quote and we'll score it against the Right Offer profile for your car.",
     };
   }
+
+  const ourPrice = rightOfferPick.grandTotal;
+
+  // Cheapest customer quote that's exactly RCP-complete (no padding).
   const exactlyRcp = quoteScores
     .filter((q) => q.isExactlyRcp)
     .sort((a, b) => a.grandTotal - b.grandTotal);
-  if (exactlyRcp.length > 0) {
+  if (exactlyRcp.length > 0 && exactlyRcp[0].grandTotal <= ourPrice) {
     const winner = exactlyRcp[0];
     return {
       type: "take_existing",
       headline: `${winner.insurerName} is the Right Offer for you.`,
-      body: `This option covers every recommendation for your car at ₹${winner.grandTotal.toLocaleString(
+      body: `Covers every recommendation at ₹${winner.grandTotal.toLocaleString(
         "en-IN"
-      )} — no missing essentials, no padding.`,
+      )} — no missing essentials, no padding, and cheaper than our pick. Take it directly from ${winner.insurerName}.`,
       recommendedQuoteId: winner.quoteId,
     };
   }
+
+  // Cheapest customer quote that's RCP-complete (with extras allowed).
   const rcpComplete = quoteScores
     .filter((q) => q.isRcpComplete)
     .sort((a, b) => a.grandTotal - b.grandTotal);
-  if (rcpComplete.length > 0) {
+  if (rcpComplete.length > 0 && rcpComplete[0].grandTotal < ourPrice) {
     const winner = rcpComplete[0];
+    const extras = winner.extraNonRcp.length
+      ? ` plus ${winner.extraNonRcp.join(", ")} you didn't strictly need`
+      : "";
     return {
       type: "take_existing",
-      headline: `${winner.insurerName} covers everything you need — with a couple of extras.`,
-      body: `This option includes every Right Offer essential plus ${winner.extraNonRcp.join(
-        ", "
-      )} which we wouldn't have added. If the price difference is small, it's still a fine choice.`,
+      headline: `${winner.insurerName} is the Right Offer for you.`,
+      body: `Covers everything we recommend${extras}, and ₹${(
+        ourPrice - winner.grandTotal
+      ).toLocaleString(
+        "en-IN"
+      )} cheaper than our pick. Take it directly from ${winner.insurerName}.`,
       recommendedQuoteId: winner.quoteId,
     };
   }
-  const aggregateMissing = new Set<string>();
-  for (const q of quoteScores) {
-    for (const m of q.missingRequired) aggregateMissing.add(m);
-  }
+
+  // Our pick wins — either no customer quote is RCP-complete, or
+  // all RCP-complete customer quotes are more expensive than our pick.
   return {
-    type: "needs_attention",
-    headline: "None of these cover what we recommend for your car.",
-    body: `Every option is missing at least one essential: ${[
-      ...aggregateMissing,
-    ].join(
-      ", "
-    )}.`,
+    type: "rightoffer_pitch",
+    headline: `Our pick: ${rightOfferPick.insurerName} — the Right Offer for you.`,
+    body: rightOfferPick.beatSummary,
   };
 }
 
