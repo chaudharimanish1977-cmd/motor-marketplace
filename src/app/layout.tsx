@@ -64,11 +64,11 @@ const jetbrainsMono = JetBrains_Mono({
  *   Title       ≤ 60 chars (Google truncates around 580px ≈ 55–60 chars)
  *   Description ≈ 150–160 chars (truncation sweet spot across devices)
  *   Both should mention the core noun ("motor insurance / car insurance")
- *   and the differentiator ("free, independent, AI, 2 minutes").
+ *   and the differentiator ("free, independent, 2 minutes").
  */
-const TITLE = "RightOffer — AI Motor Insurance Review in Under 2 Minutes";
+const TITLE = "RightOffer — Independent Motor Insurance Review in 2 Minutes";
 const DESCRIPTION =
-  "Upload your motor insurance policy for a free, independent AI review. Spot coverage gaps, get add-on advice, and find better renewal offers — in 2 minutes.";
+  "Upload your motor insurance policy for a free, independent review. Spot coverage gaps, get add-on advice, and find better renewal offers — in 2 minutes.";
 const SITE_URL = "https://rightoffer.in";
 
 export const metadata: Metadata = {
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
   keywords: [
     "car insurance India",
     "motor insurance review",
-    "AI insurance review",
+    "independent insurance review",
     "policy review",
     "car insurance renewal",
     "motor insurance comparison",
@@ -139,7 +139,7 @@ const orgJsonLd = {
   url: SITE_URL,
   logo: `${SITE_URL}/icon`,
   description:
-    "Independent, AI-powered motor insurance review and renewal helper for Indian car owners.",
+    "Independent motor insurance review and renewal helper for Indian car owners.",
   areaServed: { "@type": "Country", name: "India" },
   email: "hello@rightoffer.in",
   foundingDate: "2026",
