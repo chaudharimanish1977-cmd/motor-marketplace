@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { waitUntil } from "@vercel/functions";
 import { extractPdfText } from "@/lib/pdf-parser";
 import { extractPolicyFromText } from "@/lib/policy-extractor";
 import { classifyPolicy, rejectionMessage } from "@/lib/policy-classifier";
@@ -15,7 +14,11 @@ import { generateReport } from "@/lib/report-generator";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+// 120s window covers PDF extract (~5s) + classify (~3s) + LLM extraction
+// (~25s) + LLM report generation (~30s) = ~63s typical, with headroom for
+// outlier LLM latency. Without this, a slow generate-report leg gets
+// killed mid-stream and the customer hits "Connection closed" on /reports.
+export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
   try {
@@ -184,36 +187,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Background: pre-generate the PolicyReport so the customer's
-    // next navigation to /reports doesn't block on a 30s LLM call.
-    // waitUntil keeps the work alive AFTER this response returns;
-    // failures are non-fatal — the report will be generated lazily
-    // on first /report or /reports visit if this background work
-    // didn't make it.
-    waitUntil(
-      (async () => {
-        try {
-          const existing = await findOne<PolicyReport>(
-            Tables.REPORTS,
-            (r) => r.parsedPolicyId === savedPolicy.id
-          );
-          if (existing) return;
-          const start = Date.now();
-          const report = await generateReport(savedPolicy);
-          await appendRow<PolicyReport>(Tables.REPORTS, report);
-          console.log(
-            `[parse] Background report for ${savedPolicy.id} generated in ${
-              Date.now() - start
-            }ms`
-          );
-        } catch (err) {
-          console.error(
-            `[parse] Background report generation failed for ${savedPolicy.id}:`,
-            err
-          );
-        }
-      })()
-    );
+    // Pre-generate the PolicyReport SYNCHRONOUSLY before returning to
+    // the client. We previously used waitUntil for this, but Vercel
+    // was killing the function before the background work could
+    // complete — leaving /reports to retry the LLM call inline,
+    // which then got cut mid-stream ("Connection closed").
+    //
+    // The cost: customer waits longer at /upload (parse ~25s + report
+    // ~30s = ~55s total). The existing journey loader UX handles this
+    // gracefully (typewriter messages + the 4 mid-load questions).
+    //
+    // The win: /reports is always a cache hit. No streaming-timeout
+    // failures, no inline retry, no orphaned LLM work.
+    //
+    // Wrapped in try/catch so a failed report generation doesn't fail
+    // the parse — customer still gets the Done card; /reports will
+    // lazily retry on visit (and its own error boundary will surface
+    // any persistent failure).
+    try {
+      const existing = await findOne<PolicyReport>(
+        Tables.REPORTS,
+        (r) => r.parsedPolicyId === savedPolicy.id
+      );
+      if (!existing) {
+        const start = Date.now();
+        const report = await generateReport(savedPolicy);
+        await appendRow<PolicyReport>(Tables.REPORTS, report);
+        console.log(
+          `[parse] Report for ${savedPolicy.id} generated in ${
+            Date.now() - start
+          }ms`
+        );
+      }
+    } catch (err) {
+      console.error(
+        `[parse] Report generation failed for ${savedPolicy.id} — parse still succeeded:`,
+        err
+      );
+    }
 
     return NextResponse.json({ id: savedPolicy.id, parsed: savedPolicy });
   } catch (err) {

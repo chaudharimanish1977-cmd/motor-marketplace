@@ -19,7 +19,11 @@ import { LoadingLink } from "@/components/loading-link";
 import { ReportsTabs, type ReportsTabModel } from "./reports-tabs";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// 120s mirrors /api/parse so the inline-fallback report generation
+// path (used only when parse-time generation failed) has enough
+// headroom to complete. Without this, slow LLM responses get killed
+// mid-stream and the customer hits "Connection closed".
+export const maxDuration = 120;
 export const metadata = {
   title: "Your reports — RightOffer",
   robots: { index: false, follow: false },
