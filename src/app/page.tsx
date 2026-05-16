@@ -398,8 +398,8 @@ function V7Rules() {
   const rules = [
     {
       n: "i.",
-      title: "We don't take commission.",
-      body: "Not a paisa. Not a kickback. Independence is the entire product — everything else is consequence.",
+      title: "We don't push insurance.",
+      body: "We curate what's best for you and earn only when you buy that. We'd rather you didn't buy than buy the wrong cover. The product is the curation; the commission is downstream of it.",
     },
     {
       n: "ii.",
@@ -408,16 +408,13 @@ function V7Rules() {
     },
     {
       n: "iii.",
-      title: "We don't pick up the phone.",
-      body: "You'll never get a follow-up call. The verdict appears once; the decision stays yours.",
+      title: "We don't chase you down.",
+      body: "You'll never get a “just calling to follow up on your renewal”. The verdict appears once; the decision stays with the user.",
     },
   ];
   return (
     <section id="rules" className="pt-14 pb-8">
       <div className="flex items-baseline gap-4 mb-7 pb-4 border-b border-brand-charcoal/10">
-        <span className="font-mono font-bold text-[10.5px] uppercase tracking-[0.18em] text-brand-sage">
-          § III.
-        </span>
         <span className="font-serif italic text-lg text-brand-slate">
           The three rules we keep
         </span>
