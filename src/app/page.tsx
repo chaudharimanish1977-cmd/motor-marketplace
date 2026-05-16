@@ -457,9 +457,9 @@ function V7Quote() {
 /* ─── 8. Stats ──────────────────────────────────────────────────────────── */
 function V7Stats() {
   const stats: [string, string, "plum" | "sage"][] = [
-    ["14,200", "policies reviewed", "plum"],
+    ["1,000+", "policies reviewed", "plum"],
     ["₹1.8L", "avg gap uncovered", "sage"],
-    ["96%", "would recommend", "plum"],
+    ["89%", "would recommend", "plum"],
     ["0", "sales calls placed", "sage"],
   ];
   return (
