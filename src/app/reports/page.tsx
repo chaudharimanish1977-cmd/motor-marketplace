@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Upload } from "lucide-react";
 import { findById, findOne, appendRow, Tables } from "@/lib/db";
@@ -120,6 +120,15 @@ export default async function ReportsPage() {
   const visibleDocs = docs.filter((d) => reports.has(d.id));
   if (visibleDocs.length === 0) {
     return <EmptyState hasFullSession={!!fullSessionEmail} />;
+  }
+
+  // Single-doc case: the tabbed UI gives no value (one tab) AND
+  // /reports has been throwing "Connection closed" in this path for
+  // reasons we haven't fully diagnosed. /report/[id] is the long-
+  // standing per-doc page that works. Redirect there for now; the
+  // tabbed UI stays for multi-doc.
+  if (visibleDocs.length === 1) {
+    redirect(`/report/${visibleDocs[0].id}`);
   }
 
   // Sort docs: policies (alpha by insurer) then quotes (alpha by insurer).
