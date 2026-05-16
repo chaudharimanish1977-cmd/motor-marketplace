@@ -32,6 +32,7 @@
 // should import locale constants/types from `./locales` instead.
 import crypto from "node:crypto";
 import type { Locale } from "./locales";
+import { getOverride } from "./translation-overrides";
 
 // Re-export so server-side callers get one tidy import.
 export type { Locale, LocaleOption } from "./locales";
@@ -109,15 +110,17 @@ async function callGoogle(
 /* ─── Public API ──────────────────────────────────────────────────────── */
 
 /**
- * Translate a single string. English passes through unchanged. Other
- * locales hit the cache first; on miss, the call is batched as a
- * one-element request.
+ * Translate a single string. Lookup order: override file → in-memory
+ * cache → Google API. English short-circuits at the top.
  */
 export async function translate(
   text: string,
   locale: Locale
 ): Promise<string> {
   if (locale === "en" || !text.trim()) return text;
+  // Human override wins over everything.
+  const override = getOverride(text, locale);
+  if (override !== undefined) return override;
   const key = cacheKey(text, locale);
   const cached = memoryCache.get(key);
   if (cached !== undefined) return cached;
@@ -127,9 +130,9 @@ export async function translate(
 }
 
 /**
- * Translate a record of strings in one batched API call. Returns the
- * same record shape with translated values. Cache-aware: only the
- * uncached keys are sent to Google; cached entries return immediately.
+ * Translate a record of strings in one batched API call. Lookup order
+ * per string: override → in-memory cache → batched Google call for the
+ * remainder. Returns the same record shape with translated values.
  */
 export async function translateMany<T extends Record<string, string>>(
   texts: T,
@@ -146,14 +149,22 @@ export async function translateMany<T extends Record<string, string>>(
       out[k] = v;
       continue;
     }
+    // 1. Human override — bypasses cache + API entirely.
+    const override = getOverride(v, locale);
+    if (override !== undefined) {
+      out[k] = override;
+      continue;
+    }
+    // 2. In-memory cache.
     const ck = cacheKey(v, locale);
     const cached = memoryCache.get(ck);
     if (cached !== undefined) {
       out[k] = cached;
-    } else {
-      missingKeys.push(k);
-      missingTexts.push(v);
+      continue;
     }
+    // 3. Defer to Google batch call below.
+    missingKeys.push(k);
+    missingTexts.push(v);
   }
 
   if (missingTexts.length > 0) {
