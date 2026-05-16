@@ -65,13 +65,16 @@ type OverrideMap = Record<string, string>;
 export const TRANSLATION_OVERRIDES: Record<Locale, OverrideMap> = {
   en: {},
   hi: {
-    // Headline — user-curated. The second half ("insurance before it
-    // costs you.") is set to empty string so the Hindi headline reads
-    // just "समझें अपने" with the car illustration below. The page
-    // conditionally skips the empty span (see V7Headline in
-    // src/app/page.tsx) so layout collapses cleanly.
+    // Headline — user-curated.
     "Understand your": "समझें अपने",
-    "insurance before it costs you.": "",
+
+    // The second half ("insurance before it costs you.") is awaiting
+    // a clean rewrite — Google's verbatim output included an awkward
+    // phrase ("करवाने से पहले ही बीमा करवा लें") that the user wants
+    // removed. Surgical override pending: needs the exact rest of
+    // Google's current Hindi rendering pasted in so we can keep what
+    // works and drop only the awkward phrase.
+    // "insurance before it costs you.": "<pending>",
 
     // Below — examples to uncomment + edit as you spot bad
     // translations on rightoffer.in:
