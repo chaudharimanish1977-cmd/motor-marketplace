@@ -23,6 +23,9 @@
 export type FindingSeverity = "high" | "mid" | "ok";
 export type FindingKind = "GAP" | "OK" | "WATCH";
 export type CustomerProfile = "pay_less" | "worry_less" | "balanced";
+/** Vehicle body type — drives which ink-line sketch the review page
+ *  renders as its hero illustration. */
+export type BodyType = "hatchback" | "sedan" | "suv";
 
 export interface Finding {
   k: FindingKind;
@@ -52,6 +55,8 @@ export interface SampleReview {
   city: string;
   insurer: string;
   premium: string;
+  /** Body type — picks the hero ink-line sketch on the sample page. */
+  bodyType: BodyType;
 
   /** Out of 100, used for the score badge. */
   score: number;
@@ -91,6 +96,7 @@ export const SAMPLE_REVIEWS: SampleReview[] = [
     city: "Lucknow",
     insurer: "ICICI Lombard General",
     premium: "₹8,420 / yr",
+    bodyType: "hatchback",
     score: 58,
     headline:
       "Same cover, two thousand rupees cheaper — without leaving the same insurer.",
@@ -149,6 +155,7 @@ export const SAMPLE_REVIEWS: SampleReview[] = [
     city: "Mumbai",
     insurer: "HDFC ERGO General",
     premium: "₹18,900 / yr",
+    bodyType: "suv",
     score: 64,
     headline:
       "A monsoon waterlogging claim would have cost this owner eighty thousand rupees out of pocket.",
@@ -206,6 +213,7 @@ export const SAMPLE_REVIEWS: SampleReview[] = [
     city: "Bengaluru",
     insurer: "Bajaj Allianz General",
     premium: "₹12,840 / yr",
+    bodyType: "sedan",
     score: 62,
     headline:
       "An undervalued IDV worth ₹2.4 lakh of cover, hiding in plain sight on page eleven.",

@@ -176,6 +176,143 @@ export function SketchSedan({
   );
 }
 
+/* ─── Hatchback in 3/4 view, ink wash ────────────────────────────────────── */
+/* Compact silhouette with the cabin extending almost to the rear — no
+ * defined trunk. Smaller rear overhang than the sedan. Matches a Maruti
+ * Swift / VW Polo class car. */
+export function SketchHatchback({
+  color = "#3a1e3d",
+  width = 420,
+  className,
+}: SketchProps) {
+  const h = Math.round(width * 0.62);
+  return (
+    <svg
+      viewBox="0 0 320 200"
+      width={width}
+      height={h}
+      className={`ro-ink ${className ?? ""}`}
+      stroke={color}
+      strokeWidth={2.2}
+    >
+      {/* Body — compact, short rear overhang */}
+      <path d="M28 140 Q42 92, 96 86 L208 84 Q238 84, 254 96 L284 114 Q298 122, 298 138 L298 158 L20 158 L20 142 Z" />
+      {/* Cabin — extends most of the body length, steep rear hatch */}
+      <path d="M84 88 Q98 54, 144 54 L210 54 Q228 58, 244 92 L244 92 Z" />
+      <line x1="160" y1="54" x2="160" y2="90" />
+      {/* Door seams */}
+      <path d="M118 92 L118 154" />
+      <path d="M196 92 L196 156" />
+      {/* Handles */}
+      <line x1="128" y1="112" x2="148" y2="110" />
+      <line x1="206" y1="112" x2="226" y2="110" />
+      {/* Front lamp */}
+      <circle cx="284" cy="128" r="6" />
+      {/* Rear hatch lamp */}
+      <rect x="22" y="118" width="10" height="14" />
+      {/* Wheels */}
+      <g>
+        <circle cx="78" cy="160" r="22" />
+        <circle cx="78" cy="160" r="9" />
+        <circle cx="78" cy="160" r="2" fill={color} />
+      </g>
+      <g>
+        <circle cx="232" cy="160" r="22" />
+        <circle cx="232" cy="160" r="9" />
+        <circle cx="232" cy="160" r="2" fill={color} />
+      </g>
+      {/* Soft hatching under wheel wells */}
+      <g stroke={color} strokeWidth={1} opacity={0.4}>
+        <line x1="40" y1="148" x2="58" y2="148" />
+        <line x1="40" y1="152" x2="62" y2="152" />
+        <line x1="252" y1="148" x2="278" y2="148" />
+        <line x1="256" y1="152" x2="282" y2="152" />
+      </g>
+      {/* Ground line */}
+      <line
+        x1="6"
+        y1="186"
+        x2="314"
+        y2="186"
+        strokeDasharray="4 6"
+        opacity={0.6}
+      />
+    </svg>
+  );
+}
+
+/* ─── SUV in 3/4 view, ink wash ──────────────────────────────────────────── */
+/* Taller, boxier silhouette with raised ride height and a longer roof
+ * line. Bigger wheels relative to body to read as SUV proportions.
+ * Matches a Hyundai Creta / Kia Seltos / Toyota Hyryder class car. */
+export function SketchSUV({
+  color = "#3a1e3d",
+  width = 420,
+  className,
+}: SketchProps) {
+  const h = Math.round(width * 0.62);
+  return (
+    <svg
+      viewBox="0 0 320 200"
+      width={width}
+      height={h}
+      className={`ro-ink ${className ?? ""}`}
+      stroke={color}
+      strokeWidth={2.2}
+    >
+      {/* Body — taller, sits higher with more clearance */}
+      <path d="M30 132 Q44 80, 96 74 L224 70 Q254 70, 270 84 L296 100 Q310 110, 310 128 L310 150 L20 150 L20 134 Z" />
+      {/* Cabin — boxier roof, less rake on A-pillar */}
+      <path d="M82 76 Q96 38, 144 38 L212 38 Q238 42, 250 78 Z" />
+      <line x1="160" y1="40" x2="160" y2="78" />
+      {/* Door seams */}
+      <path d="M118 80 L118 146" />
+      <path d="M196 80 L196 148" />
+      {/* Handles */}
+      <line x1="128" y1="106" x2="148" y2="104" />
+      <line x1="206" y1="106" x2="226" y2="104" />
+      {/* Front lamp */}
+      <circle cx="298" cy="118" r="7" />
+      {/* Roof rails (subtle) */}
+      <line
+        x1="98"
+        y1="34"
+        x2="248"
+        y2="34"
+        strokeWidth={1.4}
+        opacity={0.5}
+      />
+      {/* Wheels — larger to read as SUV */}
+      <g>
+        <circle cx="78" cy="156" r="26" />
+        <circle cx="78" cy="156" r="10" />
+        <circle cx="78" cy="156" r="2" fill={color} />
+      </g>
+      <g>
+        <circle cx="240" cy="156" r="26" />
+        <circle cx="240" cy="156" r="10" />
+        <circle cx="240" cy="156" r="2" fill={color} />
+      </g>
+      {/* Soft hatching under wheel wells */}
+      <g stroke={color} strokeWidth={1} opacity={0.4}>
+        <line x1="34" y1="142" x2="56" y2="142" />
+        <line x1="34" y1="146" x2="60" y2="146" />
+        <line x1="262" y1="142" x2="286" y2="142" />
+        <line x1="266" y1="146" x2="290" y2="146" />
+      </g>
+      {/* Ground line */}
+      <line
+        x1="6"
+        y1="186"
+        x2="314"
+        y2="186"
+        strokeDasharray="4 6"
+        opacity={0.6}
+      />
+    </svg>
+  );
+}
+
 /* ─── Document with paperclip + folded corner ────────────────────────────── */
 export function SketchDoc({
   color = "#3a1e3d",

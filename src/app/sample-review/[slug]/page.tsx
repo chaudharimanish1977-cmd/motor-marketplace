@@ -18,12 +18,30 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LoadingLink } from "@/components/loading-link";
-import { SketchSedan } from "@/components/sketches";
+import {
+  SketchHatchback,
+  SketchSedan,
+  SketchSUV,
+} from "@/components/sketches";
 import {
   SAMPLE_REVIEWS,
   getRelatedSamples,
   getSampleReview,
+  type BodyType,
 } from "@/lib/sample-reviews";
+
+/** Pick the right ink-line sketch component for a vehicle body type. */
+function sketchForBodyType(bodyType: BodyType) {
+  switch (bodyType) {
+    case "hatchback":
+      return SketchHatchback;
+    case "suv":
+      return SketchSUV;
+    case "sedan":
+    default:
+      return SketchSedan;
+  }
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -85,11 +103,25 @@ export default async function SampleReviewPage({ params }: PageProps) {
         {sample.lede}
       </p>
 
+      {/* Vehicle illustration — deliberate hero slot, centred above the
+       *  findings card. Picks the right body-type sketch (hatchback /
+       *  sedan / SUV) so the image matches the car under review.
+       *  Previously sat as an absolute-positioned watermark in the
+       *  top-right of the findings card, where it collided with the
+       *  score badge on narrower widths — the hero slot solves both
+       *  the tangle and gives the illustration the visual weight it
+       *  deserves as an editorial flourish. */}
+      <div className="mt-10 mb-2 flex justify-center text-brand-sage">
+        {(() => {
+          const Sketch = sketchForBodyType(sample.bodyType);
+          return <Sketch width={260} color="currentColor" />;
+        })()}
+      </div>
+
       {/* Findings card */}
-      <section className="mt-10 relative bg-brand-surface border-l-4 border-brand-sage px-6 py-7 md:px-8 md:py-9">
-        <div className="hidden md:block absolute top-6 right-6 text-brand-sage opacity-80">
-          <SketchSedan width={200} color="currentColor" />
-        </div>
+      <section className="mt-4 bg-brand-surface border-l-4 border-brand-sage px-6 py-7 md:px-8 md:py-9">
+        {/* (Previous absolute-positioned sedan watermark removed — see
+         *  the hero slot above. The card is now uncluttered.) */}
         <div className="font-mono font-bold text-[10.5px] uppercase tracking-[0.16em] text-brand-sage mb-3">
           Anonymised findings
         </div>
