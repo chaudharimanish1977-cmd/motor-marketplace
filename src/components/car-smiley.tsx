@@ -160,3 +160,105 @@ export function CarSmiley({
     </svg>
   );
 }
+
+/* ─── Thank-you car ──────────────────────────────────────────────────────── */
+/**
+ * ThankYouCar — the same ink-line car face but with two small floating
+ * hearts above the roof and a few sparkles. Reads as "thanks!" without
+ * needing any text underneath.
+ *
+ * Designed to land on:
+ *   · Post-upload thank-you screen
+ *   · Magic-link email confirmation
+ *   · Receipt / order-confirmation after a renewal purchase
+ *   · "We got your feedback" toast after the rating widget submits
+ *
+ * Slightly taller viewBox (100×120) than the rating smileys so the
+ * floating hearts have somewhere to live above the roof line. The car
+ * itself is identical to the rest of the family.
+ */
+export interface ThankYouCarProps {
+  color?: string;
+  width?: number;
+  className?: string;
+  "aria-label"?: string;
+}
+
+export function ThankYouCar({
+  color = "currentColor",
+  width = 100,
+  className,
+  "aria-label": ariaLabel,
+}: ThankYouCarProps) {
+  const height = Math.round(width * 1.2);
+  return (
+    <svg
+      viewBox="0 0 100 120"
+      width={width}
+      height={height}
+      className={`ro-ink ${className ?? ""}`}
+      stroke={color}
+      strokeWidth={2.6}
+      fill="none"
+      role="img"
+      aria-label={ariaLabel ?? "Thank you"}
+    >
+      {/* Two small floating hearts above the roof. Drawn as two arcs
+       *  joining at a pointed bottom — classic stylised heart shape,
+       *  kept ink-line (no fill) to match the rest of the brand
+       *  drawings. */}
+      <g strokeWidth={2.4}>
+        {/* Left heart */}
+        <path
+          d="M 26 22
+             C 22 16, 14 18, 16 24
+             C 17 28, 26 34, 26 34
+             C 26 34, 35 28, 36 24
+             C 38 18, 30 16, 26 22 Z"
+        />
+        {/* Right heart — slightly higher, slightly smaller */}
+        <path
+          d="M 72 12
+             C 69 8, 63 9.5, 64.5 14
+             C 65.5 17, 72 22, 72 22
+             C 72 22, 78.5 17, 79.5 14
+             C 81 9.5, 75 8, 72 12 Z"
+        />
+      </g>
+
+      {/* Sparkle twinkles between / around the hearts */}
+      <g strokeWidth={1.4} opacity={0.7}>
+        <line x1="46" y1="14" x2="50" y2="18" />
+        <line x1="50" y1="14" x2="46" y2="18" />
+        <line x1="6" y1="36" x2="10" y2="32" />
+        <line x1="8" y1="32" x2="8" y2="36" />
+        <line x1="92" y1="32" x2="94" y2="28" />
+        <line x1="93" y1="28" x2="93" y2="32" />
+      </g>
+
+      {/* Antenna — same family marker as the smileys */}
+      <line x1="50" y1="44" x2="50" y2="38" />
+      <circle cx="50" cy="37" r="1.4" fill={color} stroke="none" />
+
+      {/* Body — same rounded face shape as the smiley row, shifted
+       *  down 30px so the hearts have room above. */}
+      <path d="M14 62 Q14 48, 28 46 L72 46 Q86 48, 86 62 L86 108 L14 108 Z" />
+
+      {/* Bonnet seam */}
+      <line x1="14" y1="60" x2="86" y2="60" opacity={0.5} />
+
+      {/* Closed-eye smile arcs — same as rating-5 face */}
+      <path d="M24 78 Q32 70, 40 78" />
+      <path d="M60 78 Q68 70, 76 78" />
+
+      {/* Wide grateful grin */}
+      <path d="M26 88 Q50 106, 74 88" strokeWidth={2.6} />
+
+      {/* Wheels */}
+      <circle cx="22" cy="114" r="6" />
+      <circle cx="22" cy="114" r="2" fill={color} stroke="none" />
+      <circle cx="78" cy="114" r="6" />
+      <circle cx="78" cy="114" r="2" fill={color} stroke="none" />
+    </svg>
+  );
+}

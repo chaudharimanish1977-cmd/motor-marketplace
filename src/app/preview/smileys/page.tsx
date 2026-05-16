@@ -15,7 +15,11 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CarSmiley, type SmileyRating } from "@/components/car-smiley";
+import {
+  CarSmiley,
+  ThankYouCar,
+  type SmileyRating,
+} from "@/components/car-smiley";
 
 export const metadata: Metadata = {
   title: "Car-smiley rating preview",
@@ -124,6 +128,23 @@ export default function SmileysPreviewPage() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* Thank-you car — separate from the rating scale, but family. */}
+      <section className="mb-12">
+        <div className="font-mono font-bold text-[10.5px] uppercase tracking-[0.16em] text-brand-sage mb-4">
+          · Thank-you car · plum · 120px
+        </div>
+        <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 py-8 flex flex-col items-center gap-3 text-brand-plum">
+          <ThankYouCar width={120} />
+          <h2 className="font-serif font-medium text-2xl tracking-[-0.015em] text-brand-charcoal m-0">
+            Thank you.
+          </h2>
+          <p className="font-serif italic text-sm text-brand-slate text-center max-w-sm">
+            Use anywhere we need to say thanks — post-upload, post-feedback,
+            email confirmation, receipt screens.
+          </p>
         </div>
       </section>
 
