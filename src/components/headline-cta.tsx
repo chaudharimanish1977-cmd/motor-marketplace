@@ -29,7 +29,35 @@ type Priority = "pay_less" | "worry_less" | null;
 
 const STORAGE_KEY = "ro-profile-priority";
 
-export function HeadlineCTA() {
+export interface HeadlineCTALabels {
+  /** Chip text — "I want to pay less" by default. */
+  chipPayLess: string;
+  /** Chip text — "I want to worry less" by default. */
+  chipWorryLess: string;
+  /** Pill button text — "Get my free 2-minute review" by default. */
+  ctaPrimary: string;
+  /** Trust caption — "Trusted by 1,000+ Indian car owners" by default. */
+  trustLine: string;
+  /** Soft link below the trust line — "or see a sample review" by default. */
+  sampleLink: string;
+}
+
+const DEFAULT_LABELS: HeadlineCTALabels = {
+  chipPayLess: "I want to pay less",
+  chipWorryLess: "I want to worry less",
+  ctaPrimary: "Get my free 2-minute review",
+  trustLine: "Trusted by 1,000+ Indian car owners",
+  sampleLink: "or see a sample review",
+};
+
+interface HeadlineCTAProps {
+  /** Translated labels for every visible string. When unset, the
+   *  component falls back to its English copy — useful for storybooks /
+   *  isolated previews. */
+  labels?: HeadlineCTALabels;
+}
+
+export function HeadlineCTA({ labels = DEFAULT_LABELS }: HeadlineCTAProps) {
   const [priority, setPriority] = useState<Priority>(null);
 
   // Hydrate from sessionStorage on mount. Done in useEffect so the
@@ -78,13 +106,13 @@ export function HeadlineCTA() {
           active={priority === "pay_less"}
           onClick={() => toggle("pay_less")}
         >
-          Pay less
+          {labels.chipPayLess}
         </Chip>
         <Chip
           active={priority === "worry_less"}
           onClick={() => toggle("worry_less")}
         >
-          Worry less
+          {labels.chipWorryLess}
         </Chip>
       </div>
 
@@ -92,13 +120,13 @@ export function HeadlineCTA() {
         href={ctaHref}
         className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[18px] hover:opacity-90 transition-opacity"
       >
-        Get my free 2-minute review <span aria-hidden>→</span>
+        {labels.ctaPrimary} <span aria-hidden>→</span>
       </LoadingLink>
 
       {/* Trust line — small mono sage caption to anchor the CTA with a
        *  proof point above the fold. */}
       <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage">
-        · Trusted by 1,000+ Indian car owners ·
+        · {labels.trustLine} ·
       </p>
 
       {/* Soft escape hatch for visitors who aren't ready to upload yet —
@@ -107,7 +135,7 @@ export function HeadlineCTA() {
         href="/sample-review"
         className="mt-3 font-serif italic text-[14px] text-brand-slate hover:text-brand-plum transition-colors"
       >
-        or see a sample review →
+        {labels.sampleLink} →
       </Link>
     </div>
   );
@@ -133,7 +161,7 @@ function Chip({
           : "border-brand-charcoal/20 text-brand-slate hover:border-brand-charcoal/50 hover:text-brand-charcoal"
       }`}
     >
-      I want to {children}
+      {children}
     </button>
   );
 }

@@ -38,6 +38,9 @@ import {
 } from "@/components/sketches";
 import { ReadingQuoteCarousel } from "@/components/reading-quote-carousel";
 import { HeadlineCTA } from "@/components/headline-cta";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { getCurrentLocale } from "@/lib/locale";
+import { translateMany } from "@/lib/translate";
 
 export const dynamic = "force-dynamic";
 
@@ -45,23 +48,67 @@ export default async function Home() {
   // Detect whether the visitor has any kind of session (full magic-link or
   // narrow upload-session). Either flavour means we can offer a direct
   // "My policies" entry rather than the cold "Sign in" prompt.
-  const [fullSessionEmail, uploadSession] = await Promise.all([
+  const [fullSessionEmail, uploadSession, locale] = await Promise.all([
     getSession(),
     getUploadSession(),
+    getCurrentLocale(),
   ]);
   const signedIn = !!(fullSessionEmail || uploadSession);
 
+  // Phase A — translate the above-the-fold strings only. Below-the-fold
+  // sections (How it works, Case study, Rules, Quote, Stats, CTA, Footer)
+  // ship in English for now; we'll expand once Phase A proves out.
+  // Strings are kept as fragments so we can re-apply italic accents
+  // around the translated phrases on the render side.
+  const t = await translateMany(
+    {
+      // Headline: "Understand your insurance before it costs you."
+      h_part1: "Understand your",
+      h_part2: "insurance before it costs you.",
+      // Subhead: "Most people sell insurance. We help you decide."
+      sub_a: "Most people sell insurance.",
+      sub_b: "We help you decide.",
+      // Profile chip labels
+      chip_pay_less: "I want to pay less",
+      chip_worry_less: "I want to worry less",
+      // CTA + trust line
+      cta_primary: "Get my free 2-minute review",
+      trust_line: "Trusted by 1,000+ Indian car owners",
+      sample_link: "or see a sample review",
+      // Brand row "Sign in" / "My policies"
+      sign_in: "Sign in",
+      my_policies: "My policies",
+      // Footer links
+      footer_made: "© RIGHTOFFER · MADE FOR INDIA",
+      footer_sample: "SAMPLE",
+      footer_privacy: "PRIVACY",
+      footer_terms: "TERMS",
+    },
+    locale
+  );
+
   return (
     <article className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-16">
-      <V7Brand signedIn={signedIn} />
-      <V7Headline />
+      <V7Brand
+        signedIn={signedIn}
+        portalLabel={signedIn ? t.my_policies : t.sign_in}
+      />
+      <V7Headline t={t} />
       <V7HowItWorks />
       <V7CaseStudy />
       <V7Rules />
       <V7Quote />
       <V7Stats />
       <V7CTA />
-      <V7Foot />
+      <V7Foot
+        locale={locale}
+        labels={{
+          made: t.footer_made,
+          sample: t.footer_sample,
+          privacy: t.footer_privacy,
+          terms: t.footer_terms,
+        }}
+      />
     </article>
   );
 }
@@ -75,10 +122,17 @@ export default async function Home() {
  *     the primary action above the headline where a thumb can reach it.
  *   - Desktop (md+): wordmark left, Upload + Sign in absolute-centred on
  *     the page so the CTA sits dead-centre regardless of wordmark width. */
-function V7Brand({ signedIn }: { signedIn: boolean }) {
+function V7Brand({
+  signedIn,
+  portalLabel,
+}: {
+  signedIn: boolean;
+  portalLabel: string;
+}) {
   return (
     <header className="relative flex flex-col gap-3 py-4 md:py-6 md:flex-row md:items-center md:justify-between md:gap-4">
-      {/* Wordmark — italic serif "r" + small-caps RightOffer + sage CAR pill. */}
+      {/* Wordmark — italic serif "r" + small-caps RightOffer + sage CAR pill.
+       *  Wordmark stays English; it's a brand-identity mark, not body copy. */}
       <Link
         href="/"
         aria-label="RightOffer Car — home"
@@ -101,9 +155,6 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
         </span>
       </Link>
 
-      {/* Upload-policy CTA + sign-in link. On mobile this sits as a centred
-       *  row directly below the wordmark; on desktop it's absolute-centred
-       *  on the page so it lands dead-centre regardless of wordmark width. */}
       <div className="flex items-center justify-center gap-4 md:absolute md:left-1/2 md:-translate-x-1/2 md:gap-5">
         <LoadingLink
           href="/upload"
@@ -122,7 +173,7 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
           href="/me"
           className="font-serif italic text-[14px] text-brand-slate hover:text-brand-charcoal transition-colors"
         >
-          {signedIn ? "My policies" : "Sign in"}
+          {portalLabel}
         </Link>
       </div>
     </header>
@@ -135,30 +186,47 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
  * earns its place by replacing what would otherwise be empty vertical
  * space. Tight top padding so the headline starts close to the brand row
  * and the Hero CTA below stays within the first screen. */
-function V7Headline() {
+interface HeadlineStrings {
+  h_part1: string;
+  h_part2: string;
+  sub_a: string;
+  sub_b: string;
+  chip_pay_less: string;
+  chip_worry_less: string;
+  cta_primary: string;
+  trust_line: string;
+  sample_link: string;
+}
+
+function V7Headline({ t }: { t: HeadlineStrings }) {
   return (
     <section className="pt-6 md:pt-8 pb-10 md:pb-12 text-center border-b border-brand-charcoal/10">
       <h1 className="font-serif font-medium text-5xl md:text-7xl lg:text-[88px] leading-[1] tracking-[-0.028em] max-w-5xl mx-auto text-brand-charcoal">
-        <span className="block">Understand your</span>
+        <span className="block">{t.h_part1}</span>
         <span className="block py-2 md:py-3 text-brand-plum" aria-hidden>
           <span className="inline-flex justify-center">
             <SketchCar width={150} color="currentColor" />
           </span>
         </span>
-        <span className="block italic text-brand-plum">
-          insurance before it costs you.
-        </span>
+        <span className="block italic text-brand-plum">{t.h_part2}</span>
       </h1>
       <p className="mt-5 font-serif text-2xl md:text-3xl leading-[1.25] text-brand-slate max-w-3xl mx-auto text-balance">
-        Most people sell insurance.{" "}
-        <span className="italic text-brand-sage">We help you decide.</span>
+        {t.sub_a}{" "}
+        <span className="italic text-brand-sage">{t.sub_b}</span>
       </p>
       {/* Above-the-fold CTA block — owns the profile chip pair, the
-       *  primary "Get my free 2-minute review" pill, and the trust
-       *  caption underneath. Client component because the chip state
-       *  affects the CTA's href (we pass the priority through as a
-       *  query param to /upload). */}
-      <HeadlineCTA />
+       *  primary CTA pill, and the trust caption underneath. Client
+       *  component because the chip state affects the CTA's href (we
+       *  pass the priority through as a query param to /upload). */}
+      <HeadlineCTA
+        labels={{
+          chipPayLess: t.chip_pay_less,
+          chipWorryLess: t.chip_worry_less,
+          ctaPrimary: t.cta_primary,
+          trustLine: t.trust_line,
+          sampleLink: t.sample_link,
+        }}
+      />
     </section>
   );
 }
@@ -514,29 +582,32 @@ function V7CTA() {
 }
 
 /* ─── 9. Footer ─────────────────────────────────────────────────────────── */
-function V7Foot() {
+import type { Locale } from "@/lib/translate";
+
+interface FooterProps {
+  locale: Locale;
+  labels: {
+    made: string;
+    sample: string;
+    privacy: string;
+    terms: string;
+  };
+}
+
+function V7Foot({ locale, labels }: FooterProps) {
   // Self-healing copyright year — pre-launch we want the brand to read as
   // contemporary regardless of the month a visitor arrives in.
   const year = new Date().getFullYear();
+  // Stitch the year into the translated "© RIGHTOFFER · MADE FOR INDIA"
+  // string. We translate the bookends only; the year is data, not copy.
+  const madeWithYear = labels.made.replace("RIGHTOFFER", `RIGHTOFFER ${year}`);
   return (
     <footer className="py-5 mt-10 border-t border-brand-charcoal/10 flex flex-col md:flex-row gap-3 md:gap-0 items-center md:items-center justify-center md:justify-between text-center md:text-left font-mono text-[10.5px] uppercase tracking-[0.12em] text-brand-slate">
       <span className="flex flex-wrap items-center justify-center gap-3 md:gap-5">
-        <span>© RIGHTOFFER {year} · MADE FOR INDIA</span>
-        {/* Language pill — V1 placeholder. Hindi is currently the only
-         *  second-language we surface; more (Telugu, Tamil, Marathi, Bengali)
-         *  will follow once the localisation pipeline is wired. Non-functional
-         *  for now but signals intent for semi-urban + rural penetration. */}
-        <span className="inline-flex items-center gap-1.5 border border-brand-charcoal/15 rounded-full px-2 py-0.5 normal-case tracking-normal">
-          <span className="font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-brand-charcoal">
-            EN
-          </span>
-          <span className="text-brand-charcoal/30" aria-hidden>
-            ·
-          </span>
-          <span className="font-serif text-[12px] text-brand-slate">
-            हिंदी
-          </span>
-        </span>
+        <span>{madeWithYear}</span>
+        {/* Functional language switcher — server-action backed, writes
+         *  the `ro-lang` cookie and revalidates. */}
+        <LanguageSwitcher current={locale} />
       </span>
       <span className="flex flex-wrap justify-center gap-5">
         <a
@@ -549,19 +620,19 @@ function V7Foot() {
           href="/sample-review"
           className="hover:text-brand-charcoal transition-colors"
         >
-          SAMPLE
+          {labels.sample}
         </Link>
         <Link
           href="/privacy"
           className="hover:text-brand-charcoal transition-colors"
         >
-          PRIVACY
+          {labels.privacy}
         </Link>
         <Link
           href="/terms"
           className="hover:text-brand-charcoal transition-colors"
         >
-          TERMS
+          {labels.terms}
         </Link>
       </span>
     </footer>
