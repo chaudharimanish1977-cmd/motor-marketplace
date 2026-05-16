@@ -135,14 +135,26 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
 }
 
 /* ─── 2. Headline ───────────────────────────────────────────────────────── */
+/* The animated ink-line car sits between the two lines of the headline as
+ * a moment of visual breath — it's the only motion above the fold and
+ * earns its place by replacing what would otherwise be empty vertical
+ * space. Tight top padding so the headline starts close to the brand row
+ * and the Hero CTA below stays within the first screen. */
 function V7Headline() {
   return (
-    <section className="pt-20 pb-4 text-center">
-      <h1 className="font-serif font-medium text-5xl md:text-7xl lg:text-[88px] leading-[1] tracking-[-0.028em] max-w-5xl mx-auto text-balance text-brand-charcoal">
-        Understand your insurance{" "}
-        <span className="italic text-brand-plum">before it costs you.</span>
+    <section className="pt-6 md:pt-8 pb-2 text-center">
+      <h1 className="font-serif font-medium text-5xl md:text-7xl lg:text-[88px] leading-[1] tracking-[-0.028em] max-w-5xl mx-auto text-brand-charcoal">
+        <span className="block">Understand your</span>
+        <span className="block py-2 md:py-3 text-brand-plum" aria-hidden>
+          <span className="inline-flex justify-center">
+            <SketchCar width={150} color="currentColor" />
+          </span>
+        </span>
+        <span className="block italic text-brand-plum">
+          insurance before it costs you.
+        </span>
       </h1>
-      <p className="mt-7 font-serif text-2xl md:text-3xl leading-[1.25] text-brand-slate max-w-3xl mx-auto text-balance">
+      <p className="mt-5 font-serif text-2xl md:text-3xl leading-[1.25] text-brand-slate max-w-3xl mx-auto text-balance">
         Most people sell insurance.{" "}
         <span className="italic text-brand-sage">We help you decide.</span>
       </p>
@@ -150,26 +162,22 @@ function V7Headline() {
   );
 }
 
-/* ─── 3. Hero — sub-headline + body + animated car + CTA ────────────────── */
-/* Replaces the prior Lead + Hero combo. Single centered vertical column:
- * a short serif headline, the IDV/NCB body line, the animated ink-line
- * car running across a dashed road, and the primary "Review my car
- * policy" pill underneath. No margin annotations, no drop-cap, no desk
- * sketch — the editorial weight is carried by typography and motion. */
+/* ─── 3. Hero — sub-headline + body + CTA ───────────────────────────────── */
+/* Compact centered section directly under the headline. The animated car
+ * moved up between the two headline lines, so this block focuses on the
+ * "what we check" promise and the primary CTA. Tight spacing on both
+ * sides so the Review-my-car-policy pill lands above the fold. */
 function V7Hero() {
   return (
-    <section className="py-10 md:py-14 text-center border-b border-brand-charcoal/10">
-      <h2 className="font-serif font-medium text-[36px] md:text-[48px] leading-[1.05] tracking-[-0.02em] text-balance text-brand-charcoal max-w-3xl mx-auto m-0">
+    <section className="pt-4 md:pt-6 pb-10 md:pb-12 text-center border-b border-brand-charcoal/10">
+      <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.05] tracking-[-0.02em] text-balance text-brand-charcoal max-w-3xl mx-auto m-0">
         We will read what you are{" "}
         <em className="italic text-brand-sage">driving</em> with.
       </h2>
-      <p className="mt-5 font-serif text-[17px] md:text-[19px] leading-[1.6] text-brand-slate max-w-2xl mx-auto text-balance">
+      <p className="mt-3 font-serif text-[17px] md:text-[19px] leading-[1.55] text-brand-slate max-w-2xl mx-auto text-balance">
         IDV, NCB, Zero-Dep, engine cover, cashless networks — we check things
         that decide whether your claim gets paid in full or in fragments.
       </p>
-      <div className="mt-9 flex justify-center text-brand-plum">
-        <SketchCar width={260} color="currentColor" />
-      </div>
       <div className="mt-6">
         <LoadingLink
           href="/upload"
