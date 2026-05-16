@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/email-token";
 import { setSession } from "@/lib/session";
+import { clearUploadSession } from "@/lib/upload-session";
 
 export const runtime = "nodejs";
 
@@ -33,5 +34,9 @@ export async function GET(
   }
 
   await setSession(payload.s);
+  // The upload-session cookie (typed-but-unverified) is redundant
+  // once we have a full magic-link session — clear it so /me reads
+  // the broader full-session, not the narrower upload-scoped one.
+  await clearUploadSession();
   return NextResponse.redirect(new URL("/me", request.url));
 }

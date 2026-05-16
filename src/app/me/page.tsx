@@ -11,6 +11,7 @@ import {
   Archive,
 } from "lucide-react";
 import { getSession } from "@/lib/session";
+import { getUploadSession } from "@/lib/upload-session";
 import { readTable, Tables } from "@/lib/db";
 import type {
   ParsedPolicy,
@@ -67,10 +68,31 @@ interface PortalPolicy {
  * normalised form so the DB-side join needs to match.
  */
 export default async function PortalHome() {
-  const sessionEmail = await getSession();
+  const fullSessionEmail = await getSession();
+  // If no full session, try the upload session — narrower scope (only
+  // docs uploaded in this browser) but enough to give the customer
+  // their just-uploaded reports + comparator without forcing them to
+  // wait for the magic-link email to arrive.
+  const uploadSession = fullSessionEmail
+    ? null
+    : await getUploadSession();
+  const sessionEmail = fullSessionEmail ?? uploadSession?.email ?? null;
   if (!sessionEmail) redirect("/me/login");
 
-  const policies = await loadPoliciesFor(sessionEmail);
+  const isUnverified = !fullSessionEmail && !!uploadSession;
+  const scopedDocIds = isUnverified
+    ? new Set(uploadSession?.docs ?? [])
+    : null;
+
+  const allPolicies = await loadPoliciesFor(sessionEmail);
+  // In upload-session mode, intersect to only the docs in this
+  // browser's cookie. Full session sees everything matching the
+  // email (broader access).
+  const policies = scopedDocIds
+    ? allPolicies.filter((p) =>
+        p.groupRecords.some((r) => scopedDocIds.has(r.id))
+      )
+    : allPolicies;
 
   const active = policies.filter((p) => p.bucket === "active");
   const quotes = policies.filter((p) => p.bucket === "quote");
@@ -98,7 +120,7 @@ export default async function PortalHome() {
                 Your policies
               </h1>
               <p className="mt-1.5 text-sm text-brand-slate">
-                Signed in as{" "}
+                {isUnverified ? "Browsing as " : "Signed in as "}
                 <span className="font-semibold text-brand-charcoal">
                   {sessionEmail}
                 </span>
@@ -106,6 +128,31 @@ export default async function PortalHome() {
             </div>
             <SignOutButton />
           </div>
+
+          {/* Soft notice when the customer is on the upload-session
+              (typed-but-not-verified). Tells them what they need to do
+              to unlock full access (click the magic link in their
+              inbox) without being a hard wall. */}
+          {isUnverified && (
+            <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-4 flex items-start gap-3">
+              <div className="w-9 h-9 shrink-0 rounded-xl bg-amber-100 text-amber-700 border border-amber-200 flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1 text-sm">
+                <div className="font-semibold text-brand-charcoal">
+                  Showing documents from this browser only
+                </div>
+                <p className="text-xs text-brand-slate mt-1 leading-relaxed">
+                  We sent a sign-in link to{" "}
+                  <span className="font-mono text-brand-charcoal">
+                    {sessionEmail}
+                  </span>
+                  . Click it to unlock your full portal across any
+                  device + enable PDF downloads.
+                </p>
+              </div>
+            </div>
+          )}
 
           {policies.length === 0 ? (
             <EmptyState />
@@ -173,13 +220,18 @@ export default async function PortalHome() {
             </LoadingLink>
           </div>
 
-          {/* Account controls — quiet, separate from the policy list */}
-          <div className="mt-10">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-slate mb-3">
-              Account
+          {/* Account controls — quiet, separate from the policy list.
+              Delete-everything is a full-account action: only show it
+              when the customer is verified (full session). On the
+              upload-session we can't be sure the email is really theirs. */}
+          {!isUnverified && (
+            <div className="mt-10">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-slate mb-3">
+                Account
+              </div>
+              <DeleteAccountCard email={sessionEmail} />
             </div>
-            <DeleteAccountCard email={sessionEmail} />
-          </div>
+          )}
         </div>
       </main>
     </>

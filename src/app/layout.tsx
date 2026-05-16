@@ -5,6 +5,7 @@ import { DesktopAmbientArt } from "@/components/desktop-ambient-art";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SiteHeader } from "@/components/site-header";
 import { getSession } from "@/lib/session";
+import { getUploadSession } from "@/lib/upload-session";
 // TopLoader temporarily disabled — first attempt with the nextjs-toploader
 // package + the in-tree replacement both correlate with a client-side
 // exception on /report in production. Pulling it out entirely while we
@@ -136,7 +137,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const sessionEmail = await getSession();
+  const [fullSessionEmail, uploadSession] = await Promise.all([
+    getSession(),
+    getUploadSession(),
+  ]);
+  const hasAnySession = !!(fullSessionEmail || uploadSession);
   return (
     <html lang="en" className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
@@ -155,7 +160,7 @@ export default async function RootLayout({
         <DesktopAmbientArt />
         <ThemeToggle />
         <div className="relative z-10">
-          <SiteHeader signedIn={!!sessionEmail} />
+          <SiteHeader signedIn={hasAnySession} />
           {children}
         </div>
       </body>

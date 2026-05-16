@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Car, MapPin } from "lucide-react";
+import { RefreshCw, Car, MapPin, ShieldOff } from "lucide-react";
 import { UploadDropzone } from "@/components/upload-dropzone";
 import type { RenewalContext } from "@/app/upload/page";
 
 interface Props {
   isDemo: boolean;
   renewalContext?: RenewalContext | null;
+  /** Pre-known email passed through from /upload's server resolution. */
+  knownEmail?: string;
 }
 
 /**
@@ -22,6 +24,7 @@ interface Props {
 export function UploadFlow({
   isDemo,
   renewalContext,
+  knownEmail,
 }: Props) {
   const [busy, setBusy] = useState(false);
 
@@ -45,6 +48,13 @@ export function UploadFlow({
             — and tell you what&apos;s strong, what&apos;s missing, and what
             to look for at renewal.
           </p>
+          <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[11px] text-emerald-800">
+            <ShieldOff className="w-3 h-3" />
+            <span>
+              <strong className="font-semibold">No sales calls. Ever.</strong>{" "}
+              We only message about your renewals.
+            </span>
+          </div>
         </div>
       )}
 
@@ -54,6 +64,7 @@ export function UploadFlow({
         backHref={
           renewalContext ? "/me" : isDemo ? "/investor" : "/"
         }
+        knownEmail={knownEmail}
       />
     </main>
   );

@@ -9,6 +9,7 @@ import {
 } from "@/lib/db";
 import { generateReport } from "@/lib/report-generator";
 import { getSession } from "@/lib/session";
+import { getUploadSession } from "@/lib/upload-session";
 import {
   computeRCP,
   scoreAgainstRcp,
@@ -55,7 +56,15 @@ const Schema = z.object({
  *     — single cross-account ID fails the whole request with 404.
  */
 export async function POST(request: NextRequest) {
-  const sessionEmail = await getSession();
+  // Accept either full session OR upload session — the comparator is
+  // a legitimate same-session action right after upload, and asking
+  // the customer to wait for a magic-link click before they can run
+  // a comparison would kill conversion.
+  const fullSessionEmail = await getSession();
+  const uploadSession = fullSessionEmail
+    ? null
+    : await getUploadSession();
+  const sessionEmail = fullSessionEmail ?? uploadSession?.email ?? null;
   if (!sessionEmail) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
@@ -78,6 +87,9 @@ export async function POST(request: NextRequest) {
   // Load all referenced docs + verify ownership.
   const allIds = [...new Set([body.policyId, ...body.quoteIds].filter(Boolean))] as string[];
   const docs: ParsedPolicy[] = [];
+  const uploadScope = uploadSession
+    ? new Set(uploadSession.docs)
+    : null;
   for (const id of allIds) {
     const p = await findById<ParsedPolicy>(Tables.PARSED_POLICIES, id);
     if (!p) {
@@ -86,6 +98,11 @@ export async function POST(request: NextRequest) {
     // Ownership: owner.email match. (Subscription-only ownership is rare
     // here since the customer just uploaded these; keep the check simple.)
     if ((p.owner?.email ?? "").toLowerCase() !== target) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    // Upload-session: additionally scope to docs in this browser's
+    // cookie. Full session sees everything owned by the email.
+    if (uploadScope && !uploadScope.has(p.id)) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     docs.push(p);

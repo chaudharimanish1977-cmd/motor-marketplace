@@ -53,7 +53,8 @@ export default function Home() {
               <ArrowRight className="w-5 h-5 ml-2" />
             </LoadingLink>
             <p className="text-xs text-brand-slate">
-              Free · No spam · Independent advice
+              Free · <strong className="font-semibold">No sales calls</strong>{" "}
+              · Independent advice
             </p>
           </div>
         </section>

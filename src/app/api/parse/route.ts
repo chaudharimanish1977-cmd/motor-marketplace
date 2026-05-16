@@ -5,6 +5,10 @@ import { classifyPolicy, rejectionMessage } from "@/lib/policy-classifier";
 import { appendRow, updateById, Tables } from "@/lib/db";
 import { storePolicyPdf } from "@/lib/blob-store";
 import { getSession } from "@/lib/session";
+import {
+  appendDocToUploadSession,
+  getUploadSession,
+} from "@/lib/upload-session";
 import type { ParsedPolicy } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -98,17 +102,19 @@ export async function POST(request: NextRequest) {
       `[parse] Extraction completed in ${Date.now() - extractStart}ms. Confidence: ${parsed.parseConfidence}`
     );
 
-    // If the customer is signed in, stamp the parsed policy with their
-    // session email. That overrides whatever the PDF extraction found
-    // — the signed-in identity is the authoritative truth (e.g. a
-    // customer renewing for a spouse still wants the policy under
-    // their own portal). Without this the new policy won't appear in
-    // /me unless the PDF happened to carry the exact same address.
+    // If the customer is signed in (or has an upload-session from a
+    // prior submit in this browser), stamp the parsed policy with
+    // their email. The signed-in identity is the authoritative truth
+    // (e.g. a customer renewing for a spouse still wants the policy
+    // under their own portal). Full session wins over upload session
+    // when both are present.
     const sessionEmail = await getSession();
-    if (sessionEmail) {
+    const uploadSession = sessionEmail ? null : await getUploadSession();
+    const effectiveEmail = sessionEmail ?? uploadSession?.email ?? null;
+    if (effectiveEmail) {
       parsed.owner = {
         ...parsed.owner,
-        email: sessionEmail,
+        email: effectiveEmail,
       };
     }
 
@@ -121,6 +127,23 @@ export async function POST(request: NextRequest) {
       Tables.PARSED_POLICIES,
       parsed
     );
+
+    // If we stamped from an upload-session, append the new doc ID to
+    // the cookie so subsequent comparator runs in this browser know
+    // about it. No-op when there's no upload-session (full-session
+    // customers find their docs via owner.email match in /me).
+    if (!sessionEmail && uploadSession) {
+      try {
+        await appendDocToUploadSession(savedPolicy.id);
+      } catch (err) {
+        console.error(
+          "[parse] Failed to append doc to upload session:",
+          err
+        );
+        // Non-fatal — doc still saved with owner.email, just not in
+        // the cookie's scope list. Customer can recover via magic link.
+      }
+    }
 
     // Persist the original uploaded PDF to Blob, then back-fill the URL on
     // the parsed policy record. Failures here don't fail the parse — the

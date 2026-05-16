@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { findById, Tables } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { getUploadSession } from "@/lib/upload-session";
 import type {
   ComparisonReport,
   ParsedPolicy,
@@ -48,8 +49,19 @@ interface PageProps {
  */
 export default async function ComparisonPage({ params }: PageProps) {
   const { id } = await params;
-  const sessionEmail = await getSession();
-  if (!sessionEmail) redirect(`/me/login?next=${encodeURIComponent(`/comparison/${id}`)}`);
+
+  // Accept either full session OR upload session — comparator is a
+  // legitimate same-session action after upload. Upload session is
+  // additionally scoped to docs the customer actually uploaded in
+  // this browser, so cross-customer access via guessed ID still fails.
+  const fullSessionEmail = await getSession();
+  const uploadSession = fullSessionEmail ? null : await getUploadSession();
+  const sessionEmail = fullSessionEmail ?? uploadSession?.email ?? null;
+  if (!sessionEmail) {
+    redirect(
+      `/me/login?next=${encodeURIComponent(`/comparison/${id}`)}`
+    );
+  }
 
   const comparison = await findById<ComparisonReport>(
     Tables.COMPARISONS,
@@ -61,6 +73,16 @@ export default async function ComparisonPage({ params }: PageProps) {
     sessionEmail.toLowerCase()
   ) {
     notFound();
+  }
+  // Extra scoping for upload session: every quote in the comparison
+  // must be in the upload-session's doc list. Otherwise this is
+  // someone trying to access a comparison whose docs were uploaded
+  // in a different browser (full magic-link verification required
+  // for that).
+  if (uploadSession) {
+    const allowedDocs = new Set(uploadSession.docs);
+    const allInScope = comparison.quoteIds.every((q) => allowedDocs.has(q));
+    if (!allInScope) notFound();
   }
 
   // Hydrate the linked quote records so the side-by-side table has the

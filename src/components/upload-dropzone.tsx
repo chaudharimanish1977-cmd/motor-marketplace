@@ -22,6 +22,10 @@ import {
   answersToQuery,
   type MidLoadAnswers,
 } from "@/components/mid-load-questions";
+import {
+  EmailCaptureForm,
+  type EmailCapturePayload,
+} from "@/components/email-capture-form";
 
 type UploadState = "idle" | "uploading" | "parsing" | "done" | "error";
 
@@ -47,6 +51,11 @@ interface UploadDropzoneProps {
   onBusyChange?: (busy: boolean) => void;
   /** Where the in-card Back chevron should link to. Default `/`. */
   backHref?: string;
+  /** Pre-known email if the visitor already has a session (either full
+   *  magic-link session or upload session from earlier in this browser).
+   *  When set, the email-capture form is skipped — no point asking for
+   *  what we already have. Server-resolved in /upload/page.tsx. */
+  knownEmail?: string;
 }
 
 function BackChip({ href }: { href: string }) {
@@ -88,6 +97,7 @@ export function UploadDropzone({
   demoMode = false,
   onBusyChange,
   backHref = "/",
+  knownEmail,
 }: UploadDropzoneProps) {
   const [state, setState] = useState<UploadState>("idle");
   const [error, setError] = useState<UploadError | null>(null);
@@ -98,6 +108,22 @@ export function UploadDropzone({
   // "2 documents uploaded this session" counter on the Done screen so
   // a returning quote-comparator user can see what's accumulating.
   const [uploadCount, setUploadCount] = useState(0);
+
+  // Email-capture state. needsEmail starts true unless the parent
+  // passed knownEmail (already-signed-in or already-claimed in this
+  // browser). Once the customer submits + the claim succeeds we
+  // flip to false and the form stops appearing for subsequent
+  // uploads in the same session.
+  const [needsEmail, setNeedsEmail] = useState(!knownEmail);
+  // Holds the email payload if the customer submitted BEFORE parse
+  // finished. As soon as parse returns the doc ID, we fire the claim
+  // with this payload + the new doc ID.
+  const [queuedClaim, setQueuedClaim] = useState<EmailCapturePayload | null>(
+    null
+  );
+  // Briefly true after a successful claim — drives the green "Saved"
+  // banner in the form before it unmounts.
+  const [claimed, setClaimed] = useState(false);
 
   // Refs so the async parse closure always reads the latest survey answers
   // and timestamp without needing them in the deps array.
@@ -213,6 +239,81 @@ export function UploadDropzone({
     answersRef.current = a;
   }, []);
 
+  /**
+   * Fire the actual claim call against /api/upload-session/claim.
+   * Centralised so both "submit after parse finishes" and "submit
+   * during parse, fire-on-completion" paths converge here.
+   */
+  const runClaim = useCallback(
+    async (payload: EmailCapturePayload, docIds: string[]) => {
+      const res = await fetch("/api/upload-session/claim", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email: payload.email,
+          whatsapp: payload.whatsapp,
+          docIds,
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Couldn't save email — try again.");
+      }
+      // Flip the form's local "claimed" state — drives the brief green
+      // banner, then `needsEmail` flipping false unmounts the form
+      // entirely on the next render.
+      setClaimed(true);
+      // Skip the email form on any subsequent uploads in this session.
+      // Small delay so the green confirmation has time to register.
+      setTimeout(() => {
+        setNeedsEmail(false);
+        setClaimed(false);
+      }, 1200);
+    },
+    []
+  );
+
+  /**
+   * onClaim handler passed to <EmailCaptureForm>. If the parse is
+   * still in flight (no doc ID yet), queue the payload — useEffect
+   * below will fire the claim once `lastDoc` becomes available.
+   * Otherwise call immediately with the known doc ID.
+   */
+  const handleEmailSubmit = useCallback(
+    async (payload: EmailCapturePayload) => {
+      if (lastDoc) {
+        await runClaim(payload, [lastDoc.id]);
+      } else {
+        // Defer until parse finishes — useEffect will fire it.
+        setQueuedClaim(payload);
+      }
+    },
+    [lastDoc, runClaim]
+  );
+
+  // Fire queued claim once parse delivers a doc ID.
+  useEffect(() => {
+    if (!queuedClaim || !lastDoc) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await runClaim(queuedClaim, [lastDoc.id]);
+      } catch (err) {
+        // Surface back to the form via a quick state nudge — the
+        // form itself has its own error display when onClaim throws.
+        // We do the catch here to prevent unhandled rejection.
+        if (!cancelled) console.error("[upload] Claim failed:", err);
+      } finally {
+        if (!cancelled) setQueuedClaim(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [queuedClaim, lastDoc, runClaim]);
+
   // Mirror the busy state to the parent so it can hide page chrome (heading,
   // privacy footer) while the loader or success card is showing. The done
   // state keeps the chrome hidden so the success card stands alone.
@@ -250,6 +351,15 @@ export function UploadDropzone({
             etaText="Usually under 2 minutes"
           />
         </div>
+
+        {/* Email capture — mandatory in the customer flow, skipped when
+            knownEmail is set (already-signed-in or already-claimed in
+            this browser). Submission can happen before parse finishes
+            — the parent queues the claim and fires it once the doc
+            ID is available. */}
+        {needsEmail && (
+          <EmailCaptureForm onClaim={handleEmailSubmit} claimed={claimed} />
+        )}
 
         {/* Productive use of the parse wait — 4 quick taps */}
         <MidLoadQuestions onChange={handleAnswersChange} />
@@ -328,6 +438,13 @@ export function UploadDropzone({
             )}
           </div>
         </div>
+
+        {/* If the customer never submitted email during parse, the form
+            shows here on the Done card too — last-chance capture before
+            they navigate away. */}
+        {needsEmail && (
+          <EmailCaptureForm onClaim={handleEmailSubmit} claimed={claimed} />
+        )}
       </div>
     );
   }
