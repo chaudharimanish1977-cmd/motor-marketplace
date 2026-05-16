@@ -152,7 +152,7 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
 
             {/* Coverage rows */}
             <tr className="border-b border-brand-light-gray">
-              <td colSpan={availableTiers.length + 1} className="p-3 bg-blue-50/40">
+              <td colSpan={availableTiers.length + 1} className="p-3 bg-brand-navy/10">
                 <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy">
                   Coverage
                 </div>
@@ -202,7 +202,7 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
                   <td key={tier.tier} className="p-4 space-y-2">
                     <LoadingLink
                       href={`/offer/${win.id}`}
-                      className="block w-full text-center text-xs font-semibold py-2 rounded-xl border-2 border-brand-navy text-brand-navy hover:bg-blue-50"
+                      className="block w-full text-center text-xs font-semibold py-2 rounded-xl border-2 border-brand-navy text-brand-navy hover:bg-brand-navy/10"
                       spinnerPosition="right"
                     >
                       See breakdown

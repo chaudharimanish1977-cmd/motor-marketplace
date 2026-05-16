@@ -67,7 +67,7 @@ export function ContactCTA({
         <ArrowRight className="w-5 h-5" />
       </button>
       {footnote && (
-        <p className="text-blue-200 text-xs mt-4 max-w-md mx-auto">
+        <p className="text-white/70 text-xs mt-4 max-w-md mx-auto">
           {footnote}
         </p>
       )}

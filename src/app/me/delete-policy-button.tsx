@@ -247,7 +247,7 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
                       </span>
                     )}
                     {r.documentType === "quote" && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] rounded-full bg-blue-50 text-brand-navy border border-blue-100">
+                      <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] rounded-full bg-brand-navy/10 text-brand-navy border border-brand-navy/20">
                         Quote
                       </span>
                     )}

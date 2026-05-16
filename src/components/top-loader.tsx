@@ -149,8 +149,8 @@ export function TopLoader() {
         style={{
           height: "100%",
           width: `${progress}%`,
-          backgroundColor: "#FF6B35",
-          boxShadow: "0 0 8px #FF6B35, 0 0 4px #FF6B35",
+          backgroundColor: "#ff5a30",
+          boxShadow: "0 0 8px #ff5a30, 0 0 4px #ff5a30",
           transition: "width 220ms ease-out",
         }}
       />

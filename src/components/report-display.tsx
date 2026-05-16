@@ -190,7 +190,7 @@ export function ReportDisplay({
               Your Motor Insurance{" "}
               <span className="text-brand-olive">at a Glance</span>
             </h1>
-            <p className="text-sm text-blue-100 mt-1.5 leading-snug">
+            <p className="text-sm text-white/85 mt-1.5 leading-snug">
               Smart Review Today.
               <br />
               Stronger Protection Tomorrow.
@@ -200,7 +200,7 @@ export function ReportDisplay({
           {/* Secondary controls — desktop only, suppressed in print-mode */}
           {!printMode && (
             <div className="hidden md:flex items-center justify-end gap-3 print:hidden">
-              <div className="text-xs text-blue-200">
+              <div className="text-xs text-white/70">
                 Generated{" "}
                 {new Date(report.generatedAt).toLocaleString("en-IN", {
                   dateStyle: "medium",
@@ -425,7 +425,7 @@ function VehicleHero({
 
         {/* Right: money-at-risk hero */}
         {hasRisk ? (
-          <div className="rounded-2xl bg-gradient-to-br from-orange-50 via-white to-rose-50 border-2 border-brand-coral/30 p-5 md:p-6 text-center md:text-right">
+          <div className="rounded-2xl bg-gradient-to-br from-brand-coral/10 via-white to-rose-50 border-2 border-brand-coral/30 p-5 md:p-6 text-center md:text-right">
             <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-coral mb-1.5">
               At risk today, if a claim happens
             </div>
@@ -686,8 +686,8 @@ function PricingSnapshotCard({
   snapshot: PolicyReport["pricingSnapshot"];
 }) {
   return (
-    <div className="rounded-2xl border-2 border-blue-300 bg-white shadow-md overflow-hidden">
-      <div className="bg-gradient-to-r from-brand-navy to-blue-700 text-white font-bold px-5 py-3 flex items-center gap-3">
+    <div className="rounded-2xl border-2 border-brand-navy/40 bg-white shadow-md overflow-hidden">
+      <div className="bg-gradient-to-r from-brand-navy to-brand-navy text-white font-bold px-5 py-3 flex items-center gap-3">
         <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">
           5.5
         </div>
@@ -698,7 +698,7 @@ function PricingSnapshotCard({
           NEW
         </span>
       </div>
-      <div className="bg-gradient-to-br from-white to-blue-50 p-6 space-y-5">
+      <div className="bg-gradient-to-br from-white to-brand-navy/10 p-6 space-y-5">
         <div className="grid md:grid-cols-3 gap-4">
           <PricingCell
             label="Your Current Premium"
@@ -764,7 +764,7 @@ function PricingCell({
       className={clsx(
         "rounded-xl border p-4",
         highlight
-          ? "border-blue-300 bg-blue-50"
+          ? "border-brand-navy/40 bg-brand-navy/10"
           : positive
             ? "border-emerald-300 bg-emerald-50"
             : "border-brand-light-gray bg-white"
@@ -793,29 +793,29 @@ function IdealInsurerProfileToggle({
   profile: PolicyReport["idealInsurerProfile"];
 }) {
   return (
-    <details className="rounded-2xl border-2 border-dashed border-purple-300 bg-purple-50 p-6 group">
+    <details className="rounded-2xl border-2 border-dashed border-brand-plum/40 bg-brand-plum/10 p-6 group">
       <summary className="cursor-pointer flex items-center gap-3 list-none">
-        <div className="w-9 h-9 rounded-lg bg-purple-200 flex items-center justify-center">
-          <Lock className="w-5 h-5 text-purple-700" />
+        <div className="w-9 h-9 rounded-lg bg-brand-plum/20 flex items-center justify-center">
+          <Lock className="w-5 h-5 text-brand-plum" />
         </div>
         <div className="flex-1">
-          <div className="font-semibold text-purple-900 flex items-center gap-2">
+          <div className="font-semibold text-brand-plum flex items-center gap-2">
             Behind the Scenes: Ideal Insurer Profile
-            <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-purple-200 text-purple-900 rounded">
+            <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-brand-plum/20 text-brand-plum rounded">
               Admin View
             </span>
           </div>
-          <div className="text-xs text-purple-700 mt-0.5">
+          <div className="text-xs text-brand-plum mt-0.5">
             Customer never sees this. Reveals the platform&apos;s matching logic
             for the pitch demo.
           </div>
         </div>
-        <Eye className="w-5 h-5 text-purple-600 group-open:hidden" />
-        <EyeOff className="w-5 h-5 text-purple-600 hidden group-open:block" />
+        <Eye className="w-5 h-5 text-brand-plum group-open:hidden" />
+        <EyeOff className="w-5 h-5 text-brand-plum hidden group-open:block" />
       </summary>
 
       <div className="mt-5 space-y-4">
-        <div className="text-sm text-purple-900 bg-white border border-purple-200 rounded-lg p-3">
+        <div className="text-sm text-brand-plum bg-white border border-brand-plum/30 rounded-lg p-3">
           The platform&apos;s matching engine pre-selects insurers most likely
           to bid competitively for this customer. The actual{" "}
           <strong>winning bid</strong> is determined by the marketplace&apos;s
@@ -824,14 +824,14 @@ function IdealInsurerProfileToggle({
         </div>
 
         <div>
-          <div className="text-xs font-semibold text-purple-700 uppercase mb-2">
+          <div className="text-xs font-semibold text-brand-plum uppercase mb-2">
             Recommended insurers for this customer profile
           </div>
           <div className="grid md:grid-cols-2 gap-2">
             {profile.recommendedInsurers.map((ins) => (
               <div
                 key={ins.name}
-                className="bg-white border border-purple-200 rounded-lg p-3"
+                className="bg-white border border-brand-plum/30 rounded-lg p-3"
               >
                 <div className="font-semibold text-brand-charcoal text-sm">
                   {ins.name}
@@ -845,14 +845,14 @@ function IdealInsurerProfileToggle({
         </div>
 
         <div>
-          <div className="text-xs font-semibold text-purple-700 uppercase mb-2">
+          <div className="text-xs font-semibold text-brand-plum uppercase mb-2">
             Selection criteria
           </div>
           <div className="flex flex-wrap gap-2">
             {profile.selectionCriteria.map((c) => (
               <span
                 key={c}
-                className="text-xs bg-white border border-purple-200 px-2.5 py-1 rounded-full text-purple-900"
+                className="text-xs bg-white border border-brand-plum/30 px-2.5 py-1 rounded-full text-brand-plum"
               >
                 {c}
               </span>
@@ -888,7 +888,7 @@ function KeyTakeawayCard({
           caretClassName="bg-brand-olive"
         />
       </h2>
-      <p className="report-detail text-blue-100 max-w-2xl mx-auto mb-7 text-lg">
+      <p className="report-detail text-white/85 max-w-2xl mx-auto mb-7 text-lg">
         {takeaway.body}
       </p>
       {isInvestor ? (
@@ -901,7 +901,7 @@ function KeyTakeawayCard({
             {takeaway.cta}
             <ArrowRight className="w-5 h-5" />
           </LoadingLink>
-          <p className="text-blue-200 text-xs mt-4">
+          <p className="text-white/70 text-xs mt-4">
             Free to see your offers · Insurers compete for your renewal · No
             spam
           </p>
@@ -913,7 +913,7 @@ function KeyTakeawayCard({
             label="Get the Full Report"
             reportId={parsedPolicyId}
           />
-          <p className="text-blue-200 text-xs mt-4 max-w-md mx-auto">
+          <p className="text-white/70 text-xs mt-4 max-w-md mx-auto">
             We&apos;ll email this report to you so you have it on hand at
             renewal — and send a reminder before your policy expires. No spam.
           </p>

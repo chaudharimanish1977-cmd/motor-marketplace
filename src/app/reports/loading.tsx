@@ -16,7 +16,7 @@ export default function Loading() {
       <BrandBlobs />
       <main className="relative z-10 min-h-screen px-4 py-12 flex items-center justify-center">
         <div className="max-w-md w-full text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 text-brand-navy">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-navy/10 border border-brand-navy/20 text-brand-navy">
             <Loader2 className="w-7 h-7 animate-spin" />
           </div>
           <div>

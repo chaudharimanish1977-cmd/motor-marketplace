@@ -53,7 +53,7 @@ export default async function InvestorHome() {
         <div className="max-w-3xl w-full text-center space-y-8">
         {/* Eyebrow */}
         <div className="flex justify-center">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-blue-50 border border-blue-100 rounded-full">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full">
             <Sparkles className="w-3.5 h-3.5" />
             RightOffer AI Powered Policy Review
           </span>
@@ -120,7 +120,7 @@ export default async function InvestorHome() {
       {personas.length > 0 && (
         <section className="mt-24 max-w-5xl w-full">
           <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-coral bg-orange-50 border border-orange-100 rounded-full mb-4">
+            <span className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-coral bg-brand-coral/10 border border-brand-coral/20 rounded-full mb-4">
               <Zap className="w-3 h-3" />
               Pre-parsed personas · Investor shortcut
             </span>

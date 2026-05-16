@@ -182,7 +182,7 @@ function renderHtml(d: DigestData): string {
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8F9FA;padding:24px 12px;">
     <tr><td align="center">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
-        <tr><td style="background:linear-gradient(135deg,#0A2463,#247BA0);padding:20px 24px;color:#fff;">
+        <tr><td style="background:linear-gradient(135deg,#1a3470,#3A1E3D);padding:20px 24px;color:#fff;">
           <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.9;">RightOffer · Hourly digest</div>
           <div style="font-size:18px;font-weight:700;margin-top:4px;">${escape(d.windowFrom)} → ${escape(d.windowTo)} IST</div>
         </td></tr>

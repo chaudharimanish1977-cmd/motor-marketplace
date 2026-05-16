@@ -129,7 +129,7 @@ export default async function ComparisonPage({ params }: PageProps) {
 function Header({ comparison }: { comparison: ComparisonReport }) {
   return (
     <header className="space-y-2">
-      <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-blue-50 border border-blue-100 rounded-full">
+      <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full">
         <Sparkles className="w-3.5 h-3.5" />
         Right Offer comparison
       </div>
@@ -414,13 +414,13 @@ function VerdictBlock({
     tone === "emerald"
       ? "border-emerald-200 bg-emerald-50/40"
       : tone === "deepblue"
-        ? "border-brand-navy/30 bg-blue-50/40"
+        ? "border-brand-navy/30 bg-brand-navy/10"
         : "border-amber-200 bg-amber-50/40";
   const iconCls =
     tone === "emerald"
       ? "bg-emerald-100 text-emerald-700 border-emerald-200"
       : tone === "deepblue"
-        ? "bg-blue-100 text-brand-navy border-blue-200"
+        ? "bg-brand-navy/15 text-brand-navy border-brand-navy/30"
         : "bg-amber-100 text-amber-700 border-amber-200";
 
   const recommendedQuote = verdict.recommendedQuoteId

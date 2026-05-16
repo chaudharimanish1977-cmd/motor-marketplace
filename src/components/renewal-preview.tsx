@@ -20,7 +20,7 @@ export function RenewalPreview() {
       sub: "Email nudge",
       icon: Mail,
       accent: "text-brand-navy",
-      bg: "bg-blue-50",
+      bg: "bg-brand-navy/10",
       bar: "bg-brand-navy/30",
     },
     {
@@ -36,7 +36,7 @@ export function RenewalPreview() {
       sub: "Action reminder",
       icon: Bell,
       accent: "text-brand-coral",
-      bg: "bg-orange-50",
+      bg: "bg-brand-coral/10",
       bar: "bg-brand-olive/40",
     },
     {
@@ -54,7 +54,7 @@ export function RenewalPreview() {
       <div className="rounded-3xl bg-gradient-to-br from-white to-brand-offwhite border border-brand-light-gray shadow-soft overflow-hidden">
         <div className="px-6 md:px-8 py-7 grid md:grid-cols-[1fr_2fr] gap-6 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy bg-blue-50 border border-blue-100 rounded-full mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full mb-3">
               <CalendarClock className="w-3.5 h-3.5" />
               Renewal Calendar
             </div>

@@ -74,7 +74,7 @@ export function StopwatchChip({ startedAt, size = 54, className }: Props) {
           cy={size / 2}
           r={radius}
           fill="transparent"
-          stroke="#FF6B35"
+          stroke="#ff5a30"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -87,7 +87,7 @@ export function StopwatchChip({ startedAt, size = 54, className }: Props) {
           cx={size / 2}
           cy={size / 2}
           r={1.5}
-          fill="#0A2463"
+          fill="#1a3470"
           opacity="0.5"
         />
       </svg>

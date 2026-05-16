@@ -509,7 +509,7 @@ function AddOnToggle({
       className={clsx(
         "flex items-center gap-4 p-4 rounded-2xl border transition-all",
         isSelected
-          ? "border-brand-navy/30 bg-blue-50/40"
+          ? "border-brand-navy/30 bg-brand-navy/10"
           : "border-slate-200 bg-white",
         changedFromOriginal && "ring-2 ring-amber-200 ring-offset-1"
       )}

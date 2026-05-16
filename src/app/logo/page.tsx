@@ -79,7 +79,7 @@ export default function LogoPreview() {
       </Section>
 
       <footer className="text-xs text-brand-slate text-center py-8 border-t border-brand-light-gray mt-6">
-        Brand colours: #0A2463 (deep blue) · #FF6B35 (orange). Arial italic 700
+        Brand colours: #1a3470 (deep blue) · #ff5a30 (orange). Arial italic 700
         wordmark · all 8 variants reproduced from the founder-supplied SVG pack.
       </footer>
     </main>

@@ -65,7 +65,7 @@ export default async function BidPage({ params }: PageProps) {
       </Link>
 
       <div className="space-y-3 mb-8">
-        <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-navy bg-blue-100 rounded-full">
+        <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-navy bg-brand-navy/15 rounded-full">
           <Sparkles className="w-3 h-3" />
           Step 2 of 3 · Build Your Bundle
         </span>

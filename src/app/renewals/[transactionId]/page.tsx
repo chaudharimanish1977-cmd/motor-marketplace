@@ -28,8 +28,8 @@ const CHANNEL_META: Record<
   RenewalNudge["channel"],
   { icon: typeof Mail; label: string; colour: string }
 > = {
-  email: { icon: Mail, label: "Email", colour: "text-blue-600 bg-blue-100" },
-  sms: { icon: MessageSquare, label: "SMS", colour: "text-purple-600 bg-purple-100" },
+  email: { icon: Mail, label: "Email", colour: "text-brand-navy bg-brand-navy/15" },
+  sms: { icon: MessageSquare, label: "SMS", colour: "text-brand-plum bg-brand-plum/15" },
   telegram: { icon: Send, label: "Telegram", colour: "text-sky-600 bg-sky-100" },
   whatsapp: { icon: MessageSquare, label: "WhatsApp", colour: "text-emerald-600 bg-emerald-100" },
 };
@@ -109,7 +109,7 @@ export default async function RenewalsPage({ params }: PageProps) {
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Hero */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-navy bg-blue-100 rounded-full">
+          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-navy bg-brand-navy/15 rounded-full">
             <CalendarClock className="w-3.5 h-3.5" />
             Your Renewal Journey
           </div>
@@ -144,15 +144,15 @@ export default async function RenewalsPage({ params }: PageProps) {
         </div>
 
         {/* Pitch beat: "Behind the scenes" admin reveal */}
-        <div className="rounded-2xl border-2 border-dashed border-purple-300 bg-purple-50 p-5">
+        <div className="rounded-2xl border-2 border-dashed border-brand-plum/40 bg-brand-plum/10 p-5">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-purple-200 flex items-center justify-center shrink-0">
-              <Lock className="w-5 h-5 text-purple-700" />
+            <div className="w-9 h-9 rounded-lg bg-brand-plum/20 flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5 text-brand-plum" />
             </div>
-            <div className="text-sm text-purple-900">
+            <div className="text-sm text-brand-plum">
               <div className="font-semibold mb-1 flex items-center gap-2">
                 The Data Flywheel
-                <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-purple-200 text-purple-900 rounded">
+                <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-brand-plum/20 text-brand-plum rounded">
                   Pitch Reveal
                 </span>
               </div>
@@ -223,7 +223,7 @@ function KeyDate({
   const colors = {
     emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
     amber: "border-amber-200 bg-amber-50 text-amber-700",
-    blue: "border-blue-200 bg-blue-50 text-brand-navy",
+    blue: "border-brand-navy/30 bg-brand-navy/10 text-brand-navy",
   }[highlight];
   return (
     <div className={`rounded-xl border-2 p-4 text-center ${colors}`}>
@@ -253,9 +253,9 @@ function PhaseSection({
   if (nudges.length === 0) return null;
 
   const headerColor = {
-    pre: "bg-blue-600",
+    pre: "bg-brand-navy",
     expiry: "bg-amber-600",
-    post: "bg-orange-600",
+    post: "bg-brand-coral",
     lapsed: "bg-emerald-600",
   }[variant];
 

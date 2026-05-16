@@ -15,7 +15,7 @@ export default function OpenGraphImage() {
         style={{
           width: "100%",
           height: "100%",
-          background: "#0A2463",
+          background: "#1a3470",
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",
@@ -49,7 +49,7 @@ export default function OpenGraphImage() {
               fontSize: 84,
               fontWeight: 900,
               fontStyle: "italic",
-              color: "#FF6B35",
+              color: "#ff5a30",
               letterSpacing: -2,
             }}
           >

@@ -18,7 +18,7 @@ export default function Home() {
       <main className="relative z-10 min-h-screen flex flex-col items-center px-4 py-2 md:py-4">
         {/* HERO — fits in a single screen, no scroll needed to act */}
         <section className="max-w-3xl w-full text-center pt-4">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-blue-50 border border-blue-100 rounded-full mb-6">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full mb-6">
             <Sparkles className="w-3.5 h-3.5" />
             India&apos;s Independent Policy Reviewer · No Sales Calls
           </span>

@@ -89,14 +89,14 @@ const THEMES: Record<ThemeKey, string> = {
   rose:
     "bg-gradient-to-r from-rose-100 to-rose-50 border-rose-300 text-rose-900",
   orange:
-    "bg-gradient-to-r from-orange-100 to-orange-50 border-orange-300 text-orange-900",
+    "bg-gradient-to-r from-brand-coral/15 to-brand-coral/10 border-brand-coral/40 text-brand-coral",
   red: "bg-gradient-to-r from-red-100 to-red-50 border-red-300 text-red-900",
   purple:
-    "bg-gradient-to-r from-purple-100 to-purple-50 border-purple-300 text-purple-900",
+    "bg-gradient-to-r from-brand-plum/15 to-brand-plum/10 border-brand-plum/40 text-brand-plum",
   indigo:
     "bg-gradient-to-r from-indigo-100 to-indigo-50 border-indigo-300 text-indigo-900",
   blue:
-    "bg-gradient-to-r from-blue-100 to-blue-50 border-blue-300 text-blue-900",
+    "bg-gradient-to-r from-brand-navy/15 to-brand-navy/10 border-brand-navy/40 text-brand-navy",
   fuchsia:
     "bg-gradient-to-r from-fuchsia-100 to-fuchsia-50 border-fuchsia-300 text-fuchsia-900",
 };

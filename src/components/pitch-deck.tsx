@@ -107,7 +107,7 @@ export function PitchDeck() {
 
   if (printMode) {
     return (
-      <div className="bg-[#0A2463] text-white font-sans">
+      <div className="bg-[#1a3470] text-white font-sans">
         {slides.map((slide, i) => (
           <div
             key={i}
@@ -131,7 +131,7 @@ export function PitchDeck() {
   const slide = slides[idx];
 
   return (
-    <div className="fixed inset-0 bg-[#0A2463] text-white font-sans overflow-hidden">
+    <div className="fixed inset-0 bg-[#1a3470] text-white font-sans overflow-hidden">
       {/* Single slide, vertically + horizontally centered */}
       <SlideShell idx={idx} total={slides.length}>
         {slide.render()}
@@ -279,7 +279,7 @@ function HugeNumber({
     <div
       className={clsx(
         "font-extrabold leading-[0.9] text-[120px] md:text-[180px] lg:text-[220px] tracking-tight",
-        accent ? "text-[#FF6B35]" : "text-white"
+        accent ? "text-[#ff5a30]" : "text-white"
       )}
     >
       {children}
@@ -316,7 +316,7 @@ function Headline({
 }
 
 function Accent({ children }: { children: ReactNode }) {
-  return <span className="text-[#FF6B35]">{children}</span>;
+  return <span className="text-[#ff5a30]">{children}</span>;
 }
 
 function Gold({ children }: { children: ReactNode }) {
@@ -476,7 +476,7 @@ const SLIDES: Slide[] = [
               key={step.n}
               className="border border-white/15 rounded-2xl p-6"
             >
-              <div className="text-xs font-bold tracking-[0.15em] uppercase text-[#FF6B35] mb-2">
+              <div className="text-xs font-bold tracking-[0.15em] uppercase text-[#ff5a30] mb-2">
                 {step.n}
               </div>
               <div className="text-2xl font-extrabold mb-1">{step.t}</div>
@@ -523,7 +523,7 @@ const SLIDES: Slide[] = [
             },
           ].map((row, i) => (
             <div key={i} className="flex gap-5">
-              <div className="text-xl md:text-2xl font-extrabold text-[#FF6B35] tabular-nums w-8 shrink-0">
+              <div className="text-xl md:text-2xl font-extrabold text-[#ff5a30] tabular-nums w-8 shrink-0">
                 {String(i + 1).padStart(2, "0")}
               </div>
               <div>
@@ -552,7 +552,7 @@ const SLIDES: Slide[] = [
               <div
                 className={clsx(
                   "font-extrabold text-7xl md:text-8xl tracking-tight leading-none",
-                  b.accent ? "text-[#FF6B35]" : "text-white"
+                  b.accent ? "text-[#ff5a30]" : "text-white"
                 )}
               >
                 {b.n}
@@ -643,7 +643,7 @@ const SLIDES: Slide[] = [
             <div className="text-lg md:text-xl font-bold">Policy Bazaar</div>
             <div className="text-sm text-white/40 mt-1">Acko</div>
           </div>
-          <div className="rounded-xl p-6 md:p-8 text-center bg-[#FF6B35] text-black">
+          <div className="rounded-xl p-6 md:p-8 text-center bg-[#ff5a30] text-black">
             <div className="text-xl md:text-2xl font-extrabold">RightOffer</div>
             <div className="text-sm font-semibold mt-1">Independent AI advisor</div>
           </div>
@@ -679,7 +679,7 @@ const SLIDES: Slide[] = [
             "Have younger underwriting teams who view us as an ally.",
           ].map((b) => (
             <li key={b} className="flex gap-3">
-              <span className="text-[#FF6B35] mt-0.5">·</span>
+              <span className="text-[#ff5a30] mt-0.5">·</span>
               <span>{b}</span>
             </li>
           ))}
@@ -720,7 +720,7 @@ const SLIDES: Slide[] = [
             },
           ].map((m, i) => (
             <div key={m.t}>
-              <div className="text-xs font-bold tracking-[0.15em] uppercase text-[#FF6B35] mb-2">
+              <div className="text-xs font-bold tracking-[0.15em] uppercase text-[#ff5a30] mb-2">
                 Moat {String(i + 1).padStart(2, "0")}
               </div>
               <div className="text-xl md:text-2xl font-extrabold mb-1">{m.t}</div>
@@ -791,7 +791,7 @@ const SLIDES: Slide[] = [
               "15K+ LinkedIn followers, deep insurer network across India",
             ].map((b) => (
               <li key={b} className="flex gap-3">
-                <span className="text-[#FF6B35] mt-1">·</span>
+                <span className="text-[#ff5a30] mt-1">·</span>
                 <span>{b}</span>
               </li>
             ))}
@@ -832,7 +832,7 @@ const SLIDES: Slide[] = [
               <div
                 className={clsx(
                   "w-3 h-3 rounded-full mb-3",
-                  m.accent ? "bg-[#FF6B35]" : "bg-white/40"
+                  m.accent ? "bg-[#ff5a30]" : "bg-white/40"
                 )}
               />
               <div className="text-xs font-bold tracking-[0.15em] uppercase text-white/40 mb-1">
@@ -875,7 +875,7 @@ const SLIDES: Slide[] = [
                 <div className="flex-1 text-xs md:text-sm text-white/70">{row.l}</div>
                 <div className="w-32 md:w-44 h-1.5 bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#FF6B35]"
+                    className="h-full bg-[#ff5a30]"
                     style={{ width: `${row.p * 2.5}%` }}
                   />
                 </div>

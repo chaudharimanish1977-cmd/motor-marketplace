@@ -36,7 +36,7 @@ export function ClaimSimulator({ gapTitle, idv, vehicleAge }: Props) {
   return (
     <div className="mt-3">
       {/* Always-visible headline: the cost story in one line */}
-      <div className="rounded-xl border-2 border-brand-coral/30 bg-gradient-to-br from-orange-50 to-white p-3.5">
+      <div className="rounded-xl border-2 border-brand-coral/30 bg-gradient-to-br from-brand-coral/10 to-white p-3.5">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-xl bg-brand-olive/15 flex items-center justify-center shrink-0">
             <Wallet className="w-5 h-5 text-brand-coral" />

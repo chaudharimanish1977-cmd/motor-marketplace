@@ -152,7 +152,7 @@ export function BidResults({
         {/* Helpful context */}
         <div className="bg-white rounded-3xl border border-slate-200/80 p-6 max-w-4xl mx-auto shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-brand-navy/10 flex items-center justify-center shrink-0">
               <Shield className="w-5 h-5 text-brand-navy" />
             </div>
             <div className="text-sm text-slate-700 leading-relaxed">
@@ -173,26 +173,26 @@ export function BidResults({
 
         {/* Behind-the-curtain reveal */}
         {report && (
-          <details className="rounded-3xl border-2 border-dashed border-purple-200 bg-purple-50/40 p-5 group max-w-4xl mx-auto">
+          <details className="rounded-3xl border-2 border-dashed border-brand-plum/30 bg-brand-plum/10 p-5 group max-w-4xl mx-auto">
             <summary className="cursor-pointer flex items-center gap-3 list-none">
-              <div className="w-9 h-9 rounded-2xl bg-purple-100 flex items-center justify-center shrink-0">
-                <Lock className="w-5 h-5 text-purple-700" />
+              <div className="w-9 h-9 rounded-2xl bg-brand-plum/15 flex items-center justify-center shrink-0">
+                <Lock className="w-5 h-5 text-brand-plum" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-semibold text-purple-900 flex items-center gap-2 flex-wrap">
+                <div className="text-sm font-semibold text-brand-plum flex items-center gap-2 flex-wrap">
                   Admin View · Why these insurers were invited
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-purple-200 text-purple-900 rounded-full">
+                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-brand-plum/20 text-brand-plum rounded-full">
                     Pitch Reveal
                   </span>
                 </div>
-                <div className="text-xs text-purple-700 mt-0.5">
+                <div className="text-xs text-brand-plum mt-0.5">
                   Customer sees only tier winners + others per tier. Behind the
                   scenes, our engine pre-selects insurers by profile fit.
                 </div>
               </div>
-              <ChevronDown className="w-5 h-5 text-purple-600 transition-transform group-open:rotate-180" />
+              <ChevronDown className="w-5 h-5 text-brand-plum transition-transform group-open:rotate-180" />
             </summary>
-            <div className="mt-4 text-xs text-purple-900 space-y-2">
+            <div className="mt-4 text-xs text-brand-plum space-y-2">
               <div className="bg-white rounded-2xl p-3 text-slate-700">
                 <strong>Selection criteria:</strong>{" "}
                 {report.idealInsurerProfile.selectionCriteria.join(" · ")}
@@ -418,7 +418,7 @@ function TierCard({
         {/* HERO: See full breakdown & customize — prominent, above Buy */}
         <LoadingLink
           href={`/offer/${winner.id}`}
-          className="block w-full py-3 text-center font-bold rounded-2xl bg-white border-2 border-brand-navy text-brand-navy hover:bg-blue-50 transition-all hover:scale-[1.01] shadow-soft"
+          className="block w-full py-3 text-center font-bold rounded-2xl bg-white border-2 border-brand-navy text-brand-navy hover:bg-brand-navy/10 transition-all hover:scale-[1.01] shadow-soft"
           spinnerPosition="right"
         >
           <span className="inline-flex items-center gap-1.5">

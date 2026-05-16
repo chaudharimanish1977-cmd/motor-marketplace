@@ -242,7 +242,7 @@ export function BundleBuilder({
       {/* Vehicle summary */}
       <section className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-brand-navy/10 flex items-center justify-center shrink-0">
             <Shield className="w-6 h-6 text-brand-navy" />
           </div>
           <div className="flex-1">
@@ -310,7 +310,7 @@ export function BundleBuilder({
               -year-old {parsedPolicy.vehicle.make}.
             </p>
           </div>
-          <span className="px-3 py-1 text-xs font-bold text-brand-navy bg-blue-100 rounded-full tabular-nums">
+          <span className="px-3 py-1 text-xs font-bold text-brand-navy bg-brand-navy/15 rounded-full tabular-nums">
             {selectedAddOns.size} selected
           </span>
         </div>
@@ -455,7 +455,7 @@ function AddOnGroup({
 }) {
   const headerColor = {
     emerald: "text-emerald-700",
-    blue: "text-blue-700",
+    blue: "text-brand-navy",
     amber: "text-amber-700",
   }[badgeColor];
 
@@ -502,7 +502,7 @@ function AddOnRow({
       className={clsx(
         "flex items-start gap-3 p-3.5 rounded-2xl border transition-colors",
         isSelected
-          ? "border-brand-navy/30 bg-blue-50/40"
+          ? "border-brand-navy/30 bg-brand-navy/10"
           : "border-slate-200 bg-white hover:bg-slate-50/40"
       )}
     >

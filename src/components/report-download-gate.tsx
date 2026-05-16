@@ -280,7 +280,7 @@ function FormStep({
         </div>
 
         {/* DPDP consent */}
-        <label className="flex items-start gap-3 p-3 bg-brand-offwhite rounded-xl cursor-pointer hover:bg-blue-50/40 transition-colors">
+        <label className="flex items-start gap-3 p-3 bg-brand-offwhite rounded-xl cursor-pointer hover:bg-brand-navy/10 transition-colors">
           <input
             type="checkbox"
             checked={consent}

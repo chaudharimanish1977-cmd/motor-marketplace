@@ -21,8 +21,8 @@ export function BharatSureLogo({ size = 20, className }: LogoProps) {
     >
       <defs>
         <linearGradient id="bs-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0A2463" />
-          <stop offset="100%" stopColor="#247BA0" />
+          <stop offset="0%" stopColor="#1a3470" />
+          <stop offset="100%" stopColor="#3A1E3D" />
         </linearGradient>
       </defs>
       <path
@@ -53,7 +53,7 @@ export function VahanaLogo({ size = 20, className }: LogoProps) {
     >
       <defs>
         <linearGradient id="va-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#247BA0" />
+          <stop offset="0%" stopColor="#3A1E3D" />
           <stop offset="100%" stopColor="#00B4D8" />
         </linearGradient>
       </defs>
@@ -89,8 +89,8 @@ export function SurakshaLogo({ size = 20, className }: LogoProps) {
     >
       <defs>
         <linearGradient id="su-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6C3FA0" />
-          <stop offset="100%" stopColor="#FF6B35" />
+          <stop offset="0%" stopColor="#3A1E3D" />
+          <stop offset="100%" stopColor="#ff5a30" />
         </linearGradient>
       </defs>
       <rect
@@ -139,7 +139,7 @@ export function InsurerLogo({
         width: size,
         height: size,
         borderRadius: 5,
-        background: "linear-gradient(135deg, #247BA0, #0A2463)",
+        background: "linear-gradient(135deg, #3A1E3D, #1a3470)",
       }}
     />
   );

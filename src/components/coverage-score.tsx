@@ -28,8 +28,8 @@ const BAND_THEME: Record<
   good: {
     ring: "stroke-blue-500",
     text: "text-brand-navy",
-    chip: "bg-blue-100 text-brand-navy border-blue-200",
-    gradient: "from-blue-50 to-white",
+    chip: "bg-brand-navy/15 text-brand-navy border-brand-navy/30",
+    gradient: "from-brand-navy/10 to-white",
   },
   excellent: {
     ring: "stroke-brand-success",

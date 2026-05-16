@@ -367,7 +367,7 @@ export function UploadDropzone({
               <button
                 type="button"
                 onClick={resetForNext}
-                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-navy text-brand-navy hover:bg-blue-50 transition-all"
+                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-navy text-brand-navy hover:bg-brand-navy/10 transition-all"
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
                   <Plus className="w-4 h-4" />
@@ -390,7 +390,7 @@ export function UploadDropzone({
           className={clsx(
             "border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all bg-white",
             isDragActive
-              ? "border-brand-navy bg-blue-50/40 scale-[1.01]"
+              ? "border-brand-navy bg-brand-navy/10 scale-[1.01]"
               : "border-brand-light-gray hover:border-brand-navy/60 hover:bg-brand-offwhite/40"
           )}
         >
@@ -412,7 +412,7 @@ export function UploadDropzone({
       </div>
 
       {error && (
-        <div className="rounded-2xl border-2 border-brand-coral/40 bg-gradient-to-br from-orange-50 to-white p-5 shadow-soft">
+        <div className="rounded-2xl border-2 border-brand-coral/40 bg-gradient-to-br from-brand-coral/10 to-white p-5 shadow-soft">
           <div className="text-lg md:text-xl font-bold text-brand-charcoal leading-snug">
             {error.headline}
           </div>

@@ -75,7 +75,7 @@ function RenewalBanner({ context }: { context: RenewalContext }) {
     .join(" · ");
 
   return (
-    <div className="mb-6 rounded-2xl border border-brand-navy/30 bg-gradient-to-br from-blue-50 to-white p-5 md:p-6">
+    <div className="mb-6 rounded-2xl border border-brand-navy/30 bg-gradient-to-br from-brand-navy/10 to-white p-5 md:p-6">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-brand-navy to-brand-plum text-white flex items-center justify-center shadow-soft">
           <RefreshCw className="w-5 h-5" />

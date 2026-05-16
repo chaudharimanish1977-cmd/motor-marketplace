@@ -185,7 +185,7 @@ export function MidLoadQuestions({
                     "text-xs px-3 py-1.5 rounded-full border-2 font-semibold transition-all",
                     selected
                       ? "bg-brand-navy text-white border-brand-navy scale-[1.02]"
-                      : "bg-white border-brand-light-gray text-brand-charcoal hover:border-brand-navy hover:bg-blue-50"
+                      : "bg-white border-brand-light-gray text-brand-charcoal hover:border-brand-navy hover:bg-brand-navy/10"
                   )}
                 >
                   {opt}

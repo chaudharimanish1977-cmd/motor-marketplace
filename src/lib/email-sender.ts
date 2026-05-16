@@ -87,7 +87,7 @@ function renderHtml({
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8F9FA;padding:24px 12px;">
     <tr><td align="center">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
-        <tr><td style="background:linear-gradient(135deg,#0A2463,#247BA0);padding:24px;color:#fff;">
+        <tr><td style="background:linear-gradient(135deg,#1a3470,#3A1E3D);padding:24px;color:#fff;">
           <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.9;">RightOffer</div>
           <div style="font-size:22px;font-weight:700;margin-top:6px;line-height:1.2;">Your policy review is ready</div>
           <div style="font-size:14px;opacity:0.88;margin-top:4px;">${escape(vehicleLabel)}</div>
@@ -98,15 +98,15 @@ function renderHtml({
             Thanks for trusting RightOffer with your policy review. Your full report is attached as a PDF you can keep, print, or forward — and the live version is always available at the link below.
           </p>
           <div style="text-align:center;margin:24px 0;">
-            <a href="${reportUrl}" style="display:inline-block;background:#FF6B35;color:#fff;text-decoration:none;font-weight:700;padding:14px 28px;border-radius:14px;font-size:15px;">View report online →</a>
+            <a href="${reportUrl}" style="display:inline-block;background:#ff5a30;color:#fff;text-decoration:none;font-weight:700;padding:14px 28px;border-radius:14px;font-size:15px;">View report online →</a>
           </div>
           <p style="margin:0 0 8px;font-size:13px;color:#636e72;line-height:1.55;">
             Have a question about anything in the report? Just reply to this email — a real person reads every one.
           </p>
         </td></tr>
         <tr><td style="padding:18px 24px;background:#F8F9FA;border-top:1px solid #E9ECEF;text-align:center;">
-          <div style="font-size:13px;font-weight:700;color:#0A2463;margin-bottom:4px;">
-            Most people sell insurance. <span style="color:#FF6B35;">We help you decide.</span>
+          <div style="font-size:13px;font-weight:700;color:#1a3470;margin-bottom:4px;">
+            Most people sell insurance. <span style="color:#ff5a30;">We help you decide.</span>
           </div>
           <div style="font-size:10px;color:#636e72;">
             RightOffer · Independent motor insurance reviews · Made for India
@@ -239,7 +239,7 @@ export async function sendMagicLinkEmail({
     <p style="margin:0 0 16px;">Hi,</p>
     <p style="margin:0 0 16px;">Tap the button below to sign in to RightOffer:</p>
     <p style="margin:0 0 20px;">
-      <a href="${escape(url)}" style="display:inline-block;background:#0A2463;color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:10px;font-size:15px;">Sign in to RightOffer</a>
+      <a href="${escape(url)}" style="display:inline-block;background:#1a3470;color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:10px;font-size:15px;">Sign in to RightOffer</a>
     </p>
     <p style="margin:0 0 16px;color:#5f6368;font-size:13px;">Or paste this URL into your browser:<br/><span style="color:#5f6368;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">${escape(url)}</span></p>
     <p style="margin:0 0 16px;color:#5f6368;font-size:14px;">This link expires in 15 minutes. If you didn&rsquo;t ask to sign in, you can ignore this email.</p>
@@ -385,7 +385,7 @@ function renderReminderHtml({
     <p style="margin:0 0 16px;">Hi ${escape(firstName)},</p>
     <p style="margin:0 0 16px;">Quick heads-up &mdash; your ${escape(vehicleLabel)} insurance is up for renewal on <strong>${escape(expiryDate)}</strong>, which is ${daysUntilExpiry} ${dayWord} away.</p>
     <p style="margin:0 0 16px;">Want me to put together a free, independent review of this year&rsquo;s options? Just drop your renewal quote (or last year&rsquo;s policy) here:</p>
-    <p style="margin:0 0 16px;"><a href="${escape(reviewUrl)}" style="color:#0A2463;">${escape(reviewUrl)}</a></p>
+    <p style="margin:0 0 16px;"><a href="${escape(reviewUrl)}" style="color:#1a3470;">${escape(reviewUrl)}</a></p>
     <p style="margin:0 0 16px;">Takes under 2 minutes. No sales calls.</p>
     <p style="margin:24px 0 0;">&mdash; Aryan</p>
     <p style="margin:32px 0 0;color:#9aa0a6;font-size:13px;line-height:1.55;">PS &mdash; If you&rsquo;re reading this in Promotions or Spam, drag it to Primary or add <strong style="color:#9aa0a6;">hello@rightoffer.in</strong> to your contacts so future reminders land in your inbox.</p>

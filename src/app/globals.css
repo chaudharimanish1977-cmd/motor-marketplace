@@ -237,7 +237,7 @@
     background-color: #1E40AF !important;
   }
 
-  /* SVG strokes/fills authored with hardcoded brand-navy (#0A2463)
+  /* SVG strokes/fills authored with hardcoded brand-navy (#1a3470)
    * inline. The page bg in dark mode is slate-900 — too close. Use
    * currentColor or skyblue alternatives. We can't auto-fix inline SVGs
    * universally, but icon containers using `text-brand-navy` flip
@@ -520,7 +520,7 @@
       font-family: Inter, system-ui, sans-serif !important;
       font-size: 24px !important;
       font-weight: 700 !important;
-      color: #0A2463 !important;
+      color: #1a3470 !important;
     }
   }
 

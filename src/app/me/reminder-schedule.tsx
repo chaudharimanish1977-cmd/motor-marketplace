@@ -283,7 +283,7 @@ export function ReminderSchedule({
               className={clsx(
                 "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[12px] cursor-pointer transition-colors",
                 checked
-                  ? "bg-blue-50 border-brand-navy/30 text-brand-charcoal"
+                  ? "bg-brand-navy/10 border-brand-navy/30 text-brand-charcoal"
                   : "bg-white border-brand-light-gray text-brand-slate hover:bg-brand-offwhite"
               )}
             >
@@ -394,7 +394,7 @@ function ChannelOption({
       className={clsx(
         "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[12px] cursor-pointer transition-colors",
         checked
-          ? "bg-blue-50 border-brand-navy/30 text-brand-charcoal"
+          ? "bg-brand-navy/10 border-brand-navy/30 text-brand-charcoal"
           : "bg-white border-brand-light-gray text-brand-slate hover:bg-brand-offwhite"
       )}
     >

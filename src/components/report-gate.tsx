@@ -145,7 +145,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
   }
 
   return (
-    <div className="my-10 rounded-3xl border-2 border-brand-navy/30 bg-gradient-to-br from-blue-50/60 to-white shadow-elevated overflow-hidden">
+    <div className="my-10 rounded-3xl border-2 border-brand-navy/30 bg-gradient-to-br from-brand-navy/10 to-white shadow-elevated overflow-hidden">
       <div className="px-6 md:px-8 py-7">
         <div className="flex items-start gap-3">
           <div className="w-11 h-11 shrink-0 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-soft">

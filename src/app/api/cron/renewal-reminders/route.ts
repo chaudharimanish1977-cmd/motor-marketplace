@@ -297,14 +297,14 @@ async function sendFounderDigest({
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8F9FA;padding:24px 12px;">
     <tr><td align="center">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
-        <tr><td style="background:linear-gradient(135deg,#0A2463,#247BA0);padding:20px 24px;color:#fff;">
+        <tr><td style="background:linear-gradient(135deg,#1a3470,#3A1E3D);padding:20px 24px;color:#fff;">
           <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.9;">RightOffer · Renewal nudges</div>
           <div style="font-size:18px;font-weight:700;margin-top:4px;">${escape(todayIst)} IST · ${sentRecords.length} sent · ${skippedRecords.length} skipped</div>
         </td></tr>
         <tr><td style="padding:20px 24px;font-size:13px;">
           ${
             sentRows
-              ? `<div style="font-weight:700;margin-bottom:8px;color:#0A2463;">Sent</div>
+              ? `<div style="font-weight:700;margin-bottom:8px;color:#1a3470;">Sent</div>
                  <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
                    <thead><tr style="background:#F8F9FA;text-align:left;">
                      <th style="padding:6px 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;">Email</th>
@@ -318,7 +318,7 @@ async function sendFounderDigest({
           }
           ${
             skippedRows
-              ? `<div style="font-weight:700;margin-bottom:8px;color:#0A2463;">Skipped</div>
+              ? `<div style="font-weight:700;margin-bottom:8px;color:#1a3470;">Skipped</div>
                  <table style="width:100%;border-collapse:collapse;">
                    <tbody style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">${skippedRows}</tbody>
                  </table>`

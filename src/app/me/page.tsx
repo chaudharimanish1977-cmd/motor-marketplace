@@ -112,7 +112,7 @@ export default async function PortalHome() {
           {/* Header strip */}
           <div className="flex items-start justify-between mb-8 gap-4">
             <div>
-              <span className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-blue-50 border border-blue-100 rounded-full">
+              <span className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 Your portal
               </span>
@@ -353,7 +353,7 @@ async function loadPoliciesFor(email: string): Promise<PortalPolicy[]> {
 function EmptyState() {
   return (
     <div className="bg-white border border-brand-light-gray rounded-2xl shadow-soft p-10 text-center">
-      <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 border border-blue-100 text-brand-navy flex items-center justify-center">
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-navy/10 border border-brand-navy/20 text-brand-navy flex items-center justify-center">
         <Car className="w-7 h-7" />
       </div>
       <h2 className="mt-5 text-xl font-bold text-brand-charcoal tracking-tight">
@@ -394,7 +394,7 @@ function Section({
     tone === "success"
       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
       : tone === "info"
-        ? "bg-blue-50 text-brand-navy border-blue-100"
+        ? "bg-brand-navy/10 text-brand-navy border-brand-navy/20"
         : "bg-slate-50 text-brand-slate border-brand-light-gray";
 
   return (
@@ -475,7 +475,7 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
   // and expired — they aren't bound, so neither "active" nor
   // "expired" applies semantically.
   const statusPill = isQuote
-    ? { label: "Quote", cls: "bg-blue-50 text-brand-navy border-blue-100" }
+    ? { label: "Quote", cls: "bg-brand-navy/10 text-brand-navy border-brand-navy/20" }
     : isExpired
       ? {
           label: "Expired",
@@ -593,7 +593,7 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
               <LoadingLink
                 href={`/report/${parsed.id}`}
                 spinnerPosition="right"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-navy px-3 py-1.5 rounded-xl border border-brand-navy/30 hover:bg-blue-50 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-navy px-3 py-1.5 rounded-xl border border-brand-navy/30 hover:bg-brand-navy/10 transition-colors"
               >
                 <FileText className="w-3.5 h-3.5" />
                 View report

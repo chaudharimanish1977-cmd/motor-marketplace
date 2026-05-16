@@ -56,7 +56,7 @@ export function ComparatorContent({
   return (
     <div className="space-y-6">
       <header className="space-y-1.5">
-        <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-blue-50 border border-blue-100 rounded-full">
+        <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full">
           <Sparkles className="w-3.5 h-3.5" />
           Right Offer comparator
         </div>
@@ -318,13 +318,13 @@ function RightOfferPickCard({ pick }: { pick: RightOfferPick }) {
     beatBadge.tone === "emerald"
       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
       : beatBadge.tone === "deepblue"
-        ? "bg-blue-50 text-brand-navy border-blue-100"
+        ? "bg-brand-navy/10 text-brand-navy border-brand-navy/20"
         : beatBadge.tone === "amber"
           ? "bg-amber-50 text-amber-700 border-amber-100"
           : "bg-slate-50 text-brand-slate border-brand-light-gray";
 
   return (
-    <section className="rounded-2xl border-2 border-brand-coral/30 bg-gradient-to-br from-orange-50/40 to-white shadow-elevated overflow-hidden">
+    <section className="rounded-2xl border-2 border-brand-coral/30 bg-gradient-to-br from-brand-coral/10 to-white shadow-elevated overflow-hidden">
       <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-coral">
@@ -455,13 +455,13 @@ function VerdictBlock({
     tone === "emerald"
       ? "border-emerald-200 bg-emerald-50/40"
       : tone === "deepblue"
-        ? "border-brand-navy/30 bg-blue-50/40"
+        ? "border-brand-navy/30 bg-brand-navy/10"
         : "border-amber-200 bg-amber-50/40";
   const iconCls =
     tone === "emerald"
       ? "bg-emerald-100 text-emerald-700 border-emerald-200"
       : tone === "deepblue"
-        ? "bg-blue-100 text-brand-navy border-blue-200"
+        ? "bg-brand-navy/15 text-brand-navy border-brand-navy/30"
         : "bg-amber-100 text-amber-700 border-amber-200";
 
   const recommended = verdict.recommendedQuoteId

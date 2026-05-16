@@ -503,7 +503,7 @@ function PayMethodStep({
               className={clsx(
                 "w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all text-left",
                 selected
-                  ? "border-brand-navy bg-blue-50"
+                  ? "border-brand-navy bg-brand-navy/10"
                   : "border-brand-light-gray bg-white hover:border-slate-300"
               )}
             >

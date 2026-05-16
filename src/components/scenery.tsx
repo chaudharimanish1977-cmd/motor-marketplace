@@ -169,7 +169,7 @@ function MidOffice({
   accentColor?: string;
 }) {
   const top = 135 - h;
-  const baseColor = accentColor ?? "#0A2463";
+  const baseColor = accentColor ?? "#1a3470";
   return (
     <g opacity="0.55">
       <rect x={x} y={top} width="28" height={h} fill={baseColor} />
@@ -203,14 +203,14 @@ function TallTower({ x, h }: { x: number; h: number }) {
   return (
     <g opacity="0.6">
       {/* Main shaft */}
-      <rect x={x} y={top} width="20" height={h} fill="#0A2463" />
+      <rect x={x} y={top} width="20" height={h} fill="#1a3470" />
       {/* Top tapered section */}
       <path
         d={`M ${x},${top} L ${x + 4},${top - 8} L ${x + 16},${top - 8} L ${x + 20},${top} Z`}
-        fill="#0A2463"
+        fill="#1a3470"
       />
       {/* Glass strip down the middle */}
-      <rect x={x + 8} y={top + 4} width="4" height={h - 6} fill="#247BA0" opacity="0.5" />
+      <rect x={x + 8} y={top + 4} width="4" height={h - 6} fill="#3A1E3D" opacity="0.5" />
       {/* Windows */}
       {Array.from({ length: Math.floor(h / 5) - 1 }).map((_, row) => (
         <g key={row}>
@@ -219,7 +219,7 @@ function TallTower({ x, h }: { x: number; h: number }) {
         </g>
       ))}
       {/* Crown */}
-      <rect x={x + 9} y={top - 12} width="2" height="4" fill="#0A2463" />
+      <rect x={x + 9} y={top - 12} width="2" height="4" fill="#1a3470" />
     </g>
   );
 }
@@ -287,22 +287,22 @@ function Monument({ kind, x }: { kind: MonumentKind; x: number }) {
     return wrap(
       <g>
         {/* Wide stepped base */}
-        <rect x="-2" y="130" width="64" height="5" fill="#0A2463" />
-        <rect x="2" y="125" width="56" height="5" fill="#0A2463" />
+        <rect x="-2" y="130" width="64" height="5" fill="#1a3470" />
+        <rect x="2" y="125" width="56" height="5" fill="#1a3470" />
         {/* Left pillar */}
-        <rect x="8" y="83" width="9" height="42" fill="#0A2463" />
+        <rect x="8" y="83" width="9" height="42" fill="#1a3470" />
         {/* Right pillar */}
-        <rect x="43" y="83" width="9" height="42" fill="#0A2463" />
+        <rect x="43" y="83" width="9" height="42" fill="#1a3470" />
         {/* Top horizontal */}
-        <rect x="5" y="80" width="50" height="6" fill="#0A2463" />
+        <rect x="5" y="80" width="50" height="6" fill="#1a3470" />
         {/* Arch curve at top */}
         <path
           d="M 17,86 Q 30,72 43,86 L 43,90 L 17,90 Z"
-          fill="#0A2463"
+          fill="#1a3470"
         />
         {/* Pinnacle (flame/lotus) */}
-        <rect x="27" y="73" width="6" height="7" fill="#0A2463" />
-        <circle cx="30" cy="71" r="2" fill="#0A2463" />
+        <rect x="27" y="73" width="6" height="7" fill="#1a3470" />
+        <circle cx="30" cy="71" r="2" fill="#1a3470" />
       </g>
     );
   }
@@ -312,22 +312,22 @@ function Monument({ kind, x }: { kind: MonumentKind; x: number }) {
     return wrap(
       <g>
         {/* Base platform */}
-        <rect x="-2" y="128" width="64" height="7" fill="#0A2463" />
+        <rect x="-2" y="128" width="64" height="7" fill="#1a3470" />
         {/* Main central arch body */}
-        <rect x="15" y="95" width="30" height="33" fill="#0A2463" />
+        <rect x="15" y="95" width="30" height="33" fill="#1a3470" />
         {/* Arch opening (cutout, drawn over base) */}
         <path d="M 22,128 L 22,108 Q 30,98 38,108 L 38,128 Z" fill="#f5fafe" opacity="0.5" />
         {/* Central dome */}
-        <ellipse cx="30" cy="95" rx="16" ry="10" fill="#0A2463" />
+        <ellipse cx="30" cy="95" rx="16" ry="10" fill="#1a3470" />
         {/* Side mini-towers */}
-        <rect x="0" y="108" width="10" height="20" fill="#0A2463" />
-        <rect x="50" y="108" width="10" height="20" fill="#0A2463" />
-        <ellipse cx="5" cy="108" rx="5.5" ry="3" fill="#0A2463" />
-        <ellipse cx="55" cy="108" rx="5.5" ry="3" fill="#0A2463" />
+        <rect x="0" y="108" width="10" height="20" fill="#1a3470" />
+        <rect x="50" y="108" width="10" height="20" fill="#1a3470" />
+        <ellipse cx="5" cy="108" rx="5.5" ry="3" fill="#1a3470" />
+        <ellipse cx="55" cy="108" rx="5.5" ry="3" fill="#1a3470" />
         {/* Dome spires */}
-        <line x1="30" y1="85" x2="30" y2="78" stroke="#0A2463" strokeWidth="1.5" />
-        <line x1="5" y1="105" x2="5" y2="100" stroke="#0A2463" strokeWidth="1" />
-        <line x1="55" y1="105" x2="55" y2="100" stroke="#0A2463" strokeWidth="1" />
+        <line x1="30" y1="85" x2="30" y2="78" stroke="#1a3470" strokeWidth="1.5" />
+        <line x1="5" y1="105" x2="5" y2="100" stroke="#1a3470" strokeWidth="1" />
+        <line x1="55" y1="105" x2="55" y2="100" stroke="#1a3470" strokeWidth="1" />
       </g>
     );
   }
@@ -337,25 +337,25 @@ function Monument({ kind, x }: { kind: MonumentKind; x: number }) {
     return wrap(
       <g>
         {/* Base */}
-        <rect x="0" y="125" width="60" height="10" fill="#0A2463" />
+        <rect x="0" y="125" width="60" height="10" fill="#1a3470" />
         {/* Central body */}
-        <rect x="10" y="95" width="40" height="30" fill="#0A2463" />
+        <rect x="10" y="95" width="40" height="30" fill="#1a3470" />
         {/* Central arch cutout */}
         <path d="M 20,125 L 20,108 Q 30,100 40,108 L 40,125 Z" fill="#f5fafe" opacity="0.5" />
         {/* Minaret bases */}
-        <rect x="2" y="75" width="6" height="50" fill="#0A2463" />
-        <rect x="52" y="75" width="6" height="50" fill="#0A2463" />
-        <rect x="10" y="80" width="3" height="15" fill="#0A2463" />
-        <rect x="47" y="80" width="3" height="15" fill="#0A2463" />
+        <rect x="2" y="75" width="6" height="50" fill="#1a3470" />
+        <rect x="52" y="75" width="6" height="50" fill="#1a3470" />
+        <rect x="10" y="80" width="3" height="15" fill="#1a3470" />
+        <rect x="47" y="80" width="3" height="15" fill="#1a3470" />
         {/* Minaret bulbs (domed tops) */}
-        <ellipse cx="5" cy="75" rx="4" ry="3" fill="#0A2463" />
-        <ellipse cx="55" cy="75" rx="4" ry="3" fill="#0A2463" />
+        <ellipse cx="5" cy="75" rx="4" ry="3" fill="#1a3470" />
+        <ellipse cx="55" cy="75" rx="4" ry="3" fill="#1a3470" />
         {/* Spire on minarets */}
-        <line x1="5" y1="72" x2="5" y2="66" stroke="#0A2463" strokeWidth="1.5" />
-        <line x1="55" y1="72" x2="55" y2="66" stroke="#0A2463" strokeWidth="1.5" />
+        <line x1="5" y1="72" x2="5" y2="66" stroke="#1a3470" strokeWidth="1.5" />
+        <line x1="55" y1="72" x2="55" y2="66" stroke="#1a3470" strokeWidth="1.5" />
         {/* Central crown */}
-        <ellipse cx="30" cy="95" rx="6" ry="3" fill="#0A2463" />
-        <line x1="30" y1="92" x2="30" y2="86" stroke="#0A2463" strokeWidth="1.5" />
+        <ellipse cx="30" cy="95" rx="6" ry="3" fill="#1a3470" />
+        <line x1="30" y1="92" x2="30" y2="86" stroke="#1a3470" strokeWidth="1.5" />
       </g>
     );
   }
@@ -365,21 +365,21 @@ function Monument({ kind, x }: { kind: MonumentKind; x: number }) {
     return wrap(
       <g>
         {/* Base */}
-        <rect x="5" y="130" width="20" height="5" fill="#0A2463" />
+        <rect x="5" y="130" width="20" height="5" fill="#1a3470" />
         {/* Tower (tapered) */}
         <path
           d="M 8,130 L 12,75 L 18,75 L 22,130 Z"
-          fill="#0A2463"
+          fill="#1a3470"
         />
         {/* Striped bands */}
         <rect x="9" y="95" width="12" height="3" fill="#f5fafe" opacity="0.4" />
         <rect x="9" y="110" width="12" height="3" fill="#f5fafe" opacity="0.4" />
         {/* Lamp room */}
-        <rect x="9" y="70" width="12" height="6" fill="#0A2463" />
+        <rect x="9" y="70" width="12" height="6" fill="#1a3470" />
         {/* Light beam */}
         <ellipse cx="29" cy="73" rx="10" ry="2" fill="#fde68a" opacity="0.5" />
         {/* Spire */}
-        <path d="M 13,70 L 15,63 L 17,70 Z" fill="#0A2463" />
+        <path d="M 13,70 L 15,63 L 17,70 Z" fill="#1a3470" />
       </g>
     );
   }
@@ -389,9 +389,9 @@ function Monument({ kind, x }: { kind: MonumentKind; x: number }) {
     return wrap(
       <g>
         {/* Main shaft */}
-        <rect x="10" y="65" width="22" height="70" fill="#0A2463" />
+        <rect x="10" y="65" width="22" height="70" fill="#1a3470" />
         {/* Glass face */}
-        <rect x="13" y="68" width="16" height="64" fill="#247BA0" opacity="0.6" />
+        <rect x="13" y="68" width="16" height="64" fill="#3A1E3D" opacity="0.6" />
         {/* Window grid */}
         {Array.from({ length: 12 }).map((_, row) =>
           [0, 1, 2].map((col) => (
@@ -405,7 +405,7 @@ function Monument({ kind, x }: { kind: MonumentKind; x: number }) {
           ))
         )}
         {/* Antenna */}
-        <line x1="21" y1="65" x2="21" y2="55" stroke="#0A2463" strokeWidth="1.5" />
+        <line x1="21" y1="65" x2="21" y2="55" stroke="#1a3470" strokeWidth="1.5" />
       </g>
     );
   }
@@ -415,25 +415,25 @@ function Monument({ kind, x }: { kind: MonumentKind; x: number }) {
     return wrap(
       <g>
         {/* Towers (two pylons) */}
-        <rect x="5" y="80" width="6" height="55" fill="#0A2463" />
-        <rect x="55" y="80" width="6" height="55" fill="#0A2463" />
+        <rect x="5" y="80" width="6" height="55" fill="#1a3470" />
+        <rect x="55" y="80" width="6" height="55" fill="#1a3470" />
         {/* Crossbar near top */}
-        <rect x="3" y="78" width="58" height="3" fill="#0A2463" />
+        <rect x="3" y="78" width="58" height="3" fill="#1a3470" />
         {/* Diagonals on left tower */}
-        <line x1="8" y1="80" x2="8" y2="135" stroke="#0A2463" strokeWidth="1" />
-        <line x1="5" y1="90" x2="11" y2="100" stroke="#0A2463" strokeWidth="0.7" />
-        <line x1="11" y1="90" x2="5" y2="100" stroke="#0A2463" strokeWidth="0.7" />
+        <line x1="8" y1="80" x2="8" y2="135" stroke="#1a3470" strokeWidth="1" />
+        <line x1="5" y1="90" x2="11" y2="100" stroke="#1a3470" strokeWidth="0.7" />
+        <line x1="11" y1="90" x2="5" y2="100" stroke="#1a3470" strokeWidth="0.7" />
         {/* Diagonals on right tower */}
-        <line x1="55" y1="90" x2="61" y2="100" stroke="#0A2463" strokeWidth="0.7" />
-        <line x1="61" y1="90" x2="55" y2="100" stroke="#0A2463" strokeWidth="0.7" />
+        <line x1="55" y1="90" x2="61" y2="100" stroke="#1a3470" strokeWidth="0.7" />
+        <line x1="61" y1="90" x2="55" y2="100" stroke="#1a3470" strokeWidth="0.7" />
         {/* Bridge deck */}
-        <rect x="0" y="118" width="66" height="3" fill="#0A2463" />
+        <rect x="0" y="118" width="66" height="3" fill="#1a3470" />
         {/* Suspension lines */}
-        <line x1="11" y1="80" x2="55" y2="80" stroke="#0A2463" strokeWidth="1" />
-        <line x1="15" y1="80" x2="15" y2="118" stroke="#0A2463" strokeWidth="0.5" />
-        <line x1="25" y1="80" x2="25" y2="118" stroke="#0A2463" strokeWidth="0.5" />
-        <line x1="35" y1="80" x2="35" y2="118" stroke="#0A2463" strokeWidth="0.5" />
-        <line x1="45" y1="80" x2="45" y2="118" stroke="#0A2463" strokeWidth="0.5" />
+        <line x1="11" y1="80" x2="55" y2="80" stroke="#1a3470" strokeWidth="1" />
+        <line x1="15" y1="80" x2="15" y2="118" stroke="#1a3470" strokeWidth="0.5" />
+        <line x1="25" y1="80" x2="25" y2="118" stroke="#1a3470" strokeWidth="0.5" />
+        <line x1="35" y1="80" x2="35" y2="118" stroke="#1a3470" strokeWidth="0.5" />
+        <line x1="45" y1="80" x2="45" y2="118" stroke="#1a3470" strokeWidth="0.5" />
       </g>
     );
   }
@@ -441,13 +441,13 @@ function Monument({ kind, x }: { kind: MonumentKind; x: number }) {
   // Generic monument — pillared structure with dome
   return wrap(
     <g>
-      <rect x="0" y="125" width="50" height="10" fill="#0A2463" />
-      <rect x="5" y="90" width="6" height="35" fill="#0A2463" />
-      <rect x="20" y="90" width="6" height="35" fill="#0A2463" />
-      <rect x="35" y="90" width="6" height="35" fill="#0A2463" />
-      <rect x="0" y="85" width="50" height="6" fill="#0A2463" />
-      <ellipse cx="25" cy="85" rx="14" ry="8" fill="#0A2463" />
-      <line x1="25" y1="77" x2="25" y2="70" stroke="#0A2463" strokeWidth="1.5" />
+      <rect x="0" y="125" width="50" height="10" fill="#1a3470" />
+      <rect x="5" y="90" width="6" height="35" fill="#1a3470" />
+      <rect x="20" y="90" width="6" height="35" fill="#1a3470" />
+      <rect x="35" y="90" width="6" height="35" fill="#1a3470" />
+      <rect x="0" y="85" width="50" height="6" fill="#1a3470" />
+      <ellipse cx="25" cy="85" rx="14" ry="8" fill="#1a3470" />
+      <line x1="25" y1="77" x2="25" y2="70" stroke="#1a3470" strokeWidth="1.5" />
     </g>
   );
 }
