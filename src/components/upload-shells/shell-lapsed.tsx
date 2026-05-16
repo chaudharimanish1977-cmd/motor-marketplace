@@ -56,11 +56,11 @@ export function ShellLapsed({ policy, lifecycle }: ShellLapsedProps) {
       {/* Hero with Awful smiley */}
       <div className="flex flex-col items-center text-center mb-7 text-brand-plum">
         <CarSmiley rating={1} width={140} />
-        <h1 className="mt-4 font-serif font-medium text-3xl md:text-4xl tracking-[-0.02em] leading-[1.1] text-brand-charcoal m-0">
+        <h1 className="mt-4 font-serif font-medium text-[28px] md:text-4xl tracking-[-0.02em] leading-[1.1] text-brand-charcoal m-0">
           Let&apos;s get you back{" "}
           <span className="italic text-brand-plum">on cover.</span>
         </h1>
-        <p className="mt-3 font-serif italic text-base text-brand-slate max-w-md">
+        <p className="mt-3 font-serif italic text-[15px] md:text-base text-brand-slate max-w-md leading-[1.55]">
           Drop a fresh policy or renewal quote and we&apos;ll review it
           immediately. The review pace is faster than usual — about a
           minute — because urgency.

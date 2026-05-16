@@ -28,8 +28,15 @@ import { ActHello } from "./act-hello";
 import { ActRead } from "./act-read";
 import { ActAsk } from "./act-ask";
 import { ActAnticipate } from "./act-anticipate";
+import { ActError } from "./act-error";
 
-type Phase = "hello" | "read" | "ask" | "anticipate" | "ready";
+type Phase = "hello" | "read" | "ask" | "anticipate" | "ready" | "error";
+
+/** Parse-error payload passed in from the dropzone when /api/parse fails. */
+export interface JourneyParseError {
+  headline: string;
+  body: string;
+}
 
 interface JourneyProps {
   /** Lifecycle state. Phase 1 defaults to "B" until state-aware
@@ -40,19 +47,31 @@ interface JourneyProps {
   context: JourneyContext;
   /** True once the full /api/parse call has returned successfully. */
   parseComplete: boolean;
+  /** When set, the journey breaks out of the 5-act loop and renders
+   *  the editorial failure card. Null while parsing is healthy. */
+  parseError?: JourneyParseError | null;
   /** Captures the customer's answers from Act 3 as they happen. */
   onAnswersChange?: (answers: JourneyAnswers) => void;
   /** Fired exactly once when the journey finishes (post-90s + parse done).
    *  Caller should navigate to the report. */
   onComplete?: () => void;
+  /** Fired when the customer taps "Try a different file" on the error
+   *  surface — caller should re-open the file picker. */
+  onRetry?: () => void;
+  /** Fired when the customer taps "Start over" on the error surface —
+   *  caller should reset back to the dropzone idle state. */
+  onAbandon?: () => void;
 }
 
 export function Journey({
   state,
   context,
   parseComplete,
+  parseError,
   onAnswersChange,
   onComplete,
+  onRetry,
+  onAbandon,
 }: JourneyProps) {
   // Resolve the per-state content. Memoised so we only re-resolve
   // when state or context inputs actually change.
@@ -71,10 +90,20 @@ export function Journey({
     enteredAtRef.current = Date.now();
   }, [phase]);
 
+  // Parse-error breakout — any phase, any time. If the dropzone flips
+  // parseError to a value, we jump straight to the error surface and
+  // unwind the auto-advance / anticipate gates (their guards check phase).
+  useEffect(() => {
+    if (parseError && phase !== "error") {
+      setPhase("error");
+    }
+  }, [parseError, phase]);
+
   // Auto-advance through the first three acts. Anticipate is gated
   // separately below because it depends on parseComplete.
   useEffect(() => {
-    if (phase === "anticipate" || phase === "ready") return;
+    if (phase === "anticipate" || phase === "ready" || phase === "error")
+      return;
 
     let duration = 0;
     let next: Phase = "anticipate";
@@ -96,9 +125,10 @@ export function Journey({
 
   // Anticipate gate — fire "ready" only when minimum duration has
   // elapsed AND the parse is complete. Poll every 250ms so the gate
-  // closes promptly when both conditions converge.
+  // closes promptly when both conditions converge. Skipped on error.
   useEffect(() => {
     if (phase !== "anticipate") return;
+    if (parseError) return;
     const minMs = content.anticipate.durationMs;
 
     const tick = () => {
@@ -112,7 +142,7 @@ export function Journey({
     tick();
     const id = setInterval(tick, 250);
     return () => clearInterval(id);
-  }, [phase, content.anticipate.durationMs, parseComplete]);
+  }, [phase, content.anticipate.durationMs, parseComplete, parseError]);
 
   // Fire onComplete exactly once when phase reaches "ready".
   const completedRef = useRef(false);
@@ -188,6 +218,15 @@ export function Journey({
           content={{ ...content.anticipate, body: "Your verdict is ready." }}
           parseComplete
           progress={progress}
+        />
+      )}
+      {phase === "error" && parseError && (
+        <ActError
+          key="error"
+          headline={parseError.headline}
+          body={parseError.body}
+          onRetry={onRetry}
+          onAbandon={onAbandon}
         />
       )}
     </div>

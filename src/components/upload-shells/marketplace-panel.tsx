@@ -65,11 +65,11 @@ export function MarketplacePanel({
       <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
         · Three offers from our partners ·
       </div>
-      <h2 className="mt-1 font-serif font-medium text-2xl md:text-3xl tracking-[-0.018em] leading-[1.1] text-brand-charcoal">
+      <h2 className="mt-1 font-serif font-medium text-xl md:text-3xl tracking-[-0.018em] leading-[1.12] text-brand-charcoal">
         Fresh quotes,{" "}
         <span className="italic text-brand-plum">stitched for your car.</span>
       </h2>
-      <p className="mt-2 font-serif italic text-sm md:text-base text-brand-slate max-w-xl">
+      <p className="mt-2 font-serif italic text-[14px] md:text-base text-brand-slate max-w-xl leading-[1.55]">
         Three tiers, three insurers — same IDV, different appetite for
         add-ons. Pick the one that matches yours.
       </p>
@@ -175,7 +175,7 @@ function OfferCard({ offer, href }: OfferCardProps) {
       {/* CTA */}
       <LoadingLink
         href={href}
-        className="mt-5 inline-flex items-center justify-center gap-1 bg-brand-plum text-brand-offwhite px-4 py-2.5 rounded-full font-serif italic font-medium text-[14px] hover:opacity-90 transition-opacity"
+        className="mt-5 inline-flex items-center justify-center gap-1 bg-brand-plum text-brand-offwhite px-4 py-3 rounded-full font-serif italic font-medium text-[14px] min-h-[44px] hover:opacity-90 transition-opacity"
       >
         Reserve this offer <span aria-hidden>→</span>
       </LoadingLink>

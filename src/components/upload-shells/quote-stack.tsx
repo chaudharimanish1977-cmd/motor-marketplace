@@ -95,7 +95,7 @@ export function QuoteStack({
           <div className="mt-4">
             <Link
               href={dropHref}
-              className="inline-flex items-center gap-1 border border-brand-plum/40 text-brand-plum px-5 py-2.5 rounded-full font-serif italic font-medium text-[14px] hover:bg-brand-plum/5 transition-colors"
+              className="inline-flex items-center gap-1 border border-brand-plum/40 text-brand-plum px-5 py-3 rounded-full font-serif italic font-medium text-[14px] min-h-[44px] hover:bg-brand-plum/5 transition-colors"
             >
               Drop a quote <span aria-hidden>→</span>
             </Link>
@@ -140,7 +140,7 @@ export function QuoteStack({
               type="button"
               onClick={runReview}
               disabled={pending}
-              className="flex-1 inline-flex items-center justify-center gap-1 bg-brand-plum text-brand-offwhite px-5 py-2.5 rounded-full font-serif italic font-medium text-[14px] hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-opacity"
+              className="flex-1 inline-flex items-center justify-center gap-1 bg-brand-plum text-brand-offwhite px-5 py-3 rounded-full font-serif italic font-medium text-[14px] min-h-[44px] hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-opacity"
             >
               {pending ? "Stitching the review…" : "Run the review"}{" "}
               {!pending && <span aria-hidden>→</span>}
@@ -148,7 +148,7 @@ export function QuoteStack({
             {!atCap && (
               <Link
                 href={dropHref}
-                className="flex-1 inline-flex items-center justify-center gap-1 border border-brand-plum/40 text-brand-plum px-5 py-2.5 rounded-full font-serif italic font-medium text-[14px] hover:bg-brand-plum/5 transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-1 border border-brand-plum/40 text-brand-plum px-5 py-3 rounded-full font-serif italic font-medium text-[14px] min-h-[44px] hover:bg-brand-plum/5 transition-colors"
               >
                 Drop another quote
               </Link>

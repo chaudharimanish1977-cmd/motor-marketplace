@@ -41,14 +41,14 @@ export function ShellWelcomeBack({ policy, lifecycle }: ShellWelcomeBackProps) {
         · Welcome back · No. {policy.policyNumber.slice(-3) || "—"} ·
       </div>
 
-      <h1 className="font-serif font-medium text-4xl md:text-5xl tracking-[-0.02em] leading-[1.05] text-brand-charcoal m-0">
+      <h1 className="font-serif font-medium text-3xl md:text-5xl tracking-[-0.02em] leading-[1.08] text-brand-charcoal m-0">
         Good to see your{" "}
         <span className="italic text-brand-plum">
           {policy.vehicle.make}.
         </span>
       </h1>
 
-      <p className="mt-3 font-serif italic text-base md:text-lg text-brand-slate max-w-xl">
+      <p className="mt-3 font-serif italic text-[15px] md:text-lg text-brand-slate max-w-xl leading-[1.55]">
         {subhead}
       </p>
 

@@ -9,7 +9,6 @@ import {
   ArrowLeft,
   Upload,
   FileText,
-  RefreshCw,
   CheckCircle2,
   Plus,
   ArrowRight,
@@ -25,7 +24,7 @@ import { Journey } from "@/components/upload-journey/journey";
 import type { JourneyAnswers } from "@/lib/journey-copy";
 import type { LifecycleState } from "@/lib/lifecycle-state";
 
-type UploadState = "idle" | "uploading" | "parsing" | "done" | "error";
+type UploadState = "idle" | "uploading" | "parsing" | "done";
 
 interface UploadError {
   headline: string;
@@ -190,14 +189,18 @@ export function UploadDropzone({
 
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
-          setState("error");
+          // Don't unmount the Journey — leave state as "parsing" and
+          // let the Journey absorb the error via parseError. The
+          // editorial-style ActError card replaces the active act and
+          // gives the customer a clean retry path without yanking
+          // them back to the dropzone.
           setError({
             headline:
-              errBody.headline ?? "Couldn't analyse this",
+              errBody.headline ?? "Couldn't read this PDF.",
             body:
               errBody.body ??
               errBody.error ??
-              "Try uploading the original PDF from your insurer.",
+              "Try uploading the original PDF from your insurer — the one with the IRDAI header.",
           });
           return;
         }
@@ -233,13 +236,14 @@ export function UploadDropzone({
         // Survey answers persist so a second upload skips already-
         // answered questions on a repeat upload.
       } catch (err) {
-        setState("error");
+        // Same Journey-absorption pattern as the !res.ok branch above
+        // — keep the editorial frame and recover via ActError.
         setError({
-          headline: "Connection hiccup 📡",
+          headline: "Connection hiccup.",
           body:
             err instanceof Error
               ? err.message
-              : "Couldn't reach our servers. Give it another shot in a sec.",
+              : "Couldn't reach our servers. Give it another shot in a second.",
         });
       }
     },
@@ -293,7 +297,7 @@ export function UploadDropzone({
     return (
       <div className="relative rounded-3xl bg-brand-offwhite border border-brand-charcoal/10 p-6 md:p-10">
         <BackChip href={backHref} />
-        {startedAt !== null && <TimerChip startedAt={startedAt} />}
+        {startedAt !== null && !error && <TimerChip startedAt={startedAt} />}
         <Journey
           state={journeyState}
           context={{
@@ -301,9 +305,26 @@ export function UploadDropzone({
             docCount: journeyDocCount,
           }}
           parseComplete={!!reportUrl}
+          parseError={error}
           onAnswersChange={handleJourneyAnswersChange}
           onComplete={() => {
             if (reportUrl) router.push(reportUrl);
+          }}
+          onRetry={() => {
+            // Recover in place — clear the error and reopen the picker.
+            // The Journey unmounts because state goes back to idle, and
+            // the dropzone tile re-renders with the file picker open.
+            setError(null);
+            setState("idle");
+            setPreview(null);
+            setStartedAt(null);
+            open();
+          }}
+          onAbandon={() => {
+            setError(null);
+            setState("idle");
+            setPreview(null);
+            setStartedAt(null);
           }}
         />
       </div>
@@ -448,34 +469,9 @@ export function UploadDropzone({
         </div>
       </div>
 
-      {error && (
-        <div className="rounded-2xl border-2 border-brand-coral/40 bg-gradient-to-br from-brand-coral/10 to-white p-5 shadow-soft">
-          <div className="text-lg md:text-xl font-bold text-brand-charcoal leading-snug">
-            {error.headline}
-          </div>
-          <div className="text-sm text-brand-slate mt-1.5 leading-relaxed">
-            {error.body}
-          </div>
-          <div className="mt-4 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setError(null);
-                setState("idle");
-                open();
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-navy hover:brightness-110 text-white text-sm font-semibold shadow-soft transition-all"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Try another file
-            </button>
-            <span className="text-xs text-brand-slate">
-              Private car PDFs only · max 10 MB
-            </span>
-          </div>
-        </div>
-      )}
+      {/* Failure UX is now handled inline inside the Journey via the
+       *  editorial ActError card — the dropzone idle state never shows
+       *  an error block of its own. */}
     </div>
   );
 }

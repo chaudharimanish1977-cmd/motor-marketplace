@@ -20,6 +20,7 @@ import type {
 } from "@/lib/types";
 import { formatDateShort, formatINR } from "@/lib/format";
 import { policyGroupKey } from "@/lib/policy-group";
+import { computeLifecycleState } from "@/lib/lifecycle-state";
 import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 import { ReminderToggle } from "./reminder-toggle";
@@ -468,28 +469,45 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
     policy;
   const vehicleLabel = `${parsed.vehicle.make} ${parsed.vehicle.model}`.trim();
   const isQuote = bucket === "quote";
-  const isExpired = bucket === "expired";
-  const isSoon = bucket === "active" && daysUntilExpiry <= 60;
 
-  // Bucket-driven status pill. Quotes are distinct from both active
-  // and expired — they aren't bound, so neither "active" nor
-  // "expired" applies semantically.
+  // Lifecycle pill — speaks the same vocabulary as the /upload shells
+  // (State A/B/C/D) so the customer hears one consistent voice across
+  // the product. Quotes opt out (their dates describe a proposed window,
+  // not actual cover, so lifecycle math doesn't apply).
+  const lifecycle = isQuote
+    ? null
+    : computeLifecycleState({
+        startDate: parsed.odPeriodStart,
+        endDate: parsed.odPeriodEnd,
+      });
+
   const statusPill = isQuote
-    ? { label: "Quote", cls: "bg-brand-navy/10 text-brand-navy border-brand-navy/20" }
-    : isExpired
+    ? {
+        label: "Quote",
+        cls: "bg-brand-navy/10 text-brand-navy border-brand-navy/20",
+      }
+    : lifecycle?.state === "D"
       ? {
-          label: "Expired",
+          label:
+            typeof lifecycle.daysUntilExpiry === "number"
+              ? `Lapsed ${Math.abs(lifecycle.daysUntilExpiry)}d ago`
+              : "Lapsed",
           cls: "bg-rose-50 text-rose-700 border-rose-100",
         }
-      : isSoon
+      : lifecycle?.state === "A"
         ? {
-            label: `${daysUntilExpiry}d to expiry`,
+            label: `Renewal · ${daysUntilExpiry}d`,
             cls: "bg-amber-50 text-amber-700 border-amber-100",
           }
-        : {
-            label: "Active",
-            cls: "bg-emerald-50 text-emerald-700 border-emerald-100",
-          };
+        : lifecycle?.state === "C"
+          ? {
+              label: "Just bought",
+              cls: "bg-brand-plum/10 text-brand-plum border-brand-plum/30",
+            }
+          : {
+              label: "Active",
+              cls: "bg-emerald-50 text-emerald-700 border-emerald-100",
+            };
 
   // The "Expires" fact reads weirdly for quotes (the date is when
   // coverage *would start* if you bound it, not an expiry). Rebrand
@@ -540,10 +558,10 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
                 <BellOff className="w-3.5 h-3.5" />
                 Reminders don&rsquo;t apply to quotes
               </span>
-            ) : isExpired ? (
+            ) : lifecycle?.state === "D" ? (
               <span className="inline-flex items-center gap-1.5 text-brand-slate">
                 <BellOff className="w-3.5 h-3.5" />
-                Policy expired — reminders not active
+                Policy lapsed — reminders not active
               </span>
             ) : subscription ? (
               subscription.status === "active" ? (

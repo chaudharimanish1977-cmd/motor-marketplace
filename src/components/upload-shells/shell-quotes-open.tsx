@@ -67,12 +67,12 @@ export function ShellQuotesOpen({
         · Renewal window open · {daysUntil} day{daysUntil === 1 ? "" : "s"} ·
       </div>
 
-      <h1 className="font-serif font-medium text-4xl md:text-5xl tracking-[-0.02em] leading-[1.05] text-brand-charcoal m-0">
+      <h1 className="font-serif font-medium text-3xl md:text-5xl tracking-[-0.02em] leading-[1.08] text-brand-charcoal m-0">
         Time to{" "}
         <span className="italic text-brand-plum">top up your cover.</span>
       </h1>
 
-      <p className="mt-3 font-serif italic text-base md:text-lg text-brand-slate max-w-xl">
+      <p className="mt-3 font-serif italic text-[15px] md:text-lg text-brand-slate max-w-xl leading-[1.55]">
         Your {vehicleLabel} renews in {daysUntil} days. We&apos;ve pulled
         three fresh offers below — and if you&apos;ve collected quotes
         elsewhere, drop them in the stack so we can compare side-by-side.
