@@ -499,8 +499,9 @@ function V7CTA() {
       <h3 className="mt-24 font-serif font-medium text-5xl md:text-7xl leading-[1.02] tracking-[-0.028em] text-balance text-brand-charcoal m-0">
         Decide for <em className="italic text-brand-sage">yourself.</em>
       </h3>
-      <p className="mt-4 font-serif italic text-[17px] text-brand-slate max-w-md mx-auto">
-        Free. No card. No sales calls. The verdict appears in your browser.
+      <p className="mt-4 font-serif italic text-[17px] text-brand-slate max-w-xl mx-auto">
+        Free. No card. No sales calls. The verdict appears in your browser,
+        mail box, and WhatsApp.
       </p>
       <LoadingLink
         href="/upload"
