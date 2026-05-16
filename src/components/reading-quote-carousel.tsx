@@ -5,9 +5,10 @@
  * Behaviour:
  *   · Auto-rotates every 6s. Pauses on hover (desktop) and during keyboard
  *     focus inside the card (accessibility).
- *   · Dot indicators below the quote let the user jump.
- *   · No prev/next arrows — the editorial design wants the page to feel
- *     like a magazine, not a slider widget. Dots only.
+ *   · Dot indicators below the quote let the user jump to a specific story.
+ *   · Prev/next chevron buttons sit on either side of the dot row for
+ *     linear navigation. Kept small and ink-line so they read as marginalia
+ *     rather than a slider widget.
  *
  * Visual treatment matches the static V7Quote it replaces: large italic
  * serif body, plum open/close quote marks, italic sage emphasis on the
@@ -121,27 +122,73 @@ export function ReadingQuoteCarousel() {
         </figcaption>
       </figure>
 
-      {/* Dot indicators */}
+      {/* Navigation — prev/next chevron buttons flanking dot indicators.
+       *  Chevrons kept small and ink-line so they read as marginalia,
+       *  not slider chrome. Dots in between let users jump directly. */}
       <div
-        className="mt-7 flex items-center justify-center gap-2"
+        className="mt-7 flex items-center justify-center gap-4"
         role="tablist"
         aria-label="Customer stories"
       >
-        {STORIES.map((s, i) => (
-          <button
-            key={s.byline}
-            type="button"
-            role="tab"
-            aria-selected={i === idx}
-            aria-label={`Story ${i + 1} of ${STORIES.length} — ${s.byline}`}
-            onClick={() => goTo(i)}
-            className={`h-1.5 rounded-full transition-all ${
-              i === idx
-                ? "w-8 bg-brand-plum"
-                : "w-2 bg-brand-charcoal/20 hover:bg-brand-charcoal/40"
-            }`}
-          />
-        ))}
+        <button
+          type="button"
+          aria-label="Previous story"
+          onClick={() => goTo(idx - 1)}
+          className="w-8 h-8 inline-flex items-center justify-center rounded-full text-brand-plum hover:bg-brand-plum/10 transition-colors"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+
+        <div className="flex items-center gap-2">
+          {STORIES.map((s, i) => (
+            <button
+              key={s.byline}
+              type="button"
+              role="tab"
+              aria-selected={i === idx}
+              aria-label={`Story ${i + 1} of ${STORIES.length} — ${s.byline}`}
+              onClick={() => goTo(i)}
+              className={`h-1.5 rounded-full transition-all ${
+                i === idx
+                  ? "w-8 bg-brand-plum"
+                  : "w-2 bg-brand-charcoal/20 hover:bg-brand-charcoal/40"
+              }`}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          aria-label="Next story"
+          onClick={() => goTo(idx + 1)}
+          className="w-8 h-8 inline-flex items-center justify-center rounded-full text-brand-plum hover:bg-brand-plum/10 transition-colors"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
       </div>
     </div>
   );
