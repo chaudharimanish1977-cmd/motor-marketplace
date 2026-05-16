@@ -67,11 +67,18 @@ export default async function Home() {
 }
 
 /* ─── 1. Brand row ──────────────────────────────────────────────────────── */
+/* Responsive layout:
+ *   - Mobile (<md): stacked. Row 1 = wordmark only (the fixed top-right
+ *     theme toggle owns its corner). Row 2 = full-width Upload pill +
+ *     Sign in link, centred. This avoids the collision between the old
+ *     right-edge "Upload →" fallback and the theme toggle, and pushes
+ *     the primary action above the headline where a thumb can reach it.
+ *   - Desktop (md+): wordmark left, Upload + Sign in absolute-centred on
+ *     the page so the CTA sits dead-centre regardless of wordmark width. */
 function V7Brand({ signedIn }: { signedIn: boolean }) {
   return (
-    <header className="relative py-6 flex items-center justify-between gap-4">
-      {/* Wordmark on the left — italic serif "r" + small-caps RightOffer +
-       *  sage CAR pill. */}
+    <header className="relative flex flex-col gap-3 py-4 md:py-6 md:flex-row md:items-center md:justify-between md:gap-4">
+      {/* Wordmark — italic serif "r" + small-caps RightOffer + sage CAR pill. */}
       <Link
         href="/"
         aria-label="RightOffer Car — home"
@@ -94,13 +101,10 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
         </span>
       </Link>
 
-      {/* Centered Upload-policy CTA with the sign-in link beside it. The
-       *  absolute-positioned wrapper keeps the CTA dead-centered regardless
-       *  of the wordmark width on the left. A small static ink-line car
-       *  sits inline between "Upload" and "policy" — same shape as the
-       *  hero's animated car, but stripped of motion so it reads as an
-       *  icon inside the button. */}
-      <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-5">
+      {/* Upload-policy CTA + sign-in link. On mobile this sits as a centred
+       *  row directly below the wordmark; on desktop it's absolute-centred
+       *  on the page so it lands dead-centre regardless of wordmark width. */}
+      <div className="flex items-center justify-center gap-4 md:absolute md:left-1/2 md:-translate-x-1/2 md:gap-5">
         <LoadingLink
           href="/upload"
           className="inline-flex items-center gap-2 bg-brand-plum text-brand-offwhite px-5 py-2.5 rounded-full font-serif italic font-medium text-base hover:opacity-90 transition-opacity"
@@ -121,16 +125,6 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
           {signedIn ? "My policies" : "Sign in"}
         </Link>
       </div>
-
-      {/* Mobile fallback — on narrow screens the centered group is hidden;
-       *  show a compact Upload CTA on the right edge so the page still has
-       *  a single primary action. */}
-      <LoadingLink
-        href="/upload"
-        className="md:hidden inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-3 py-1.5 rounded-full font-serif italic font-medium text-sm hover:opacity-90 transition-opacity"
-      >
-        Upload <span aria-hidden>→</span>
-      </LoadingLink>
     </header>
   );
 }
