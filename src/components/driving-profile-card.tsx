@@ -12,6 +12,7 @@ export interface DrivingProfile {
   drivenBy?: string;
   otherCars?: string;
   priority?: string;
+  pastClaims?: string;
 }
 
 interface Props {
@@ -45,6 +46,7 @@ export function DrivingProfileCard({ initialProfile, reportId }: Props) {
       drivenBy: p.drivenBy ?? persisted.drivenBy,
       otherCars: p.otherCars ?? persisted.otherCars,
       priority: p.priority ?? persisted.priority,
+      pastClaims: p.pastClaims ?? persisted.pastClaims,
     }));
   }, [reportId]);
 
@@ -57,6 +59,8 @@ export function DrivingProfileCard({ initialProfile, reportId }: Props) {
     chips.push({ label: "Other cars", value: profile.otherCars });
   if (profile.priority)
     chips.push({ label: "Matters most", value: profile.priority });
+  if (profile.pastClaims)
+    chips.push({ label: "Recent claims", value: profile.pastClaims });
 
   if (chips.length === 0) return null;
 

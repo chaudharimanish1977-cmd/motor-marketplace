@@ -8,6 +8,10 @@ import type { RenewalContext } from "@/app/upload/page";
 interface Props {
   isDemo: boolean;
   renewalContext?: RenewalContext | null;
+  /** Home-page chip raw value (`pay_less` / `worry_less` / null). The flow
+   *  translates it into a pre-filled MidLoadQuestions priority answer and
+   *  hands it to the dropzone. */
+  priorityChip?: string | null;
 }
 
 /**
@@ -22,6 +26,7 @@ interface Props {
 export function UploadFlow({
   isDemo,
   renewalContext,
+  priorityChip,
 }: Props) {
   const [busy, setBusy] = useState(false);
 
@@ -58,9 +63,8 @@ export function UploadFlow({
       <UploadDropzone
         demoMode={isDemo}
         onBusyChange={setBusy}
-        backHref={
-          renewalContext ? "/me" : isDemo ? "/investor" : "/"
-        }
+        backHref={renewalContext ? "/me" : isDemo ? "/investor" : "/"}
+        priorityChip={priorityChip ?? null}
       />
     </main>
   );

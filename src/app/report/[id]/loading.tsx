@@ -38,6 +38,7 @@ export default function Loading() {
     drivenBy: params?.get("drv") ?? undefined,
     otherCars: params?.get("oc") ?? undefined,
     priority: params?.get("pri") ?? undefined,
+    pastClaims: params?.get("pc") ?? undefined,
   };
 
   return (

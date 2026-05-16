@@ -19,6 +19,7 @@ import { StopwatchChip } from "@/components/stopwatch-chip";
 import {
   MidLoadQuestions,
   answersToQuery,
+  priorityFromChipParam,
   type MidLoadAnswers,
 } from "@/components/mid-load-questions";
 
@@ -46,6 +47,10 @@ interface UploadDropzoneProps {
   onBusyChange?: (busy: boolean) => void;
   /** Where the in-card Back chevron should link to. Default `/`. */
   backHref?: string;
+  /** Home-page chip raw value (`pay_less` / `worry_less` / null). When
+   *  present, the MidLoadQuestions priority answer is pre-filled so the
+   *  user doesn't see that question during parsing. */
+  priorityChip?: string | null;
 }
 
 function BackChip({ href }: { href: string }) {
@@ -88,6 +93,7 @@ export function UploadDropzone({
   demoMode = false,
   onBusyChange,
   backHref = "/",
+  priorityChip = null,
 }: UploadDropzoneProps) {
   const [state, setState] = useState<UploadState>("idle");
   const [error, setError] = useState<UploadError | null>(null);
@@ -104,7 +110,11 @@ export function UploadDropzone({
 
   // Refs so the async parse closure always reads the latest survey answers
   // and timestamp without needing them in the deps array.
-  const answersRef = useRef<MidLoadAnswers>({});
+  // Pre-seed the answers with the home-page chip selection (if any) so
+  // the MidLoadQuestions carousel can skip the priority question entirely.
+  const answersRef = useRef<MidLoadAnswers>({
+    priority: priorityFromChipParam(priorityChip) ?? undefined,
+  });
   const t0Ref = useRef<number>(0);
 
   const onDrop = useCallback(

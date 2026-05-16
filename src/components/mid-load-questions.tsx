@@ -1,18 +1,42 @@
+/**
+ * MidLoadQuestions — the in-parse survey carousel.
+ *
+ * Mounted on the upload page during the ~30-60s parse wait, and on the
+ * /report/[id] loading screen as a back-up surface if the user hits
+ * the report URL before parsing finishes. Captures the customer-side
+ * attributes that the policy PDF *doesn't* tell us (driving behaviour,
+ * household context, claim history, priority).
+ *
+ * Five questions in order:
+ *
+ *   1. annualKm      — driving frequency.   Drives risk modelling.
+ *   2. drivenBy      — who drives the car.  Drives risk modelling.
+ *   3. otherCars     — household car count. Drives cross-sell timing.
+ *   4. priority      — what matters most.   Drives recommendation lens.
+ *                       Aligned with the home page chip ("Pay less" /
+ *                       "Worry less") so a chip selection on the home
+ *                       page pre-fills this question via the
+ *                       `?priority=` URL param.
+ *   5. pastClaims    — claim history.       Drives NCB / risk weighting.
+ *
+ * The carousel auto-advances on tap, persists answers to localStorage,
+ * and skips already-answered questions via `skipAnswered`.
+ *
+ * Visual treatment: Reading-Room editorial — italic-serif prompts,
+ * plum-tinted active chips, mono uppercase caption header, plain SVG
+ * chevrons (not lucide), surface card with no drop shadow.
+ */
 "use client";
 
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import {
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
 
 export interface MidLoadAnswers {
   annualKm?: string;
   drivenBy?: string;
   otherCars?: string;
   priority?: string;
+  pastClaims?: string;
 }
 
 interface Props {
@@ -20,7 +44,8 @@ interface Props {
    *  never gates the redirect. */
   onChange?: (answers: MidLoadAnswers) => void;
   /** Pre-fill answered state — used on phase-2 loader so questions answered
-   *  on phase-1 don't appear again. */
+   *  on phase-1 don't appear again, and to consume the home page chip
+   *  selection (passed via `?priority=` query param). */
   initialAnswers?: MidLoadAnswers;
   /** When set, answers are also persisted to localStorage under this key. The
    *  report page reads the same key on mount to merge phase-2 answers in. */
@@ -55,7 +80,12 @@ const QUESTIONS: Question[] = [
   {
     key: "priority",
     prompt: "What matters most to you?",
-    options: ["Lowest price", "Easy claims", "Wide network", "Max coverage"],
+    options: ["Pay less", "Worry less", "Both matter"],
+  },
+  {
+    key: "pastClaims",
+    prompt: "Filed a claim in the last 3 years?",
+    options: ["No", "Yes — once", "Yes — twice+", "Don't remember"],
   },
 ];
 
@@ -76,9 +106,7 @@ export function MidLoadQuestions({
     () => initialAnswers ?? {}
   );
   const [idx, setIdx] = useState(() =>
-    skipAnswered && initialAnswers
-      ? firstUnansweredIdx(initialAnswers)
-      : 0
+    skipAnswered && initialAnswers ? firstUnansweredIdx(initialAnswers) : 0
   );
 
   // Persist to localStorage when persistKey is set (phase-2 case)
@@ -100,12 +128,10 @@ export function MidLoadQuestions({
     const next = { ...answers, [current.key]: value };
     setAnswers(next);
     onChange?.(next);
-    // Auto-advance: skip-mode jumps to the next unanswered, otherwise just +1
     if (idx + 1 < QUESTIONS.length) {
       setTimeout(() => {
         if (skipAnswered) {
-          const j = firstUnansweredIdx(next);
-          setIdx(j);
+          setIdx(firstUnansweredIdx(next));
         } else {
           setIdx(idx + 1);
         }
@@ -116,20 +142,17 @@ export function MidLoadQuestions({
   const go = (n: number) =>
     setIdx(((n % QUESTIONS.length) + QUESTIONS.length) % QUESTIONS.length);
 
-  // Once everything is answered, render a tight "all set" confirmation
-  // instead of leaving the carousel sitting on a stale tile.
+  // All answered — render a quiet editorial confirmation.
   if (allDone) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-brand-success flex items-center justify-center shrink-0">
-          <CheckCircle2 className="w-5 h-5 text-white" />
-        </div>
+      <div className="rounded-2xl border border-brand-charcoal/15 bg-brand-surface px-5 py-4 flex items-center gap-3">
+        <Tick />
         <div>
-          <div className="text-sm font-bold text-brand-charcoal">
-            All 4 answered — thanks!
+          <div className="font-serif font-semibold text-brand-charcoal">
+            All five answered — thanks.
           </div>
-          <div className="text-xs text-brand-slate">
-            We&apos;ll tailor your report with these.
+          <div className="font-serif italic text-sm text-brand-slate">
+            We&apos;ll tailor your review with these.
           </div>
         </div>
       </div>
@@ -137,39 +160,37 @@ export function MidLoadQuestions({
   }
 
   return (
-    <div className="rounded-2xl border border-brand-light-gray bg-white shadow-soft overflow-hidden">
+    <div className="rounded-2xl border border-brand-charcoal/15 bg-brand-surface overflow-hidden">
       <div className="px-4 pt-3 pb-2 text-center">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy">
-          While we work · help us tailor your report
+        <div className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-brand-sage">
+          · While we read · A few quick questions ·
         </div>
       </div>
 
-      <div className="relative px-12 py-4">
+      <div className="relative px-12 py-5">
         <button
           type="button"
           aria-label="Previous question"
           onClick={() => go(idx - 1)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-brand-offwhite hover:bg-brand-light-gray flex items-center justify-center text-brand-slate transition-colors"
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 inline-flex items-center justify-center rounded-full text-brand-plum hover:bg-brand-plum/10 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <Chevron direction="left" />
         </button>
         <button
           type="button"
           aria-label="Next question"
           onClick={() => go(idx + 1)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-brand-offwhite hover:bg-brand-light-gray flex items-center justify-center text-brand-slate transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 inline-flex items-center justify-center rounded-full text-brand-plum hover:bg-brand-plum/10 transition-colors"
         >
-          <ChevronRight className="w-4 h-4" />
+          <Chevron direction="right" />
         </button>
 
         <div
           key={idx}
           className="text-center animate-in fade-in duration-300"
         >
-          <div className="text-sm font-bold text-brand-charcoal mb-3 inline-flex items-center justify-center gap-1.5">
-            {isAnswered && (
-              <CheckCircle2 className="w-4 h-4 text-brand-success" />
-            )}
+          <div className="font-serif italic text-lg text-brand-charcoal mb-4 inline-flex items-center justify-center gap-2">
+            {isAnswered && <Tick small />}
             <span>{current.prompt}</span>
           </div>
 
@@ -182,10 +203,10 @@ export function MidLoadQuestions({
                   type="button"
                   onClick={() => select(opt)}
                   className={clsx(
-                    "text-xs px-3 py-1.5 rounded-full border-2 font-semibold transition-all",
+                    "inline-flex items-center px-4 py-1.5 rounded-full border font-serif italic text-sm transition-all",
                     selected
-                      ? "bg-brand-navy text-white border-brand-navy scale-[1.02]"
-                      : "bg-white border-brand-light-gray text-brand-charcoal hover:border-brand-navy hover:bg-brand-navy/10"
+                      ? "border-brand-plum bg-brand-plum/10 text-brand-plum"
+                      : "border-brand-charcoal/20 text-brand-slate hover:border-brand-charcoal/50 hover:text-brand-charcoal"
                   )}
                 >
                   {opt}
@@ -196,7 +217,7 @@ export function MidLoadQuestions({
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-1.5 py-2.5 bg-brand-offwhite/40 border-t border-brand-light-gray">
+      <div className="flex items-center justify-center gap-2 py-3 border-t border-brand-charcoal/10">
         {QUESTIONS.map((q, i) => {
           const answered = !!answers[q.key];
           return (
@@ -208,16 +229,56 @@ export function MidLoadQuestions({
               className={clsx(
                 "h-1.5 rounded-full transition-all",
                 i === idx
-                  ? "w-6 bg-brand-navy"
+                  ? "w-7 bg-brand-plum"
                   : answered
-                    ? "w-3 bg-brand-success"
-                    : "w-2 bg-brand-light-gray hover:bg-brand-slate/40"
+                    ? "w-3 bg-brand-sage"
+                    : "w-2 bg-brand-charcoal/20 hover:bg-brand-charcoal/40"
               )}
             />
           );
         })}
       </div>
     </div>
+  );
+}
+
+function Chevron({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <polyline
+        points={direction === "left" ? "15 18 9 12 15 6" : "9 18 15 12 9 6"}
+      />
+    </svg>
+  );
+}
+
+function Tick({ small = false }: { small?: boolean }) {
+  const size = small ? 14 : 16;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className="text-brand-sage"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
   );
 }
 
@@ -228,6 +289,7 @@ export function answersToQuery(answers: MidLoadAnswers): string {
   if (answers.drivenBy) params.set("drv", answers.drivenBy);
   if (answers.otherCars) params.set("oc", answers.otherCars);
   if (answers.priority) params.set("pri", answers.priority);
+  if (answers.pastClaims) params.set("pc", answers.pastClaims);
   return params.toString();
 }
 
@@ -247,4 +309,18 @@ export function readPersistedAnswers(key: string): MidLoadAnswers {
     // ignore
   }
   return {};
+}
+
+/**
+ * Translate the home page chip selection (`pay_less` / `worry_less`)
+ * into the priority answer the MidLoadQuestions carousel uses ("Pay
+ * less" / "Worry less"). Returns null if the priority param is missing
+ * or unrecognised — callers should treat that as "no pre-fill".
+ */
+export function priorityFromChipParam(
+  param: string | null | undefined
+): string | null {
+  if (param === "pay_less") return "Pay less";
+  if (param === "worry_less") return "Worry less";
+  return null;
 }

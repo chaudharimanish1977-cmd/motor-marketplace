@@ -19,22 +19,25 @@ interface PageProps {
     drv?: string;
     oc?: string;
     pri?: string;
+    /** pastClaims — captured by MidLoadQuestions during parsing. */
+    pc?: string;
   }>;
 }
 
 export default async function ReportPage({ params, searchParams }: PageProps) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
-  const { from, demo, print, km, drv, oc, pri } = sp;
+  const { from, demo, print, km, drv, oc, pri, pc } = sp;
   const view: "investor" | "customer" = demo === "1" ? "investor" : "customer";
   const printMode = print === "1";
 
   const drivingProfile =
-    km || drv || oc || pri
+    km || drv || oc || pri || pc
       ? {
           annualKm: km,
           drivenBy: drv,
           otherCars: oc,
           priority: pri,
+          pastClaims: pc,
         }
       : undefined;
 

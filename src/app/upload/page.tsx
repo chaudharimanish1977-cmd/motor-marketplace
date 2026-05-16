@@ -14,11 +14,18 @@ export interface RenewalContext {
 }
 
 interface PageProps {
-  searchParams: Promise<{ demo?: string; renewal?: string }>;
+  searchParams: Promise<{
+    demo?: string;
+    renewal?: string;
+    /** Home-page chip selection — pre-fills the MidLoadQuestions
+     *  priority answer so visitors who already declared their lens on
+     *  the home page don't see that question again. Round 20 chip. */
+    priority?: string;
+  }>;
 }
 
 /**
- * Upload landing. Two optional knobs:
+ * Upload landing. Three optional knobs:
  *   - `demo=1` keeps the investor view (downstream pages render the
  *     full pitch flow with bid CTAs).
  *   - `renewal=<parsedPolicyId>` arrives from the customer portal
@@ -26,6 +33,10 @@ interface PageProps {
  *     that prior policy server-side and pass a tiny context down to
  *     the upload UI so the page can greet them by vehicle ("Renewing
  *     your Hyundai Verna...") instead of starting cold.
+ *   - `priority=pay_less|worry_less` arrives from the home page
+ *     profile chip. We translate it into the mid-load "priority"
+ *     answer and pass it down so the question is skipped during
+ *     parsing.
  *
  * Customer-account linking happens inside /api/parse — it reads the
  * session cookie directly and stamps the new policy's owner.email,
@@ -33,13 +44,14 @@ interface PageProps {
  * no extra wiring.
  */
 export default async function UploadPage({ searchParams }: PageProps) {
-  const { demo, renewal } = await searchParams;
+  const { demo, renewal, priority } = await searchParams;
   const renewalContext = renewal ? await loadRenewalContext(renewal) : null;
 
   return (
     <UploadFlow
       isDemo={demo === "1"}
       renewalContext={renewalContext}
+      priorityChip={priority ?? null}
     />
   );
 }
