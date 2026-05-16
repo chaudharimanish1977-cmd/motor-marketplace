@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LoadingLink } from "@/components/loading-link";
 import {
@@ -14,14 +15,14 @@ import {
   ArrowRight,
 } from "lucide-react";
 import clsx from "clsx";
-import { CircularJourneyLoader } from "@/components/circular-journey-loader";
 import { StopwatchChip } from "@/components/stopwatch-chip";
 import {
-  MidLoadQuestions,
   answersToQuery,
   priorityFromChipParam,
   type MidLoadAnswers,
 } from "@/components/mid-load-questions";
+import { Journey } from "@/components/upload-journey/journey";
+import type { JourneyAnswers } from "@/lib/journey-copy";
 
 type UploadState = "idle" | "uploading" | "parsing" | "done" | "error";
 
@@ -95,11 +96,17 @@ export function UploadDropzone({
   backHref = "/",
   priorityChip = null,
 }: UploadDropzoneProps) {
+  const router = useRouter();
   const [state, setState] = useState<UploadState>("idle");
   const [error, setError] = useState<UploadError | null>(null);
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [lastDoc, setLastDoc] = useState<ParsedDoc | null>(null);
+  // Journey hand-off: once /api/parse completes, the report URL lands
+  // here; the Journey component holds the customer in the 5-act
+  // experience and fires onComplete only after both parse + minimum-
+  // duration are satisfied. onComplete pushes to this URL.
+  const [reportUrl, setReportUrl] = useState<string | null>(null);
   // Accumulated list of every doc parsed in this browser session.
   // Drives the multi-doc Done card (count + per-type breakdown +
   // single "See my reports" CTA). Survives "Add another" clicks
@@ -200,19 +207,23 @@ export function UploadDropzone({
           ? `${parsed.vehicle.make ?? ""} ${parsed.vehicle.model ?? ""}`.trim()
           : "";
 
+        const viewUrl = `/report/${data.id}?${fullQuery}`;
         const newDoc: ParsedDoc = {
           id: data.id,
           vehicleLabel: vehicleLabel || "your document",
           insurerName: parsed.insurerName ?? "",
           documentType,
-          viewUrl: `/report/${data.id}?${fullQuery}`,
+          viewUrl,
         };
         setLastDoc(newDoc);
         setUploadedDocs((docs) => [...docs, newDoc]);
-        setState("done");
+        // Hand off to the Journey: state stays as "parsing" so the
+        // 5-act sequence keeps rendering. reportUrl signals "parse done";
+        // the Journey decides when to actually navigate (hold-to-90s).
+        setReportUrl(viewUrl);
         // answersRef intentionally NOT reset — see onDrop note above.
         // Survey answers persist so a second upload skips already-
-        // answered questions via MidLoadQuestions's skipAnswered prop.
+        // answered questions on a repeat upload.
       } catch (err) {
         setState("error");
         setError({
@@ -229,6 +240,21 @@ export function UploadDropzone({
 
   const handleAnswersChange = useCallback((a: MidLoadAnswers) => {
     answersRef.current = a;
+  }, []);
+
+  // The Journey component captures two single-select answers (past
+  // claims + what worries you most). Map them onto the existing
+  // MidLoadAnswers shape so the downstream report URL query and
+  // localStorage persistence keep working with no schema change.
+  const handleJourneyAnswersChange = useCallback((a: JourneyAnswers) => {
+    answersRef.current = {
+      ...answersRef.current,
+      pastClaims: a.pastClaims,
+      // `worry` is a new dimension; carry it through the `priority`
+      // slot for now since both feed the same personalisation engine.
+      // Phase 2 can split them apart cleanly.
+      priority: a.worry ?? answersRef.current.priority,
+    };
   }, []);
 
   // Mirror the busy state to the parent so it can hide page chrome (heading,
@@ -248,37 +274,29 @@ export function UploadDropzone({
     disabled: state === "uploading" || state === "parsing",
   });
 
-  // ---------- Loader (uploading / parsing) ----------
+  // ---------- Loader (uploading / parsing) — the 5-act Journey ----------
+  // The Journey replaces the old CircularJourneyLoader + MidLoadQuestions
+  // combo with a single editorial 90-second experience. It self-paces
+  // through Hello → Read → Ask → Anticipate and fires onComplete once
+  // both (parseComplete && minimum-duration) are satisfied. Phase 1
+  // hard-codes State B; Phase 2 will compute the live state from
+  // session + parse-preview.
   if (state === "uploading" || state === "parsing") {
     return (
-      <div className="space-y-4">
-        <div className="relative rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6">
-          <BackChip href={backHref} />
-          {startedAt !== null && <TimerChip startedAt={startedAt} />}
-          <CircularJourneyLoader
-            vehicleLabel={preview?.vehicleLabel ?? undefined}
-            registrationNumber={preview?.registrationNumber ?? undefined}
-            rtoCity={preview?.rtoCity ?? undefined}
-            vehicleAgeYears={preview?.ageYears ?? undefined}
-            vehicleMake={preview?.make ?? undefined}
-            vehicleModel={preview?.model ?? undefined}
-            stage="parsing"
-            startedAt={startedAt ?? undefined}
-            primaryText="Reading your policy"
-            etaText="Usually under 2 minutes"
-          />
-        </div>
-
-        {/* Productive use of the parse wait — 4 quick taps. Persisted
-            across uploads: if the customer already answered any
-            questions on a prior upload, the survey jumps past them.
-            Once all 4 are done the component renders a tight "all set"
-            card instead of the carousel. */}
-        <MidLoadQuestions
-          key={`midload-${uploadCount}`}
-          onChange={handleAnswersChange}
-          initialAnswers={answersRef.current}
-          skipAnswered
+      <div className="relative rounded-3xl bg-brand-offwhite border border-brand-charcoal/10 p-6 md:p-10">
+        <BackChip href={backHref} />
+        {startedAt !== null && <TimerChip startedAt={startedAt} />}
+        <Journey
+          state="B"
+          context={{
+            vehicleLabel: preview?.vehicleLabel ?? undefined,
+            docCount: 1,
+          }}
+          parseComplete={!!reportUrl}
+          onAnswersChange={handleJourneyAnswersChange}
+          onComplete={() => {
+            if (reportUrl) router.push(reportUrl);
+          }}
         />
       </div>
     );
@@ -298,6 +316,7 @@ export function UploadDropzone({
       setPreview(null);
       setLastDoc(null);
       setStartedAt(null);
+      setReportUrl(null);
     };
 
     return (
