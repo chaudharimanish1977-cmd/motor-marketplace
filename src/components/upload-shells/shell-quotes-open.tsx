@@ -1,33 +1,67 @@
 /**
  * ShellQuotesOpen — returning visitor whose policy is in the renewal
- * window (State A, ≤60 days). The quote market is open. We never re-
- * ask for the policy; we surface it and invite optional quote uploads
- * to compare against.
+ * window (State A, ≤60 days). The quote market is open.
  *
- * Phase 2 ships the "view existing report / start quote shopping"
- * surface. Phase 3 wires the actual multi-doc stack flow (drop more
- * quotes, run comparator) inside this shell.
+ * Phase 3 wires the marketplace panel and the quote stack:
+ *   1. Hero: petrol-pump masthead with State-A copy.
+ *   2. Current cover summary (vehicle/insurer/RTO).
+ *   3. MarketplacePanel: three deterministic synthetic offers, anchored
+ *      on the customer's policy.
+ *   4. QuoteStack: where the customer's own collected quotes accumulate
+ *      (up to 3), with "Run the review" CTA wiring the comparator.
+ *   5. Footer escape: see existing report.
+ *
+ * Server-renderable — generates offers via pure transform, then renders.
+ * Sub-components (LoadingLink, QuoteStack) handle their own client
+ * interactivity.
  */
-"use client";
 
-import Link from "next/link";
 import { LoadingLink } from "@/components/loading-link";
 import { SketchPetrolPump } from "@/components/sketches-scenes";
 import type { ParsedPolicy } from "@/lib/types";
 import type { LifecycleResult } from "@/lib/lifecycle-state";
+import {
+  generateMarketplaceOffers,
+  type MarketplaceOffer,
+} from "@/lib/marketplace-offers";
+import { MarketplacePanel } from "./marketplace-panel";
+import { QuoteStack } from "./quote-stack";
 
 interface ShellQuotesOpenProps {
   policy: ParsedPolicy;
   lifecycle: LifecycleResult;
+  /** Every parsed doc on this visitor's file. The shell filters to
+   *  `documentType === "quote"` rows for the stack. Defaults to []. */
+  visitorDocs?: ParsedPolicy[];
 }
 
-export function ShellQuotesOpen({ policy, lifecycle }: ShellQuotesOpenProps) {
+export function ShellQuotesOpen({
+  policy,
+  lifecycle,
+  visitorDocs = [],
+}: ShellQuotesOpenProps) {
   const vehicleLabel = `${policy.vehicle.make} ${policy.vehicle.model}`.trim();
   const daysUntil = lifecycle.daysUntilExpiry ?? 0;
   const reportHref = `/report/${policy.id}`;
 
+  // Customer-supplied quotes only — exclude the policy itself and any
+  // legacy rows that lack a documentType.
+  const customerQuotes = visitorDocs.filter(
+    (d) => d.documentType === "quote" && d.id !== policy.id
+  );
+
+  // Synthesise the marketplace panel server-side. Deterministic, so the
+  // same customer sees the same 3 offers across refreshes.
+  const offers = generateMarketplaceOffers(policy);
+
+  // Reserve CTAs route through the report page, which is where checkout
+  // intent is captured in V1. The offer ID rides along as a query param
+  // so a future checkout / KYC page can preselect the chosen tier.
+  const reserveHrefFor = (offer: MarketplaceOffer) =>
+    `${reportHref}?offer=${offer.id}`;
+
   return (
-    <main className="min-h-screen px-4 py-8 max-w-2xl mx-auto">
+    <main className="min-h-screen px-4 py-8 max-w-3xl mx-auto">
       {/* Masthead — petrol-pump metaphor lives here per DESIGN-LANGUAGE.md */}
       <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold mb-3">
         · Renewal window open · {daysUntil} day{daysUntil === 1 ? "" : "s"} ·
@@ -39,9 +73,9 @@ export function ShellQuotesOpen({ policy, lifecycle }: ShellQuotesOpenProps) {
       </h1>
 
       <p className="mt-3 font-serif italic text-base md:text-lg text-brand-slate max-w-xl">
-        Your {vehicleLabel} renews in {daysUntil} days. We&apos;ll fetch
-        3 fresh quotes from our partners — and you can drop any quotes
-        you&apos;ve collected so we stack them all together.
+        Your {vehicleLabel} renews in {daysUntil} days. We&apos;ve pulled
+        three fresh offers below — and if you&apos;ve collected quotes
+        elsewhere, drop them in the stack so we can compare side-by-side.
       </p>
 
       {/* Petrol-pump scene — anchors the renewal moment */}
@@ -62,25 +96,25 @@ export function ShellQuotesOpen({ policy, lifecycle }: ShellQuotesOpenProps) {
         </div>
       </section>
 
-      {/* Two paths */}
-      <div className="mt-7 flex flex-col md:flex-row gap-3 md:gap-4">
+      {/* Three RightOffer Picks */}
+      <MarketplacePanel offers={offers} reserveHrefFor={reserveHrefFor} />
+
+      {/* Customer-supplied quote stack */}
+      <QuoteStack
+        quotes={customerQuotes}
+        anchorPolicyId={policy.id}
+        maxQuotes={3}
+      />
+
+      {/* Footer: re-read existing review */}
+      <div className="mt-9 text-center">
         <LoadingLink
           href={reportHref}
-          className="flex-1 inline-flex items-center justify-center gap-1 bg-brand-plum text-brand-offwhite px-6 py-3 rounded-full font-serif italic font-medium text-[16px] hover:opacity-90 transition-opacity"
+          className="inline-flex items-center justify-center gap-1 font-serif italic text-[14px] text-brand-slate hover:text-brand-charcoal transition-colors"
         >
-          See your review &amp; offers <span aria-hidden>→</span>
+          See your full review &amp; offers <span aria-hidden>→</span>
         </LoadingLink>
-        <Link
-          href={`/upload?fresh=1&renewal=${policy.id}`}
-          className="flex-1 inline-flex items-center justify-center gap-1 border border-brand-plum/40 text-brand-plum px-6 py-3 rounded-full font-serif italic font-medium text-[15px] hover:bg-brand-plum/5 transition-colors"
-        >
-          Drop a quote you&apos;ve collected
-        </Link>
       </div>
-
-      <p className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-sage font-bold text-center">
-        · Coming next · Drop multiple quotes &amp; compare side-by-side ·
-      </p>
     </main>
   );
 }

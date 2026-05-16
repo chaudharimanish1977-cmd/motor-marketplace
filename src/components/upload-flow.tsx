@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RefreshCw, Car, MapPin, ShieldOff } from "lucide-react";
 import { UploadDropzone } from "@/components/upload-dropzone";
 import type { RenewalContext } from "@/app/upload/page";
+import type { LifecycleState } from "@/lib/lifecycle-state";
 
 interface Props {
   isDemo: boolean;
@@ -12,6 +13,13 @@ interface Props {
    *  translates it into a pre-filled MidLoadQuestions priority answer and
    *  hands it to the dropzone. */
   priorityChip?: string | null;
+  /** Lifecycle state to render the 5-act Journey in. Server-resolved from
+   *  the visitor's session. Defaults to "B" (mid-cycle voice). */
+  journeyState?: LifecycleState;
+  /** Position of this drop in the visitor's running stack — when > 1,
+   *  the Journey copy flips into "Stacking up your N documents" framing.
+   *  Defaults to 1 (the very first drop). */
+  journeyDocCount?: number;
 }
 
 /**
@@ -27,6 +35,8 @@ export function UploadFlow({
   isDemo,
   renewalContext,
   priorityChip,
+  journeyState = "B",
+  journeyDocCount = 1,
 }: Props) {
   const [busy, setBusy] = useState(false);
 
@@ -65,6 +75,8 @@ export function UploadFlow({
         onBusyChange={setBusy}
         backHref={renewalContext ? "/me" : isDemo ? "/investor" : "/"}
         priorityChip={priorityChip ?? null}
+        journeyState={journeyState}
+        journeyDocCount={journeyDocCount}
       />
     </main>
   );

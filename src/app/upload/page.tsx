@@ -2,7 +2,6 @@ import { UploadFlow } from "@/components/upload-flow";
 import { findById, Tables } from "@/lib/db";
 import type { ParsedPolicy } from "@/lib/types";
 import { resolveUploadRouting } from "@/lib/upload-routing";
-import { ShellFirstTime } from "@/components/upload-shells/shell-first-time";
 import { ShellWelcomeBack } from "@/components/upload-shells/shell-welcome-back";
 import { ShellQuotesOpen } from "@/components/upload-shells/shell-quotes-open";
 import { ShellLapsed } from "@/components/upload-shells/shell-lapsed";
@@ -55,6 +54,24 @@ export default async function UploadPage({ searchParams }: PageProps) {
   const renewalContext = renewal ? await loadRenewalContext(renewal) : null;
   const priorityChip = priority ?? null;
 
+  // Routing is computed for both the escape-hatch path and the shell
+  // dispatch — the fresh path uses it to derive the Journey's lifecycle
+  // state + docCount so the loader matches the customer's actual stage.
+  const routing = await resolveUploadRouting();
+
+  // Quotes the visitor already has on file. The drop they're about to
+  // make becomes (existingQuotes + 1) in the stack — the Journey uses
+  // this to flip into "Stacking up your N documents" framing.
+  const existingQuotes = routing.visitorDocs.filter(
+    (d) => d.documentType === "quote"
+  ).length;
+
+  // Lifecycle of the primary policy drives the Journey's editorial
+  // tone. Renewal-active visitors hear State-A copy; everyone else
+  // falls back to State B (the default mid-cycle voice).
+  const journeyState =
+    routing.lifecycle?.state === "A" ? "A" : "B";
+
   // Escape hatch — explicit "upload fresh" intent overrides routing.
   if (fresh === "1") {
     return (
@@ -62,11 +79,11 @@ export default async function UploadPage({ searchParams }: PageProps) {
         isDemo={isDemo}
         renewalContext={renewalContext}
         priorityChip={priorityChip}
+        journeyState={journeyState}
+        journeyDocCount={existingQuotes + 1}
       />
     );
   }
-
-  const routing = await resolveUploadRouting();
 
   // First-time / fall-back routes all use the existing UploadFlow.
   // Returning-customer routes get their dedicated shell.
@@ -76,6 +93,8 @@ export default async function UploadPage({ searchParams }: PageProps) {
         isDemo={isDemo}
         renewalContext={renewalContext}
         priorityChip={priorityChip}
+        journeyState={journeyState}
+        journeyDocCount={existingQuotes + 1}
       />
     );
   }
@@ -93,6 +112,7 @@ export default async function UploadPage({ searchParams }: PageProps) {
         <ShellQuotesOpen
           policy={routing.primaryPolicy}
           lifecycle={routing.lifecycle!}
+          visitorDocs={routing.visitorDocs}
         />
       );
     case "fresh-policy":
@@ -118,6 +138,8 @@ export default async function UploadPage({ searchParams }: PageProps) {
           isDemo={isDemo}
           renewalContext={renewalContext}
           priorityChip={priorityChip}
+          journeyState={journeyState}
+          journeyDocCount={existingQuotes + 1}
         />
       );
   }

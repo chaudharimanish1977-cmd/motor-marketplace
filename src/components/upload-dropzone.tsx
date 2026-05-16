@@ -23,6 +23,7 @@ import {
 } from "@/components/mid-load-questions";
 import { Journey } from "@/components/upload-journey/journey";
 import type { JourneyAnswers } from "@/lib/journey-copy";
+import type { LifecycleState } from "@/lib/lifecycle-state";
 
 type UploadState = "idle" | "uploading" | "parsing" | "done" | "error";
 
@@ -52,6 +53,11 @@ interface UploadDropzoneProps {
    *  present, the MidLoadQuestions priority answer is pre-filled so the
    *  user doesn't see that question during parsing. */
   priorityChip?: string | null;
+  /** Lifecycle state to render the 5-act Journey in. Default "B". */
+  journeyState?: LifecycleState;
+  /** Document position within the visitor's running stack. When > 1
+   *  the Journey copy flips into multi-doc framing. Default 1. */
+  journeyDocCount?: number;
 }
 
 function BackChip({ href }: { href: string }) {
@@ -95,6 +101,8 @@ export function UploadDropzone({
   onBusyChange,
   backHref = "/",
   priorityChip = null,
+  journeyState = "B",
+  journeyDocCount = 1,
 }: UploadDropzoneProps) {
   const router = useRouter();
   const [state, setState] = useState<UploadState>("idle");
@@ -287,10 +295,10 @@ export function UploadDropzone({
         <BackChip href={backHref} />
         {startedAt !== null && <TimerChip startedAt={startedAt} />}
         <Journey
-          state="B"
+          state={journeyState}
           context={{
             vehicleLabel: preview?.vehicleLabel ?? undefined,
-            docCount: 1,
+            docCount: journeyDocCount,
           }}
           parseComplete={!!reportUrl}
           onAnswersChange={handleJourneyAnswersChange}

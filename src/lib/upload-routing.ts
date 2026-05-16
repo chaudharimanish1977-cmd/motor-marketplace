@@ -54,6 +54,10 @@ export interface UploadRoutingDecision {
   lifecycle: LifecycleResult | null;
   /** Returning visitor? (i.e. has at least one parsed doc in session) */
   isReturning: boolean;
+  /** Every parsed doc the visitor has on file — policies AND quotes.
+   *  Phase 3 uses this in ShellQuotesOpen to render the quote-stack
+   *  ("you've already dropped 2 of 3 quotes"). Empty when first-time. */
+  visitorDocs: ParsedPolicy[];
 }
 
 /**
@@ -74,6 +78,7 @@ export async function resolveUploadRouting(
       primaryPolicy: null,
       lifecycle: null,
       isReturning: false,
+      visitorDocs: [],
     };
   }
 
@@ -87,6 +92,7 @@ export async function resolveUploadRouting(
       primaryPolicy: null,
       lifecycle: null,
       isReturning: true,
+      visitorDocs: policies,
     };
   }
 
@@ -102,6 +108,7 @@ export async function resolveUploadRouting(
     primaryPolicy: primary,
     lifecycle,
     isReturning: true,
+    visitorDocs: policies,
   };
 }
 
