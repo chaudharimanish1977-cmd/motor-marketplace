@@ -29,6 +29,7 @@ import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 import {
   SketchCar,
+  SketchCarStatic,
   SketchDesk,
   SketchDoc,
   SketchLoupe,
@@ -95,13 +96,23 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
 
       {/* Centered Upload-policy CTA with the sign-in link beside it. The
        *  absolute-positioned wrapper keeps the CTA dead-centered regardless
-       *  of the wordmark width on the left. */}
+       *  of the wordmark width on the left. A small static ink-line car
+       *  sits inline between "Upload" and "policy" — same shape as the
+       *  hero's animated car, but stripped of motion so it reads as an
+       *  icon inside the button. */}
       <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-5">
         <LoadingLink
           href="/upload"
-          className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-4 py-2 rounded-full font-serif italic font-medium text-sm hover:opacity-90 transition-opacity"
+          className="inline-flex items-center gap-1.5 bg-brand-plum text-brand-offwhite px-4 py-2 rounded-full font-serif italic font-medium text-sm hover:opacity-90 transition-opacity"
         >
-          Upload policy <span aria-hidden>→</span>
+          <span>Upload</span>
+          <SketchCarStatic
+            width={28}
+            className="align-middle"
+            color="currentColor"
+          />
+          <span>policy</span>
+          <span aria-hidden>→</span>
         </LoadingLink>
         <Link
           href="/me"

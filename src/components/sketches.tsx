@@ -25,6 +25,50 @@ export interface SketchProps {
   className?: string;
 }
 
+/* ─── Static mini car (inline icon size) ─────────────────────────────────── */
+/**
+ * Same car shape as SketchCar but without animation classes and without
+ * the dashed road strip below — sized for inline use inside buttons /
+ * chips. Stroke colour inherits `currentColor` by default so the icon
+ * picks up the text colour of whatever it's nested in.
+ */
+export function SketchCarStatic({
+  color = "currentColor",
+  width = 28,
+  className,
+}: SketchProps) {
+  const h = Math.round(width * 0.5);
+  return (
+    <svg
+      viewBox="0 0 220 110"
+      width={width}
+      height={h}
+      className={`ro-ink ${className ?? ""}`}
+      stroke={color}
+      strokeWidth={3}
+      aria-hidden
+    >
+      <rect x="14" y="56" width="192" height="34" rx="12" />
+      <rect x="52" y="24" width="116" height="34" rx="10" />
+      <line x1="110" y1="24" x2="110" y2="58" />
+      <line x1="80" y1="60" x2="80" y2="88" />
+      <line x1="140" y1="60" x2="140" y2="88" />
+      <circle cx="18" cy="66" r="3" fill={color} />
+      <circle cx="202" cy="66" r="3" fill={color} />
+      <g transform="translate(60 94)">
+        <circle cx="0" cy="0" r="14" />
+        <line x1="-10" y1="0" x2="10" y2="0" />
+        <line x1="0" y1="-10" x2="0" y2="10" />
+      </g>
+      <g transform="translate(160 94)">
+        <circle cx="0" cy="0" r="14" />
+        <line x1="-10" y1="0" x2="10" y2="0" />
+        <line x1="0" y1="-10" x2="0" y2="10" />
+      </g>
+    </svg>
+  );
+}
+
 /* ─── Animated mini car ──────────────────────────────────────────────────── */
 export function SketchCar({
   color = "#3a1e3d",
