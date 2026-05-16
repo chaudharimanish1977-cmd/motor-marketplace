@@ -117,6 +117,8 @@ export function SketchCar({
 }
 
 /* ─── Sedan in 3/4 view, ink wash ────────────────────────────────────────── */
+/* Classic three-box: long hood, raked cabin, defined trunk. Standard
+ * ride height. Matches a Honda City / Hyundai Verna / Skoda Slavia. */
 export function SketchSedan({
   color = "#3a1e3d",
   width = 420,
@@ -132,36 +134,38 @@ export function SketchSedan({
       stroke={color}
       strokeWidth={2.2}
     >
-      {/* Body */}
-      <path d="M30 140 Q44 92, 96 86 L160 82 Q200 78, 226 92 L286 116 Q300 122, 300 138 L300 158 L20 158 L20 142 Z" />
-      {/* Cabin window */}
-      <path d="M84 88 Q98 56, 144 56 L196 56 Q224 60, 232 92 Z" />
-      <line x1="160" y1="56" x2="160" y2="90" />
+      {/* Body — long, low, with a clear trunk shoulder behind the cabin */}
+      <path d="M28 144 Q40 110, 80 102 L120 96 Q138 92, 168 92 L210 96 Q244 100, 270 116 L298 130 Q308 136, 308 148 L308 162 L18 162 L18 146 Z" />
+      {/* Cabin — raked windshield, long greenhouse, sloping rear pillar */}
+      <path d="M96 102 Q116 70, 150 68 L196 70 Q220 74, 232 102 Z" />
+      <line x1="170" y1="68" x2="170" y2="102" />
       {/* Door seams */}
-      <path d="M118 92 L118 154" />
-      <path d="M188 92 L188 156" />
+      <line x1="132" y1="104" x2="132" y2="158" />
+      <line x1="200" y1="104" x2="200" y2="160" />
+      {/* Trunk seam — distinct from rear pillar so the trunk reads as a box */}
+      <line x1="232" y1="102" x2="252" y2="118" />
       {/* Handles */}
-      <line x1="128" y1="112" x2="148" y2="110" />
-      <line x1="198" y1="114" x2="218" y2="112" />
+      <line x1="140" y1="124" x2="160" y2="122" />
+      <line x1="206" y1="126" x2="222" y2="124" />
       {/* Front lamp */}
-      <circle cx="286" cy="130" r="6" />
+      <circle cx="298" cy="142" r="5" />
       {/* Wheels */}
       <g>
-        <circle cx="78" cy="160" r="22" />
-        <circle cx="78" cy="160" r="9" />
-        <circle cx="78" cy="160" r="2" fill={color} />
+        <circle cx="84" cy="164" r="20" />
+        <circle cx="84" cy="164" r="8" />
+        <circle cx="84" cy="164" r="2" fill={color} />
       </g>
       <g>
-        <circle cx="232" cy="160" r="22" />
-        <circle cx="232" cy="160" r="9" />
-        <circle cx="232" cy="160" r="2" fill={color} />
+        <circle cx="244" cy="164" r="20" />
+        <circle cx="244" cy="164" r="8" />
+        <circle cx="244" cy="164" r="2" fill={color} />
       </g>
       {/* Soft hatching under wheel wells */}
       <g stroke={color} strokeWidth={1} opacity={0.4}>
-        <line x1="40" y1="148" x2="58" y2="148" />
-        <line x1="40" y1="152" x2="62" y2="152" />
-        <line x1="252" y1="148" x2="278" y2="148" />
-        <line x1="256" y1="152" x2="282" y2="152" />
+        <line x1="44" y1="152" x2="62" y2="152" />
+        <line x1="44" y1="156" x2="66" y2="156" />
+        <line x1="262" y1="152" x2="284" y2="152" />
+        <line x1="266" y1="156" x2="290" y2="156" />
       </g>
       {/* Ground line */}
       <line
@@ -177,9 +181,9 @@ export function SketchSedan({
 }
 
 /* ─── Hatchback in 3/4 view, ink wash ────────────────────────────────────── */
-/* Compact silhouette with the cabin extending almost to the rear — no
- * defined trunk. Smaller rear overhang than the sedan. Matches a Maruti
- * Swift / VW Polo class car. */
+/* Compact, two-box silhouette: NO trunk, near-vertical rear hatch, short
+ * front overhang, wheels pushed to the corners. Visibly smaller body
+ * than the sedan. Matches a Maruti Swift / Hyundai i20 / VW Polo. */
 export function SketchHatchback({
   color = "#3a1e3d",
   width = 420,
@@ -195,38 +199,40 @@ export function SketchHatchback({
       stroke={color}
       strokeWidth={2.2}
     >
-      {/* Body — compact, short rear overhang */}
-      <path d="M28 140 Q42 92, 96 86 L208 84 Q238 84, 254 96 L284 114 Q298 122, 298 138 L298 158 L20 158 L20 142 Z" />
-      {/* Cabin — extends most of the body length, steep rear hatch */}
-      <path d="M84 88 Q98 54, 144 54 L210 54 Q228 58, 244 92 L244 92 Z" />
-      <line x1="160" y1="54" x2="160" y2="90" />
-      {/* Door seams */}
-      <path d="M118 92 L118 154" />
-      <path d="M196 92 L196 156" />
+      {/* Body — compact, wheels at the corners, short rear hatch */}
+      <path d="M58 140 Q72 96, 116 90 L196 88 Q220 90, 234 100 L262 116 Q272 122, 272 138 L272 160 L52 160 L52 142 Z" />
+      {/* Cabin — extends almost to the rear (no trunk), near-vertical
+       *  rear hatch. The short A-pillar + tall C-pillar reads as
+       *  "hatchback" silhouette. */}
+      <path d="M104 90 Q120 56, 154 56 L218 56 Q230 60, 234 100 L234 100 Z" />
+      <line x1="170" y1="56" x2="170" y2="90" />
+      {/* Door seams — note: only two doors visible (3-door look) */}
+      <line x1="138" y1="92" x2="138" y2="156" />
+      <line x1="204" y1="92" x2="204" y2="158" />
       {/* Handles */}
-      <line x1="128" y1="112" x2="148" y2="110" />
-      <line x1="206" y1="112" x2="226" y2="110" />
+      <line x1="146" y1="112" x2="166" y2="110" />
+      <line x1="210" y1="114" x2="226" y2="112" />
       {/* Front lamp */}
-      <circle cx="284" cy="128" r="6" />
-      {/* Rear hatch lamp */}
-      <rect x="22" y="118" width="10" height="14" />
-      {/* Wheels */}
+      <circle cx="266" cy="124" r="5" />
+      {/* Rear tail-lamp — vertical, sits on the C-pillar */}
+      <rect x="54" y="100" width="6" height="18" />
+      {/* Wheels — visibly pushed to the corners, smaller than SUV */}
       <g>
-        <circle cx="78" cy="160" r="22" />
-        <circle cx="78" cy="160" r="9" />
-        <circle cx="78" cy="160" r="2" fill={color} />
+        <circle cx="100" cy="164" r="20" />
+        <circle cx="100" cy="164" r="8" />
+        <circle cx="100" cy="164" r="2" fill={color} />
       </g>
       <g>
-        <circle cx="232" cy="160" r="22" />
-        <circle cx="232" cy="160" r="9" />
-        <circle cx="232" cy="160" r="2" fill={color} />
+        <circle cx="228" cy="164" r="20" />
+        <circle cx="228" cy="164" r="8" />
+        <circle cx="228" cy="164" r="2" fill={color} />
       </g>
-      {/* Soft hatching under wheel wells */}
+      {/* Soft hatching */}
       <g stroke={color} strokeWidth={1} opacity={0.4}>
-        <line x1="40" y1="148" x2="58" y2="148" />
-        <line x1="40" y1="152" x2="62" y2="152" />
-        <line x1="252" y1="148" x2="278" y2="148" />
-        <line x1="256" y1="152" x2="282" y2="152" />
+        <line x1="64" y1="152" x2="80" y2="152" />
+        <line x1="64" y1="156" x2="82" y2="156" />
+        <line x1="246" y1="152" x2="266" y2="152" />
+        <line x1="248" y1="156" x2="266" y2="156" />
       </g>
       {/* Ground line */}
       <line
@@ -242,9 +248,10 @@ export function SketchHatchback({
 }
 
 /* ─── SUV in 3/4 view, ink wash ──────────────────────────────────────────── */
-/* Taller, boxier silhouette with raised ride height and a longer roof
- * line. Bigger wheels relative to body to read as SUV proportions.
- * Matches a Hyundai Creta / Kia Seltos / Toyota Hyryder class car. */
+/* Tall, boxy, raised ride height. Square cabin with near-vertical
+ * pillars, roof rails, body-cladding strip along the lower flanks,
+ * visible front grille slot. Larger wheels with arch flares. Matches a
+ * Mahindra XUV700 / Hyundai Creta / Kia Seltos. */
 export function SketchSUV({
   color = "#3a1e3d",
   width = 420,
@@ -260,45 +267,76 @@ export function SketchSUV({
       stroke={color}
       strokeWidth={2.2}
     >
-      {/* Body — taller, sits higher with more clearance */}
-      <path d="M30 132 Q44 80, 96 74 L224 70 Q254 70, 270 84 L296 100 Q310 110, 310 128 L310 150 L20 150 L20 134 Z" />
-      {/* Cabin — boxier roof, less rake on A-pillar */}
-      <path d="M82 76 Q96 38, 144 38 L212 38 Q238 42, 250 78 Z" />
-      <line x1="160" y1="40" x2="160" y2="78" />
-      {/* Door seams */}
-      <path d="M118 80 L118 146" />
-      <path d="M196 80 L196 148" />
-      {/* Handles */}
-      <line x1="128" y1="106" x2="148" y2="104" />
-      <line x1="206" y1="106" x2="226" y2="104" />
-      {/* Front lamp */}
-      <circle cx="298" cy="118" r="7" />
-      {/* Roof rails (subtle) */}
+      {/* Body — tall, square, sits high above the ground */}
+      <path d="M24 116 Q36 70, 86 64 L228 60 Q262 62, 280 78 L300 92 Q312 100, 312 116 L312 152 L18 152 L18 118 Z" />
+      {/* Cabin — square, upright A and C pillars, flat roof */}
+      <path d="M88 64 Q96 28, 134 26 L222 26 Q252 28, 266 66 L266 66 Z" />
+      <line x1="170" y1="26" x2="170" y2="66" />
+      {/* Roof rails — distinctive SUV feature */}
       <line
         x1="98"
-        y1="34"
-        x2="248"
-        y2="34"
-        strokeWidth={1.4}
+        y1="22"
+        x2="252"
+        y2="22"
+        strokeWidth={1.6}
+        opacity={0.7}
+      />
+      <line
+        x1="100"
+        y1="22"
+        x2="100"
+        y2="26"
+        strokeWidth={1.2}
+        opacity={0.7}
+      />
+      <line
+        x1="250"
+        y1="22"
+        x2="250"
+        y2="26"
+        strokeWidth={1.2}
+        opacity={0.7}
+      />
+      {/* Door seams */}
+      <line x1="124" y1="68" x2="124" y2="148" />
+      <line x1="216" y1="68" x2="216" y2="150" />
+      {/* Handles */}
+      <line x1="134" y1="98" x2="156" y2="96" />
+      <line x1="222" y1="100" x2="244" y2="98" />
+      {/* Body-cladding strip along the lower flanks */}
+      <line
+        x1="24"
+        y1="138"
+        x2="300"
+        y2="138"
+        strokeDasharray="5 3"
         opacity={0.5}
       />
-      {/* Wheels — larger to read as SUV */}
+      {/* Front grille slot */}
+      <rect x="290" y="100" width="14" height="10" rx="1" />
+      {/* Front lamp */}
+      <circle cx="290" cy="86" r="5" />
+      {/* Wheels — chunky, raised stance, visible arches */}
       <g>
-        <circle cx="78" cy="156" r="26" />
-        <circle cx="78" cy="156" r="10" />
+        <circle cx="78" cy="156" r="28" />
+        <circle cx="78" cy="156" r="11" />
         <circle cx="78" cy="156" r="2" fill={color} />
+        <line x1="78" y1="128" x2="78" y2="138" strokeWidth={1.2} />
+        <line x1="78" y1="174" x2="78" y2="184" strokeWidth={1.2} />
       </g>
       <g>
-        <circle cx="240" cy="156" r="26" />
-        <circle cx="240" cy="156" r="10" />
-        <circle cx="240" cy="156" r="2" fill={color} />
+        <circle cx="242" cy="156" r="28" />
+        <circle cx="242" cy="156" r="11" />
+        <circle cx="242" cy="156" r="2" fill={color} />
+        <line x1="242" y1="128" x2="242" y2="138" strokeWidth={1.2} />
+        <line x1="242" y1="174" x2="242" y2="184" strokeWidth={1.2} />
       </g>
       {/* Soft hatching under wheel wells */}
       <g stroke={color} strokeWidth={1} opacity={0.4}>
-        <line x1="34" y1="142" x2="56" y2="142" />
-        <line x1="34" y1="146" x2="60" y2="146" />
-        <line x1="262" y1="142" x2="286" y2="142" />
-        <line x1="266" y1="146" x2="290" y2="146" />
+        <line x1="32" y1="146" x2="48" y2="146" />
+        <line x1="32" y1="150" x2="50" y2="150" />
+        <line x1="270" y1="146" x2="288" y2="146" />
+        <line x1="272" y1="150" x2="290" y2="150" />
       </g>
       {/* Ground line */}
       <line
