@@ -11,7 +11,6 @@ import {
   RefreshCw,
   CheckCircle2,
   Plus,
-  FolderOpen,
   ArrowRight,
 } from "lucide-react";
 import clsx from "clsx";
@@ -80,6 +79,7 @@ function TimerChip({ startedAt }: { startedAt: number }) {
 interface ParsedDoc {
   id: string;
   vehicleLabel: string;
+  insurerName: string;
   documentType: "policy" | "quote";
   viewUrl: string;
 }
@@ -94,10 +94,13 @@ export function UploadDropzone({
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [lastDoc, setLastDoc] = useState<ParsedDoc | null>(null);
-  // How many parses have completed in this session. Surfaces a small
-  // "2 documents uploaded this session" counter on the Done screen so
-  // a returning quote-comparator user can see what's accumulating.
-  const [uploadCount, setUploadCount] = useState(0);
+  // Accumulated list of every doc parsed in this browser session.
+  // Drives the multi-doc Done card (count + per-type breakdown +
+  // single "See my reports" CTA). Survives "Add another" clicks
+  // because we don't reset it there — only the per-upload state
+  // (preview, startedAt, error) clears.
+  const [uploadedDocs, setUploadedDocs] = useState<ParsedDoc[]>([]);
+  const uploadCount = uploadedDocs.length;
 
   // Refs so the async parse closure always reads the latest survey answers
   // and timestamp without needing them in the deps array.
@@ -111,7 +114,10 @@ export function UploadDropzone({
 
       const t0 = Date.now();
       t0Ref.current = t0;
-      answersRef.current = {};
+      // NOTE: deliberately NOT resetting answersRef here. The
+      // mid-load survey captures customer-level attributes (annual
+      // km, who drives, etc.) which are stable across documents.
+      // Asking again on each upload reads as "we don't remember you."
       setStartedAt(t0);
       setError(null);
       setState("uploading");
@@ -184,17 +190,19 @@ export function UploadDropzone({
           ? `${parsed.vehicle.make ?? ""} ${parsed.vehicle.model ?? ""}`.trim()
           : "";
 
-        setLastDoc({
+        const newDoc: ParsedDoc = {
           id: data.id,
           vehicleLabel: vehicleLabel || "your document",
+          insurerName: parsed.insurerName ?? "",
           documentType,
           viewUrl: `/report/${data.id}?${fullQuery}`,
-        });
-        setUploadCount((n) => n + 1);
+        };
+        setLastDoc(newDoc);
+        setUploadedDocs((docs) => [...docs, newDoc]);
         setState("done");
-        // Reset survey answers so a second upload doesn't carry the first
-        // upload's chip selections into its report query.
-        answersRef.current = {};
+        // answersRef intentionally NOT reset — see onDrop note above.
+        // Survey answers persist so a second upload skips already-
+        // answered questions via MidLoadQuestions's skipAnswered prop.
       } catch (err) {
         setState("error");
         setError({
@@ -251,15 +259,37 @@ export function UploadDropzone({
           />
         </div>
 
-        {/* Productive use of the parse wait — 4 quick taps */}
-        <MidLoadQuestions onChange={handleAnswersChange} />
+        {/* Productive use of the parse wait — 4 quick taps. Persisted
+            across uploads: if the customer already answered any
+            questions on a prior upload, the survey jumps past them.
+            Once all 4 are done the component renders a tight "all set"
+            card instead of the carousel. */}
+        <MidLoadQuestions
+          key={`midload-${uploadCount}`}
+          onChange={handleAnswersChange}
+          initialAnswers={answersRef.current}
+          skipAnswered
+        />
       </div>
     );
   }
 
-  // ---------- Done — success card with two CTAs ----------
+  // ---------- Done — success card with summary + CTAs ----------
   if (state === "done" && lastDoc) {
-    const isQuote = lastDoc.documentType === "quote";
+    const policies = uploadedDocs.filter((d) => d.documentType === "policy");
+    const quotes = uploadedDocs.filter((d) => d.documentType === "quote");
+    const isMulti = uploadedDocs.length > 1;
+
+    // Reset just per-upload state for the "Add another" path. Keeps
+    // uploadedDocs intact so the running summary survives.
+    const resetForNext = () => {
+      setState("idle");
+      setError(null);
+      setPreview(null);
+      setLastDoc(null);
+      setStartedAt(null);
+    };
+
     return (
       <div className="space-y-4">
         <div className="relative rounded-3xl bg-white border border-brand-light-gray shadow-soft p-6 md:p-8">
@@ -268,40 +298,75 @@ export function UploadDropzone({
             <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
               <CheckCircle2 className="w-7 h-7" />
             </div>
-            <h2 className="mt-4 text-xl md:text-2xl font-bold text-brand-charcoal tracking-tight">
-              {isQuote ? "Quote analysed" : "Policy analysed"}
-            </h2>
-            <p className="mt-1.5 text-sm text-brand-slate">
-              <span className="font-semibold text-brand-charcoal">
-                {lastDoc.vehicleLabel}
-              </span>
-              {" · "}
-              {isQuote ? "Renewal quote" : "Insurance policy"}
-            </p>
+
+            {isMulti ? (
+              <>
+                <h2 className="mt-4 text-xl md:text-2xl font-bold text-brand-charcoal tracking-tight">
+                  {uploadedDocs.length} documents analysed
+                </h2>
+                <p className="mt-1.5 text-sm text-brand-slate">
+                  {policies.length > 0 && (
+                    <>
+                      <span className="font-semibold text-brand-charcoal">
+                        {policies.length}{" "}
+                        {policies.length === 1 ? "Policy" : "Policies"}
+                      </span>
+                      {quotes.length > 0 ? " · " : ""}
+                    </>
+                  )}
+                  {quotes.length > 0 && (
+                    <span className="font-semibold text-brand-charcoal">
+                      {quotes.length}{" "}
+                      {quotes.length === 1 ? "Quote" : "Quotes"}
+                    </span>
+                  )}
+                </p>
+                {/* Compact list of what was uploaded */}
+                <ul className="mt-3 text-[11px] text-brand-slate space-y-0.5 max-w-md">
+                  {uploadedDocs.map((d) => (
+                    <li key={d.id}>
+                      <span className="font-medium text-brand-charcoal">
+                        {d.documentType === "policy" ? "Policy" : "Quote"}
+                      </span>
+                      {d.insurerName ? ` · ${d.insurerName}` : ""}
+                      {d.vehicleLabel ? ` · ${d.vehicleLabel}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h2 className="mt-4 text-xl md:text-2xl font-bold text-brand-charcoal tracking-tight">
+                  {lastDoc.documentType === "quote"
+                    ? "Quote analysed"
+                    : "Policy analysed"}
+                </h2>
+                <p className="mt-1.5 text-sm text-brand-slate">
+                  <span className="font-semibold text-brand-charcoal">
+                    {lastDoc.vehicleLabel}
+                  </span>
+                  {" · "}
+                  {lastDoc.documentType === "quote"
+                    ? "Renewal quote"
+                    : "Insurance policy"}
+                </p>
+              </>
+            )}
 
             <div className="mt-7 w-full max-w-md space-y-2">
               <LoadingLink
-                href={lastDoc.viewUrl}
+                href="/reports"
                 spinnerPosition="right"
                 className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-orange hover:brightness-110 text-white shadow-glow transition-all"
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
-                  View {isQuote ? "quote analysis" : "report"}
+                  See {isMulti ? "my reports" : "my report"}
                   <ArrowRight className="w-4 h-4" />
                 </span>
               </LoadingLink>
               <button
                 type="button"
-                onClick={() => {
-                  // Soft reset for "Add another": clear per-upload state,
-                  // keep uploadCount so the counter accumulates across docs.
-                  setState("idle");
-                  setError(null);
-                  setPreview(null);
-                  setLastDoc(null);
-                  setStartedAt(null);
-                  // Survey answers already reset on parse success.
-                }}
+                onClick={resetForNext}
                 className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-deepblue text-brand-deepblue hover:bg-blue-50 transition-all"
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
@@ -309,23 +374,7 @@ export function UploadDropzone({
                   Add another document
                 </span>
               </button>
-              <LoadingLink
-                href="/me"
-                spinnerPosition="right"
-                className="block w-full py-2.5 text-center text-sm font-semibold text-brand-slate hover:text-brand-charcoal"
-              >
-                <span className="inline-flex items-center justify-center gap-1.5">
-                  <FolderOpen className="w-3.5 h-3.5" />
-                  View all my documents
-                </span>
-              </LoadingLink>
             </div>
-
-            {uploadCount > 1 && (
-              <p className="mt-5 text-[11px] text-brand-slate/80">
-                {uploadCount} documents uploaded this session
-              </p>
-            )}
           </div>
         </div>
       </div>
