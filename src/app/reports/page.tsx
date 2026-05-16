@@ -27,6 +27,7 @@ import { LoadingLink } from "@/components/loading-link";
 import { ReportDisplay } from "@/components/report-display";
 import { TabStrip, type TabDef } from "./tab-strip";
 import { ComparatorContent } from "./comparator-content";
+import { ResetButton } from "./reset-button";
 
 export const dynamic = "force-dynamic";
 // 120s for the inline-fallback report-gen path (the parse-time gen
@@ -252,11 +253,45 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     : null;
   const activeReport = activeDocId ? reports.get(activeDocId) : null;
 
+  const rawDocCount = docIds.length;
+  const dedupedCount = sortedDocs.length;
+  const wasDeduped = rawDocCount > dedupedCount;
+
   return (
     <>
       <BrandBlobs />
       <main className="relative z-10 min-h-screen px-4 py-8 md:py-10">
         <div className="max-w-4xl mx-auto">
+          {/* Header row — diagnostic count + reset action.
+              Shows "5 docs in session · 2 unique" when dedup
+              collapsed parses, so the customer can see what's
+              happening. The "Start a new comparison" button
+              wipes the anonymous/upload session and routes to
+              /upload for a clean slate. */}
+          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap text-[11px] text-brand-slate">
+            <div>
+              {wasDeduped ? (
+                <>
+                  <span className="font-semibold text-brand-charcoal">
+                    {dedupedCount}
+                  </span>{" "}
+                  unique document{dedupedCount === 1 ? "" : "s"}{" "}
+                  <span className="text-brand-slate/70">
+                    ({rawDocCount} parses deduped)
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="font-semibold text-brand-charcoal">
+                    {dedupedCount}
+                  </span>{" "}
+                  document{dedupedCount === 1 ? "" : "s"} in your comparison
+                </>
+              )}
+            </div>
+            <ResetButton />
+          </div>
+
           <TabStrip
             tabs={tabs}
             firstTabId={firstTabId}
