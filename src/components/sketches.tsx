@@ -34,7 +34,7 @@ export interface SketchProps {
  */
 export function SketchCarStatic({
   color = "currentColor",
-  width = 28,
+  width = 44,
   className,
 }: SketchProps) {
   const h = Math.round(width * 0.5);
@@ -45,7 +45,7 @@ export function SketchCarStatic({
       height={h}
       className={`ro-ink ${className ?? ""}`}
       stroke={color}
-      strokeWidth={3}
+      strokeWidth={5}
       aria-hidden
     >
       <rect x="14" y="56" width="192" height="34" rx="12" />

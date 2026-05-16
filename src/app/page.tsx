@@ -103,11 +103,11 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
       <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-5">
         <LoadingLink
           href="/upload"
-          className="inline-flex items-center gap-1.5 bg-brand-plum text-brand-offwhite px-4 py-2 rounded-full font-serif italic font-medium text-sm hover:opacity-90 transition-opacity"
+          className="inline-flex items-center gap-2 bg-brand-plum text-brand-offwhite px-5 py-2.5 rounded-full font-serif italic font-medium text-base hover:opacity-90 transition-opacity"
         >
-          <span>Upload</span>
+          <span>Upload your</span>
           <SketchCarStatic
-            width={28}
+            width={44}
             className="align-middle"
             color="currentColor"
           />
