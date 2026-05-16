@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Manrope } from "next/font/google";
+import { Inter, Manrope, Lora, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { DesktopAmbientArt } from "@/components/desktop-ambient-art";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -24,13 +24,35 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-// Manrope is used for the RightOffer wordmark. Google ships it upright only;
+// Manrope is used for the legacy RightOffer wordmark. Google ships it upright only;
 // italic is browser-synthesised via `font-style: italic` on each <text>.
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
   display: "swap",
   weight: ["800"],
+});
+
+// Lora is the new editorial-serif face for headings + the wordmark
+// "rightoffer" treatment. Round-cap warmth that matches the
+// ink-line sedan and round-seal stamp. Italic forms only — the
+// brand voice is italic by design, never upright (see misuse rules).
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  display: "swap",
+  style: ["italic"],
+  weight: ["400", "500", "600", "700"],
+});
+
+// IBM Plex Mono for the ".in" suffix, language pills, technical
+// labels (policy numbers, doc IDs). Geometric clean monospace,
+// pairs visually with the round-seal/stamp identity.
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-plex-mono",
+  display: "swap",
+  weight: ["400", "500", "600"],
 });
 
 /**
@@ -143,7 +165,11 @@ export default async function RootLayout({
   ]);
   const hasAnySession = !!(fullSessionEmail || uploadSession);
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} ${manrope.variable} ${lora.variable} ${plexMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

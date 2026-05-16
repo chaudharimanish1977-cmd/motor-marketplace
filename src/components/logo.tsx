@@ -1,20 +1,25 @@
 /**
- * RightOffer brand mark — wraps the designer-supplied SVG pack
- * (`public/logo/v1.svg` … `v6.svg`).
+ * RightOffer brand mark — wraps the v2.0 SVG pack
+ * (`public/logo/full.svg`, `wordmark.svg`, etc.) sourced from the
+ * "Editorial reviewer / round-seal" brand identity.
  *
- * Each source SVG has a small "section heading" caption baked in at the
- * top (e.g. "1. FULL LOGO · LIGHT BACKGROUND"). We crop that out at the
- * React layer using `overflow:hidden` on the wrapper + a negative `top`
- * shift on the inner `<img>`, so the rendered logo is just the mark.
+ * Each source SVG has a small "section heading" caption baked in at
+ * the top (e.g. "1. FULL LOGO · LIGHT BACKGROUND"). We crop that out
+ * at the React layer using `overflow:hidden` on the wrapper + a
+ * negative `top` shift on the inner `<img>`, so the rendered logo
+ * is just the mark.
  *
- * Dark-mode handling: the light-bg variants (v1, v3, v4, v5) use deep-
- * blue strokes that vanish against the dark page bg. We render BOTH the
- * light and the dark variant stacked, and toggle visibility via Tailwind
- * `dark:` classes so the right one is visible in each theme.
+ * Dark-mode handling: the full lockup ships with a dedicated
+ * dark-bg variant (full-dark.svg, the olive-on-deep-plum lockup).
+ * For wordmark variants, the same SVG works on both backgrounds
+ * (the olive + plum chroma reads against both); same file is
+ * used in both themes for those.
  *
- * Brand colours (locked):
- *   Deep Blue  #0A2463
- *   Orange     #FF6B35
+ * Brand colours (locked, v2.0):
+ *   Navy        #1a3470
+ *   Olive       #424D1F
+ *   Coral       #ff5a30
+ *   Deep plum   #3A1E3D
  */
 
 import clsx from "clsx";
@@ -27,6 +32,7 @@ export type LogoVariant =
   | "hero-80"
   | "wordmark"
   | "wordmark-plain"
+  | "wordmark-with-in"
   | "header";
 
 interface Props {
@@ -35,31 +41,93 @@ interface Props {
 }
 
 interface SourceSpec {
-  /** SVG path used in light mode. Native bg already stripped to transparent. */
+  /** SVG path used in light mode. */
   light: string;
-  /** SVG path used in dark mode. Keeps its deep-blue card so the white logo
-   *  inside has enough contrast against slate-900 page bg. */
+  /** SVG path used in dark mode. Either a dedicated dark-bg variant
+   *  or the same file when the mark works on both backgrounds. */
   dark: string;
   /** Native SVG width / height (sets the aspect ratio of the wrapper). */
   width: number;
   height: number;
-  /** Fraction of `height` at the top occupied by the section caption. */
+  /** Fraction of `height` at the top occupied by the section caption
+   *  baked into the source SVG — cropped via overflow:hidden + a
+   *  negative top shift on the inner <img>. */
   headingPct: number;
 }
 
-// Dark-mode SVGs (`v*-dark.svg`) are generated from the light ones by
-// remapping dark fills → white. Orange is preserved. Same aspect ratio as
-// the light variant, so the wrapper geometry doesn't change between
-// themes (no layout shift, no squishing in the footer).
+// v2.0 pack — the same vector strokes as the v1 set, recoloured to
+// the Editorial Reviewer palette (olive ink + plum stamp-ring +
+// coral signature accent).
 const SOURCES: Record<LogoVariant, SourceSpec> = {
-  "full-light": { light: "/logo/v1.svg", dark: "/logo/v1-dark.svg", width: 752, height: 368, headingPct: 0.19 },
-  "full-dark": { light: "/logo/v2.svg", dark: "/logo/v2.svg", width: 768, height: 368, headingPct: 0.19 },
-  "nav-24": { light: "/logo/v4.svg", dark: "/logo/v4-dark.svg", width: 752, height: 185, headingPct: 0.28 },
-  "default-40": { light: "/logo/v1.svg", dark: "/logo/v1-dark.svg", width: 752, height: 368, headingPct: 0.19 },
-  "hero-80": { light: "/logo/v1.svg", dark: "/logo/v1-dark.svg", width: 752, height: 368, headingPct: 0.19 },
-  wordmark: { light: "/logo/v4.svg", dark: "/logo/v4-dark.svg", width: 752, height: 185, headingPct: 0.28 },
-  "wordmark-plain": { light: "/logo/v5.svg", dark: "/logo/v5-dark.svg", width: 768, height: 185, headingPct: 0.28 },
-  header: { light: "/logo/v6.svg", dark: "/logo/v6-dark.svg", width: 1536, height: 205, headingPct: 0.18 },
+  // Full lockup (sedan + wordmark + dashed ground line).
+  "full-light": {
+    light: "/logo/full.svg",
+    dark: "/logo/full-dark.svg",
+    width: 752,
+    height: 368,
+    headingPct: 0.19,
+  },
+  "full-dark": {
+    light: "/logo/full-dark.svg",
+    dark: "/logo/full-dark.svg",
+    width: 768,
+    height: 368,
+    headingPct: 0.19,
+  },
+  // Header lockup — horizontal layout with the wordmark and a small
+  // car. Used in the site header on most pages.
+  "nav-24": {
+    light: "/logo/wordmark.svg",
+    dark: "/logo/wordmark.svg",
+    width: 768,
+    height: 185,
+    headingPct: 0.28,
+  },
+  "default-40": {
+    light: "/logo/full.svg",
+    dark: "/logo/full-dark.svg",
+    width: 752,
+    height: 368,
+    headingPct: 0.19,
+  },
+  "hero-80": {
+    light: "/logo/full.svg",
+    dark: "/logo/full-dark.svg",
+    width: 752,
+    height: 368,
+    headingPct: 0.19,
+  },
+  // Wordmark only — preferred for tight rows. "wordmark" includes the
+  // ".in" suffix per the v2.0 spec; "wordmark-plain" drops it for
+  // body-copy / signage contexts where the suffix would be redundant.
+  wordmark: {
+    light: "/logo/wordmark-with-in.svg",
+    dark: "/logo/wordmark-with-in.svg",
+    width: 752,
+    height: 185,
+    headingPct: 0.28,
+  },
+  "wordmark-with-in": {
+    light: "/logo/wordmark-with-in.svg",
+    dark: "/logo/wordmark-with-in.svg",
+    width: 752,
+    height: 185,
+    headingPct: 0.28,
+  },
+  "wordmark-plain": {
+    light: "/logo/wordmark.svg",
+    dark: "/logo/wordmark.svg",
+    width: 768,
+    height: 185,
+    headingPct: 0.28,
+  },
+  header: {
+    light: "/logo/header.svg",
+    dark: "/logo/header.svg",
+    width: 1536,
+    height: 205,
+    headingPct: 0.18,
+  },
 };
 
 /**
@@ -67,19 +135,22 @@ const SOURCES: Record<LogoVariant, SourceSpec> = {
  * Stacks the light and dark variants and toggles visibility via Tailwind
  * `dark:` so the right one renders for the current theme.
  */
-export function RightOfferLogo({ variant = "full-light", className }: Props = {}) {
+export function RightOfferLogo({
+  variant = "full-light",
+  className,
+}: Props = {}) {
   const spec = SOURCES[variant];
 
-  // Special-case the dark-bg variant: it's always v2 with its deep-blue card,
-  // so no light/dark swap is needed and the dark variant has a different
-  // aspect (slightly wider). We use the dark spec's geometry throughout.
+  // Special-case the dark-bg variant: it's always on deep plum, so no
+  // light/dark swap needed.
   const isAlwaysDark = variant === "full-dark";
 
-  // Cropped aspect (without the heading band).
+  // Same file in both themes (wordmark variants) — no need to render
+  // a second <img>; the single instance works for both.
+  const sameForBothThemes = spec.light === spec.dark;
+
   const cropH = spec.height * (1 - spec.headingPct);
   const aspect = `${spec.width} / ${cropH}`;
-  // The image's natural rendered height overflows the wrapper top by this
-  // percentage of the wrapper height (where the heading caption lives).
   const overflowPct = spec.headingPct / (1 - spec.headingPct);
   const topShift = `-${(overflowPct * 100).toFixed(3)}%`;
 
@@ -102,10 +173,12 @@ export function RightOfferLogo({ variant = "full-light", className }: Props = {}
         alt="RightOffer"
         loading="eager"
         decoding="async"
-        className={isAlwaysDark ? undefined : "dark:hidden"}
+        className={
+          isAlwaysDark || sameForBothThemes ? undefined : "dark:hidden"
+        }
         style={imgStyle}
       />
-      {!isAlwaysDark && (
+      {!isAlwaysDark && !sameForBothThemes && (
         <img
           src={spec.dark}
           alt=""

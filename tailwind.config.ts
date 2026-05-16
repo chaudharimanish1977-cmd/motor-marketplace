@@ -17,14 +17,22 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          // === Primary (brand identity — never flip) ===
-          deepblue: "#0A2463",
-          electricblue: "#247BA0",
+          // === New palette (Brand Playbook v2.0, May 2026) ===
+          // Editorial reviewer / round-seal identity. These are the
+          // canonical tokens going forward. The legacy ones below are
+          // kept temporarily so existing class references don't break
+          // mid-migration; Commit 2 will sweep them out.
+          navy: "#1a3470", // Primary — was #0A2463
+          olive: "#424D1F", // Primary CTAs (replaces orange)
+          coral: "#ff5a30", // Warm accents (savings, "best deal")
+          plum: "#3A1E3D", // Dark surfaces, stamp-ring
 
-          // === Secondary (brand identity — never flip) ===
+          // === Legacy palette (retiring in Commit 2) ===
+          deepblue: "#0A2463", // → will be replaced by `navy`
+          electricblue: "#247BA0", // → being retired entirely
           skyblue: "#00B4D8",
-          orange: "#FF6B35",
-          purple: "#6C3FA0",
+          orange: "#FF6B35", // → will be replaced by `olive` (primary CTAs)
+          purple: "#6C3FA0", // → will be replaced by `plum` (tier accents)
 
           // === Neutral (semantic — flip with theme via CSS vars) ===
           charcoal: "rgb(var(--color-charcoal) / <alpha-value>)", // Body text
@@ -36,10 +44,9 @@ const config: Config = {
           success: "#00B894",
           alert: "#E17055",
 
-          // === Legacy aliases (keep older code working) ===
-          navy: "#0A2463", // Maps to Deep Blue (brand identity, no flip)
-          gold: "#FF6B35", // Maps to Orange (brand identity, no flip)
-          ink: "rgb(var(--color-charcoal) / <alpha-value>)", // Maps to Charcoal (flips)
+          // === Legacy aliases (retiring in Commit 2) ===
+          gold: "#FF6B35", // → was orange alias
+          ink: "rgb(var(--color-charcoal) / <alpha-value>)",
         },
         // Semantic surface token for cards/panels that today use bg-white.
         // Stays white in light mode, dark slate in dark mode.
@@ -54,6 +61,25 @@ const config: Config = {
           "system-ui",
           "-apple-system",
           "sans-serif",
+        ],
+        // Editorial italic-serif for headings + the wordmark treatment
+        // ("italic-serif olive 'rightoffer'"). Always rendered italic
+        // per the brand misuse rule.
+        serif: [
+          "var(--font-lora)",
+          "Lora",
+          "Georgia",
+          "Cambria",
+          "Times New Roman",
+          "serif",
+        ],
+        // Monospace for ".in" suffix, language pills, technical labels.
+        mono: [
+          "var(--font-plex-mono)",
+          "IBM Plex Mono",
+          "Menlo",
+          "Consolas",
+          "monospace",
         ],
       },
       boxShadow: {
