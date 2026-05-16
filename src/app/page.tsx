@@ -51,7 +51,6 @@ export default async function Home() {
   return (
     <article className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-16">
       <V7Brand signedIn={signedIn} />
-      <V7Issue />
       <V7Headline />
       <V7Lead />
       <V7Hero />
@@ -69,10 +68,12 @@ export default async function Home() {
 /* ─── 1. Brand row ──────────────────────────────────────────────────────── */
 function V7Brand({ signedIn }: { signedIn: boolean }) {
   return (
-    <header className="py-6 flex items-center justify-between gap-4">
-      {/* Wordmark — italic serif "r" + small-caps RightOffer + sage MOTOR pill */}
+    <header className="relative py-6 flex items-center justify-between gap-4">
+      {/* Wordmark on the left — italic serif "r" + small-caps RightOffer +
+       *  sage MOTOR pill. */}
       <Link
         href="/"
+        aria-label="RightOffer Motor — home"
         className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
       >
         <span
@@ -90,62 +91,43 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
         <span className="ml-2 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.12em] bg-brand-sage text-brand-offwhite rounded-sm">
           MOTOR
         </span>
-        <span className="sr-only">RightOffer Motor — go to home</span>
       </Link>
 
-      {/* Italic-serif nav — anchors jump to in-page editorial sections. We
-       *  only ship anchors that have a real destination on this page; the
-       *  "Letters" / "About" labels from the mockup are kept off-stage
-       *  until those surfaces exist. */}
-      <nav className="hidden md:flex gap-7 font-serif italic text-[14px] text-brand-slate">
-        <a
-          href="#sample"
-          className="hover:text-brand-charcoal transition-colors"
+      {/* Centered Upload-policy CTA with the sign-in link beside it. The
+       *  absolute-positioned wrapper keeps the CTA dead-centered regardless
+       *  of the wordmark width on the left. */}
+      <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-5">
+        <LoadingLink
+          href="/upload"
+          className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-4 py-2 rounded-full font-serif italic font-medium text-sm hover:opacity-90 transition-opacity"
         >
-          Sample review
-        </a>
-        <a
-          href="#rules"
-          className="hover:text-brand-charcoal transition-colors"
-        >
-          What we read
-        </a>
+          Upload policy <span aria-hidden>→</span>
+        </LoadingLink>
         <Link
           href="/me"
-          className="hover:text-brand-charcoal transition-colors"
+          className="font-serif italic text-[14px] text-brand-slate hover:text-brand-charcoal transition-colors"
         >
           {signedIn ? "My policies" : "Sign in"}
         </Link>
-      </nav>
+      </div>
 
+      {/* Mobile fallback — on narrow screens the centered group is hidden;
+       *  show a compact Upload CTA on the right edge so the page still has
+       *  a single primary action. */}
       <LoadingLink
         href="/upload"
-        className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-4 py-2 rounded-full font-serif italic font-medium text-sm hover:opacity-90 transition-opacity"
+        className="md:hidden inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-3 py-1.5 rounded-full font-serif italic font-medium text-sm hover:opacity-90 transition-opacity"
       >
-        Upload policy <span aria-hidden>→</span>
+        Upload <span aria-hidden>→</span>
       </LoadingLink>
     </header>
   );
 }
 
-/* ─── 2. Issue masthead ─────────────────────────────────────────────────── */
-function V7Issue() {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3 pb-7 mb-1 border-b border-brand-charcoal/10 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
-      <span className="font-bold text-brand-plum">LETTER № 06</span>
-      <span>The Motor Issue · May 2026 · Bengaluru</span>
-      <span>An independent review · 7 min read</span>
-    </div>
-  );
-}
-
-/* ─── 3. Headline ───────────────────────────────────────────────────────── */
+/* ─── 2. Headline ───────────────────────────────────────────────────────── */
 function V7Headline() {
   return (
     <section className="pt-20 pb-6 text-center">
-      <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-brand-sage mb-8">
-        · An open letter to every motor-policy holder in India ·
-      </div>
       <h1 className="font-serif font-medium text-5xl md:text-7xl lg:text-[92px] leading-[1] tracking-[-0.028em] max-w-5xl mx-auto text-balance text-brand-charcoal">
         Most insurance is{" "}
         <span className="italic text-brand-plum">sold.</span>
