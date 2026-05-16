@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { extractPdfText } from "@/lib/pdf-parser";
 import { extractPolicyFromText } from "@/lib/policy-extractor";
 import { classifyPolicy, rejectionMessage } from "@/lib/policy-classifier";
-import { appendRow, updateById, Tables } from "@/lib/db";
+import { appendRow, findOne, updateById, Tables } from "@/lib/db";
 import { storePolicyPdf } from "@/lib/blob-store";
 import { getSession } from "@/lib/session";
 import {
@@ -10,7 +11,8 @@ import {
   getUploadSession,
 } from "@/lib/upload-session";
 import { appendDocToAnonymousSession } from "@/lib/anonymous-session";
-import type { ParsedPolicy } from "@/lib/types";
+import { generateReport } from "@/lib/report-generator";
+import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -181,6 +183,37 @@ export async function POST(request: NextRequest) {
         uploadErr
       );
     }
+
+    // Background: pre-generate the PolicyReport so the customer's
+    // next navigation to /reports doesn't block on a 30s LLM call.
+    // waitUntil keeps the work alive AFTER this response returns;
+    // failures are non-fatal — the report will be generated lazily
+    // on first /report or /reports visit if this background work
+    // didn't make it.
+    waitUntil(
+      (async () => {
+        try {
+          const existing = await findOne<PolicyReport>(
+            Tables.REPORTS,
+            (r) => r.parsedPolicyId === savedPolicy.id
+          );
+          if (existing) return;
+          const start = Date.now();
+          const report = await generateReport(savedPolicy);
+          await appendRow<PolicyReport>(Tables.REPORTS, report);
+          console.log(
+            `[parse] Background report for ${savedPolicy.id} generated in ${
+              Date.now() - start
+            }ms`
+          );
+        } catch (err) {
+          console.error(
+            `[parse] Background report generation failed for ${savedPolicy.id}:`,
+            err
+          );
+        }
+      })()
+    );
 
     return NextResponse.json({ id: savedPolicy.id, parsed: savedPolicy });
   } catch (err) {

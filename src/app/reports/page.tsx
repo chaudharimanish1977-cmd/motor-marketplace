@@ -81,24 +81,45 @@ export default async function ReportsPage() {
     return <EmptyState hasFullSession={!!fullSessionEmail} />;
   }
 
-  // Make sure every doc has a generated report. This is the on-demand
-  // generation point that used to live in /report/[id] — pulling it
-  // here so the tabbed UI is fast once it lands.
+  // Make sure every doc has a generated report. /api/parse triggers
+  // background generation via waitUntil after each successful parse,
+  // so by the time a customer clicks "See my reports" the report is
+  // usually already cached. This is the fallback path for docs whose
+  // background generation hadn't finished (or failed) — wrapped in
+  // try/catch so one slow / failing LLM call doesn't take down the
+  // whole page. Docs without a generated report are silently dropped
+  // from the tab list; their entry stays in the anonymous session for
+  // a future page load to retry.
   const reports = new Map<string, PolicyReport>();
   for (const doc of docs) {
-    let report = await findOne<PolicyReport>(
-      Tables.REPORTS,
-      (r) => r.parsedPolicyId === doc.id
-    );
-    if (!report) {
-      report = await generateReport(doc);
-      await appendRow<PolicyReport>(Tables.REPORTS, report);
+    try {
+      let report = await findOne<PolicyReport>(
+        Tables.REPORTS,
+        (r) => r.parsedPolicyId === doc.id
+      );
+      if (!report) {
+        report = await generateReport(doc);
+        await appendRow<PolicyReport>(Tables.REPORTS, report);
+      }
+      reports.set(doc.id, report);
+    } catch (err) {
+      console.error(
+        `[reports] Report generation failed for ${doc.id}:`,
+        err
+      );
+      // Skip this doc — it won't appear in the tab list. Next visit
+      // retries lazily.
     }
-    reports.set(doc.id, report);
+  }
+
+  // Drop docs whose report failed/missing — they can't render in tabs.
+  const visibleDocs = docs.filter((d) => reports.has(d.id));
+  if (visibleDocs.length === 0) {
+    return <EmptyState hasFullSession={!!fullSessionEmail} />;
   }
 
   // Sort docs: policies (alpha by insurer) then quotes (alpha by insurer).
-  const sortedDocs = [...docs].sort((a, b) => {
+  const sortedDocs = [...visibleDocs].sort((a, b) => {
     const aIsPolicy = (a.documentType ?? "policy") === "policy";
     const bIsPolicy = (b.documentType ?? "policy") === "policy";
     if (aIsPolicy !== bIsPolicy) return aIsPolicy ? -1 : 1;
