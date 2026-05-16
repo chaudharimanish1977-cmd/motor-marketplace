@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Manrope, Lora, IBM_Plex_Mono } from "next/font/google";
+import { Inter, Manrope, Newsreader, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { DesktopAmbientArt } from "@/components/desktop-ambient-art";
+// DesktopAmbientArt (old-palette side panels) retired with Reading Room
+// v3 — the editorial layout owns its own visual interest via sketches
+// and typography; ambient washes were a vestige of the earlier marketing-
+// hero pattern. Removed from the global mount; component file is left in
+// place for now to keep other commits clean.
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SiteHeader } from "@/components/site-header";
 import { getSession } from "@/lib/session";
@@ -33,26 +37,26 @@ const manrope = Manrope({
   weight: ["800"],
 });
 
-// Lora is the new editorial-serif face for headings + the wordmark
-// "rightoffer" treatment. Round-cap warmth that matches the
-// ink-line sedan and round-seal stamp. Italic forms only — the
-// brand voice is italic by design, never upright (see misuse rules).
-const lora = Lora({
+// Newsreader is the Reading Room editorial serif. It's the brand voice —
+// long-form body text, headlines, italics for accent words. Round-cap
+// warmth, optical-size variable, paired with JetBrains Mono for technical
+// labels. Both upright and italic styles loaded.
+const newsreader = Newsreader({
   subsets: ["latin"],
-  variable: "--font-lora",
+  variable: "--font-newsreader",
   display: "swap",
-  style: ["italic"],
+  style: ["normal", "italic"],
   weight: ["400", "500", "600", "700"],
 });
 
-// IBM Plex Mono for the ".in" suffix, language pills, technical
-// labels (policy numbers, doc IDs). Geometric clean monospace,
-// pairs visually with the round-seal/stamp identity.
-const plexMono = IBM_Plex_Mono({
+// JetBrains Mono for masthead labels, footnotes, section markers
+// (§ I. · 03 STEPS · ·), small-caps technical metadata. Letter-spaced
+// uppercase per the Reading Room mockup.
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-plex-mono",
+  variable: "--font-jetbrains-mono",
   display: "swap",
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 /**
@@ -167,7 +171,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${manrope.variable} ${lora.variable} ${plexMono.variable}`}
+      className={`${inter.variable} ${manrope.variable} ${newsreader.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -183,7 +187,6 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         {/* TopLoader removed pending diagnosis — see import comment. */}
-        <DesktopAmbientArt />
         <ThemeToggle />
         <div className="relative z-10">
           <SiteHeader signedIn={hasAnySession} />

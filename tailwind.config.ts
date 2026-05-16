@@ -1,13 +1,24 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Tailwind config — Sarvsure brand tokens.
- * Color palette and typography sourced from Brand Playbook v1.0 (Apr 2026).
+ * Tailwind config — RightOffer brand tokens · Reading Room v3 (May 2026).
  *
- * Dark mode: class-based. The "semantic" brand tokens (offwhite, charcoal,
- * slate, light-gray, and their aliases ink) are wired to CSS variables in
- * globals.css so they flip automatically when the `dark` class is on <html>.
- * Brand-identity colors (deepblue, orange, electricblue, etc.) stay fixed.
+ * The Reading Room is an editorial newspaper-style brand system:
+ *   · Background = pure white (light) / warm near-black #0e0a10 (dark)
+ *   · Foreground = warm near-black #1a1218 (light) / cream #f3eef0 (dark)
+ *   · Accent A1  = deep plum #3a1e3d (light) / lifted plum #c485c9 (dark)
+ *   · Accent A2  = muted sage #8b9d80 (light) / lifted sage #a8baa0 (dark)
+ *   · Typography = Newsreader serif (body + headlines, italic for accent
+ *     words) + JetBrains Mono (mastheads, footnotes, all-caps labels)
+ *
+ * Dark mode: class-based. All semantic tokens (offwhite/charcoal/slate/
+ * light-gray/surface, plum, sage) are wired to CSS variables in globals.css
+ * so they flip automatically when the `dark` class is on <html>.
+ *
+ * The older brand.* aliases (deepblue, orange, electricblue, gold, ink) are
+ * kept temporarily so existing class references don't break mid-migration
+ * but they now resolve to Reading Room values (navy=plum, olive=plum,
+ * coral=sage, etc.) so the visual palette is consistent everywhere.
  */
 
 const config: Config = {
@@ -17,26 +28,20 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          // === New palette (Brand Playbook v2.0, May 2026) ===
-          // Editorial reviewer / round-seal identity. These are the
-          // canonical tokens going forward. The legacy ones below are
-          // kept temporarily so existing class references don't break
-          // mid-migration; Commit 2 will sweep them out.
-          navy: "#1a3470", // Primary — was #0A2463
-          olive: "#424D1F", // Primary CTAs (replaces orange)
-          coral: "#ff5a30", // Warm accents (savings, "best deal")
-          plum: "#3A1E3D", // Dark surfaces, stamp-ring
-
-          // === Legacy palette (retiring in Commit 2) ===
-          deepblue: "#0A2463", // → will be replaced by `navy`
-          electricblue: "#247BA0", // → being retired entirely
-          skyblue: "#00B4D8",
-          orange: "#FF6B35", // → will be replaced by `olive` (primary CTAs)
-          purple: "#6C3FA0", // → will be replaced by `plum` (tier accents)
+          // === Reading Room v3 canonical tokens (May 2026) ===
+          // Editorial reading-room palette. All semantic colors flip with
+          // theme via CSS variables in globals.css.
+          plum: "rgb(var(--color-plum) / <alpha-value>)", // Accent A1 — primary editorial accent + CTAs
+          sage: "rgb(var(--color-sage) / <alpha-value>)", // Accent A2 — secondary editorial accent
 
           // === Neutral (semantic — flip with theme via CSS vars) ===
-          charcoal: "rgb(var(--color-charcoal) / <alpha-value>)", // Body text
-          slate: "rgb(var(--color-slate) / <alpha-value>)", // Secondary text
+          // offwhite = page background (pure white light, near-black dark)
+          // charcoal = body text (near-black light, cream dark)
+          // slate    = muted text (warm gray light, lifted muted dark)
+          // surface  = card background (light cream light, plum-tinted dark)
+          // light-gray = rule/hairline borders
+          charcoal: "rgb(var(--color-charcoal) / <alpha-value>)",
+          slate: "rgb(var(--color-slate) / <alpha-value>)",
           "light-gray": "rgb(var(--color-light-gray) / <alpha-value>)",
           offwhite: "rgb(var(--color-offwhite) / <alpha-value>)",
 
@@ -44,8 +49,23 @@ const config: Config = {
           success: "#00B894",
           alert: "#E17055",
 
-          // === Legacy aliases (retiring in Commit 2) ===
-          gold: "#FF6B35", // → was orange alias
+          // === Legacy aliases — remap onto Reading Room semantics so
+          // existing class references (bg-brand-navy, bg-brand-olive,
+          // text-brand-coral, etc.) keep working but adopt the new palette
+          // automatically. Will be swept out in a later commit.
+          //   Heading color (navy) → charcoal so headings stay readable.
+          //   CTA / surface fill (olive, orange) → plum (CTAs are plum).
+          //   Warm accent (coral, gold) → sage (the editorial accent).
+          //   Deep/tier accents (plum, deepblue, electricblue, etc.) → plum. ===
+          navy: "rgb(var(--color-charcoal) / <alpha-value>)", // → body fg
+          olive: "rgb(var(--color-plum) / <alpha-value>)", // → plum (CTAs)
+          coral: "rgb(var(--color-sage) / <alpha-value>)", // → sage
+          deepblue: "rgb(var(--color-plum) / <alpha-value>)", // → plum
+          electricblue: "rgb(var(--color-sage) / <alpha-value>)", // → sage
+          skyblue: "rgb(var(--color-sage) / <alpha-value>)", // → sage
+          orange: "rgb(var(--color-plum) / <alpha-value>)", // → plum
+          purple: "rgb(var(--color-plum) / <alpha-value>)", // → plum
+          gold: "rgb(var(--color-sage) / <alpha-value>)", // → sage
           ink: "rgb(var(--color-charcoal) / <alpha-value>)",
         },
         // Semantic surface token for cards/panels that today use bg-white.
@@ -53,6 +73,17 @@ const config: Config = {
         surface: "rgb(var(--color-surface) / <alpha-value>)",
       },
       fontFamily: {
+        // The Reading Room brand voice IS the serif — body text, headlines,
+        // italics for accent words. font-sans is kept for legacy components
+        // but the canonical default for new work is font-serif (Newsreader).
+        serif: [
+          "var(--font-newsreader)",
+          "Newsreader",
+          "Times New Roman",
+          "Georgia",
+          "Cambria",
+          "serif",
+        ],
         sans: [
           "var(--font-inter)",
           "Inter",
@@ -62,21 +93,13 @@ const config: Config = {
           "-apple-system",
           "sans-serif",
         ],
-        // Editorial italic-serif for headings + the wordmark treatment
-        // ("italic-serif olive 'rightoffer'"). Always rendered italic
-        // per the brand misuse rule.
-        serif: [
-          "var(--font-lora)",
-          "Lora",
-          "Georgia",
-          "Cambria",
-          "Times New Roman",
-          "serif",
-        ],
-        // Monospace for ".in" suffix, language pills, technical labels.
+        // JetBrains Mono for mastheads ("LETTER № 06 · MAY 2026"), section
+        // markers (§ I., · 03 STEPS ·), letter-spaced UPPERCASE technical
+        // metadata, and small footnotes. Pairs visually with the editorial
+        // serif as its technical counterpoint.
         mono: [
-          "var(--font-plex-mono)",
-          "IBM Plex Mono",
+          "var(--font-jetbrains-mono)",
+          "JetBrains Mono",
           "Menlo",
           "Consolas",
           "monospace",

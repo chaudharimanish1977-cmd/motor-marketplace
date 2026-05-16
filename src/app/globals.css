@@ -3,30 +3,73 @@
 @tailwind utilities;
 
 @layer base {
-  /* Theme tokens — light (default) and dark.
-   * Tailwind's brand-* neutrals (offwhite/charcoal/slate/light-gray) and the
-   * `surface` token resolve to these via rgb(var(--token) / <alpha-value>).
-   * Brand identity colors (deepblue, orange, etc.) stay fixed in tailwind.config.
+  /* Reading Room v3 theme tokens — light (default) and dark.
+   *
+   * Per the brand mockup (tokens.jsx → reading), the editorial palette is:
+   *   light: bg #FFFFFF · fg #1a1218 · muted #6b6571 · rule #1a1218
+   *          thin #e6e4e8 · card #f7f4f7 · plum #3a1e3d · sage #8b9d80
+   *   dark : bg #0e0a10 · fg #f3eef0 · muted #9a8f98 · rule #f3eef0
+   *          thin #221c25 · card #161018 · plum #c485c9 · sage #a8baa0
+   *
+   * Tailwind's brand.* tokens resolve to these via rgb(var(--token)/<alpha>).
    */
   :root {
-    --color-offwhite: 248 249 250;   /* #F8F9FA — page bg */
-    --color-charcoal: 45 52 54;      /* #2D3436 — body text */
-    --color-slate: 99 110 114;       /* #636E72 — secondary text */
-    --color-light-gray: 223 230 233; /* #DFE6E9 — borders/dividers */
-    --color-surface: 255 255 255;    /* #FFFFFF — cards/panels */
+    --color-offwhite: 255 255 255;   /* #FFFFFF — page bg */
+    --color-charcoal: 26 18 24;      /* #1a1218 — body text + rule */
+    --color-slate: 107 101 113;      /* #6b6571 — muted text */
+    --color-light-gray: 230 228 232; /* #e6e4e8 — thin/hairline rule */
+    --color-surface: 247 244 247;    /* #f7f4f7 — card */
+    --color-plum: 58 30 61;          /* #3a1e3d — accent A1 (primary, CTAs) */
+    --color-sage: 139 157 128;       /* #8b9d80 — accent A2 */
   }
   html.dark {
-    --color-offwhite: 15 23 42;      /* slate-900 — page bg */
-    --color-charcoal: 241 245 249;   /* slate-100 — body text */
-    --color-slate: 148 163 184;      /* slate-400 — secondary text */
-    --color-light-gray: 51 65 85;    /* slate-700 — borders */
-    --color-surface: 30 41 59;       /* slate-800 — cards */
+    --color-offwhite: 14 10 16;      /* #0e0a10 — warm near-black page bg */
+    --color-charcoal: 243 238 240;   /* #f3eef0 — body text + rule */
+    --color-slate: 154 143 152;      /* #9a8f98 — muted text */
+    --color-light-gray: 34 28 37;    /* #221c25 — thin/hairline rule */
+    --color-surface: 22 16 24;       /* #161018 — card */
+    --color-plum: 196 133 201;       /* #c485c9 — accent A1 lifted */
+    --color-sage: 168 186 160;       /* #a8baa0 — accent A2 lifted */
   }
 
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* ─── Reading Room sketch animations ────────────────────────────────── */
+  /* Hand-drawn SVGs in src/components/sketches.tsx use these keyframes:
+   *   .ro-car      — gentle bounce, suggests motion without distracting
+   *   .ro-wheel    — wheel spin
+   *   .ro-road     — dashed road moving under the car
+   *   .ro-pen      — fountain pen wobble in the desk sketch
+   *   .ro-ink      — base ink-line style: round caps, no fill
+   */
+  @keyframes ro-bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+  }
+  @keyframes ro-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes ro-road {
+    from { background-position: 0 0; }
+    to   { background-position: -36px 0; }
+  }
+  @keyframes ro-wobble {
+    0%, 100% { transform: rotate(-1deg); }
+    50%      { transform: rotate(1deg); }
+  }
+  .ro-car   { animation: ro-bounce 1.4s ease-in-out infinite; }
+  .ro-wheel { transform-origin: center; animation: ro-spin 0.9s linear infinite; }
+  .ro-road  {
+    height: 3px;
+    background: repeating-linear-gradient(90deg, currentColor 0 12px, transparent 12px 24px);
+    animation: ro-road 1.4s linear infinite;
+  }
+  .ro-pen   { animation: ro-wobble 4s ease-in-out infinite; transform-origin: 30% 70%; }
+  .ro-ink   { stroke-linecap: round; stroke-linejoin: round; fill: none; }
 
   /* In dark mode, flip the many literal `bg-white` usages across cards and
    * panels to the surface token. Same for the few `text-black`. This avoids
@@ -38,12 +81,12 @@
   html.dark .text-black:not([class*="dark:text-"]) {
     color: rgb(var(--color-charcoal)) !important;
   }
-  /* Brand-deepblue and -navy are used as heading/text colors throughout, but
-   * they have ~no contrast on the dark page bg (both are very dark blue).
-   * Flip them to sky blue so headings stay readable in dark mode. */
-  html.dark .text-brand-navy:not([class*="dark:text-"]),
+  /* Brand-navy is used as heading/accent text throughout the app, but on the
+   * deep plum dark surface it has ~no contrast. Per the brand HTML §02
+   * inversion, navy text "lifts" to off-white (the charcoal token) in dark
+   * mode — neutral, always readable, lets coral/olive carry the accent work. */
   html.dark .text-brand-navy:not([class*="dark:text-"]) {
-    color: #5EC8E6 !important; /* slightly lighter than brand-skyblue for AAA */
+    color: rgb(var(--color-charcoal)) !important;
   }
 
   /* ============================================================
@@ -199,43 +242,9 @@
     --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--color-surface)) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
   }
 
-  /* `from-brand-navy` / `from-brand-navy` etc. as gradient TEXT
-   * (i.e. paired with `bg-clip-text text-transparent`) — flip to sky blue
-   * so the visible color contrasts with the dark page bg. The same brand
-   * colors are also used for solid gradient BACKGROUNDS (hero blocks,
-   * "key takeaway" cards) where white text sits on top; for those we must
-   * NOT flip — keeping the dark blue bg lets the white text stay readable
-   * and preserves the brand look. The `.bg-clip-text` qualifier separates
-   * the two cases. */
-  html.dark .bg-clip-text.from-brand-navy,
-  html.dark .bg-clip-text.from-brand-navy {
-    --tw-gradient-from: #5EC8E6 var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(94 200 230 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-  html.dark .bg-clip-text.to-brand-navy,
-  html.dark .bg-clip-text.to-brand-navy {
-    --tw-gradient-to: #5EC8E6 var(--tw-gradient-to-position) !important;
-  }
-  html.dark .bg-clip-text.from-brand-plum {
-    --tw-gradient-from: #38BDF8 var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(56 189 248 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-  html.dark .bg-clip-text.to-brand-plum {
-    --tw-gradient-to: #38BDF8 var(--tw-gradient-to-position) !important;
-  }
-  html.dark .text-brand-navy:not([class*="dark:text-"]) {
-    color: #38BDF8 !important;
-  }
-
-  /* `bg-brand-navy` accents (pagination dot, small chips) become
-   * invisible on a dark page. Flip the small-decoration use to skyblue.
-   * Components that want to keep the deep-blue CTA bg can opt-out with
-   * an explicit `dark:bg-brand-navy`. */
-  html.dark .bg-brand-navy:not([class*="dark:bg-"]) {
-    background-color: #1E40AF !important;
-  }
+  /* Reading Room: brand.navy/olive/coral/plum/sage all resolve to CSS
+   * variables (--color-charcoal/--color-plum/--color-sage) that flip
+   * automatically with theme. No bespoke dark-mode overrides needed here. */
 
   /* SVG strokes/fills authored with hardcoded brand-navy (#1a3470)
    * inline. The page bg in dark mode is slate-900 — too close. Use

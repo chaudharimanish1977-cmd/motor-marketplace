@@ -2,32 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, FolderOpen } from "lucide-react";
-import { RightOfferLogo } from "@/components/logo";
 
 /**
- * Site-wide header — renders the centred RightOffer logo on every public
- * page so the brand builds recognition across the customer journey. The
- * theme toggle (from `<ThemeToggle/>`) lives fixed top-right; the logo
- * sits centered in the page flow so the two don't visually compete.
+ * Site-wide header — Reading Room edition.
+ *
+ * Renders the editorial wordmark (italic serif "r" + small-caps RightOffer
+ * + sage "MOTOR" pill) and a discreet sign-in entry on every internal
+ * surface. The home page mounts its own brand row (V7Brand in app/page.tsx)
+ * with full nav, so we skip rendering here on "/" to avoid stacking.
  *
  * Skipped paths:
+ *   "/"        — home page has its own V7Brand row
  *   /pitch     — investor pitch deck, owns its full-screen UI
- *   /investor  — investor demo entry, has its own banner
  *   /logo      — brand-asset preview page, already shows logos
  *   /api/*     — server routes, no UI
  *
- * Falls back to a `null` render on those paths so layout.tsx can mount
- * this unconditionally and still get the right per-page behaviour.
- *
- * Top-right corner shows a "Sign in" / "My policies" link so customers
- * can always reach their portal. We don't read auth state here (this is
- * a client component); the portal page itself handles the redirect to
- * /me/login if there's no session — so the same link works for both
- * signed-in and signed-out users.
+ * The portal-link is hidden on /me (where it'd be redundant — you're
+ * already inside it).
  */
 
 const SKIP_PREFIXES = ["/pitch", "/logo", "/api"] as const;
+const SKIP_EXACT = ["/"] as const;
 const HIDE_PORTAL_LINK_ON = ["/me"] as const;
 
 interface Props {
@@ -36,7 +31,14 @@ interface Props {
 
 export function SiteHeader({ signedIn = false }: Props) {
   const pathname = usePathname() ?? "";
-  if (SKIP_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+  if (
+    SKIP_PREFIXES.some(
+      (p) => pathname === p || pathname.startsWith(p + "/")
+    )
+  ) {
+    return null;
+  }
+  if (SKIP_EXACT.some((p) => pathname === p)) {
     return null;
   }
 
@@ -45,31 +47,40 @@ export function SiteHeader({ signedIn = false }: Props) {
   );
 
   return (
-    <header className="relative z-20 w-full px-4 pt-5 md:pt-6 pb-2 print:hidden">
-      <div className="relative flex items-center justify-center">
+    <header className="relative z-20 w-full px-6 md:px-12 pt-5 pb-3 print:hidden">
+      <div className="relative flex items-center justify-between gap-4">
+        {/* Reading Room wordmark — italic serif r + small-caps RightOffer
+         *  + sage MOTOR pill, all text, no SVG. Links to /. */}
         <Link
           href="/"
           aria-label="RightOffer home"
-          className="block w-[140px] md:w-[170px] hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
         >
-          <RightOfferLogo variant="full-light" />
+          <span
+            className="font-serif italic font-semibold text-xl leading-none text-brand-plum"
+            aria-hidden
+          >
+            r
+          </span>
+          <span
+            className="font-serif font-medium text-base leading-none text-brand-charcoal tracking-tight"
+            style={{ fontVariant: "small-caps" }}
+          >
+            RightOffer
+          </span>
+          <span className="px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.12em] bg-brand-sage text-brand-offwhite rounded-sm">
+            MOTOR
+          </span>
+          <span className="sr-only">RightOffer Motor</span>
         </Link>
+
         {!hidePortalLink && (
           <Link
             href="/me"
-            className="absolute right-0 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-slate hover:text-brand-charcoal px-3 py-1.5 rounded-xl border border-brand-light-gray bg-white/70 backdrop-blur-sm hover:bg-white transition-colors"
+            className="inline-flex items-center gap-1.5 font-serif italic text-sm text-brand-slate hover:text-brand-charcoal transition-colors"
           >
-            {signedIn ? (
-              <>
-                <FolderOpen className="w-3.5 h-3.5" />
-                My policies
-              </>
-            ) : (
-              <>
-                <User className="w-3.5 h-3.5" />
-                Sign in
-              </>
-            )}
+            {signedIn ? "My policies" : "Sign in"}
+            <span aria-hidden>→</span>
           </Link>
         )}
       </div>
