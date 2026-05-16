@@ -38,9 +38,14 @@ import {
 } from "@/components/sketches";
 import { ReadingQuoteCarousel } from "@/components/reading-quote-carousel";
 import { HeadlineCTA } from "@/components/headline-cta";
-import { LanguageSwitcher } from "@/components/language-switcher";
-import { getCurrentLocale } from "@/lib/locale";
+// LanguageSwitcher import retained but commented out — the multilingual
+// surface is paused while we revisit how to launch it. Translation
+// infrastructure (src/lib/translate.ts, src/lib/locales.ts, the cookie
+// resolver, the server action) is left in place so re-enabling is a
+// one-line change.
+// import { LanguageSwitcher } from "@/components/language-switcher";
 import { translateMany } from "@/lib/translate";
+import type { Locale } from "@/lib/locales";
 
 export const dynamic = "force-dynamic";
 
@@ -48,12 +53,17 @@ export default async function Home() {
   // Detect whether the visitor has any kind of session (full magic-link or
   // narrow upload-session). Either flavour means we can offer a direct
   // "My policies" entry rather than the cold "Sign in" prompt.
-  const [fullSessionEmail, uploadSession, locale] = await Promise.all([
+  const [fullSessionEmail, uploadSession] = await Promise.all([
     getSession(),
     getUploadSession(),
-    getCurrentLocale(),
   ]);
   const signedIn = !!(fullSessionEmail || uploadSession);
+  // Locale is hard-pinned to English while the multilingual switcher
+  // is paused. Anyone who previously set the `ro-lang` cookie also sees
+  // English now — no one gets stuck in a non-English locale they can't
+  // change. To re-enable: swap this back to `await getCurrentLocale()`
+  // and uncomment the LanguageSwitcher in the footer.
+  const locale: Locale = "en";
 
   // Phase A — translate the above-the-fold strings only. Below-the-fold
   // sections (How it works, Case study, Rules, Quote, Stats, CTA, Footer)
@@ -101,7 +111,6 @@ export default async function Home() {
       <V7Stats />
       <V7CTA />
       <V7Foot
-        locale={locale}
         labels={{
           made: t.footer_made,
           sample: t.footer_sample,
@@ -588,10 +597,7 @@ function V7CTA() {
 }
 
 /* ─── 9. Footer ─────────────────────────────────────────────────────────── */
-import type { Locale } from "@/lib/translate";
-
 interface FooterProps {
-  locale: Locale;
   labels: {
     made: string;
     sample: string;
@@ -600,7 +606,7 @@ interface FooterProps {
   };
 }
 
-function V7Foot({ locale, labels }: FooterProps) {
+function V7Foot({ labels }: FooterProps) {
   // Self-healing copyright year — pre-launch we want the brand to read as
   // contemporary regardless of the month a visitor arrives in.
   const year = new Date().getFullYear();
@@ -609,12 +615,7 @@ function V7Foot({ locale, labels }: FooterProps) {
   const madeWithYear = labels.made.replace("RIGHTOFFER", `RIGHTOFFER ${year}`);
   return (
     <footer className="py-5 mt-10 border-t border-brand-charcoal/10 flex flex-col md:flex-row gap-3 md:gap-0 items-center md:items-center justify-center md:justify-between text-center md:text-left font-mono text-[10.5px] uppercase tracking-[0.12em] text-brand-slate">
-      <span className="flex flex-wrap items-center justify-center gap-3 md:gap-5">
-        <span>{madeWithYear}</span>
-        {/* Functional language switcher — server-action backed, writes
-         *  the `ro-lang` cookie and revalidates. */}
-        <LanguageSwitcher current={locale} />
-      </span>
+      <span>{madeWithYear}</span>
       <span className="flex flex-wrap justify-center gap-5">
         <a
           href="mailto:hello@rightoffer.in"
