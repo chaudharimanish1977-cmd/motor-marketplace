@@ -518,7 +518,7 @@ function V7CTA() {
 function V7Foot() {
   return (
     <footer className="py-5 mt-10 border-t border-brand-charcoal/10 flex flex-col md:flex-row gap-2 md:gap-0 items-start md:items-center justify-between font-mono text-[10.5px] uppercase tracking-[0.12em] text-brand-slate">
-      <span>© RIGHTOFFER 2026 · NOT AN INSURER · MADE FOR INDIA</span>
+      <span>© RIGHTOFFER 2026 · MADE FOR INDIA</span>
       <span className="flex gap-5">
         <a
           href="mailto:hello@rightoffer.in"
