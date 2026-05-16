@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/email-token";
 import { setSession } from "@/lib/session";
 import { clearUploadSession } from "@/lib/upload-session";
+import { clearAnonymousSession } from "@/lib/anonymous-session";
 
 export const runtime = "nodejs";
 
@@ -38,5 +39,10 @@ export async function GET(
   // once we have a full magic-link session — clear it so /me reads
   // the broader full-session, not the narrower upload-scoped one.
   await clearUploadSession();
+  // Anonymous-session is also redundant — the full session reads
+  // the customer's docs by owner.email, scoped wider than the
+  // browser-bound anonymous cookie. Leaving it stale would surface
+  // it in /reports later as confusion.
+  await clearAnonymousSession();
   return NextResponse.redirect(new URL("/me", request.url));
 }

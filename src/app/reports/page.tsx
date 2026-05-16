@@ -11,6 +11,7 @@ import {
   generateRightOfferPick,
   type RightOfferPick,
 } from "@/lib/rightoffer-pick";
+import { policyGroupKey } from "@/lib/policy-group";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 import { getAnonymousSession } from "@/lib/anonymous-session";
@@ -112,10 +113,32 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     }
   }
 
-  const visibleDocs = docs.filter((d) => reports.has(d.id));
-  if (visibleDocs.length === 0) {
+  const renderableDocs = docs.filter((d) => reports.has(d.id));
+  if (renderableDocs.length === 0) {
     return <EmptyState hasFullSession={!!fullSessionEmail} />;
   }
+
+  // Dedupe by policyGroupKey — collapse multiple parses of the same
+  // physical document (same registration + expiry + documentType)
+  // into one. Customer's intent is "one logical doc per car-period
+  // per type"; without this they'd see N copies if they re-uploaded
+  // the same PDF during testing, or if the cookie carries stale IDs
+  // from a prior browser session that hit the same policy+quote.
+  // Canonical pick within each group: most recent uploadedAt.
+  const groups = new Map<string, ParsedPolicy[]>();
+  for (const d of renderableDocs) {
+    const key = policyGroupKey(d);
+    const arr = groups.get(key) ?? [];
+    arr.push(d);
+    groups.set(key, arr);
+  }
+  const visibleDocs = Array.from(groups.values()).map((group) =>
+    [...group].sort(
+      (a, b) =>
+        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+    )[0]
+  );
+
   if (visibleDocs.length === 1) {
     redirect(`/report/${visibleDocs[0].id}`);
   }
