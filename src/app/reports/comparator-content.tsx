@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ShieldCheck,
   Sparkles,
@@ -12,34 +10,46 @@ import {
 } from "lucide-react";
 import { formatINR } from "@/lib/format";
 import { ReportGate } from "@/components/report-gate";
-import type { ComparatorView } from "./page";
-import type { ComparisonReport } from "@/lib/types";
+import type {
+  ComparisonQuoteScore,
+  ComparisonRcpSnapshot,
+  ComparisonVerdict,
+  ParsedPolicy,
+} from "@/lib/types";
+
+/**
+ * Comparator content — server component. Renders the multi-doc verdict
+ * inline inside /reports?tab=comparator. Same visual structure as
+ * /comparison/[id] but always rendered fresh on the server when the
+ * comparator tab is active.
+ *
+ * Layout: header → RCP → quotes scored side-by-side → verdict. The
+ * gate (a client component) sits between RCP and the quote scoring so
+ * the customer sees the recommendation framework for free, then
+ * verifies email to see the personalised payoff.
+ */
 
 interface Props {
-  comparator: ComparatorView;
-  /** When true, render only the RCP section + the inline gate; hide
-   *  the verdict + per-quote scoring + reservation CTA until the
-   *  customer verifies their email via OTP. */
+  vehicleLabel: string;
+  rcp: ComparisonRcpSnapshot;
+  quoteScores: ComparisonQuoteScore[];
+  verdict: ComparisonVerdict;
+  docs: ParsedPolicy[];
   showGate: boolean;
 }
 
-/**
- * Comparator tab — the multi-doc verdict view.
- *
- * Mirror of the visual structure from /comparison/[id] but rendered
- * inline as a tab. Composition is the same: header → RCP → quotes
- * scored side-by-side → verdict. The gate sits between the RCP and
- * the quote-scoring sections so the customer sees what we recommend
- * for free (high-value preview), then verifies email to see how their
- * specific quotes stack up (the personalised payoff).
- */
-export function ComparatorTab({ comparator, showGate }: Props) {
-  const { vehicleLabel, rcp, quoteScores, verdict, docs } = comparator;
+export function ComparatorContent({
+  vehicleLabel,
+  rcp,
+  quoteScores,
+  verdict,
+  docs,
+  showGate,
+}: Props) {
   const docById = new Map(docs.map((d) => [d.id, d]));
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <header className="space-y-1.5">
         <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-deepblue bg-blue-50 border border-blue-100 rounded-full">
           <Sparkles className="w-3.5 h-3.5" />
@@ -55,14 +65,10 @@ export function ComparatorTab({ comparator, showGate }: Props) {
         </p>
       </header>
 
-      {/* RCP — always visible (the prescription). */}
       <RcpBlock rcp={rcp} vehicleLabel={vehicleLabel} />
 
-      {/* Gate — sits between RCP (the framework) and the personalised
-       *  payoff (verdict + scoring + reservation). */}
       {showGate && <ReportGate />}
 
-      {/* Everything below requires verification. */}
       {!showGate && (
         <>
           <QuotesBlock
@@ -77,13 +83,11 @@ export function ComparatorTab({ comparator, showGate }: Props) {
 }
 
 // ----------------------------------------------------------------------------
-// RCP block (always visible, before the gate)
-// ----------------------------------------------------------------------------
 function RcpBlock({
   rcp,
   vehicleLabel,
 }: {
-  rcp: ComparatorView["rcp"];
+  rcp: ComparisonRcpSnapshot;
   vehicleLabel: string;
 }) {
   return (
@@ -158,15 +162,12 @@ function RcpBlock({
   );
 }
 
-// ----------------------------------------------------------------------------
-// Quotes block (post-gate)
-// ----------------------------------------------------------------------------
 function QuotesBlock({
   quoteScores,
   docById,
 }: {
-  quoteScores: ComparisonReport["quoteScores"];
-  docById: Map<string, ComparatorView["docs"][number]>;
+  quoteScores: ComparisonQuoteScore[];
+  docById: Map<string, ParsedPolicy>;
 }) {
   return (
     <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
@@ -199,8 +200,8 @@ function QuoteCard({
   score,
   doc,
 }: {
-  score: ComparisonReport["quoteScores"][number];
-  doc: ComparatorView["docs"][number] | null;
+  score: ComparisonQuoteScore;
+  doc: ParsedPolicy | null;
 }) {
   const verdictBadge = score.isExactlyRcp
     ? {
@@ -297,15 +298,12 @@ function QuoteCard({
   );
 }
 
-// ----------------------------------------------------------------------------
-// Verdict block (post-gate)
-// ----------------------------------------------------------------------------
 function VerdictBlock({
   verdict,
   docs,
 }: {
-  verdict: ComparatorView["verdict"];
-  docs: ComparatorView["docs"];
+  verdict: ComparisonVerdict;
+  docs: ParsedPolicy[];
 }) {
   const tone =
     verdict.type === "take_existing"
