@@ -44,6 +44,14 @@
    *   .ro-road     — dashed road moving under the car
    *   .ro-pen      — fountain pen wobble in the desk sketch
    *   .ro-ink      — base ink-line style: round caps, no fill
+   *
+   * Iteration counts are capped (not infinite) so the car comes to rest
+   * after ~7s. After that the page is fully static, which respects the
+   * editorial "reading-room" voice and stops the animation from competing
+   * with body copy once the user has scrolled past the headline.
+   *
+   * `prefers-reduced-motion` opts the user out entirely — important for
+   * vestibular sensitivities and a hard accessibility requirement.
    */
   @keyframes ro-bounce {
     0%, 100% { transform: translateY(0); }
@@ -61,15 +69,19 @@
     0%, 100% { transform: rotate(-1deg); }
     50%      { transform: rotate(1deg); }
   }
-  .ro-car   { animation: ro-bounce 1.4s ease-in-out infinite; }
-  .ro-wheel { transform-origin: center; animation: ro-spin 0.9s linear infinite; }
+  .ro-car   { animation: ro-bounce 1.4s ease-in-out 5 forwards; }
+  .ro-wheel { transform-origin: center; animation: ro-spin 0.9s linear 8 forwards; }
   .ro-road  {
     height: 3px;
     background: repeating-linear-gradient(90deg, currentColor 0 12px, transparent 12px 24px);
-    animation: ro-road 1.4s linear infinite;
+    animation: ro-road 1.4s linear 5 forwards;
   }
-  .ro-pen   { animation: ro-wobble 4s ease-in-out infinite; transform-origin: 30% 70%; }
+  .ro-pen   { animation: ro-wobble 4s ease-in-out 3 forwards; transform-origin: 30% 70%; }
   .ro-ink   { stroke-linecap: round; stroke-linejoin: round; fill: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ro-car, .ro-wheel, .ro-road, .ro-pen { animation: none !important; }
+  }
 
   /* In dark mode, flip the many literal `bg-white` usages across cards and
    * panels to the surface token. Same for the few `text-black`. This avoids

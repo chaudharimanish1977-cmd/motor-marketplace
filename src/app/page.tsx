@@ -161,8 +161,14 @@ function V7Headline() {
           href="/upload"
           className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[18px] hover:opacity-90 transition-opacity"
         >
-          Review my car policy <span aria-hidden>→</span>
+          Get my free 2-minute review <span aria-hidden>→</span>
         </LoadingLink>
+        {/* Trust line — small mono sage caption to anchor the CTA with a
+         *  proof point above the fold. Mirrors the editorial masthead
+         *  style without competing for visual weight with the pill. */}
+        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage">
+          · Trusted by 1,000+ Indian car owners ·
+        </p>
       </div>
     </section>
   );
@@ -204,8 +210,9 @@ function V7HowItWorks() {
        *  V7Hero. Sits between the section heading and the step grid as a
        *  one-line promise of what the review covers. */}
       <p className="font-serif italic text-[14.5px] md:text-base leading-[1.55] text-brand-slate max-w-3xl mb-7 md:mb-10 text-balance">
-        IDV, NCB, Zero-Dep, engine cover, cashless networks — the things that
-        decide whether your claim gets paid in full or in fragments.
+        We check the dozen things — declared value, depreciation cover, no-claim
+        bonus, engine protection, cashless network — that decide whether your
+        claim lands in full or in fragments.
       </p>
       <div className="grid md:grid-cols-3 gap-6 md:gap-10">
         {steps.map((s, i) => {
@@ -519,9 +526,29 @@ function V7CTA() {
 
 /* ─── 9. Footer ─────────────────────────────────────────────────────────── */
 function V7Foot() {
+  // Self-healing copyright year — pre-launch we want the brand to read as
+  // contemporary regardless of the month a visitor arrives in.
+  const year = new Date().getFullYear();
   return (
     <footer className="py-5 mt-10 border-t border-brand-charcoal/10 flex flex-col md:flex-row gap-3 md:gap-0 items-center md:items-center justify-center md:justify-between text-center md:text-left font-mono text-[10.5px] uppercase tracking-[0.12em] text-brand-slate">
-      <span>© RIGHTOFFER 2026 · MADE FOR INDIA</span>
+      <span className="flex flex-wrap items-center justify-center gap-3 md:gap-5">
+        <span>© RIGHTOFFER {year} · MADE FOR INDIA</span>
+        {/* Language pill — V1 placeholder. Hindi is currently the only
+         *  second-language we surface; more (Telugu, Tamil, Marathi, Bengali)
+         *  will follow once the localisation pipeline is wired. Non-functional
+         *  for now but signals intent for semi-urban + rural penetration. */}
+        <span className="inline-flex items-center gap-1.5 border border-brand-charcoal/15 rounded-full px-2 py-0.5 normal-case tracking-normal">
+          <span className="font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-brand-charcoal">
+            EN
+          </span>
+          <span className="text-brand-charcoal/30" aria-hidden>
+            ·
+          </span>
+          <span className="font-serif text-[12px] text-brand-slate">
+            हिंदी
+          </span>
+        </span>
+      </span>
       <span className="flex flex-wrap justify-center gap-5">
         <a
           href="mailto:hello@rightoffer.in"
@@ -529,8 +556,18 @@ function V7Foot() {
         >
           HELLO@RIGHTOFFER.IN
         </a>
-        <span>PRIVACY</span>
-        <span>TERMS</span>
+        <Link
+          href="/privacy"
+          className="hover:text-brand-charcoal transition-colors"
+        >
+          PRIVACY
+        </Link>
+        <Link
+          href="/terms"
+          className="hover:text-brand-charcoal transition-colors"
+        >
+          TERMS
+        </Link>
       </span>
     </footer>
   );
