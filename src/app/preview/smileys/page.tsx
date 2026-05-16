@@ -32,12 +32,24 @@ import {
   type SmileyRating,
 } from "@/components/car-smiley";
 import { LoaderScene } from "@/components/loader-scene";
+import { NumberPlateOTP } from "@/components/number-plate-otp";
 import {
   SketchCar,
   SketchHatchback,
   SketchSedan,
   SketchSUV,
 } from "@/components/sketches";
+import {
+  SketchExitSign,
+  SketchGarage,
+  SketchOpenRoad,
+  SketchPetrolPump,
+  SketchRoadside,
+  SketchSpeedometer,
+  SketchTrafficJam,
+  SketchUploadCar,
+  TrafficLightDot,
+} from "@/components/sketches-scenes";
 
 export const metadata: Metadata = {
   title: "Cute element library · preview",
@@ -228,6 +240,102 @@ export default function SmileysPreviewPage() {
         subhead="Five mini cars as step indicators across the upload flow"
       >
         <MockOnboardingSteps />
+      </Section>
+
+      {/* ═════════════════════════════════════════════════════════════
+       *  ROUND 2 EXPANSION — number-plate OTP + 9 more scene metaphors
+       *  (user-suggested + CPO additions). These are designs awaiting
+       *  approval; once approved, each lands on a specific real surface.
+       *  ═════════════════════════════════════════════════════════════ */}
+
+      <div className="mt-16 mb-10 pt-8 border-t-4 border-brand-charcoal/15 text-center">
+        <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold">
+          · Round 2 · Vocabulary expansion ·
+        </div>
+        <p className="mt-2 font-serif italic text-[15px] text-brand-slate max-w-xl mx-auto">
+          The car as a metaphor language. Each illustration anchors a
+          specific product moment — never reused for the wrong one.
+        </p>
+      </div>
+
+      {/* ═════ §15 NUMBER-PLATE OTP ═══════════════════════════════ */}
+      <Section
+        heading="§15 · Number-plate OTP"
+        subhead="The OTP input rendered as a real Indian HSRP plate · brand signature"
+      >
+        <MockNumberPlateOTP />
+      </Section>
+
+      {/* ═════ §16 UPLOAD CAR (roof rack) ═════════════════════════ */}
+      <Section
+        heading="§16 · Roof-rack upload car"
+        subhead={`"You're bringing your paperwork to us" — replaces the plain dropzone hero`}
+      >
+        <MockUploadCar />
+      </Section>
+
+      {/* ═════ §17 PETROL PUMP (renewal) ══════════════════════════ */}
+      <Section
+        heading="§17 · Petrol-pump renewal"
+        subhead='Annual renewal as a "fill-up" — RO·FUEL station, ₹ ticker, hose to the car'
+      >
+        <MockPetrolPump />
+      </Section>
+
+      {/* ═════ §18 TRAFFIC JAM (the pain) ═════════════════════════ */}
+      <Section
+        heading="§18 · Stuck in a jam"
+        subhead="The customer's current state without RightOffer — pain-state visual for About / comparison pages"
+      >
+        <MockTrafficJam />
+      </Section>
+
+      {/* ═════ §19 GARAGE (parsing alt) ═══════════════════════════ */}
+      <Section
+        heading="§19 · Service-garage parsing"
+        subhead="Alternate loader scene — your policy up on the lift, tools floating around it"
+      >
+        <MockGarage />
+      </Section>
+
+      {/* ═════ §20 TRAFFIC LIGHT FINDINGS ═════════════════════════ */}
+      <Section
+        heading="§20 · Traffic-light severity row"
+        subhead="Tri-state lamp (red / yellow / green) inline with each finding on the report"
+      >
+        <MockFindingsWithTrafficLight />
+      </Section>
+
+      {/* ═════ §21 SPEEDOMETER SCORE ══════════════════════════════ */}
+      <Section
+        heading="§21 · Vintage speedometer score"
+        subhead="The 62/100 report score rendered as a dial needle — where you are vs where you could be"
+      >
+        <MockSpeedometer />
+      </Section>
+
+      {/* ═════ §22 OPEN ROAD (success) ════════════════════════════ */}
+      <Section
+        heading="§22 · Open road · post-review thank-you"
+        subhead={`"You're set. Drive on." — landing image for the final report success state`}
+      >
+        <MockOpenRoad />
+      </Section>
+
+      {/* ═════ §23 ROADSIDE (safety net) ══════════════════════════ */}
+      <Section
+        heading="§23 · Roadside · what add-ons actually do"
+        subhead='Car jacked up with spare tyre nearby — illustrates RSA / Zero-Dep / Engine-Protect benefits'
+      >
+        <MockRoadside />
+      </Section>
+
+      {/* ═════ §24 EXIT SIGN (switch insurer) ═════════════════════ */}
+      <Section
+        heading="§24 · Highway exit sign"
+        subhead='The "switch insurer" recommendation as a friendly direction cue'
+      >
+        <MockExitSign />
       </Section>
 
       <footer className="mt-12 pt-6 border-t border-brand-charcoal/15 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate text-center">
@@ -566,6 +674,285 @@ function MockAboutHero() {
         In 2025, a friend's claim got cut in half over a missing add-on.
         Two months later, three of us were reading every clause of every
         policy that came our way. RightOffer is what came out of that.
+      </p>
+    </div>
+  );
+}
+
+/* ═══ §15 Number-plate OTP mock ════════════════════════════════ */
+function MockNumberPlateOTP() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-9">
+      <p className="font-serif italic text-base text-brand-slate text-center mb-5">
+        Three states of the plate as the customer types:
+      </p>
+      <div className="flex flex-col items-center gap-7">
+        {/* Empty */}
+        <div className="flex flex-col items-center gap-2">
+          <NumberPlateOTP digits="" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+            · Empty plate · awaiting input ·
+          </span>
+        </div>
+        {/* Mid-type */}
+        <div className="flex flex-col items-center gap-2">
+          <NumberPlateOTP digits="042" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+            · 3 of 6 digits ·
+          </span>
+        </div>
+        {/* Complete */}
+        <div className="flex flex-col items-center gap-2">
+          <NumberPlateOTP digits="042817" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-plum font-bold">
+            · COMPLETE · PLATE LIGHTS UP IN PLUM ·
+          </span>
+        </div>
+      </div>
+      <p className="mt-7 font-serif italic text-sm text-brand-slate text-center max-w-md mx-auto">
+        Lands on /me/login OTP, the report email-gate, and any future
+        code-entry surface. A signature element competitors won't copy.
+      </p>
+    </div>
+  );
+}
+
+/* ═══ §16 Roof-rack upload car mock ════════════════════════════ */
+function MockUploadCar() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-10 text-center">
+      <div className="flex justify-center text-brand-plum mb-4">
+        <SketchUploadCar width={320} color="currentColor" />
+      </div>
+      <h3 className="font-serif font-medium text-2xl md:text-3xl tracking-[-0.015em] text-brand-charcoal m-0">
+        Drop your policy.{" "}
+        <span className="italic text-brand-plum">We'll take it from here.</span>
+      </h3>
+      <p className="mt-3 font-serif italic text-base text-brand-slate max-w-md mx-auto">
+        Stack one or many — every document rides on the roof until we've
+        read each one.
+      </p>
+    </div>
+  );
+}
+
+/* ═══ §17 Petrol pump renewal mock ═════════════════════════════ */
+function MockPetrolPump() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-9">
+      <div className="font-mono font-bold text-[10.5px] uppercase tracking-[0.16em] text-brand-sage mb-3">
+        · 21 days to renewal · RO·FUEL pump open ·
+      </div>
+      <div className="grid md:grid-cols-[1fr_auto] items-center gap-4">
+        <div>
+          <h3 className="font-serif font-medium text-2xl md:text-[28px] tracking-[-0.015em] leading-tight text-brand-charcoal m-0">
+            Time to{" "}
+            <span className="italic text-brand-plum">top up your cover.</span>
+          </h3>
+          <p className="mt-3 font-serif italic text-base text-brand-slate max-w-md">
+            Last year you paid ₹12,840. Pull up at the pump and we'll
+            tell you what this year's quote should look like — and where
+            the better-priced ones are parked.
+          </p>
+          <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+            · Like grades of petrol · Basic / Standard / Total ·
+          </p>
+        </div>
+        <div className="text-brand-plum">
+          <SketchPetrolPump width={320} color="currentColor" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══ §18 Traffic-jam (pain state) mock ════════════════════════ */
+function MockTrafficJam() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-10">
+      <div className="text-brand-plum flex justify-center mb-2">
+        <SketchTrafficJam width={400} color="currentColor" />
+      </div>
+      <div className="text-center">
+        <h3 className="font-serif font-medium text-2xl md:text-[28px] tracking-[-0.015em] leading-tight text-brand-charcoal m-0 max-w-xl mx-auto">
+          The usual way is{" "}
+          <span className="italic text-brand-plum">a 6-week traffic jam.</span>
+        </h3>
+        <p className="mt-3 font-serif italic text-base text-brand-slate max-w-md mx-auto">
+          Sales calls. Policy PDFs nobody reads. Renewals stuck behind
+          forms. Claims circled around call centres. RightOffer is the
+          way out — not the way in.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ═══ §19 Garage (parsing alt) mock ════════════════════════════ */
+function MockGarage() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-10 text-center">
+      <div className="text-brand-plum flex justify-center mb-3">
+        <SketchGarage width={340} color="currentColor" />
+      </div>
+      <h3 className="font-serif font-medium text-xl md:text-2xl tracking-[-0.015em] text-brand-charcoal m-0">
+        Your policy is{" "}
+        <span className="italic text-brand-plum">up on the lift.</span>
+      </h3>
+      <p className="mt-3 font-serif italic text-sm text-brand-slate max-w-md mx-auto">
+        Optional alternate to the bouncing-car loader — softer, more
+        editorial. Especially good for second-time customers who don't
+        need the energy of the bouncing car.
+      </p>
+    </div>
+  );
+}
+
+/* ═══ §20 Findings with traffic-light mock ═════════════════════ */
+function MockFindingsWithTrafficLight() {
+  const findings = [
+    { sev: "high" as const, k: "GAP", label: "IDV undervalued", detail: "₹6.4L declared · market ~₹8.8L" },
+    { sev: "high" as const, k: "GAP", label: "No Zero-Dep cover", detail: "Standard for cars under 5 yrs old" },
+    { sev: "ok" as const, k: "OK", label: "Roadside assistance", detail: "Active until renewal" },
+    { sev: "mid" as const, k: "WATCH", label: "NCB at 25%", detail: "Resets if you claim before January" },
+    { sev: "ok" as const, k: "OK", label: "PA cover for owner", detail: "Mandatory · in place" },
+  ];
+  return (
+    <div className="rounded-2xl bg-brand-offwhite border border-brand-charcoal/15 border-l-4 border-l-brand-plum p-6">
+      <div className="grid gap-2">
+        {findings.map((f, i) => (
+          <div
+            key={f.label}
+            className={`grid grid-cols-[auto_64px_1fr] gap-3 items-center py-2 ${
+              i < findings.length - 1
+                ? "border-b border-dotted border-brand-charcoal/10"
+                : ""
+            }`}
+          >
+            <TrafficLightDot severity={f.sev} width={14} />
+            <span
+              className={`font-mono font-bold text-[10px] tracking-[0.12em] ${
+                f.sev === "high"
+                  ? "text-brand-sage"
+                  : f.sev === "mid"
+                    ? "text-brand-slate"
+                    : "text-brand-plum"
+              }`}
+            >
+              {f.k}
+            </span>
+            <span>
+              <span className="font-serif font-semibold text-sm text-brand-charcoal">
+                {f.label}.
+              </span>{" "}
+              <span className="font-serif italic text-[13.5px] text-brand-slate">
+                {f.detail}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 font-serif italic text-xs text-brand-slate">
+        Red / yellow / green light sits inline with each finding row.
+        Reads at a glance — even at scale-down it's still legible.
+      </p>
+    </div>
+  );
+}
+
+/* ═══ §21 Speedometer score mock ═══════════════════════════════ */
+function MockSpeedometer() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-8 text-center">
+      <div className="text-brand-plum flex justify-center mb-3">
+        <SketchSpeedometer
+          width={240}
+          color="currentColor"
+         
+          score={62}
+        />
+      </div>
+      <p className="font-serif italic text-base text-brand-slate max-w-md mx-auto">
+        Your review score. Where you are, where you could be — a
+        vintage-dashboard feel that makes 62/100 land as a real number,
+        not a generic progress bar.
+      </p>
+    </div>
+  );
+}
+
+/* ═══ §22 Open road success mock ═══════════════════════════════ */
+function MockOpenRoad() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-10 text-center">
+      <div className="text-brand-plum flex justify-center mb-3">
+        <SketchOpenRoad
+          width={400}
+          color="currentColor"
+         
+        />
+      </div>
+      <h3 className="font-serif font-medium text-3xl md:text-4xl tracking-[-0.02em] text-brand-charcoal m-0">
+        You're{" "}
+        <span className="italic text-brand-plum">set.</span>
+      </h3>
+      <p className="mt-3 font-serif italic text-base text-brand-slate max-w-md mx-auto">
+        Verdict delivered. The recommendation is in your email and on
+        WhatsApp. Drive on.
+      </p>
+    </div>
+  );
+}
+
+/* ═══ §23 Roadside / safety-net mock ═══════════════════════════ */
+function MockRoadside() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-10">
+      <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
+        <div>
+          <div className="font-mono font-bold text-[10.5px] uppercase tracking-[0.16em] text-brand-sage mb-2">
+            · WHAT ZERO-DEP ACTUALLY DOES ·
+          </div>
+          <h3 className="font-serif font-medium text-2xl md:text-[28px] tracking-[-0.015em] leading-tight text-brand-charcoal m-0">
+            The flat tyre at{" "}
+            <span className="italic text-brand-plum">11pm.</span>
+          </h3>
+          <p className="mt-3 font-serif italic text-base text-brand-slate max-w-md">
+            Add-ons sound abstract until the moment they aren't. This
+            illustration explains what your ₹2,400/yr Zero-Dep + RSA
+            cover actually means — without a single insurance term.
+          </p>
+        </div>
+        <div className="text-brand-plum">
+          <SketchRoadside
+            width={320}
+            color="currentColor"
+           
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══ §24 Exit sign / switch-insurer mock ══════════════════════ */
+function MockExitSign() {
+  return (
+    <div className="rounded-2xl bg-brand-surface border border-brand-charcoal/15 px-6 md:px-10 py-10 text-center">
+      <div className="text-brand-plum flex justify-center mb-3">
+        <SketchExitSign
+          width={240}
+          color="currentColor"
+         
+        />
+      </div>
+      <h3 className="font-serif font-medium text-2xl md:text-[28px] tracking-[-0.015em] leading-tight text-brand-charcoal m-0">
+        Next exit:{" "}
+        <span className="italic text-brand-plum">a better-priced policy.</span>
+      </h3>
+      <p className="mt-3 font-serif italic text-base text-brand-slate max-w-md mx-auto">
+        Turns the cold "switch insurer" CTA into a friendly direction
+        cue. Less push, more nudge.
       </p>
     </div>
   );
