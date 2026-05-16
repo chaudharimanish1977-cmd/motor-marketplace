@@ -215,9 +215,6 @@ function V7HowItWorks() {
   return (
     <section className="pt-14 pb-6">
       <div className="flex items-baseline gap-4 mb-7 pb-4 border-b border-brand-charcoal/10">
-        <span className="font-mono font-bold text-[10.5px] uppercase tracking-[0.18em] text-brand-sage">
-          § I.
-        </span>
         <span className="font-serif italic text-lg text-brand-slate">
           How a review works
         </span>
@@ -301,7 +298,7 @@ function V7CaseStudy() {
           <SketchSedan width={260} color="currentColor" />
         </div>
         <div className="font-mono font-bold text-[10.5px] uppercase tracking-[0.16em] text-brand-sage mb-3">
-          § II · CASE STUDY · ANONYMISED
+          CASE STUDY · ANONYMISED
         </div>
         <h3 className="font-serif font-medium text-3xl md:text-4xl tracking-[-0.02em] leading-[1.05] max-w-2xl m-0 mb-2 text-brand-charcoal">
           The audit took{" "}
@@ -389,11 +386,6 @@ function V7CaseStudy() {
               auto-renewal — purely from reading a document she&apos;d never
               have read herself.
             </p>
-            <div className="mt-5 py-2.5 border-y border-brand-charcoal/10 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate flex justify-between">
-              <span>REPORT №RO-4471</span>
-              <span className="text-brand-plum">· 1m 47s ·</span>
-              <span>W/ CONSENT</span>
-            </div>
           </div>
         </div>
       </div>
