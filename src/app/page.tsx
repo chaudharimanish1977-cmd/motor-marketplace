@@ -37,6 +37,7 @@ import {
   SketchVerdict,
 } from "@/components/sketches";
 import { ReadingQuoteCarousel } from "@/components/reading-quote-carousel";
+import { HeadlineCTA } from "@/components/headline-cta";
 
 export const dynamic = "force-dynamic";
 
@@ -152,24 +153,12 @@ function V7Headline() {
         Most people sell insurance.{" "}
         <span className="italic text-brand-sage">We help you decide.</span>
       </p>
-      {/* Primary CTA promoted up here so it lands above the fold on every
-       *  viewport — replaces the standalone V7Hero section the page used to
-       *  have. The IDV/NCB "what we check" line moved into the
-       *  How-a-review-works section header as supporting caption. */}
-      <div className="mt-7 md:mt-8">
-        <LoadingLink
-          href="/upload"
-          className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[18px] hover:opacity-90 transition-opacity"
-        >
-          Get my free 2-minute review <span aria-hidden>→</span>
-        </LoadingLink>
-        {/* Trust line — small mono sage caption to anchor the CTA with a
-         *  proof point above the fold. Mirrors the editorial masthead
-         *  style without competing for visual weight with the pill. */}
-        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage">
-          · Trusted by 1,000+ Indian car owners ·
-        </p>
-      </div>
+      {/* Above-the-fold CTA block — owns the profile chip pair, the
+       *  primary "Get my free 2-minute review" pill, and the trust
+       *  caption underneath. Client component because the chip state
+       *  affects the CTA's href (we pass the priority through as a
+       *  query param to /upload). */}
+      <HeadlineCTA />
     </section>
   );
 }
