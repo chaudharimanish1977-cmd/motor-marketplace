@@ -69,25 +69,23 @@ export function computeRCP(
   const unnecessary: RcpOverCoverageFlag[] = [];
 
   for (const rec of report.addOnRecommendations ?? []) {
+    if (!rec || !rec.name) continue;
     if (rec.recommendation === "essential") {
       required.push({
         name: rec.name,
-        why: rec.reasoning,
-        estimatedAnnualPremium: rec.estimatedAnnualPremium,
+        why: rec.reasoning ?? "",
+        estimatedAnnualPremium: rec.estimatedAnnualPremium ?? 0,
       });
     } else if (rec.recommendation === "optional") {
       optional.push({
         name: rec.name,
-        why: rec.reasoning,
-        estimatedAnnualPremium: rec.estimatedAnnualPremium,
+        why: rec.reasoning ?? "",
+        estimatedAnnualPremium: rec.estimatedAnnualPremium ?? 0,
       });
     } else if (rec.recommendation === "drop" && rec.isInCurrentPolicy) {
-      // Only flag as unnecessary if the customer actually has it today
-      // — otherwise it's irrelevant to surface ("you don't have X, and
-      // you wouldn't have needed it anyway" is noise).
       unnecessary.push({
         name: rec.name,
-        why: rec.reasoning,
+        why: rec.reasoning ?? "",
       });
     }
   }
@@ -97,14 +95,24 @@ export function computeRCP(
     0
   );
 
+  // Defensive: idvCheck might be malformed for edge-case LLM outputs.
+  // Surface a clean default rather than throwing — the report still
+  // renders, the customer just sees a generic IDV assessment.
+  const idvCheck = report.idvCheck ?? {
+    currentIdv: parsedPolicy.idv,
+    assessment: "appropriate" as const,
+    whatToDo: [],
+    tip: "",
+  };
+
   return {
     requiredAddOns: required,
     optionalAddOns: optional,
     unnecessaryAddOns: unnecessary,
     idv: {
-      current: report.idvCheck.currentIdv ?? parsedPolicy.idv,
-      assessment: report.idvCheck.assessment,
-      note: report.idvCheck.tip,
+      current: idvCheck.currentIdv ?? parsedPolicy.idv ?? 0,
+      assessment: idvCheck.assessment ?? "appropriate",
+      note: idvCheck.tip ?? "",
     },
     requiredAddOnsPremiumTotal,
   };

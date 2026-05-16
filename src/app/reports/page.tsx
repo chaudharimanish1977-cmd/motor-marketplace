@@ -177,7 +177,13 @@ export default async function ReportsPage() {
       rcp: rcpSnapshot,
       quoteScores,
       verdict,
-      docs: sortedDocs,
+      // Strip rawText here too — comparator.docs is a peer copy of
+      // docs and we don't want it bloating the RSC payload either.
+      docs: sortedDocs.map((d) => {
+        const { rawText: _rawText, ...rest } = d;
+        void _rawText;
+        return rest as ParsedPolicy;
+      }),
     };
 
     tabs.push({
@@ -203,11 +209,22 @@ export default async function ReportsPage() {
     });
   }
 
+  // Strip rawText from every doc before passing to the client — it's
+  // the full PDF body (tens of KB per doc), only used server-side
+  // during LLM extraction. Including it in the RSC payload bloats
+  // the response and was the likely cause of "Connection closed"
+  // streaming errors on /reports for users with several docs.
+  const stripRawText = (d: ParsedPolicy): ParsedPolicy => {
+    const { rawText: _rawText, ...rest } = d;
+    void _rawText;
+    return rest as ParsedPolicy;
+  };
+  const lightDocs = sortedDocs.map(stripRawText);
   const reportsForClient = Object.fromEntries(
     sortedDocs.map((d) => [d.id, reports.get(d.id)!])
   );
   const docsForClient = Object.fromEntries(
-    sortedDocs.map((d) => [d.id, d])
+    lightDocs.map((d) => [d.id, d])
   );
 
   return (
