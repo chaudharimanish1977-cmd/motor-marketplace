@@ -69,6 +69,11 @@
     0%, 100% { transform: rotate(-1deg); }
     50%      { transform: rotate(1deg); }
   }
+  @keyframes ro-float {
+    0%, 100% { transform: translateY(0) rotate(var(--ro-tilt, 0deg)); }
+    50%      { transform: translateY(-8px) rotate(var(--ro-tilt, 0deg)); }
+  }
+  .ro-float { animation: ro-float 3s ease-in-out infinite; }
   .ro-car   { animation: ro-bounce 1.4s ease-in-out 5 forwards; }
   .ro-wheel { transform-origin: center; animation: ro-spin 0.9s linear 8 forwards; }
   .ro-road  {
@@ -80,7 +85,7 @@
   .ro-ink   { stroke-linecap: round; stroke-linejoin: round; fill: none; }
 
   @media (prefers-reduced-motion: reduce) {
-    .ro-car, .ro-wheel, .ro-road, .ro-pen { animation: none !important; }
+    .ro-car, .ro-wheel, .ro-road, .ro-pen, .ro-float { animation: none !important; }
   }
 
   /* In dark mode, flip the many literal `bg-white` usages across cards and
