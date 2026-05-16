@@ -208,7 +208,13 @@ function V7Headline({ t }: { t: HeadlineStrings }) {
             <SketchCar width={150} color="currentColor" />
           </span>
         </span>
-        <span className="block italic text-brand-plum">{t.h_part2}</span>
+        {/* Italic plum tail of the headline. Some locales override this to
+         *  an empty string (e.g. Hindi reads better with just the first
+         *  line + car illustration); skip the span entirely in that case
+         *  so layout collapses cleanly. */}
+        {t.h_part2 && (
+          <span className="block italic text-brand-plum">{t.h_part2}</span>
+        )}
       </h1>
       <p className="mt-5 font-serif text-2xl md:text-3xl leading-[1.25] text-brand-slate max-w-3xl mx-auto text-balance">
         {t.sub_a}{" "}

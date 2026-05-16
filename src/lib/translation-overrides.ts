@@ -65,12 +65,17 @@ type OverrideMap = Record<string, string>;
 export const TRANSLATION_OVERRIDES: Record<Locale, OverrideMap> = {
   en: {},
   hi: {
-    // Example (commented out) — uncomment + edit, or add new entries below.
+    // Headline — user-curated. The second half ("insurance before it
+    // costs you.") is set to empty string so the Hindi headline reads
+    // just "समझें अपने" with the car illustration below. The page
+    // conditionally skips the empty span (see V7Headline in
+    // src/app/page.tsx) so layout collapses cleanly.
+    "Understand your": "समझें अपने",
+    "insurance before it costs you.": "",
+
+    // Below — examples to uncomment + edit as you spot bad
+    // translations on rightoffer.in:
     //
-    // "Understand your":
-    //   "अपनी इंश्योरेंस को समझें",
-    // "insurance before it costs you.":
-    //   "उससे पहले कि वो आपको महंगी पड़े।",
     // "Most people sell insurance.":
     //   "ज़्यादातर लोग इंश्योरेंस बेचते हैं।",
     // "We help you decide.":
