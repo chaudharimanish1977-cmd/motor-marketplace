@@ -36,6 +36,7 @@ import {
   SketchSedan,
   SketchVerdict,
 } from "@/components/sketches";
+import { ReadingQuoteCarousel } from "@/components/reading-quote-carousel";
 
 export const dynamic = "force-dynamic";
 
@@ -444,31 +445,11 @@ function V7Rules() {
   );
 }
 
-/* ─── 7. Quote ──────────────────────────────────────────────────────────── */
+/* ─── 7. Quote — 4-story carousel ───────────────────────────────────────── */
 function V7Quote() {
   return (
     <section className="py-16 text-center">
-      <blockquote className="m-0 mx-auto max-w-4xl font-serif italic font-normal text-3xl md:text-[54px] leading-[1.2] tracking-[-0.025em] text-balance text-brand-charcoal">
-        <span
-          className="text-brand-plum text-[76px] leading-[0.4] align-[-0.2em]"
-          aria-hidden
-        >
-          “
-        </span>
-        I was about to auto-renew. The review showed my IDV was undervalued by{" "}
-        <span className="italic text-brand-sage">₹2.4 lakh</span>. Switched to
-        a properly-priced policy at the same premium.
-        <span
-          className="text-brand-plum text-[76px] leading-[0.4] align-[-0.55em]"
-          aria-hidden
-        >
-          ”
-        </span>
-      </blockquote>
-      <div className="mt-7 font-mono text-[11px] uppercase tracking-[0.16em] text-brand-slate">
-        — Priya S. <span className="text-brand-plum">·</span> Bengaluru{" "}
-        <span className="text-brand-plum">·</span> Sedan owner
-      </div>
+      <ReadingQuoteCarousel />
     </section>
   );
 }
