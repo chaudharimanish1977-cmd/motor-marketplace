@@ -3,21 +3,21 @@
  *
  * An editorial newspaper-style landing page. Adapted from the Reading
  * Room brand mockup (downloads/home page_files/reading-motor.jsx),
- * trimmed down for the V1 marketing surface. Ten sections in order:
+ * trimmed for the V1 marketing surface. Nine sections in order:
  *
- *    1. Brand row    · wordmark + centered Upload CTA + sign-in
+ *    1. Brand row    · wordmark + Upload CTA + sign-in (stacks on mobile)
  *    2. Headline     · "Understand your insurance before it costs you."
  *                      with subhead "Most people sell insurance. We
- *                      help you decide."
- *    3. Hero         · "We will read what you are driving with." +
- *                      IDV/NCB body + animated car + Review CTA
- *    4. § I How it works · 3 numbered steps with sketches
- *    5. § II Case study  · sample anonymised review card
- *    6. § III Three rules · principle statements
- *    7. Quote        · large italic blockquote
- *    8. Stats        · 4 big serif numbers
- *    9. CTA          · "Decide for yourself."
- *   10. Footer       · monospace uppercase legal row
+ *                      help you decide." and the primary "Review my car
+ *                      policy" CTA below — all above the fold.
+ *    3. How it works · 3 numbered steps with sketches + the IDV/NCB
+ *                      "what we check" caption merged in
+ *    4. Case study   · sample anonymised review card
+ *    5. Three rules  · principle statements
+ *    6. Quote        · 4-story testimonial carousel
+ *    7. Stats        · 4 big serif numbers
+ *    8. Final CTA    · "Decide for yourself."
+ *    9. Footer       · monospace uppercase legal row (centred on mobile)
  *
  * BrandBlobs is intentionally absent — the Reading Room calls for a pure
  * white (light) / warm-near-black (dark) page surface. The SiteHeader
@@ -54,7 +54,6 @@ export default async function Home() {
     <article className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-16">
       <V7Brand signedIn={signedIn} />
       <V7Headline />
-      <V7Hero />
       <V7HowItWorks />
       <V7CaseStudy />
       <V7Rules />
@@ -137,7 +136,7 @@ function V7Brand({ signedIn }: { signedIn: boolean }) {
  * and the Hero CTA below stays within the first screen. */
 function V7Headline() {
   return (
-    <section className="pt-6 md:pt-8 pb-2 text-center">
+    <section className="pt-6 md:pt-8 pb-10 md:pb-12 text-center border-b border-brand-charcoal/10">
       <h1 className="font-serif font-medium text-5xl md:text-7xl lg:text-[88px] leading-[1] tracking-[-0.028em] max-w-5xl mx-auto text-brand-charcoal">
         <span className="block">Understand your</span>
         <span className="block py-2 md:py-3 text-brand-plum" aria-hidden>
@@ -153,27 +152,11 @@ function V7Headline() {
         Most people sell insurance.{" "}
         <span className="italic text-brand-sage">We help you decide.</span>
       </p>
-    </section>
-  );
-}
-
-/* ─── 3. Hero — sub-headline + body + CTA ───────────────────────────────── */
-/* Compact centered section directly under the headline. The animated car
- * moved up between the two headline lines, so this block focuses on the
- * "what we check" promise and the primary CTA. Tight spacing on both
- * sides so the Review-my-car-policy pill lands above the fold. */
-function V7Hero() {
-  return (
-    <section className="pt-4 md:pt-6 pb-10 md:pb-12 text-center border-b border-brand-charcoal/10">
-      <h2 className="font-serif font-medium text-[32px] md:text-[44px] leading-[1.05] tracking-[-0.02em] text-balance text-brand-charcoal max-w-3xl mx-auto m-0">
-        We read what you are{" "}
-        <em className="italic text-brand-sage">driving</em> with.
-      </h2>
-      <p className="mt-3 font-serif text-[17px] md:text-[19px] leading-[1.55] text-brand-slate max-w-2xl mx-auto text-balance">
-        IDV, NCB, Zero-Dep, engine cover, cashless networks — things that
-        decide whether your claim gets paid in full or in fragments.
-      </p>
-      <div className="mt-6">
+      {/* Primary CTA promoted up here so it lands above the fold on every
+       *  viewport — replaces the standalone V7Hero section the page used to
+       *  have. The IDV/NCB "what we check" line moved into the
+       *  How-a-review-works section header as supporting caption. */}
+      <div className="mt-7 md:mt-8">
         <LoadingLink
           href="/upload"
           className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[18px] hover:opacity-90 transition-opacity"
@@ -185,7 +168,7 @@ function V7Hero() {
   );
 }
 
-/* ─── 4. § I · How it works ─────────────────────────────────────────────── */
+/* ─── 3. How it works ──────────────────────────────────────────────────── */
 function V7HowItWorks() {
   const steps = [
     {
@@ -208,23 +191,33 @@ function V7HowItWorks() {
     },
   ];
   return (
-    <section className="pt-14 pb-6">
-      <div className="flex items-baseline gap-4 mb-7 pb-4 border-b border-brand-charcoal/10">
-        <span className="font-serif italic text-lg text-brand-slate">
+    <section className="pt-10 md:pt-14 pb-6">
+      <div className="flex items-baseline gap-4 mb-4 md:mb-5 pb-3 md:pb-4 border-b border-brand-charcoal/10">
+        <span className="font-serif italic text-base md:text-lg text-brand-slate">
           How a review works
         </span>
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate hidden sm:inline">
           · · · · 03 STEPS · · · ·
         </span>
       </div>
-      <div className="grid md:grid-cols-3 gap-10">
+      {/* Caption — the IDV/NCB "what we check" line absorbed from the old
+       *  V7Hero. Sits between the section heading and the step grid as a
+       *  one-line promise of what the review covers. */}
+      <p className="font-serif italic text-[14.5px] md:text-base leading-[1.55] text-brand-slate max-w-3xl mb-7 md:mb-10 text-balance">
+        IDV, NCB, Zero-Dep, engine cover, cashless networks — the things that
+        decide whether your claim gets paid in full or in fragments.
+      </p>
+      <div className="grid md:grid-cols-3 gap-6 md:gap-10">
         {steps.map((s, i) => {
           const accentClass =
             i % 2 === 1 ? "text-brand-sage" : "text-brand-plum";
           const sketchAccent = i % 2 === 1 ? "var(--plum)" : "var(--sage)";
           return (
             <div key={s.n}>
-              <div className="py-4 grid place-items-center bg-brand-surface mb-4 border-y border-brand-charcoal/10">
+              {/* Sketch tile — full-size surface block on desktop, hidden
+               *  on mobile (a smaller inline sketch sits next to the step
+               *  number instead, keeping each step compact). */}
+              <div className="hidden md:grid py-4 place-items-center bg-brand-surface mb-4 border-y border-brand-charcoal/10">
                 <span className={accentClass}>
                   <s.Sketch
                     width={220}
@@ -233,17 +226,28 @@ function V7HowItWorks() {
                   />
                 </span>
               </div>
-              <div
-                className={`font-serif italic font-medium text-[28px] tracking-[-0.01em] ${accentClass}`}
-              >
-                {s.n}
+              <div className="flex md:block items-start gap-4">
+                <span className={`md:hidden flex-shrink-0 mt-1 ${accentClass}`}>
+                  <s.Sketch
+                    width={64}
+                    color="currentColor"
+                    accent={sketchAccent}
+                  />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div
+                    className={`font-serif italic font-medium text-[22px] md:text-[28px] tracking-[-0.01em] leading-none ${accentClass}`}
+                  >
+                    {s.n}
+                  </div>
+                  <div className="font-serif font-semibold text-lg md:text-2xl leading-[1.15] tracking-[-0.015em] mt-1 mb-2 md:mb-3 text-brand-charcoal">
+                    {s.title}
+                  </div>
+                  <p className="font-serif text-sm md:text-[15.5px] leading-[1.55] md:leading-[1.6] text-brand-slate text-balance m-0">
+                    {s.body}
+                  </p>
+                </div>
               </div>
-              <div className="font-serif font-semibold text-2xl leading-[1.15] tracking-[-0.015em] mt-1 mb-3 text-brand-charcoal">
-                {s.title}
-              </div>
-              <p className="font-serif text-[15.5px] leading-[1.6] text-brand-slate text-balance m-0">
-                {s.body}
-              </p>
             </div>
           );
         })}
@@ -252,7 +256,7 @@ function V7HowItWorks() {
   );
 }
 
-/* ─── 5. § II · Case study ──────────────────────────────────────────────── */
+/* ─── 4. Case study ────────────────────────────────────────────────────── */
 function V7CaseStudy() {
   const findings = [
     {
@@ -388,7 +392,7 @@ function V7CaseStudy() {
   );
 }
 
-/* ─── 6. § III · Three rules ────────────────────────────────────────────── */
+/* ─── 5. Three rules ───────────────────────────────────────────────────── */
 function V7Rules() {
   const rules = [
     {
@@ -408,27 +412,32 @@ function V7Rules() {
     },
   ];
   return (
-    <section id="rules" className="pt-14 pb-8">
-      <div className="flex items-baseline gap-4 mb-7 pb-4 border-b border-brand-charcoal/10">
-        <span className="font-serif italic text-lg text-brand-slate">
+    <section id="rules" className="pt-10 md:pt-14 pb-8">
+      <div className="flex items-baseline gap-4 mb-5 md:mb-7 pb-3 md:pb-4 border-b border-brand-charcoal/10">
+        <span className="font-serif italic text-base md:text-lg text-brand-slate">
           The three rules we keep
         </span>
       </div>
-      <div className="grid md:grid-cols-3 gap-10">
+      {/* Mobile: tighter row layout per rule. The italic number and the
+       *  title sit on one line (number is smaller), with the explanatory
+       *  body wrapping below. Desktop: 3-column grid as before. */}
+      <div className="grid md:grid-cols-3 gap-7 md:gap-10">
         {rules.map((r, i) => {
           const accentClass =
             i === 1 ? "text-brand-sage" : "text-brand-plum";
           return (
             <div key={r.n}>
-              <div
-                className={`font-serif italic font-medium text-[32px] tracking-[-0.01em] mb-3.5 ${accentClass}`}
-              >
-                {r.n}
+              <div className="flex md:block items-baseline gap-2 md:gap-0">
+                <div
+                  className={`font-serif italic font-medium text-2xl md:text-[32px] tracking-[-0.01em] mb-0 md:mb-3.5 ${accentClass}`}
+                >
+                  {r.n}
+                </div>
+                <div className="font-serif font-semibold text-lg md:text-[22px] leading-[1.2] md:leading-[1.18] tracking-[-0.015em] mb-0 md:mb-3 text-brand-charcoal">
+                  {r.title}
+                </div>
               </div>
-              <div className="font-serif font-semibold text-[22px] leading-[1.18] tracking-[-0.015em] mb-3 text-brand-charcoal">
-                {r.title}
-              </div>
-              <p className="font-serif text-[15.5px] leading-[1.6] text-brand-slate text-balance m-0">
+              <p className="mt-2 md:mt-0 font-serif text-sm md:text-[15.5px] leading-[1.55] md:leading-[1.6] text-brand-slate text-balance m-0">
                 {r.body}
               </p>
             </div>
@@ -439,7 +448,7 @@ function V7Rules() {
   );
 }
 
-/* ─── 7. Quote — 4-story carousel ───────────────────────────────────────── */
+/* ─── 6. Quote — 4-story carousel ───────────────────────────────────────── */
 function V7Quote() {
   return (
     <section className="py-16 text-center">
@@ -448,7 +457,7 @@ function V7Quote() {
   );
 }
 
-/* ─── 8. Stats ──────────────────────────────────────────────────────────── */
+/* ─── 7. Stats ──────────────────────────────────────────────────────────── */
 function V7Stats() {
   const stats: [string, string, "plum" | "sage"][] = [
     ["1,000+", "policies reviewed", "plum"],
@@ -483,7 +492,7 @@ function V7Stats() {
   );
 }
 
-/* ─── 9. CTA ────────────────────────────────────────────────────────────── */
+/* ─── 8. Final CTA ──────────────────────────────────────────────────────── */
 function V7CTA() {
   return (
     <section className="pt-20 pb-12 text-center relative">
@@ -502,18 +511,18 @@ function V7CTA() {
         href="/upload"
         className="mt-7 inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[19px] hover:opacity-90 transition-opacity"
       >
-        Upload my motor policy <span aria-hidden>→</span>
+        Upload my car policy <span aria-hidden>→</span>
       </LoadingLink>
     </section>
   );
 }
 
-/* ─── 10. Footer ────────────────────────────────────────────────────────── */
+/* ─── 9. Footer ─────────────────────────────────────────────────────────── */
 function V7Foot() {
   return (
-    <footer className="py-5 mt-10 border-t border-brand-charcoal/10 flex flex-col md:flex-row gap-2 md:gap-0 items-start md:items-center justify-between font-mono text-[10.5px] uppercase tracking-[0.12em] text-brand-slate">
+    <footer className="py-5 mt-10 border-t border-brand-charcoal/10 flex flex-col md:flex-row gap-3 md:gap-0 items-center md:items-center justify-center md:justify-between text-center md:text-left font-mono text-[10.5px] uppercase tracking-[0.12em] text-brand-slate">
       <span>© RIGHTOFFER 2026 · MADE FOR INDIA</span>
-      <span className="flex gap-5">
+      <span className="flex flex-wrap justify-center gap-5">
         <a
           href="mailto:hello@rightoffer.in"
           className="hover:text-brand-charcoal transition-colors"
