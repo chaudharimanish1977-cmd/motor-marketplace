@@ -60,6 +60,13 @@ export function ReportGate({
   const [googlePending, setGooglePending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
+  // True once the OTP has verified successfully and we've kicked
+  // off `router.refresh()`. We don't reset `submitting` on success
+  // (the component is about to unmount), but we still need a flag
+  // so the button copy can flip to "Unlocked — opening…" rather
+  // than staying on "Unlocking…" indefinitely if the refresh is
+  // slow on a flaky connection.
+  const [verified, setVerified] = useState(false);
 
   /* ─── Continue with Google ───────────────────────────────────────── */
 
@@ -110,7 +117,7 @@ export function ReportGate({
 
   async function onSubmitOtp(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (submitting) return;
+    if (submitting || verified) return;
     const cleanOtp = otp.replace(/\D/g, "").slice(0, 4);
     if (!/^\d{4}$/.test(cleanOtp)) {
       setError("Enter the 4-digit code we emailed you.");
@@ -133,14 +140,20 @@ export function ReportGate({
       };
       if (!res.ok || !data.verified) {
         setError(data.error ?? "Couldn't verify the code.");
+        setSubmitting(false);
         return;
       }
-      // Refresh so the page re-renders without the gate. The session
-      // cookie set on the server response is now live.
+      // Success — lock the button into a final "Unlocked, opening…"
+      // state while the server-component refresh removes the gate.
+      // We deliberately DON'T reset `submitting` here; the component
+      // will unmount when the page re-renders without the gate, so
+      // any state change is wasted work. Resetting it created a
+      // visible flicker where the button briefly reverted to its
+      // default copy before the page re-rendered.
+      setVerified(true);
       router.refresh();
     } catch {
       setError("Network error. Try again.");
-    } finally {
       setSubmitting(false);
     }
   }
@@ -279,7 +292,7 @@ export function ReportGate({
                   vehicleLabel={vehicleLabel}
                   value={otp}
                   onChange={setOtp}
-                  disabled={submitting}
+                  disabled={submitting || verified}
                   autoFocus
                 />
               </div>
@@ -292,12 +305,14 @@ export function ReportGate({
 
               <button
                 type="submit"
-                disabled={submitting || otp.length !== 4}
+                disabled={submitting || verified || otp.length !== 4}
                 className="w-full inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3 rounded-full font-serif italic font-medium text-[15px] min-h-[44px] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
               >
-                {submitting
-                  ? "Unlocking…"
-                  : "Unlock the rest of my review"}
+                {verified
+                  ? "Unlocked — opening…"
+                  : submitting
+                    ? "Unlocking…"
+                    : "Unlock the rest of my review"}
               </button>
 
               <div className="flex items-center justify-center gap-4 pt-1">
@@ -308,15 +323,16 @@ export function ReportGate({
                     setOtp("");
                     setError(null);
                   }}
-                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate font-bold hover:text-brand-charcoal transition-colors"
+                  disabled={submitting || verified}
+                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate font-bold hover:text-brand-charcoal disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   · Different email ·
                 </button>
                 <button
                   type="button"
                   onClick={onResend}
-                  disabled={resending}
-                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-plum font-bold hover:opacity-80 disabled:opacity-60 transition-opacity"
+                  disabled={resending || submitting || verified}
+                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-plum font-bold hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
                 >
                   · {resending ? "Sending…" : "Resend code"} ·
                 </button>
