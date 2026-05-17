@@ -283,6 +283,12 @@ export function Journey({
           content={content.ask}
           answers={answers}
           onChange={handleAnswers}
+          onComplete={() => {
+            // The Ask act tells us "all questions are answered, no
+            // point holding here." Jump straight to Preview instead
+            // of waiting out the rest of the Ask stop's time budget.
+            if (phase === "ask") setPhase("preview");
+          }}
         />
       )}
       {phase === "preview" && <ActPreview content={content.preview} />}

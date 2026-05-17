@@ -1,28 +1,31 @@
 /**
- * Stop 3 · Ask — the next ~20 seconds.
+ * Stop 3 · Ask — capture up to 4 high-leverage answers.
  *
- * Capture up to 4 high-leverage answers that the policy itself doesn't
- * surface (past claims, what they worry about, what matters at renewal,
- * where the car is parked).
+ * One question at a time. Q2 only appears after Q1 is answered;
+ * Q3 after Q2; Q4 after Q3. No skip option — the only way forward
+ * is to answer, and the only nudge is the overall 2-min journey
+ * pacing (the Ask stop's time budget is the safety net).
  *
- * One question at a time. After the customer commits to an answer (or
- * taps "skip this →"), the current question gracefully tows out and
- * the next question tows in via the car-tow animation. A counter
- * (`Question N of M`) anchors the customer to where they are in the
- * sequence.
+ * The car-tow-in animation on each new question doubles as the
+ * customer's visual confirmation that their previous answer was
+ * registered, so we don't add a separate confirmation hold.
  *
- * Pre-seeded answers (e.g. home-page priority chip) are filtered out
- * of the queue before rendering, so the customer never sees a question
- * they've already answered upstream.
+ * Pre-seeded answers (e.g. home-page priority chip) are filtered
+ * out of the queue before rendering, so the customer never sees a
+ * question they've already answered upstream.
  *
- * All chip options are committal — no fence-sitter answers like
- * "Don't remember" or "Not sure".
+ * All chip options are committal — no fence-sitter answers.
+ *
+ * When the queue is exhausted (last question answered), we show a
+ * brief "All set" beat for ~1.5s then fire `onComplete` so the
+ * orchestrator can advance early to Stop 4 (no point holding the
+ * customer here once we've got their answers).
  *
  * Skipped entirely in State D (urgency context).
  */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActHeading } from "./act-frame";
 import { SketchCarStatic } from "@/components/sketches";
 import {
@@ -35,9 +38,24 @@ interface ActAskProps {
   content: ActContent;
   answers: JourneyAnswers;
   onChange: (answers: JourneyAnswers) => void;
+  /** Fired ~1.5s after the last question is answered. Lets the
+   *  orchestrator advance to Stop 4 immediately instead of holding
+   *  the customer on "All set" until the Ask stop's time budget
+   *  runs out. */
+  onComplete?: () => void;
 }
 
-export function ActAsk({ content, answers, onChange }: ActAskProps) {
+/** Hold time on the "All set" card before we tell the parent to
+ *  advance. Long enough that the customer registers the thanks,
+ *  short enough that it doesn't feel like a stall. */
+const ALL_SET_HOLD_MS = 1500;
+
+export function ActAsk({
+  content,
+  answers,
+  onChange,
+  onComplete,
+}: ActAskProps) {
   // Internal mirror so chip taps stay snappy even if the parent
   // re-renders late. Parent stays the source of truth between stops.
   const [local, setLocal] = useState<JourneyAnswers>(answers);
@@ -48,8 +66,7 @@ export function ActAsk({ content, answers, onChange }: ActAskProps) {
   const queue = ASK_QUESTIONS.filter((q) => !answers[q.key]);
 
   // Which question is currently centre-stage (0-indexed into queue).
-  // Advances on each commit; the queue runs to completion or until
-  // the stop timer auto-advances to Stop 4.
+  // Advances on each commit; runs until the queue is exhausted.
   const [idx, setIdx] = useState(0);
 
   const total = queue.length;
@@ -62,35 +79,38 @@ export function ActAsk({ content, answers, onChange }: ActAskProps) {
     const next = { ...local, [key]: value };
     setLocal(next);
     onChange(next);
-    // Hold the plum-active chip long enough for the customer to
-    // *see* their selection confirmed — feels like "got it" before
-    // the question tows out. Below ~600ms the confirmation barely
-    // registers; above ~900ms the wait starts to feel like a stall.
-    setTimeout(advance, 720);
+    // No artificial post-tap hold — the towing-in animation on the
+    // next question (520ms) carries the visual feedback all on its
+    // own. Tap → immediate transition → car tows the new question in.
+    advance();
   };
+
+  // Once the queue is exhausted, show the "All set" beat for a
+  // moment, then signal the orchestrator to move us to Stop 4.
+  useEffect(() => {
+    if (!done) return;
+    const id = setTimeout(() => onComplete?.(), ALL_SET_HOLD_MS);
+    return () => clearTimeout(id);
+  }, [done, onComplete]);
 
   return (
     <div>
       <ActHeading heading={content.heading} body={content.body} />
 
-      {/* Question carousel — single question on screen at a time.
-       *  Re-keyed on idx so the new question mounts with the towing-in
-       *  animation envelope. */}
+      {/* Question carousel — single question at a time. */}
       <div className="mt-6 md:mt-8 max-w-2xl mx-auto min-h-[170px] flex items-center justify-center">
         {current ? (
           // Q1 (idx===0) shares the parent's act-fade-in entrance —
           // we don't double-animate it with towing-in, so the heading
-          // gets to land first and then the first question settles in
-          // under it. Q2+ get the car-tows-it-in feel as the customer
-          // commits to earlier answers.
+          // lands first and Q1 settles in under it. Q2+ get the
+          // car-tows-it-in feel as the customer commits to earlier
+          // answers (and the tow animation is the visual receipt for
+          // the previous tap).
           <div
             key={current.key}
             className={`w-full ${idx === 0 ? "" : "animate-towing-in"}`}
           >
-            {/* Tiny towing car — visual anchor that says "the car
-             *  brought this question in". Counter (`N of M`) removed
-             *  to drop cognitive load; the car-tow-in animation does
-             *  the work of suggesting "more is coming". */}
+            {/* Tow car icon + label */}
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="text-brand-plum" aria-hidden>
                 <SketchCarStatic width={20} color="currentColor" />
@@ -126,21 +146,10 @@ export function ActAsk({ content, answers, onChange }: ActAskProps) {
                 );
               })}
             </div>
-
-            {/* Skip — soft escape that still advances the carousel */}
-            <div className="mt-4 text-center">
-              <button
-                type="button"
-                onClick={advance}
-                className="font-serif italic text-[13px] text-brand-slate hover:text-brand-charcoal transition-colors"
-              >
-                Skip this <span aria-hidden>→</span>
-              </button>
-            </div>
           </div>
         ) : (
-          // All done — keep the slot warm with a quiet thank-you while
-          // the Stop 3 timer winds down to Stop 4.
+          // Queue exhausted — brief "All set" beat that holds for
+          // ALL_SET_HOLD_MS, then the orchestrator advances us.
           <div className="text-center animate-act-fade-in">
             <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
               · All set ·
