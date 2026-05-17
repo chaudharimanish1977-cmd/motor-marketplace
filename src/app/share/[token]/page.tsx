@@ -182,7 +182,8 @@ export default async function SharePage({ params }: PageProps) {
         <section className="mt-12 border-t border-brand-charcoal/15 pt-8">
           <h2 className="font-serif font-medium text-[26px] md:text-[32px] leading-[1.1] tracking-[-0.015em] text-brand-charcoal m-0">
             Want the same audit on{" "}
-            <span className="italic text-brand-plum">your</span> car?
+            <span className="italic text-brand-plum">your</span> car
+            insurance?
           </h2>
           <p className="mt-3 font-serif text-[15px] md:text-[16px] leading-[1.55] text-brand-slate max-w-md">
             Free. Independent. No sales calls. We read your policy with AI
@@ -192,7 +193,7 @@ export default async function SharePage({ params }: PageProps) {
             href={`/?ref=share-${token.slice(0, 6)}`}
             className="mt-5 inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[16px] min-h-[48px] hover:opacity-90 transition-opacity"
           >
-            Audit my car <span aria-hidden>→</span>
+            Audit my car insurance <span aria-hidden>→</span>
           </Link>
           <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
             · Free to see · No sales calls · DPDP-aligned ·
