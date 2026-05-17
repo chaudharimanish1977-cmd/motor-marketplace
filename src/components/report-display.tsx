@@ -117,14 +117,12 @@ export function ReportDisplay({
 
         {/* THE GATE — sits between What's Missing (gaps + IDV) and
          *  At Renewal. Below this point is hidden for non-verified
-         *  customers. Investors + print-mode see everything. */}
+         *  customers. Investors + print-mode see everything. The gate
+         *  owns its own editorial framing (hairline section breaks,
+         *  serif headline, mono kicker) so we don't double-frame here. */}
         {showGate && view === "customer" && !printMode && (
           <div className="mt-14 md:mt-20 max-w-2xl mx-auto px-5 md:px-6">
             <ReportGate reportId={parsedPolicy.id} />
-            <p className="mt-4 text-center font-serif italic text-[14px] text-brand-slate">
-              The renewal advice, pricing snapshot, and the bottom-line
-              unlock once you verify your email above.
-            </p>
           </div>
         )}
 

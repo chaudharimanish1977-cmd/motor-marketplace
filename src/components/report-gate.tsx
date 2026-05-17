@@ -1,64 +1,77 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import {
-  Mail,
-  MessageCircle,
-  ShieldOff,
-  Loader2,
-  Lock,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 /**
- * The Right Offer gate (Model A) — appears on the report page right
- * after the "what's missing" section. Hard wall: behind the gate live
- * the Right Offer Recommendation, the Comparator, the Verdict, and
- * the PDF.
+ * Report gate — Phase 6.3 editorial reframe with Continue-with-Google
+ * as the primary unlock option.
  *
- * Two-step UX:
- *   1. Form (email mandatory, WhatsApp optional) → POST /api/report-gate/request-otp
- *   2. OTP entry → POST /api/report-gate/verify-otp → server stamps docs,
- *      sets upload session, sends magic link → router.refresh() so the
- *      page re-renders without the gate.
+ * Sits between "What's Missing" and "At Renewal" in /report/[id] for
+ * customers who haven't verified their email yet. Two paths through:
  *
- * Brand reassurance is baked in: "No sales calls" pill, the gate itself
- * frames the unlock as their choice ("type the code → see the rest"),
- * never punitive.
+ *   1. Continue with Google  →  one tap, ~5s round-trip via OAuth
+ *      (the official Google button, identical to /me/login)
+ *   2. Email + 4-digit code →  the existing OTP flow (preserved as
+ *      fallback for visitors who don't have a Google account, or
+ *      prefer email)
+ *
+ * Editorial styling locked in:
+ *   · No more gradient bg-brand-navy modal — replaced with hairline
+ *     section break + serif heading + plum CTAs
+ *   · Mono kicker · serif headline with italic-plum accent
+ *   · Email field in the editorial capsule treatment (plum focus)
+ *   · `brand-alert` for true errors, not the old red-rose family
+ *
+ * WhatsApp field dropped from V1 of this surface — it was marked
+ * "coming as soon as our setup is approved" in the old code (not
+ * actually functional) and added friction at the moment of highest
+ * conversion pressure. We'll re-introduce WhatsApp on a different
+ * surface (post-sign-in nudge) when the Business API is wired.
  */
 
 type Step = "form" | "otp";
 
 interface Props {
-  /** Optional report ID for analytics / future server hints. */
+  /** Optional — analytics / future server hints. */
   reportId?: string;
 }
 
 export function ReportGate({ reportId: _reportId }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
+
   const [step, setStep] = useState<Step>("form");
   const [email, setEmail] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
   const [otp, setOtp] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
+
+  /* ─── Continue with Google ───────────────────────────────────────── */
+
+  function onGoogle() {
+    if (googlePending) return;
+    setGooglePending(true);
+    // Send the customer back to the same report URL after the OAuth
+    // round-trip — the page re-renders without the gate because the
+    // ro-session cookie is now set.
+    void signIn("google", { callbackUrl: pathname || "/me" });
+  }
+
+  /* ─── OTP fallback ────────────────────────────────────────────────── */
 
   async function onSubmitForm(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submitting) return;
     const cleanEmail = email.trim();
-    if (!cleanEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) {
+    if (
+      !cleanEmail ||
+      !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)
+    ) {
       setError("Please enter a valid email.");
-      return;
-    }
-    const cleanWa = whatsapp.replace(/\D/g, "").slice(-10);
-    if (cleanWa && !/^[6-9]\d{9}$/.test(cleanWa)) {
-      setError(
-        "WhatsApp should be a 10-digit Indian mobile (or leave blank)."
-      );
       return;
     }
     setError(null);
@@ -67,10 +80,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
       const res = await fetch("/api/report-gate/request-otp", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          email: cleanEmail,
-          whatsapp: cleanWa || undefined,
-        }),
+        body: JSON.stringify({ email: cleanEmail }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as {
@@ -115,7 +125,7 @@ export function ReportGate({ reportId: _reportId }: Props) {
         return;
       }
       // Refresh so the page re-renders without the gate. The session
-      // cookie set on the server response will be present from now on.
+      // cookie set on the server response is now live.
       router.refresh();
     } catch {
       setError("Network error. Try again.");
@@ -144,197 +154,216 @@ export function ReportGate({ reportId: _reportId }: Props) {
     }
   }
 
+  /* ─── Render ──────────────────────────────────────────────────────── */
+
   return (
-    <div className="my-10 rounded-3xl border-2 border-brand-navy/30 bg-gradient-to-br from-brand-navy/10 to-white shadow-elevated overflow-hidden">
-      <div className="px-6 md:px-8 py-7">
-        <div className="flex items-start gap-3">
-          <div className="w-11 h-11 shrink-0 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-soft">
-            <Lock className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
-              Unlock the rest of your review
-            </div>
-            <h3 className="mt-1 text-xl md:text-2xl font-bold text-brand-charcoal leading-tight">
-              See exactly what to fix &mdash; and the Right Offer for your
-              car
-            </h3>
-            <p className="mt-2 text-sm text-brand-slate leading-relaxed">
-              The rest of the report includes our specific recommendation
-              for your car, your quote comparison, and the downloadable
-              PDF. We just need to verify your email so we can keep it
-              safe and email you the report.
-            </p>
-          </div>
+    <section className="relative mt-2 md:mt-4">
+      {/* Editorial section break above + below — signals "we cut off
+       *  here" without using a modal frame. */}
+      <div className="border-t border-brand-charcoal/15" />
+
+      <div className="max-w-xl mx-auto pt-9 md:pt-12">
+        {/* Kicker */}
+        <div className="text-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold">
+          · The Rest of Your Review · Locked ·
         </div>
 
-        {step === "form" ? (
-          <form onSubmit={onSubmitForm} className="mt-6 space-y-3">
-            <label className="block">
-              <span className="block text-[11px] font-semibold text-brand-charcoal mb-1">
-                Email
-                <span className="text-rose-600 ml-0.5">*</span>
-              </span>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-slate/70" />
+        {/* Headline */}
+        <h2 className="mt-4 text-center font-serif font-medium text-[28px] md:text-[36px] tracking-[-0.02em] leading-[1.1] text-brand-charcoal m-0">
+          One step{" "}
+          <span className="italic text-brand-plum">to keep reading.</span>
+        </h2>
+
+        {/* Intro */}
+        <p className="mt-3 text-center font-serif italic text-[15px] md:text-[16px] leading-[1.55] text-brand-slate max-w-md mx-auto">
+          The Right Offer pick for your car, the quote comparison, and
+          the downloadable PDF unlock once we know who you are.
+        </p>
+
+        {/* Google button — primary path */}
+        <div className="mt-7 md:mt-9">
+          <button
+            type="button"
+            onClick={onGoogle}
+            disabled={googlePending || submitting}
+            aria-label="Continue with Google"
+            className="w-full inline-flex items-center justify-center gap-3 h-11 px-4 rounded-md bg-white border border-[#dadce0] hover:bg-[#f8f9fa] disabled:opacity-60 disabled:cursor-not-allowed transition-colors font-medium text-[14px] tracking-[0.005em] text-[#3c4043] shadow-[0_1px_2px_rgba(60,64,67,0.06)] font-sans"
+          >
+            <GoogleGlyph />
+            <span>
+              {googlePending
+                ? "Opening Google…"
+                : "Continue with Google"}
+            </span>
+          </button>
+        </div>
+
+        {/* Separator */}
+        <div className="mt-6 md:mt-7 flex items-center gap-3">
+          <div className="flex-1 border-t border-brand-charcoal/15" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand-slate">
+            or with email
+          </span>
+          <div className="flex-1 border-t border-brand-charcoal/15" />
+        </div>
+
+        {/* OTP flow — form or otp step */}
+        <div className="mt-6 md:mt-7">
+          {step === "form" ? (
+            <form onSubmit={onSubmitForm} className="space-y-3">
+              <label className="block">
+                <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate font-bold mb-1.5">
+                  Email address
+                </span>
                 <input
                   type="email"
                   required
-                  autoFocus
                   inputMode="email"
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  disabled={submitting}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors disabled:opacity-60"
+                  disabled={submitting || googlePending}
+                  className="w-full px-4 py-3 font-serif text-[15px] text-brand-charcoal placeholder:text-brand-slate/50 bg-brand-offwhite border border-brand-charcoal/15 rounded-full focus:outline-none focus:border-brand-plum focus:ring-2 focus:ring-brand-plum/15 transition-colors disabled:opacity-60"
                 />
-              </div>
-            </label>
+              </label>
 
-            <label className="block">
-              <span className="block text-[11px] font-semibold text-brand-charcoal mb-1">
-                WhatsApp number{" "}
-                <span className="font-normal text-brand-slate">
-                  (optional)
+              {error && (
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-alert font-bold text-center">
+                  · {error} ·
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting || googlePending || !email}
+                className="w-full inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3 rounded-full font-serif italic font-medium text-[15px] min-h-[44px] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              >
+                {submitting
+                  ? "Sending the code…"
+                  : "Email me a 4-digit code"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={onSubmitOtp} className="space-y-3">
+              <div className="text-center">
+                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand-sage font-bold">
+                  · Check your inbox ·
+                </div>
+                <p className="mt-2 font-serif italic text-[14px] md:text-[15px] text-brand-slate leading-[1.55]">
+                  We sent a 4-digit code to{" "}
+                  <span className="not-italic text-brand-charcoal">
+                    {email}
+                  </span>
+                  .
+                </p>
+              </div>
+
+              <label className="block">
+                <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate font-bold mb-1.5 text-center">
+                  Enter the 4-digit code
                 </span>
-              </span>
-              <div className="relative">
-                <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-slate/70" />
                 <input
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="9XXXXXXXXX"
+                  type="text"
+                  required
+                  autoFocus
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
+                  value={otp}
+                  onChange={(e) =>
+                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))
+                  }
+                  placeholder="••••"
                   disabled={submitting}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors disabled:opacity-60"
+                  className="w-full px-4 py-3 font-serif text-[28px] font-semibold text-center tracking-[0.4em] tabular-nums text-brand-charcoal placeholder:text-brand-slate/30 bg-brand-offwhite border border-brand-charcoal/15 rounded-full focus:outline-none focus:border-brand-plum focus:ring-2 focus:ring-brand-plum/15 transition-colors disabled:opacity-60"
                 />
-              </div>
-              <p className="text-[10px] text-brand-slate/80 mt-1 leading-relaxed">
-                Renewal nudges on WhatsApp &mdash; coming as soon as our
-                setup is approved.
-              </p>
-            </label>
+              </label>
 
-            <div className="rounded-xl bg-emerald-50/40 border border-emerald-100 p-2.5 flex items-start gap-2">
-              <ShieldOff className="w-3.5 h-3.5 text-emerald-700 mt-0.5 shrink-0" />
-              <div className="text-[11px] text-emerald-900 leading-snug">
-                <strong className="font-semibold">No sales calls. Ever.</strong>{" "}
-                We only message about your renewals.
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-[12px] text-red-600 leading-snug flex items-start gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                <span>{error}</span>
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting || !email}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-brand-olive hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-glow transition-all"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Sending code...
-                </>
-              ) : (
-                "Send me the code"
+              {error && (
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-alert font-bold text-center">
+                  · {error} ·
+                </p>
               )}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={onSubmitOtp} className="mt-6 space-y-3">
-            <div className="text-sm text-brand-slate leading-relaxed flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-              <span>
-                We sent a 4-digit code to{" "}
-                <span className="font-semibold text-brand-charcoal">
-                  {email}
-                </span>
-                . Type it below to unlock the rest of your report.
-              </span>
-            </div>
 
-            <label className="block">
-              <span className="block text-[11px] font-semibold text-brand-charcoal mb-1">
-                Enter the 4-digit code
-              </span>
-              <input
-                type="text"
-                required
-                autoFocus
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={4}
-                value={otp}
-                onChange={(e) =>
-                  setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))
-                }
-                placeholder="1234"
-                disabled={submitting}
-                className="w-full px-4 py-3 text-2xl font-bold text-center tracking-[0.4em] tabular-nums rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors disabled:opacity-60"
-              />
-            </label>
+              <button
+                type="submit"
+                disabled={submitting || otp.length !== 4}
+                className="w-full inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3 rounded-full font-serif italic font-medium text-[15px] min-h-[44px] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              >
+                {submitting
+                  ? "Unlocking…"
+                  : "Unlock the rest of my review"}
+              </button>
 
-            {error && (
-              <p className="text-[12px] text-red-600 leading-snug flex items-start gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                <span>{error}</span>
+              <div className="flex items-center justify-center gap-4 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("form");
+                    setOtp("");
+                    setError(null);
+                  }}
+                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate font-bold hover:text-brand-charcoal transition-colors"
+                >
+                  · Different email ·
+                </button>
+                <button
+                  type="button"
+                  onClick={onResend}
+                  disabled={resending}
+                  className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-plum font-bold hover:opacity-80 disabled:opacity-60 transition-opacity"
+                >
+                  · {resending ? "Sending…" : "Resend code"} ·
+                </button>
+              </div>
+
+              <p className="text-center font-mono text-[9.5px] uppercase tracking-[0.12em] text-brand-slate pt-1">
+                · Can&apos;t find it? Check Promotions / Spam · sender:
+                hello@rightoffer.in ·
               </p>
-            )}
+            </form>
+          )}
+        </div>
 
-            <button
-              type="submit"
-              disabled={submitting || otp.length !== 4}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-brand-olive hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-glow transition-all"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                "Unlock the rest of my report"
-              )}
-            </button>
-
-            <div className="flex items-center justify-between text-[11px] text-brand-slate pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("form");
-                  setOtp("");
-                  setError(null);
-                }}
-                className="font-semibold text-brand-slate hover:text-brand-charcoal"
-              >
-                Use a different email
-              </button>
-              <button
-                type="button"
-                onClick={onResend}
-                disabled={resending}
-                className="font-semibold text-brand-navy hover:underline disabled:opacity-60"
-              >
-                {resending ? "Sending..." : "Resend code"}
-              </button>
-            </div>
-
-            <p className="text-[10px] text-brand-slate/70 leading-relaxed pt-1">
-              Can&rsquo;t find the email? Check Promotions / Spam. The
-              sender is <span className="font-mono">hello@rightoffer.in</span>{" "}
-              &mdash; add it to your contacts so future renewal reminders
-              land in your inbox.
-            </p>
-          </form>
-        )}
+        {/* Trust line — small editorial footer */}
+        <p className="mt-7 md:mt-8 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-brand-sage font-bold">
+          · No sales calls. Ever. · We only message about renewals ·
+        </p>
       </div>
-    </div>
+
+      <div className="mt-10 md:mt-12 border-t border-brand-charcoal/15" />
+    </section>
+  );
+}
+
+/* ─── Official Google glyph (multicoloured G, inline SVG) ────────── */
+
+function GoogleGlyph() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2581h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.615z"
+        fill="#4285F4"
+      />
+      <path
+        d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2581c-.8059.54-1.8368.8595-3.0477.8595-2.3445 0-4.3286-1.5832-5.0359-3.7104H.9573v2.3318C2.4382 15.9832 5.4818 18 9 18z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.9641 10.71c-.18-.54-.2823-1.1168-.2823-1.71s.1023-1.17.2823-1.71V4.9582H.9573C.3477 6.1732 0 7.5477 0 9s.3477 2.8268.9573 4.0418L3.9641 10.71z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C13.4632.8918 11.4259 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.9641 7.29C4.6714 5.1627 6.6555 3.5795 9 3.5795z"
+        fill="#EA4335"
+      />
+    </svg>
   );
 }
