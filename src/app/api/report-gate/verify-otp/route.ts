@@ -17,13 +17,9 @@ import {
   clearAnonymousSession,
   getAnonymousSession,
 } from "@/lib/anonymous-session";
-import { sendMagicLinkEmail } from "@/lib/email-sender";
-import { buildMagicLinkUrl } from "@/lib/email-token";
 import type { ParsedPolicy, User } from "@/lib/types";
 
 export const runtime = "nodejs";
-
-const SITE_URL = "https://rightoffer.in";
 
 const Schema = z.object({
   email: z.string().email("Invalid email"),
@@ -42,12 +38,17 @@ const Schema = z.object({
  *   3. Set the upload-session cookie (scoped browser session, email
  *      verified, same as M3.5).
  *   4. Clear the anonymous-session cookie (its purpose is fulfilled).
- *   5. Queue a magic-link email so the customer can return from any
- *      device.
  *
  * After verification the customer's docs are durably linked to their
  * email + the rest of the report unlocks. The page client refreshes
  * to re-render with the gate gone.
+ *
+ * A magic-link email used to fire here too as a "future cross-device
+ * recovery" courtesy — that's been removed. The customer is fully
+ * signed in on this browser already, and any future device can hit
+ * /me/login to request a fresh magic-link on demand. Sending one
+ * preemptively just landed a confusing second email in their inbox
+ * seconds after the OTP code.
  */
 export async function POST(request: NextRequest) {
   let body: z.infer<typeof Schema>;
@@ -136,20 +137,6 @@ export async function POST(request: NextRequest) {
   // typed-but-unverified.
   await setUploadSession(email, docIds, pending.whatsapp);
   await clearAnonymousSession();
-
-  // Send a magic link for cross-device access. Customer doesn't need
-  // it right now (they're verified in this browser), but it gives
-  // them a future-proof recovery path. Best-effort — failure here
-  // shouldn't fail the verification.
-  try {
-    const url = buildMagicLinkUrl(email, SITE_URL);
-    await sendMagicLinkEmail({ to: email, url });
-  } catch (err) {
-    console.error(
-      "[report-gate/verify-otp] Magic link send failed:",
-      err
-    );
-  }
 
   return NextResponse.json({ verified: true, email });
 }
