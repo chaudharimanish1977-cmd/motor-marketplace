@@ -42,6 +42,15 @@ const PRESETS = {
 
 type PresetKey = keyof typeof PRESETS;
 
+type JumpPhase =
+  | "auto"
+  | "hello"
+  | "read"
+  | "ask"
+  | "preview"
+  | "stitching"
+  | "destination";
+
 export function JourneySandbox() {
   const [state, setState] = useState<LifecycleState>("A");
   const [preset, setPreset] = useState<PresetKey>("audiA6");
@@ -51,6 +60,7 @@ export function JourneySandbox() {
   const [errorOn, setErrorOn] = useState(false);
   const [journeyKey, setJourneyKey] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [jumpTo, setJumpTo] = useState<JumpPhase>("auto");
 
   const ctx = {
     vehicleLabel: PRESETS[preset].vehicleLabel,
@@ -141,6 +151,35 @@ export function JourneySandbox() {
           <Chip onClick={reset}>↻ Restart</Chip>
         </ControlRow>
 
+        <ControlRow label="Jump to stop">
+          {(
+            [
+              "auto",
+              "hello",
+              "read",
+              "ask",
+              "preview",
+              "stitching",
+              "destination",
+            ] as JumpPhase[]
+          ).map((p) => (
+            <Chip
+              key={p}
+              active={jumpTo === p}
+              onClick={() => {
+                setJumpTo(p);
+                // Re-key the Journey so it remounts with the new
+                // initialPhase. Clear parse-state so the new mount
+                // starts fresh.
+                setJourneyKey((k) => k + 1);
+                setCompleted(false);
+              }}
+            >
+              {p}
+            </Chip>
+          ))}
+        </ControlRow>
+
         {completed && (
           <div className="text-[12px] font-mono uppercase tracking-[0.12em] text-brand-plum">
             · onComplete fired · (would navigate to /report/[id] in prod) ·
@@ -156,6 +195,7 @@ export function JourneySandbox() {
           context={ctx}
           parseComplete={parseDone}
           parseError={parseError}
+          initialPhase={jumpTo === "auto" ? undefined : jumpTo}
           onComplete={() => setCompleted(true)}
           onRetry={reset}
           onAbandon={reset}

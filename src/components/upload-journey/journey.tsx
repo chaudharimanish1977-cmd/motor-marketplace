@@ -68,6 +68,16 @@ interface JourneyProps {
   onRetry?: () => void;
   /** Fired when the customer taps "Start over" on error. */
   onAbandon?: () => void;
+  /** Dev-only — mount the journey directly at a specific stop. Used by
+   *  /preview/journey to skip clocks while iterating on visuals. Not
+   *  for production use; pass undefined in real flows. */
+  initialPhase?:
+    | "hello"
+    | "read"
+    | "ask"
+    | "preview"
+    | "stitching"
+    | "destination";
 }
 
 /** Fallback timer on the destination beat — if the customer doesn't
@@ -84,6 +94,7 @@ export function Journey({
   onComplete,
   onRetry,
   onAbandon,
+  initialPhase,
 }: JourneyProps) {
   // Resolve per-state content. Memoised on inputs.
   const content = useMemo(
@@ -113,7 +124,7 @@ export function Journey({
     return m;
   }, [stops]);
 
-  const [phase, setPhase] = useState<Phase>("hello");
+  const [phase, setPhase] = useState<Phase>(initialPhase ?? "hello");
   const [answers, setAnswers] = useState<JourneyAnswers>({});
 
   // Phase-entry timestamp — used by the Stitching gate.
