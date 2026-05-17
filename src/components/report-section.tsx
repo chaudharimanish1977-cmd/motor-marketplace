@@ -62,7 +62,7 @@ export function ReportSection({
   return (
     <section
       id={anchor}
-      className="relative mt-14 md:mt-20 first:mt-0 max-w-2xl mx-auto px-5 md:px-6"
+      className="relative mt-14 md:mt-20 first:mt-0 max-w-2xl mx-auto px-5 md:px-6 print:mt-10 print:break-inside-avoid"
     >
       {/* Sketch — floated-right on desktop, stacked above on mobile */}
       {sketch && (
@@ -137,17 +137,21 @@ export function SectionItem({
   /** Optional extra child rendered under the body (e.g. claim simulator). */
   callout?: React.ReactNode;
 }) {
-  // Status glyphs use the Reading Room palette — plum + sage only.
-  // `alert` doesn't get a separate red (the brand palette doesn't
-  // include one); instead we lean on the glyph (!) and a bolder
-  // weight to read as "attention" inside the plum family.
+  // Status glyphs draw on the real functional colors from the brand
+  // palette — `brand-alert` (warm coral #E17055) for true risk,
+  // `brand-success` (teal #00B894) for unambiguous wins, plum +
+  // sage for the editorial mid-tones. Used sparingly so the page
+  // stays calm everywhere except where danger or strength belongs.
   const statusGlyph =
     status === "good"
-      ? { char: "✓", cls: "text-brand-sage" }
+      ? { char: "✓", cls: "text-brand-success" }
       : status === "watch"
         ? { char: "⚠", cls: "text-brand-plum" }
         : status === "alert"
-          ? { char: "!", cls: "text-brand-plum font-black text-[16px]" }
+          ? {
+              char: "!",
+              cls: "text-brand-alert font-black text-[18px]",
+            }
           : { char: "·", cls: "text-brand-slate" };
 
   return (
@@ -191,18 +195,21 @@ export function SectionPullQuote({
   children: React.ReactNode;
   tone?: "plum" | "alert" | "sage";
 }) {
-  // The Reading Room palette is plum + sage + neutrals. "Alert"
-  // collapses to plum (the primary accent) with a thicker left
-  // border for added weight — separates it from the calmer "plum"
-  // tone without introducing a non-brand red.
+  // Alert tone draws on the real `brand-alert` (warm coral #E17055)
+  // — used where a number or a callout signals genuine financial
+  // risk. Sage + plum keep the editorial mid-tones.
   const borderCls =
     tone === "alert"
-      ? "border-brand-plum border-l-4"
+      ? "border-brand-alert border-l-4"
       : tone === "sage"
         ? "border-brand-sage border-l-2"
         : "border-brand-plum border-l-2";
   const labelCls =
-    tone === "sage" ? "text-brand-sage" : "text-brand-plum";
+    tone === "alert"
+      ? "text-brand-alert"
+      : tone === "sage"
+        ? "text-brand-sage"
+        : "text-brand-plum";
 
   return (
     <div

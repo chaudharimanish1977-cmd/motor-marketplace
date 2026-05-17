@@ -104,8 +104,10 @@ export function WhatsMissingSection({
     low: "Reads low",
     high: "Reads high",
   };
-  const idvStatus =
-    idv.assessment === "appropriate" ? "good" : "watch";
+  const idvAssessmentCls =
+    idv.assessment === "appropriate"
+      ? "text-brand-success"
+      : "text-brand-alert";
 
   return (
     <ReportSection
@@ -161,9 +163,7 @@ export function WhatsMissingSection({
             {formatINR(idv.currentIdv)}
           </div>
           <div
-            className={`font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold ${
-              idvStatus === "good" ? "text-brand-sage" : "text-brand-plum"
-            }`}
+            className={`font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold ${idvAssessmentCls}`}
           >
             · {idvAssessmentLabel[idv.assessment]} ·
           </div>
@@ -299,14 +299,15 @@ function PricingFigure({
 export function BottomLineSection({
   parsedPolicy,
   report,
+  printMode = false,
 }: {
   parsedPolicy: ParsedPolicy;
   report: PolicyReport;
+  /** When true, hide the renewal CTA pill so the PDF reads as a
+   *  pure printable document with no interactive chrome. */
+  printMode?: boolean;
 }) {
   const takeaway = report.keyTakeaway;
-  // The CTA text comes from the takeaway, but we ignore it for now —
-  // the action-surface (renew / drop quote / reminder / share) gets
-  // built properly in Phase 6.2. Single primary CTA here.
   const renewHref = `/upload?fresh=1&renewal=${parsedPolicy.id}`;
 
   return (
@@ -321,18 +322,20 @@ export function BottomLineSection({
         {takeaway.body}
       </div>
 
-      <div className="mt-6 md:mt-8">
-        <LoadingLink
-          href={renewHref}
-          className="inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[16px] min-h-[48px] hover:opacity-90 transition-opacity"
-        >
-          {takeaway.cta || "Get my renewal quotes"}{" "}
-          <span aria-hidden>→</span>
-        </LoadingLink>
-        <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
-          · Free to see · Insurers compete for your renewal · No spam ·
+      {!printMode && (
+        <div className="mt-6 md:mt-8 print:hidden">
+          <LoadingLink
+            href={renewHref}
+            className="inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[16px] min-h-[48px] hover:opacity-90 transition-opacity"
+          >
+            {takeaway.cta || "Get my renewal quotes"}{" "}
+            <span aria-hidden>→</span>
+          </LoadingLink>
+          <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+            · Free to see · Insurers compete for your renewal · No spam ·
+          </div>
         </div>
-      </div>
+      )}
     </ReportSection>
   );
 }

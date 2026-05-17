@@ -39,6 +39,7 @@
  */
 
 import { CarSmiley, type SmileyRating } from "@/components/car-smiley";
+import type React from "react";
 import { NumberPlate } from "@/components/number-plate";
 import { computeCoverageScore } from "@/lib/coverage-score";
 import { formatINR } from "@/lib/format";
@@ -163,22 +164,17 @@ export function ReportCover({ parsedPolicy, report }: ReportCoverProps) {
           Reviewed · {reviewDate}
         </div>
 
-        {/* Hero: CarSmiley rating */}
-        <div className="mt-9 md:mt-11 flex flex-col items-center text-brand-plum">
-          <div className="relative">
-            {/* Soft pulse rings behind the smiley — same energy as the
-             *  Destination beat on the journey. */}
-            <span
-              className="absolute inset-0 -m-6 rounded-full bg-brand-plum/8 animate-roadpulse"
-              aria-hidden
-            />
-            <div className="relative animate-smiley-pop">
-              <CarSmiley rating={rating} width={140} />
-            </div>
-          </div>
-          <div className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold">
-            · {ratingLabel} ·
-          </div>
+        {/* Hero: the full 5-smiley rating scale with the customer's
+         *  rating standing out. Showing only one smiley loses the
+         *  "rating on a scale" reading — customer might not realise
+         *  rating 4 is one off from the best. Showing all five with
+         *  the rated one larger + full plum + pulsing rings makes
+         *  the scale + the customer's position obvious in one glance. */}
+        <SmileyRatingRow rating={rating} ratingLabel={ratingLabel} />
+
+        {/* Active rating label below the row */}
+        <div className="mt-5 md:mt-6 text-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold">
+          · {ratingLabel} ·
         </div>
 
         {/* The verdict — one-sentence pull quote. Plain serif body,
@@ -231,4 +227,94 @@ function formatDateShort(iso: string): string {
     year: "numeric",
     timeZone: "Asia/Kolkata",
   });
+}
+
+/* ─── 5-smiley rating row ───────────────────────────────────────────── */
+
+/** Per-rating mini-labels shown UNDER each smiley. The full label
+ *  ("· Decent ·") is shown ONCE below the row in the main cover
+ *  composition; these mini-labels mark every rung of the ladder so
+ *  the scale itself is legible. */
+const MINI_LABELS: Record<SmileyRating, string> = {
+  1: "Critical",
+  2: "Watch",
+  3: "Decent",
+  4: "Good",
+  5: "Excellent",
+};
+
+interface SmileyRatingRowProps {
+  rating: SmileyRating;
+  ratingLabel: string;
+}
+
+/**
+ * Renders all five smileys in a horizontal row. The customer's
+ * rating is larger, fully plum-tinted, with the pulse-rings entrance
+ * from the journey's Destination beat. The other four are smaller +
+ * muted (charcoal/25) so the row reads as a clear scale rather than
+ * five competing visuals.
+ *
+ * Sizing tuned so all five fit comfortably on a 360px-wide mobile
+ * viewport (84 + 4×52 = ~292px of smileys plus gaps).
+ */
+function SmileyRatingRow({
+  rating,
+  ratingLabel,
+}: SmileyRatingRowProps): React.ReactElement {
+  const RATINGS: SmileyRating[] = [1, 2, 3, 4, 5];
+  return (
+    <div className="mt-9 md:mt-11">
+      <div className="flex items-end justify-center gap-2 md:gap-3">
+        {RATINGS.map((r) => {
+          const active = r === rating;
+          return (
+            <div
+              key={r}
+              className="flex flex-col items-center"
+              style={{
+                width: active ? undefined : 52,
+              }}
+            >
+              {active ? (
+                // Active rung — pulse rings + larger smiley + pop entrance
+                <div className="relative text-brand-plum">
+                  <span
+                    className="absolute inset-0 -m-4 rounded-full bg-brand-plum/10 animate-roadpulse"
+                    aria-hidden
+                  />
+                  <div className="relative animate-smiley-pop">
+                    <CarSmiley
+                      rating={r}
+                      width={96}
+                      aria-label={`${rating} of 5: ${ratingLabel}`}
+                    />
+                  </div>
+                </div>
+              ) : (
+                // Inactive rung — smaller, muted ink so the row reads
+                // as a scale with the active one obviously highlighted.
+                <div className="text-brand-charcoal/25">
+                  <CarSmiley
+                    rating={r}
+                    width={52}
+                    aria-label={`${r} of 5: ${MINI_LABELS[r]}`}
+                  />
+                </div>
+              )}
+              <div
+                className={`mt-2 font-mono uppercase tracking-[0.12em] ${
+                  active
+                    ? "text-brand-plum font-bold text-[9.5px]"
+                    : "text-brand-charcoal/40 text-[8.5px]"
+                }`}
+              >
+                {MINI_LABELS[r]}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

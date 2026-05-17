@@ -20,6 +20,7 @@ import {
 } from "@/components/driving-profile-card";
 import { SimplifyToggle } from "@/components/simplify-toggle";
 import { ReportCover } from "@/components/report-cover";
+import { ReportSummary } from "@/components/report-summary";
 import {
   WhatsWorkingSection,
   WhatsMissingSection,
@@ -69,6 +70,16 @@ export function ReportDisplay({
        *  intentionally retired here — print-mode keeps the cover too,
        *  so the PDF leads with the same editorial first impression. */}
       <ReportCover parsedPolicy={parsedPolicy} report={report} />
+
+      {/* Summary — Phase 6.1.1 one-page TL;DR. Sits between the
+       *  Garage cover and the four detailed body sections so the
+       *  customer who wants only the headline + an action button
+       *  never has to scroll into the full review. */}
+      <ReportSummary
+        parsedPolicy={parsedPolicy}
+        report={report}
+        printMode={printMode}
+      />
 
       {/* Desktop-only controls strip — moved out of the header so the
        *  cover stays clean. Hidden on mobile + in print to keep the
@@ -134,6 +145,7 @@ export function ReportDisplay({
             <BottomLineSection
               parsedPolicy={parsedPolicy}
               report={report}
+              printMode={printMode}
             />
 
             {/* Investor-only admin toggles — Phase 6.2 will redesign
