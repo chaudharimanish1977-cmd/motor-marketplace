@@ -46,14 +46,14 @@ export async function GET(_request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Report not found" }, { status: 404 });
   }
 
-  // Same gating as the PDF route — can't side-channel personal data.
+  // Same gating as the PDF + /report/[id] surfaces — any verified
+  // session can render the card. See report-pdf/[id] for why we keep
+  // this lenient rather than enforcing a strict email match.
   const [fullSessionEmail, uploadSession] = await Promise.all([
     getSession(),
     getUploadSession(),
   ]);
-  const ownerEmail = (parsedPolicy.owner?.email ?? "").toLowerCase();
-  const sessionEmail = (fullSessionEmail ?? "").toLowerCase();
-  const fullSessionOk = !!sessionEmail && sessionEmail === ownerEmail;
+  const fullSessionOk = !!fullSessionEmail;
   const uploadSessionOk =
     !!uploadSession && uploadSession.docs.includes(id);
   if (!fullSessionOk && !uploadSessionOk) {

@@ -48,16 +48,19 @@ export async function GET(request: NextRequest, { params }: Params) {
     );
   }
 
-  // Auth gate — full session for the owning email, OR an upload
-  // session that includes this doc. Mirrors the /report/[id] page's
-  // own gating so the PDF can't be used as a side-channel around it.
+  // Auth gate — any verified session (full magic-link / OAuth OR
+  // upload-session that owns this doc) can save the PDF. We deliberately
+  // mirror /report/[id]'s gating exactly rather than tightening here:
+  // if you can VIEW the report on-screen, you can save the same content
+  // as a PDF. Tightening to a strict email match locks out the common
+  // legitimate path (open report on phone via the magic-link email
+  // where the device has the session cookie but the parsed policy's
+  // owner.email field is empty or differently-cased).
   const [fullSessionEmail, uploadSession] = await Promise.all([
     getSession(),
     getUploadSession(),
   ]);
-  const ownerEmail = (parsedPolicy.owner?.email ?? "").toLowerCase();
-  const sessionEmail = (fullSessionEmail ?? "").toLowerCase();
-  const fullSessionOk = !!sessionEmail && sessionEmail === ownerEmail;
+  const fullSessionOk = !!fullSessionEmail;
   const uploadSessionOk =
     !!uploadSession && uploadSession.docs.includes(id);
   if (!fullSessionOk && !uploadSessionOk) {

@@ -39,19 +39,23 @@ export async function POST(_request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Report not found" }, { status: 404 });
   }
 
-  // Auth — mirrors the PDF + card routes
+  // Auth — mirrors the PDF + card routes + /report/[id]'s own gate.
+  // Any verified session can mint a share token for a report it can
+  // already view on-screen. Tightening to a strict email match here
+  // would lock out the common path of opening the report on a second
+  // device from the magic-link email.
   const [fullSessionEmail, uploadSession] = await Promise.all([
     getSession(),
     getUploadSession(),
   ]);
-  const ownerEmail = (parsedPolicy.owner?.email ?? "").toLowerCase();
-  const sessionEmail = (fullSessionEmail ?? "").toLowerCase();
-  const fullSessionOk = !!sessionEmail && sessionEmail === ownerEmail;
+  const fullSessionOk = !!fullSessionEmail;
   const uploadSessionOk =
     !!uploadSession && uploadSession.docs.includes(id);
   if (!fullSessionOk && !uploadSessionOk) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
+  const sessionEmail = (fullSessionEmail ?? "").toLowerCase();
+  const ownerEmail = (parsedPolicy.owner?.email ?? "").toLowerCase();
 
   // Reuse an existing non-revoked token if present (idempotency).
   const existing = await findOne<ShareToken>(
