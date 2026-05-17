@@ -134,7 +134,11 @@ export function getJourneyContent(
         ask: {
           heading: "A few quick things — so we can tailor.",
           body: "One at a time. Tap one, or skip.",
-          durationMs: 20_000,
+          // ~7s per question across 4 questions, plus settle time
+          // for the chosen-chip plum confirmation. Tight enough to
+          // feel like a chat, loose enough that questions don't
+          // get yanked away mid-thought.
+          durationMs: 28_000,
         },
         preview: {
           heading: `For your ${vehicle}, we're recommending.`,
@@ -148,7 +152,7 @@ export function getJourneyContent(
         },
         destination,
         skipAsk: false,
-        minTotalMs: 87_000,
+        minTotalMs: 95_000,
         masthead,
       };
     }
@@ -172,7 +176,11 @@ export function getJourneyContent(
         ask: {
           heading: "A few quick things — so we can tailor.",
           body: "One at a time. Tap one, or skip.",
-          durationMs: 20_000,
+          // ~7s per question across 4 questions, plus settle time
+          // for the chosen-chip plum confirmation. Tight enough to
+          // feel like a chat, loose enough that questions don't
+          // get yanked away mid-thought.
+          durationMs: 28_000,
         },
         preview: {
           heading: `For your ${vehicle}, we're recommending.`,
@@ -186,7 +194,7 @@ export function getJourneyContent(
         },
         destination,
         skipAsk: false,
-        minTotalMs: 87_000,
+        minTotalMs: 95_000,
         masthead,
       };
     }
@@ -206,7 +214,11 @@ export function getJourneyContent(
         ask: {
           heading: "A few quick things — so we can tailor.",
           body: "One at a time. Tap one, or skip.",
-          durationMs: 20_000,
+          // ~7s per question across 4 questions, plus settle time
+          // for the chosen-chip plum confirmation. Tight enough to
+          // feel like a chat, loose enough that questions don't
+          // get yanked away mid-thought.
+          durationMs: 28_000,
         },
         preview: {
           heading: `For your ${vehicle}, we're checking.`,
@@ -220,7 +232,7 @@ export function getJourneyContent(
         },
         destination,
         skipAsk: false,
-        minTotalMs: 87_000,
+        minTotalMs: 95_000,
         masthead,
       };
 

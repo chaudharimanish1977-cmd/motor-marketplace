@@ -62,9 +62,11 @@ export function ActAsk({ content, answers, onChange }: ActAskProps) {
     const next = { ...local, [key]: value };
     setLocal(next);
     onChange(next);
-    // Short pause so the customer registers their selection before
-    // the question tows out.
-    setTimeout(advance, 320);
+    // Hold the plum-active chip long enough for the customer to
+    // *see* their selection confirmed — feels like "got it" before
+    // the question tows out. Below ~600ms the confirmation barely
+    // registers; above ~900ms the wait starts to feel like a stall.
+    setTimeout(advance, 720);
   };
 
   return (
@@ -76,7 +78,15 @@ export function ActAsk({ content, answers, onChange }: ActAskProps) {
        *  animation envelope. */}
       <div className="mt-6 md:mt-8 max-w-2xl mx-auto min-h-[170px] flex items-center justify-center">
         {current ? (
-          <div key={current.key} className="w-full animate-towing-in">
+          // Q1 (idx===0) shares the parent's act-fade-in entrance —
+          // we don't double-animate it with towing-in, so the heading
+          // gets to land first and then the first question settles in
+          // under it. Q2+ get the car-tows-it-in feel as the customer
+          // commits to earlier answers.
+          <div
+            key={current.key}
+            className={`w-full ${idx === 0 ? "" : "animate-towing-in"}`}
+          >
             {/* Tiny towing car — visual anchor that says "the car
              *  brought this question in". Counter (`N of M`) removed
              *  to drop cognitive load; the car-tow-in animation does
