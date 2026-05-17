@@ -60,10 +60,16 @@ export function ActAsk({
   // re-renders late. Parent stays the source of truth between stops.
   const [local, setLocal] = useState<JourneyAnswers>(answers);
 
-  // Filter the bank — drop any question whose answer was pre-seeded
-  // by upstream (home-page chip carries `priority`, for instance), so
-  // the customer never sees the same question twice.
-  const queue = ASK_QUESTIONS.filter((q) => !answers[q.key]);
+  // Snapshot the queue ONCE at mount, dropping any question that was
+  // pre-seeded by upstream (home-page chip carries `priority`, for
+  // instance). We deliberately don't re-filter as the customer's
+  // own answers stream in — otherwise the queue would shrink while
+  // `idx` advances, causing the customer to skip every other
+  // question. The lazy initializer ensures this snapshot is taken
+  // once per ActAsk lifetime.
+  const [queue] = useState(() =>
+    ASK_QUESTIONS.filter((q) => !answers[q.key])
+  );
 
   // Which question is currently centre-stage (0-indexed into queue).
   // Advances on each commit; runs until the queue is exhausted.
