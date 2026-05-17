@@ -1,21 +1,30 @@
 /**
  * Stop 4 · Preview — the next ~15 seconds.
  *
- * The new editorial beat (revived from the originally-skipped Room 4).
- * One job: tease the Recommended Coverage Profile we're about to surface
- * on the report page. Customer sees three or four named coverages with
- * a small "why" caption — builds anticipation for the verdict instead
- * of just waiting for it.
+ * The "sneak peek" stop. One job: hint at the Recommended Coverage
+ * Profile we'll surface on the report — without giving the verdict
+ * away. Modelled on a new-car-launch teaser: the customer sees one
+ * spotlight at a time, each crystallising long enough to register a
+ * name, then veiling out as the next slides in.
  *
- * No interactivity. No animation that demands attention. Just chips
- * gently fading in with a single illustrative coverage badge per chip.
+ * Visual rhythm:
  *
- * Phase 5 wires a generic chip list. A future pass can swap to a live
- * RCP-derived list once parse-preview surfaces enough vehicle metadata
- * (year / fuel / RTO / age) to make per-car recommendations.
+ *   · COMING UP · 1 of 4 ·                ← mono counter at top
+ *
+ *           [spotlight panel]              ← single item, cycling
+ *             Zero Depreciation
+ *             one teasing line
+ *
+ *   · Full reveal on the next screen ·     ← mono footnote
+ *
+ * Each item is on screen for SPOTLIGHT_MS (~3.5s) then crossfades to
+ * the next via the spotlight-cycle keyframe. After the queue rolls
+ * once, we loop back to item 1 — the Stop 4 timer (15s) will move us
+ * on before the customer notices the loop.
  */
 "use client";
 
+import { useEffect, useState } from "react";
 import { ActHeading } from "./act-frame";
 import type { ActContent } from "@/lib/journey-copy";
 
@@ -24,61 +33,86 @@ interface ActPreviewProps {
 }
 
 // Phase 5 baseline — the four highest-leverage coverages for nearly
-// every Indian private car. The Preview stop's job is to anchor
-// vocabulary, not to commit to specifics. The full RCP lives on the
-// report page where it's actually argued.
-const TEASER_COVERAGES: Array<{
+// every Indian private car. The "tease" copy stays generic on purpose;
+// the full reasoning lives on the report page.
+const TEASER_ITEMS: Array<{
   name: string;
-  why: string;
+  tease: string;
 }> = [
   {
     name: "Zero Depreciation",
-    why: "Full part-price payout instead of depreciated value.",
+    tease: "Full part-price payouts. The single biggest claim multiplier.",
   },
   {
     name: "Engine Protection",
-    why: "Covers water-logging + lubrication damage — the most expensive small claim.",
+    tease: "Covers water-logging + lubrication damage. The expensive small claim.",
   },
   {
     name: "Return to Invoice",
-    why: "If the car's totalled, the original purchase price comes back.",
+    tease: "If the car's a total loss, your original purchase price comes back.",
   },
   {
     name: "Roadside Assistance",
-    why: "24×7 dispatch for tow / battery / fuel / lockout.",
+    tease: "Tow · battery · fuel · lockout — 24×7 dispatch.",
   },
 ];
 
+const SPOTLIGHT_MS = 3500;
+
 export function ActPreview({ content }: ActPreviewProps) {
+  // Index of the currently-spotlit item. Cycles on a timer so the
+  // customer always feels something is happening; if Stop 4 runs over
+  // the queue we loop seamlessly.
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setIdx((i) => (i + 1) % TEASER_ITEMS.length),
+      SPOTLIGHT_MS
+    );
+    return () => clearInterval(id);
+  }, []);
+
+  const item = TEASER_ITEMS[idx];
+
   return (
     <div className="flex flex-col items-center">
       <ActHeading heading={content.heading} body={content.body} />
 
-      <ul className="mt-7 md:mt-9 w-full max-w-xl grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3">
-        {TEASER_COVERAGES.map((c, i) => (
-          <li
-            key={c.name}
-            className="rounded-2xl border border-brand-plum/20 bg-brand-offwhite px-4 py-3 animate-towing-in"
-            style={{
-              animationDelay: `${i * 110}ms`,
-              animationFillMode: "both",
-            }}
-          >
-            <div className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-brand-plum font-bold">
-              · Recommended ·
-            </div>
-            <div className="mt-1 font-serif font-semibold text-[15px] text-brand-charcoal leading-tight">
-              {c.name}
-            </div>
-            <div className="mt-1 font-serif italic text-[12.5px] text-brand-slate leading-snug">
-              {c.why}
-            </div>
-          </li>
-        ))}
-      </ul>
+      {/* Spotlight counter */}
+      <div className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold">
+        · Coming up · {idx + 1} of {TEASER_ITEMS.length} ·
+      </div>
 
+      {/* Spotlight panel — single card, cycles via keyframe re-mount.
+       *  We re-key on idx so React unmounts the old card and the new
+       *  one mounts with the spotlight-cycle entry animation. */}
+      <div className="relative mt-3 w-full max-w-md min-h-[150px] flex items-center justify-center">
+        <article
+          key={idx}
+          className="absolute inset-0 rounded-2xl border border-brand-plum/30 bg-brand-offwhite px-6 py-5 flex flex-col items-center text-center animate-spotlight-cycle"
+          style={{
+            animationDuration: `${SPOTLIGHT_MS}ms`,
+          }}
+        >
+          {/* Tiny "next reveal" tease — name of the coverage with a
+           *  subtle plum underline that fades in/out via the same
+           *  animation envelope. */}
+          <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
+            · Coverage ·
+          </div>
+          <h3 className="mt-1.5 font-serif font-semibold text-[22px] md:text-[26px] tracking-[-0.015em] leading-[1.15] text-brand-charcoal">
+            <span className="italic text-brand-plum">{item.name}</span>
+          </h3>
+          <p className="mt-2 font-serif italic text-[13.5px] md:text-[14.5px] text-brand-slate leading-snug max-w-sm">
+            {item.tease}
+          </p>
+        </article>
+      </div>
+
+      {/* Footnote — tells the customer this isn't the verdict yet */}
       <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate text-center">
-        · Full reasoning lands on the next screen ·
+        · Full reveal on the next screen ·
       </p>
     </div>
   );

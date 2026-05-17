@@ -156,12 +156,32 @@ const config: Config = {
             transform: "translateX(0px)",
           },
         },
+        // The road dashes scroll continuously from right to left
+        // beneath the (visually stationary) car, selling forward
+        // motion even when the car is "parked" at a milestone. Cartoon
+        // trick — calmest way to guarantee the journey never feels
+        // stopped. Slow + gentle: 6s per cycle.
+        roadscroll: {
+          "0%": { backgroundPosition: "0 50%" },
+          "100%": { backgroundPosition: "-22px 50%" },
+        },
+        // Spotlight cycle for Stop 4 — each item fades in, holds, then
+        // veils back out. Used by act-preview's rotating teaser.
+        spotlightCycle: {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.985)" },
+          "12%": { opacity: "1", transform: "translateY(0px) scale(1)" },
+          "84%": { opacity: "1", transform: "translateY(0px) scale(1)" },
+          "100%": { opacity: "0", transform: "translateY(-6px) scale(0.985)" },
+        },
       },
       animation: {
         roadhover: "roadhover 2.8s ease-in-out infinite",
         roadpulse: "roadpulse 1.6s ease-in-out infinite",
+        roadscroll: "roadscroll 0.9s linear infinite",
         "act-fade-in": "actFadeIn 380ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "towing-in": "towingIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "spotlight-cycle":
+          "spotlightCycle 3500ms cubic-bezier(0.22, 1, 0.36, 1) both",
       },
     },
   },

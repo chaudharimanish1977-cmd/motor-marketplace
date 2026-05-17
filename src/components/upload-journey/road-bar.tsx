@@ -53,9 +53,18 @@ export function RoadBar({ stops, currentIndex }: RoadBarProps) {
 
   return (
     <div className="relative w-full h-16 md:h-[72px] select-none">
-      {/* The road — dashed line through the middle of the bar. */}
+      {/* The road — a thin band with scrolling dash pattern. The dashes
+       *  shift left every frame so even when the car icon is "parked"
+       *  at a milestone, the road appears to be moving underneath. The
+       *  cartoon trick keeps the journey from ever feeling stopped. */}
       <div
-        className="absolute inset-x-0 top-[26px] md:top-[28px] border-t-2 border-dashed border-brand-charcoal/25"
+        className="absolute inset-x-0 top-[26px] md:top-[28px] h-[2px] animate-roadscroll"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(to right, rgb(var(--color-charcoal) / 0.30) 0 9px, transparent 9px 22px)",
+          backgroundSize: "22px 2px",
+          backgroundRepeat: "repeat-x",
+        }}
         aria-hidden
       />
 

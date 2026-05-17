@@ -119,8 +119,8 @@ export function getJourneyContent(
           durationMs: 22_000,
         },
         ask: {
-          heading: "Two quick things — so we can tailor.",
-          body: "Answer 2, unlock the rest. Skip anytime.",
+          heading: "A few quick things — so we can tailor.",
+          body: "One at a time. Tap one, or skip.",
           durationMs: 20_000,
         },
         preview: {
@@ -156,8 +156,8 @@ export function getJourneyContent(
           durationMs: 22_000,
         },
         ask: {
-          heading: "Two quick things — so we can tailor.",
-          body: "Answer 2, unlock the rest. Skip anytime.",
+          heading: "A few quick things — so we can tailor.",
+          body: "One at a time. Tap one, or skip.",
           durationMs: 20_000,
         },
         preview: {
@@ -189,8 +189,8 @@ export function getJourneyContent(
           durationMs: 22_000,
         },
         ask: {
-          heading: "Two quick things — so we can tailor.",
-          body: "Answer 2, unlock the rest. Skip anytime.",
+          heading: "A few quick things — so we can tailor.",
+          body: "One at a time. Tap one, or skip.",
           durationMs: 20_000,
         },
         preview: {

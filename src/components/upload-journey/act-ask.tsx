@@ -1,22 +1,28 @@
 /**
  * Stop 3 · Ask — the next ~20 seconds.
  *
- * Capture 2-4 high-leverage answers that the policy itself doesn't
+ * Capture up to 4 high-leverage answers that the policy itself doesn't
  * surface (past claims, what they worry about, what matters at renewal,
  * where the car is parked).
  *
- * Dynamic loading — Q1 + Q2 are always visible. Q3 (and later Q4) get
- * "towed in" by the SketchCarTowing illustration once the customer has
- * answered the first two. Skipping is always allowed.
+ * One question at a time. After the customer commits to an answer (or
+ * taps "skip this →"), the current question gracefully tows out and
+ * the next question tows in via the car-tow animation. A counter
+ * (`Question N of M`) anchors the customer to where they are in the
+ * sequence.
  *
- * No fence-sitter options. Every chip is committal so the answer is
- * actually usable downstream.
+ * Pre-seeded answers (e.g. home-page priority chip) are filtered out
+ * of the queue before rendering, so the customer never sees a question
+ * they've already answered upstream.
+ *
+ * All chip options are committal — no fence-sitter answers like
+ * "Don't remember" or "Not sure".
  *
  * Skipped entirely in State D (urgency context).
  */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ActHeading } from "./act-frame";
 import { SketchCarStatic } from "@/components/sketches";
 import {
@@ -36,75 +42,65 @@ export function ActAsk({ content, answers, onChange }: ActAskProps) {
   // re-renders late. Parent stays the source of truth between stops.
   const [local, setLocal] = useState<JourneyAnswers>(answers);
 
-  // How many questions we've revealed so far. Always starts with 2;
-  // we bump to 3 then 4 as the customer commits to earlier answers.
-  const [visibleCount, setVisibleCount] = useState(2);
-
   // Filter the bank — drop any question whose answer was pre-seeded
   // by upstream (home-page chip carries `priority`, for instance), so
   // the customer never sees the same question twice.
   const queue = ASK_QUESTIONS.filter((q) => !answers[q.key]);
 
-  // Once Q1 + Q2 are answered, queue Q3. Once Q3 is answered, queue Q4.
-  // Each step has a short delay so the towing animation reads.
-  useEffect(() => {
-    const answered = queue
-      .slice(0, visibleCount)
-      .filter((q) => !!local[q.key]).length;
-    if (answered >= visibleCount && visibleCount < queue.length) {
-      const id = setTimeout(
-        () => setVisibleCount((n) => Math.min(n + 1, queue.length)),
-        450
-      );
-      return () => clearTimeout(id);
-    }
-  }, [local, queue, visibleCount]);
+  // Which question is currently centre-stage (0-indexed into queue).
+  // Advances on each commit; the queue runs to completion or until
+  // the stop timer auto-advances to Stop 4.
+  const [idx, setIdx] = useState(0);
+
+  const total = queue.length;
+  const done = idx >= total;
+  const current = done ? null : queue[idx];
+
+  const advance = () => setIdx((n) => Math.min(n + 1, total));
 
   const pick = (key: keyof JourneyAnswers, value: string) => {
-    const next = {
-      ...local,
-      [key]: local[key] === value ? undefined : value,
-    };
+    const next = { ...local, [key]: value };
     setLocal(next);
     onChange(next);
+    // Short pause so the customer registers their selection before
+    // the question tows out.
+    setTimeout(advance, 320);
   };
 
   return (
     <div>
       <ActHeading heading={content.heading} body={content.body} />
 
-      {/* Question stack */}
-      <div className="mt-6 md:mt-8 space-y-5 md:space-y-7 max-w-2xl mx-auto">
-        {queue.slice(0, visibleCount).map((q, i) => (
-          <div
-            key={q.key}
-            // The first two animate-in from the act-fade entrance.
-            // Q3 / Q4 ride in on the towing animation.
-            className={i >= 2 ? "animate-towing-in" : ""}
-          >
-            {/* Prompt + (for towed-in questions) the small towing car
-             *  to the left of the prompt. */}
-            <div className="flex items-center justify-center gap-2 mb-2.5">
-              {i >= 2 && (
-                <span
-                  className="text-brand-plum -mr-1 -mt-0.5"
-                  aria-hidden
-                >
-                  <SketchCarStatic width={20} color="currentColor" />
-                </span>
-              )}
-              <div className="font-serif italic text-[15px] md:text-base text-brand-slate text-center">
-                {q.prompt}
-              </div>
+      {/* Question carousel — single question on screen at a time.
+       *  Re-keyed on idx so the new question mounts with the towing-in
+       *  animation envelope. */}
+      <div className="mt-6 md:mt-8 max-w-2xl mx-auto min-h-[170px] flex items-center justify-center">
+        {current ? (
+          <div key={current.key} className="w-full animate-towing-in">
+            {/* Counter + tiny towing car */}
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <span className="text-brand-plum" aria-hidden>
+                <SketchCarStatic width={20} color="currentColor" />
+              </span>
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-plum font-bold">
+                · Question {idx + 1} of {total} ·
+              </span>
             </div>
+
+            {/* Prompt */}
+            <div className="font-serif italic text-[16px] md:text-lg text-brand-charcoal text-center mb-3.5">
+              {current.prompt}
+            </div>
+
+            {/* Chips */}
             <div className="flex flex-wrap items-center justify-center gap-2">
-              {q.options.map((opt) => {
-                const active = local[q.key] === opt;
+              {current.options.map((opt) => {
+                const active = local[current.key] === opt;
                 return (
                   <button
                     key={opt}
                     type="button"
-                    onClick={() => pick(q.key, opt)}
+                    onClick={() => pick(current.key, opt)}
                     aria-pressed={active}
                     className={`inline-flex items-center px-4 py-2 rounded-full border font-serif italic text-sm min-h-[40px] transition-all ${
                       active
@@ -117,16 +113,31 @@ export function ActAsk({ content, answers, onChange }: ActAskProps) {
                 );
               })}
             </div>
-          </div>
-        ))}
-      </div>
 
-      {/* Tiny mono caption — sets the "answer 2 to unlock the rest" expectation */}
-      {visibleCount < queue.length && (
-        <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate text-center">
-          · {queue.length} questions queued · answer {visibleCount} to unlock the rest ·
-        </p>
-      )}
+            {/* Skip — soft escape that still advances the carousel */}
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={advance}
+                className="font-serif italic text-[13px] text-brand-slate hover:text-brand-charcoal transition-colors"
+              >
+                Skip this <span aria-hidden>→</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          // All done — keep the slot warm with a quiet thank-you while
+          // the Stop 3 timer winds down to Stop 4.
+          <div className="text-center animate-act-fade-in">
+            <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
+              · All set ·
+            </div>
+            <p className="mt-2 font-serif italic text-[15px] text-brand-slate">
+              Thanks — we&apos;ll fold these into the verdict.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

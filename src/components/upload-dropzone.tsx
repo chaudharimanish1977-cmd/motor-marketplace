@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { SketchCarStatic } from "@/components/sketches";
 import clsx from "clsx";
-import { StopwatchChip } from "@/components/stopwatch-chip";
 import {
   answersToQuery,
   priorityFromChipParam,
@@ -70,13 +69,41 @@ function BackChip({ href }: { href: string }) {
   );
 }
 
+/**
+ * Editorial replacement for the old circular StopwatchChip.
+ *
+ * A small mono caption fixed to the top-right of the journey card:
+ *
+ *     · 14s · STILL READING ·
+ *
+ * Tabular-nums so the second-counter doesn't dance. Plum for the live
+ * number, slate for the static caption. Tracks with the rest of the
+ * Reading Room mono masthead vocabulary instead of feeling like a
+ * spaceship dashboard.
+ */
 function TimerChip({ startedAt }: { startedAt: number }) {
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = Math.max(0, Math.floor((now - startedAt) / 1000));
+  const display =
+    elapsed < 60
+      ? `${elapsed}s`
+      : `${Math.floor(elapsed / 60)}m ${(elapsed % 60)
+          .toString()
+          .padStart(2, "0")}s`;
   return (
     <div
-      className="absolute top-3 right-3 z-10 rounded-full bg-white shadow-soft print:hidden"
-      style={{ padding: 2 }}
+      className="absolute top-4 right-5 z-10 font-mono text-[10px] uppercase tracking-[0.16em] text-brand-slate print:hidden"
+      aria-label={`Elapsed time ${display}`}
     >
-      <StopwatchChip startedAt={startedAt} size={54} />
+      <span className="text-brand-plum font-bold tabular-nums">
+        {display}
+      </span>
+      <span className="mx-1.5">·</span>
+      <span>Still reading</span>
     </div>
   );
 }
