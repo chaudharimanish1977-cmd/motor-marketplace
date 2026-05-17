@@ -45,6 +45,7 @@ import {
   type DrivingProfile,
 } from "@/components/driving-profile-card";
 import { SaveReportButton } from "@/components/save-report-button";
+import { ShareButton } from "@/components/share-button";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 
 /* ─── 01 · What's Working ───────────────────────────────────────────── */
@@ -421,8 +422,41 @@ export function BottomLineSection({
               pc: drivingProfile?.pastClaims,
             }}
           />
+
+          {/* "Share this audit" — WhatsApp deep-link + copy-link to a
+              depersonalized /share/[token] page. Phase 7d.3. */}
+          <ShareButton
+            reportId={parsedPolicy.id}
+            atRiskTotalLabel={
+              shareAtRiskLabel(parsedPolicy, report)
+            }
+            vehicleLabel={
+              `${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`.trim() ||
+              undefined
+            }
+          />
         </div>
       )}
     </ReportSection>
   );
+}
+
+/**
+ * Compose the "₹X at risk" social-proof phrase that the ShareButton
+ * embeds in its pre-filled WhatsApp message. Falls back to a generic
+ * line when we don't have a money-at-risk total.
+ */
+function shareAtRiskLabel(
+  parsedPolicy: ParsedPolicy,
+  report: PolicyReport
+): string | undefined {
+  const vehicleAge =
+    new Date().getFullYear() - parsedPolicy.vehicle.yearOfManufacture;
+  const m = totalMoneyAtRisk(
+    report.keyGaps.items.map((g) => g.title),
+    parsedPolicy.idv,
+    vehicleAge
+  );
+  if (m.total <= 0) return undefined;
+  return `${formatINR(m.total)} of out-of-pocket exposure`;
 }

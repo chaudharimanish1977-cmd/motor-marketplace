@@ -226,6 +226,33 @@ export interface User {
   dpdpConsentGivenAt?: string;
 }
 
+/**
+ * Public, depersonalized share token for a report (Phase 7d.3).
+ *
+ * Customers can mint a share link to forward their audit to friends /
+ * family. The recipient sees a stripped-down preview (vehicle profile,
+ * verdict, at-risk number, top gaps) — never the owner name, plate,
+ * email, mobile, or address. The token is the only thing on the URL.
+ *
+ * `revoked` lets the owner kill a share link without losing analytics
+ * (we keep the row so we can show the customer "this link was revoked
+ * on…" if they ever care).
+ */
+export interface ShareToken {
+  /** Opaque, URL-safe ID surfaced on /share/[token]. */
+  id: string;
+  /** ParsedPolicy ID the token resolves to. */
+  parsedPolicyId: string;
+  /** Lowercased email of the customer who minted it (for revocation
+   *  control + audit). */
+  ownerEmail: string;
+  createdAt: string;
+  /** Visit counter — incremented on /share/[token] page load. Lets
+   *  the customer see "this link was viewed N times" in /me later. */
+  viewCount: number;
+  revoked: boolean;
+}
+
 // ============================================================================
 // Bidding (RFQ → Bid → Transaction)
 // ============================================================================

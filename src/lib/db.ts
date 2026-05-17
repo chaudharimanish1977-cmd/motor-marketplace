@@ -135,6 +135,7 @@ export const Tables = {
   RENEWAL_SCHEDULES: "renewal_schedules",
   RENEWAL_SUBSCRIPTIONS: "renewal_subscriptions",
   COMPARISONS: "comparisons",
+  SHARE_TOKENS: "share_tokens",
 } as const;
 
 export const ALL_TABLES = Object.values(Tables);
