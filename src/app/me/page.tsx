@@ -12,11 +12,12 @@ import {
 } from "lucide-react";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
-import { readTable, Tables } from "@/lib/db";
+import { findOne, readTable, Tables } from "@/lib/db";
 import type {
   ParsedPolicy,
   PolicyReport,
   RenewalSubscription,
+  User,
 } from "@/lib/types";
 import { formatDateShort, formatINR } from "@/lib/format";
 import { policyGroupKey } from "@/lib/policy-group";
@@ -27,6 +28,7 @@ import { ReminderToggle } from "./reminder-toggle";
 import { ReminderSchedule } from "./reminder-schedule";
 import { SignOutButton } from "./sign-out-button";
 import { DeleteAccountCard } from "./delete-account-card";
+import { DataConsentCard } from "./data-consent-card";
 import { DeletePolicyButton } from "./delete-policy-button";
 import { RunComparisonButton } from "./run-comparison-button";
 
@@ -86,6 +88,12 @@ export default async function PortalHome() {
     : null;
 
   const allPolicies = await loadPoliciesFor(sessionEmail);
+  // Pull the User row so we can show the customer when their last
+  // affirmative consent was stamped (DPDP §6 transparency).
+  const userRow = await findOne<User>(
+    Tables.USERS,
+    (u) => (u.email ?? "").toLowerCase() === sessionEmail.toLowerCase()
+  );
   // In upload-session mode, intersect to only the docs in this
   // browser's cookie. Full session sees everything matching the
   // email (broader access).
@@ -222,14 +230,20 @@ export default async function PortalHome() {
           </div>
 
           {/* Account controls — quiet, separate from the policy list.
-              Delete-everything is a full-account action: only show it
-              when the customer is verified (full session). On the
-              upload-session we can't be sure the email is really theirs. */}
+              Data & Consent (export, transparency) sits above Delete
+              (the destructive lever) so the customer reaches the
+              softer levers first. Both are gated to verified sessions:
+              on the upload-session we can't be sure the email is
+              really theirs. */}
           {!isUnverified && (
-            <div className="mt-10">
+            <div className="mt-10 space-y-4">
               <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-slate mb-3">
                 Account
               </div>
+              <DataConsentCard
+                email={sessionEmail}
+                consentGivenAt={userRow?.dpdpConsentGivenAt ?? null}
+              />
               <DeleteAccountCard email={sessionEmail} />
             </div>
           )}

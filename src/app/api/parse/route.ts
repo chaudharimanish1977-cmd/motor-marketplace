@@ -11,7 +11,8 @@ import {
 } from "@/lib/upload-session";
 import { appendDocToAnonymousSession } from "@/lib/anonymous-session";
 import { generateReport } from "@/lib/report-generator";
-import type { ParsedPolicy, PolicyReport } from "@/lib/types";
+import type { ParsedPolicy, PolicyReport, User } from "@/lib/types";
+import { randomUUID } from "crypto";
 
 export const runtime = "nodejs";
 // 120s window covers PDF extract (~5s) + classify (~3s) + LLM extraction
@@ -122,6 +123,40 @@ export async function POST(request: NextRequest) {
         ...parsed.owner,
         email: effectiveEmail,
       };
+
+      // DPDP §6: dropping a policy on the upload surface is an
+      // affirmative act of consent — the dropzone surfaces the privacy
+      // notice inline at the point of action. Stamp (or refresh) the
+      // User row's `dpdpConsentGivenAt` so the customer's portal can
+      // show them when their last consent was given. Non-fatal — the
+      // parse still completes if this write fails.
+      try {
+        const lowered = effectiveEmail.toLowerCase();
+        const nowIso = new Date().toISOString();
+        const existing = await findOne<User>(
+          Tables.USERS,
+          (u) => (u.email ?? "").toLowerCase() === lowered
+        );
+        if (existing) {
+          await updateById<User>(Tables.USERS, existing.id, {
+            dpdpConsentGivenAt: nowIso,
+            email: lowered,
+          });
+        } else {
+          await appendRow<User>(Tables.USERS, {
+            id: randomUUID(),
+            email: lowered,
+            mobile: "",
+            createdAt: nowIso,
+            dpdpConsentGivenAt: nowIso,
+          });
+        }
+      } catch (consentErr) {
+        console.error(
+          "[parse] Failed to stamp DPDP consent on User row:",
+          consentErr
+        );
+      }
     }
 
     // Stamp documentType from the upstream classifier. The portal

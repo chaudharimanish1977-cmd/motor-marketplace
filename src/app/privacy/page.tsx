@@ -73,12 +73,23 @@ export default function PrivacyPage() {
               its contents.
             </Item>
             <Item label="Email address and (optionally) WhatsApp number">
-              used to deliver your review and a sign-in link. Never sold
-              or shared.
+              used to deliver your review and a sign-in link. Never sold.
+            </Item>
+            <Item label="Name and profile information from Google or Apple">
+              if you choose to sign in via those providers, we receive
+              your verified email and name. We do not access your contacts,
+              calendar, files, or anything else from those accounts.
             </Item>
             <Item label="Vehicle details">
-              make, model, year, registration number, IDV. Extracted from
-              the document; used to anchor your review.
+              make, model, variant, year, registration number, IDV, NCB,
+              premium breakdown, add-ons, policy period, insurer, owner
+              name and address. Extracted from the document you upload;
+              used to anchor your review.
+            </Item>
+            <Item label="Your answers to optional product questions">
+              past claims, parking habits, renewal priorities, and similar
+              context — collected only when you choose to answer them
+              during the review flow.
             </Item>
             <Item label="Basic usage data">
               pages visited, time spent, anonymised event logs. Used to
@@ -100,20 +111,53 @@ export default function PrivacyPage() {
           <ul className="mt-3 space-y-2 list-none pl-0">
             <Item label="Generate and deliver your policy review">
               including the recommendations, gap analysis, and renewal
-              quotes that appear in your report.
+              context that appear in your report.
             </Item>
             <Item label="Send delivery notifications">
-              the review itself, magic sign-in links, and (only if you
-              opt in) renewal reminders.
+              the review itself, sign-in codes and magic-link sign-in
+              emails, and (only if you opt in) renewal reminders ~45
+              days before your policy expires.
             </Item>
             <Item label="Improve the parser and product">
-              aggregated and anonymised — we never sell or share
+              aggregated and anonymised. We never sell or share
               personally-identifying data with third parties.
+            </Item>
+            <Item label="Match you with insurer partners — coming soon">
+              when our renewal marketplace launches, we will ask for
+              your explicit, granular consent before sharing your policy
+              context with any insurer partner. The audit you receive
+              today does not depend on this and we do not share your
+              data with insurers today.
             </Item>
           </ul>
           We do <strong>not</strong> use your data to make sales calls,
           push insurance products to you, or share with insurers without
           your explicit consent.
+        </Section>
+
+        <Section number="iv-a." title="What we'll ask you separately for">
+          As we expand our services, we may want to use your existing
+          data for new purposes. We will always ask you for separate,
+          explicit consent before doing so:
+          <ul className="mt-3 space-y-2 list-none pl-0">
+            <Item label="Additional insurance verticals (e.g. health)">
+              when we launch a new vertical, we'll surface a fresh
+              consent screen specific to it before processing any new
+              data type.
+            </Item>
+            <Item label="Broader financial services improvements">
+              we may build adjacent services in lending or investments
+              over time. Any use of your data to power those services
+              will require your further, explicit consent at the time
+              such service launches.
+            </Item>
+            <Item label="Anonymised aggregate insights for partners">
+              we may share aggregate statistics (e.g. "X% of Audi A6
+              policies in Delhi miss engine-protection cover") with
+              insurer partners, regulators, or researchers. This data
+              is anonymised and never traceable back to you.
+            </Item>
+          </ul>
         </Section>
 
         <Section number="v." title="Who we share with">
@@ -122,21 +166,31 @@ export default function PrivacyPage() {
           obligations:
           <ul className="mt-3 space-y-2 list-none pl-0">
             <Item label="Hosting and database">
-              Vercel (USA) and Upstash (Singapore region) for serving the
-              site and storing your account.
+              Vercel and Upstash for serving the site and storing your
+              account.
             </Item>
             <Item label="Email delivery">
               Resend, for transactional messages.
             </Item>
-            <Item label="Parsing">
-              OpenAI / Anthropic APIs to extract structured data from
-              your policy. Documents are sent without identifying you to
-              the AI provider; outputs are stored in our database only.
+            <Item label="Sign-in via Google or Apple">
+              only when you choose to use those providers; we receive
+              your verified email and name from them. We do not push
+              data the other way.
+            </Item>
+            <Item label="AI parsing and review generation">
+              Anthropic (Claude) to extract structured data from your
+              policy and to compose the editorial review. Documents are
+              sent without sales calls / marketing data; outputs are
+              stored in our database only.
             </Item>
           </ul>
-          Where any provider is outside India, we ensure adequate data
-          protection by contract. If we ever change providers we will
-          update this list.
+          We work to keep your personal data on servers located in India.
+          Where a sub-processor cannot offer Indian-region availability
+          today (notably the AI provider used for parsing), we ensure
+          adequate data protection by contract and we will move to
+          Indian-region availability for that sub-processor as soon as
+          it becomes available. We will never sell, license, or rent
+          your personal data to anyone.
         </Section>
 
         <Section number="vi." title="Your rights under the DPDP Act">
@@ -153,32 +207,51 @@ export default function PrivacyPage() {
               We will delete within 30 days unless retention is required
               by law (e.g. tax or fraud-investigation purposes).
             </Item>
+            <Item label="Port (export)">
+              download a structured copy of your data — your audit, your
+              uploaded policy details, and your account record — as
+              machine-readable JSON. Use the export button in your /me
+              portal, or write to us if you don't have an account active.
+            </Item>
             <Item label="Withdraw consent">
-              for marketing emails, WhatsApp delivery, or any optional
-              data use.
+              for renewal reminders, optional data use, or any
+              forward-looking purpose. Withdrawing consent does not
+              affect the lawfulness of what we did before withdrawal.
             </Item>
             <Item label="Grievance">
               raise a complaint about how we handle your data.
             </Item>
           </ul>
-          To exercise any of these, email{" "}
-          <a
-            href="mailto:hello@rightoffer.in"
+          Easiest route — open your{" "}
+          <Link
+            href="/me"
             className="italic text-brand-plum hover:underline"
           >
-            hello@rightoffer.in
+            /me portal
+          </Link>
+          's Data &amp; Consent section, where you can export and delete
+          your data directly. Or email{" "}
+          <a
+            href="mailto:grievance@rightoffer.in"
+            className="italic text-brand-plum hover:underline"
+          >
+            grievance@rightoffer.in
           </a>{" "}
           with the subject line "Data request". We aim to respond within
           7 working days.
         </Section>
 
         <Section number="vii." title="How long we keep data">
-          Uploaded policy documents are retained for{" "}
-          <strong>12 months</strong> from upload, after which they're
-          automatically purged. Account data (email, vehicle history) is
-          retained for as long as the account is active, plus 12 months
-          after closure for fraud and audit purposes. You can request
-          earlier deletion at any time.
+          Uploaded policy documents and your audit are retained for{" "}
+          <strong>24 months</strong> from your last interaction, after
+          which they are automatically purged. Account data (email,
+          vehicle history) is retained for as long as the account is
+          active, plus 12 months after closure for fraud and audit
+          purposes. Anonymised aggregate data — which is no longer
+          personal — may be retained indefinitely for product and
+          regulatory research. You can request earlier deletion at any
+          time, and exercising your right to erase will purge everything
+          we are not legally required to keep.
         </Section>
 
         <Section number="viii." title="Security">
@@ -204,17 +277,22 @@ export default function PrivacyPage() {
           implies acceptance.
         </Section>
 
-        <Section number="xi." title="Contact">
-          For any privacy question, write to{" "}
+        <Section number="xi." title="Contact + Grievance Officer">
+          For any privacy question or to exercise your DPDP rights, write
+          to{" "}
           <a
-            href="mailto:hello@rightoffer.in"
+            href="mailto:grievance@rightoffer.in"
             className="italic text-brand-plum hover:underline"
           >
-            hello@rightoffer.in
+            grievance@rightoffer.in
           </a>
-          . Our (designated grievance officer's) name and contact will be
-          added here once incorporated; until then, all queries land in
-          the founder's inbox and are answered personally.
+          .
+          <br />
+          <br />
+          Our designated Grievance Officer's name and direct contact will
+          be added here on completion of company incorporation. Until
+          then, all queries land in the founder's inbox and are answered
+          personally — within 7 working days for any DPDP request.
         </Section>
       </div>
 

@@ -561,6 +561,25 @@ export function UploadDropzone({
             <span>Original insurer file works best ·</span>
           </div>
         </div>
+
+        {/* DPDP consent disclosure — action-based consent. By dropping a
+         *  file (or tapping the card to browse), the customer is giving
+         *  free, informed consent to our Privacy Policy. The wording
+         *  below makes that linkage explicit and offers a one-tap path
+         *  to read the policy. Same pattern Indian fintechs (Cred,
+         *  Razorpay) use; defensible under DPDP §6 action-based consent
+         *  with prominent notice. */}
+        <p className="mt-4 font-serif italic text-[12.5px] text-brand-slate text-center max-w-md mx-auto leading-[1.55]">
+          By dropping your policy here, you agree to our{" "}
+          <Link
+            href="/privacy"
+            className="text-brand-plum underline decoration-brand-plum/40 hover:decoration-brand-plum transition-colors"
+          >
+            Privacy Policy
+          </Link>{" "}
+          — we&apos;ll review your file, never sell your data, and
+          never make sales calls.
+        </p>
       </div>
 
       {/* Failure UX is now handled inline inside the Journey via the

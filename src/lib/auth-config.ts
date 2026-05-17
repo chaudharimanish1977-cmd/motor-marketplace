@@ -129,19 +129,27 @@ export const authOptions: NextAuthOptions = {
 
       if (existing) {
         // Update the provider info + last-signed-in stamp; never
-        // overwrite a non-empty name with an empty one.
+        // overwrite a non-empty name with an empty one. We also
+        // refresh `dpdpConsentGivenAt` because each sign-in is an
+        // affirmative re-consent under the published Privacy Policy
+        // — DPDP-defensible since the consent screen lives on
+        // /me/login.
         await updateById<UserWithProvider>(Tables.USERS, existing.id, {
           name: user.name?.trim() || existing.name,
           authMethod: providerName,
           providerUserId:
             account?.providerAccountId ?? existing.providerUserId,
           lastSignedInAt: nowIso,
+          dpdpConsentGivenAt: nowIso,
           email,
         });
       } else {
         // First-time visitor — create a User row with the provider
         // info. Mobile stays empty for now (collected later in the
-        // policy upload flow if needed).
+        // policy upload flow if needed). `dpdpConsentGivenAt` is
+        // stamped immediately since signing in via Google / Apple
+        // through our consent-noticed /me/login surface is an
+        // affirmative act of consent.
         const fresh: UserWithProvider = {
           id: randomUUID(),
           email,
@@ -151,6 +159,7 @@ export const authOptions: NextAuthOptions = {
           providerUserId: account?.providerAccountId ?? undefined,
           createdAt: nowIso,
           lastSignedInAt: nowIso,
+          dpdpConsentGivenAt: nowIso,
         };
         await appendRow<UserWithProvider>(Tables.USERS, fresh);
       }
