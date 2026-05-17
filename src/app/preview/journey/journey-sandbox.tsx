@@ -61,6 +61,12 @@ export function JourneySandbox() {
   const [journeyKey, setJourneyKey] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [jumpTo, setJumpTo] = useState<JumpPhase>("auto");
+  // Dev-only — backdates the journey's "startedAt" so the Destination
+  // footer can be verified against both regimes (<120s fast, >120s
+  // traffic). null = use real mount time (default fallback line).
+  const [simulatedElapsedMs, setSimulatedElapsedMs] = useState<
+    number | null
+  >(null);
 
   const ctx = {
     vehicleLabel: PRESETS[preset].vehicleLabel,
@@ -151,6 +157,45 @@ export function JourneySandbox() {
           <Chip onClick={reset}>↻ Restart</Chip>
         </ControlRow>
 
+        <ControlRow label="Simulated elapsed">
+          <Chip
+            active={simulatedElapsedMs === null}
+            onClick={() => {
+              setSimulatedElapsedMs(null);
+              setJourneyKey((k) => k + 1);
+            }}
+          >
+            Live
+          </Chip>
+          <Chip
+            active={simulatedElapsedMs === 87_000}
+            onClick={() => {
+              setSimulatedElapsedMs(87_000);
+              setJourneyKey((k) => k + 1);
+            }}
+          >
+            1m 27s (fast)
+          </Chip>
+          <Chip
+            active={simulatedElapsedMs === 110_000}
+            onClick={() => {
+              setSimulatedElapsedMs(110_000);
+              setJourneyKey((k) => k + 1);
+            }}
+          >
+            1m 50s (fast)
+          </Chip>
+          <Chip
+            active={simulatedElapsedMs === 151_000}
+            onClick={() => {
+              setSimulatedElapsedMs(151_000);
+              setJourneyKey((k) => k + 1);
+            }}
+          >
+            2m 31s (traffic)
+          </Chip>
+        </ControlRow>
+
         <ControlRow label="Jump to stop">
           {(
             [
@@ -196,6 +241,11 @@ export function JourneySandbox() {
           parseComplete={parseDone}
           parseError={parseError}
           initialPhase={jumpTo === "auto" ? undefined : jumpTo}
+          startedAt={
+            simulatedElapsedMs !== null
+              ? Date.now() - simulatedElapsedMs
+              : undefined
+          }
           onComplete={() => setCompleted(true)}
           onRetry={reset}
           onAbandon={reset}

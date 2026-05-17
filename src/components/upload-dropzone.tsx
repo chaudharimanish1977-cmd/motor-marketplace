@@ -76,18 +76,26 @@ function BackChip({ href }: { href: string }) {
  *
  *     · 14s · STILL READING ·
  *
- * Tabular-nums so the second-counter doesn't dance. Plum for the live
- * number, slate for the static caption. Tracks with the rest of the
- * Reading Room mono masthead vocabulary instead of feeling like a
- * spaceship dashboard.
+ * Once the journey arrives at Destination, the dropzone passes
+ * `endedAt` and the timer freezes at that moment + swaps "Still
+ * reading" → "Drive complete", so the chip reads as the official
+ * record of the run.
  */
-function TimerChip({ startedAt }: { startedAt: number }) {
+function TimerChip({
+  startedAt,
+  endedAt,
+}: {
+  startedAt: number;
+  endedAt?: number | null;
+}) {
   const [now, setNow] = useState<number>(() => Date.now());
   useEffect(() => {
+    if (endedAt) return; // frozen — no need to tick
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
-  }, []);
-  const elapsed = Math.max(0, Math.floor((now - startedAt) / 1000));
+  }, [endedAt]);
+  const cutoff = endedAt ?? now;
+  const elapsed = Math.max(0, Math.floor((cutoff - startedAt) / 1000));
   const display =
     elapsed < 60
       ? `${elapsed}s`
@@ -99,11 +107,15 @@ function TimerChip({ startedAt }: { startedAt: number }) {
       className="absolute top-4 right-5 z-10 font-mono text-[10px] uppercase tracking-[0.16em] text-brand-slate print:hidden"
       aria-label={`Elapsed time ${display}`}
     >
-      <span className="text-brand-plum font-bold tabular-nums">
+      <span
+        className={`font-bold tabular-nums ${
+          endedAt ? "text-brand-sage" : "text-brand-plum"
+        }`}
+      >
         {display}
       </span>
       <span className="mx-1.5">·</span>
-      <span>Still reading</span>
+      <span>{endedAt ? "Drive complete" : "Still reading"}</span>
     </div>
   );
 }
@@ -140,6 +152,10 @@ export function UploadDropzone({
   // experience and fires onComplete only after both parse + minimum-
   // duration are satisfied. onComplete pushes to this URL.
   const [reportUrl, setReportUrl] = useState<string | null>(null);
+  // Wall-clock moment the journey arrived at Destination. Set via
+  // Journey's onArrival callback. Drives the editorial timer freeze
+  // so the elapsed count stops at the official "we made it" moment.
+  const [arrivedAt, setArrivedAt] = useState<number | null>(null);
   // Accumulated list of every doc parsed in this browser session.
   // Drives the multi-doc Done card (count + per-type breakdown +
   // single "See my reports" CTA). Survives "Add another" clicks
@@ -169,6 +185,7 @@ export function UploadDropzone({
       // km, who drives, etc.) which are stable across documents.
       // Asking again on each upload reads as "we don't remember you."
       setStartedAt(t0);
+      setArrivedAt(null);
       setError(null);
       setState("uploading");
 
@@ -323,7 +340,9 @@ export function UploadDropzone({
     return (
       <div className="relative rounded-3xl bg-brand-offwhite border border-brand-charcoal/10 p-6 md:p-10">
         <BackChip href={backHref} />
-        {startedAt !== null && !error && <TimerChip startedAt={startedAt} />}
+        {startedAt !== null && !error && (
+          <TimerChip startedAt={startedAt} endedAt={arrivedAt} />
+        )}
         <Journey
           state={journeyState}
           context={{
@@ -332,7 +351,9 @@ export function UploadDropzone({
           }}
           parseComplete={!!reportUrl}
           parseError={error}
+          startedAt={startedAt ?? undefined}
           onAnswersChange={handleJourneyAnswersChange}
+          onArrival={(ts) => setArrivedAt(ts)}
           onComplete={() => {
             if (reportUrl) router.push(reportUrl);
           }}
@@ -344,6 +365,7 @@ export function UploadDropzone({
             setState("idle");
             setPreview(null);
             setStartedAt(null);
+            setArrivedAt(null);
             open();
           }}
           onAbandon={() => {
@@ -351,6 +373,7 @@ export function UploadDropzone({
             setState("idle");
             setPreview(null);
             setStartedAt(null);
+            setArrivedAt(null);
           }}
         />
       </div>
@@ -372,6 +395,7 @@ export function UploadDropzone({
       setLastDoc(null);
       setStartedAt(null);
       setReportUrl(null);
+      setArrivedAt(null);
     };
 
     return (

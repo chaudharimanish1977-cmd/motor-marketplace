@@ -34,9 +34,13 @@ interface RoadBarProps {
   stops: RoadBarStop[];
   /** Index of the current stop the car is parked at. */
   currentIndex: number;
+  /** When true, the road stops scrolling and the car stops hovering.
+   *  Used when the journey arrives at Destination so the visual
+   *  reads as "we've arrived, engine off." */
+  parked?: boolean;
 }
 
-export function RoadBar({ stops, currentIndex }: RoadBarProps) {
+export function RoadBar({ stops, currentIndex, parked = false }: RoadBarProps) {
   if (stops.length === 0) return null;
 
   // Position percentages — first stop at 6%, last at 94% so the
@@ -58,7 +62,9 @@ export function RoadBar({ stops, currentIndex }: RoadBarProps) {
        *  at a milestone, the road appears to be moving underneath. The
        *  cartoon trick keeps the journey from ever feeling stopped. */}
       <div
-        className="absolute inset-x-0 top-[26px] md:top-[28px] h-[2px] animate-roadscroll"
+        className={`absolute inset-x-0 top-[26px] md:top-[28px] h-[2px] ${
+          parked ? "" : "animate-roadscroll"
+        }`}
         style={{
           backgroundImage:
             "repeating-linear-gradient(to right, rgb(var(--color-charcoal) / 0.30) 0 9px, transparent 9px 22px)",
@@ -123,7 +129,9 @@ export function RoadBar({ stops, currentIndex }: RoadBarProps) {
         );
       })}
 
-      {/* Traveling car — sits above the road, animates between markers. */}
+      {/* Traveling car — sits above the road, animates between markers.
+       *  When `parked`, the up-down hover loop is dropped so the car
+       *  reads as visibly at rest at the finish line. */}
       <div
         className="absolute -translate-x-1/2 text-brand-plum"
         style={{
@@ -133,7 +141,7 @@ export function RoadBar({ stops, currentIndex }: RoadBarProps) {
         }}
         aria-hidden
       >
-        <div className="animate-roadhover">
+        <div className={parked ? "" : "animate-roadhover"}>
           <SketchCarStatic width={28} color="currentColor" />
         </div>
       </div>

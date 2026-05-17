@@ -27,6 +27,9 @@ interface ActFrameProps {
   stops: { key: string; label: string }[];
   /** Index of the stop currently being rendered. */
   currentIndex: number;
+  /** Forwarded to RoadBar — when true, freezes the scrolling dashes
+   *  and the car-hover loop. Set by the orchestrator at Destination. */
+  parked?: boolean;
   /** Body content — heading, illustration, chips, etc. */
   children: React.ReactNode;
   /** Optional override for the fixed body min-height (px). */
@@ -37,6 +40,7 @@ export function ActFrame({
   masthead,
   stops,
   currentIndex,
+  parked,
   children,
   bodyMinHeight,
 }: ActFrameProps) {
@@ -50,7 +54,7 @@ export function ActFrame({
       )}
 
       {/* Road bar (pinned, never moves between stops) */}
-      <RoadBar stops={stops} currentIndex={currentIndex} />
+      <RoadBar stops={stops} currentIndex={currentIndex} parked={parked} />
 
       {/* Fixed-height body. The key on the inner wrapper drives the
        *  fade-in animation when phase changes. */}

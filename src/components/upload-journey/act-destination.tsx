@@ -22,10 +22,48 @@ import type { ActContent } from "@/lib/journey-copy";
 
 interface ActDestinationProps {
   content: ActContent;
+  /** Total wall-clock time the journey took, captured by the
+   *  orchestrator at the moment we arrived. null = unknown (e.g.
+   *  sandbox / state-restored mounts) → static footer. */
+  elapsedMs?: number | null;
   onAdvance?: () => void;
 }
 
-export function ActDestination({ content, onAdvance }: ActDestinationProps) {
+/**
+ * Build the dynamic "you arrived" footer line. Two regimes:
+ *
+ *   ≤ 120s — celebrate speed: "We drove fast — reached in 1m 47s ·"
+ *   > 120s — lean light:      "Traffic was heavy out there — we
+ *                              still got you here in 2m 31s ·"
+ *
+ * If `elapsedMs` is null OR < 30s (unrealistically fast → probably
+ * jumpToPhase in the sandbox), fall back to the original static line
+ * so we don't render nonsense like "we drove fast — 3s".
+ */
+function buildArrivalFooter(elapsedMs: number | null | undefined): string {
+  if (elapsedMs == null || elapsedMs < 30_000) {
+    return "· 90 seconds well spent ·";
+  }
+  const seconds = Math.round(elapsedMs / 1000);
+  const mm = Math.floor(seconds / 60);
+  const ss = seconds % 60;
+  const timeStr =
+    mm > 0
+      ? ss === 0
+        ? `${mm}m flat`
+        : `${mm}m ${ss}s`
+      : `${ss}s`;
+  if (seconds <= 120) {
+    return `· We drove fast — reached in ${timeStr} ·`;
+  }
+  return `· Traffic was heavy out there — we still got you here in ${timeStr} ·`;
+}
+
+export function ActDestination({
+  content,
+  elapsedMs,
+  onAdvance,
+}: ActDestinationProps) {
   return (
     <div className="flex flex-col items-center text-center">
       <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold">
@@ -66,7 +104,7 @@ export function ActDestination({ content, onAdvance }: ActDestinationProps) {
       </button>
 
       <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
-        · 90 seconds well spent ·
+        {buildArrivalFooter(elapsedMs)}
       </p>
     </div>
   );

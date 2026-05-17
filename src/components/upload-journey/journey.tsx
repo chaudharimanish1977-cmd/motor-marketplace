@@ -68,6 +68,15 @@ interface JourneyProps {
   onRetry?: () => void;
   /** Fired when the customer taps "Start over" on error. */
   onAbandon?: () => void;
+  /** Optional — the moment the journey was kicked off (e.g. file drop
+   *  timestamp). Defaults to the moment the Journey component mounts.
+   *  Drives the Destination's dynamic "we drove fast" / "traffic was
+   *  heavy" footer + the editorial timer chip freeze. */
+  startedAt?: number;
+  /** Fired exactly once when the journey arrives at Destination,
+   *  with the wall-clock timestamp of arrival. Lets the dropzone
+   *  freeze its editorial timer chip at that instant. */
+  onArrival?: (arrivedAt: number) => void;
   /** Dev-only — mount the journey directly at a specific stop. Used by
    *  /preview/journey to skip clocks while iterating on visuals. Not
    *  for production use; pass undefined in real flows. */
@@ -94,6 +103,8 @@ export function Journey({
   onComplete,
   onRetry,
   onAbandon,
+  startedAt,
+  onArrival,
   initialPhase,
 }: JourneyProps) {
   // Resolve per-state content. Memoised on inputs.
@@ -132,6 +143,27 @@ export function Journey({
   useEffect(() => {
     enteredAtRef.current = Date.now();
   }, [phase]);
+
+  // Journey-start timestamp — defaults to the moment the Journey mounts
+  // when the caller doesn't pass an explicit `startedAt`. Drives the
+  // Destination "we drove fast" / "traffic was heavy" footer.
+  const journeyStartRef = useRef<number>(startedAt ?? Date.now());
+  // Frozen elapsed time captured at the moment we first arrive at
+  // Destination. Once set, never changes — so the footer message and
+  // any downstream "you took X seconds" reads are stable.
+  const [destinationElapsedMs, setDestinationElapsedMs] = useState<
+    number | null
+  >(null);
+
+  // Capture the elapsed time the first time phase becomes "destination"
+  // and emit `onArrival` so the dropzone can freeze its timer chip.
+  useEffect(() => {
+    if (phase === "destination" && destinationElapsedMs === null) {
+      const now = Date.now();
+      setDestinationElapsedMs(now - journeyStartRef.current);
+      onArrival?.(now);
+    }
+  }, [phase, destinationElapsedMs, onArrival]);
 
   // Error breakout — any phase, any time.
   useEffect(() => {
@@ -241,6 +273,7 @@ export function Journey({
       masthead={content.masthead}
       stops={stops as unknown as { key: string; label: string }[]}
       currentIndex={currentIndex}
+      parked={phase === "destination"}
       bodyMinHeight={bodyMinHeight}
     >
       {phase === "hello" && <ActHello content={content.hello} />}
@@ -262,6 +295,7 @@ export function Journey({
       {phase === "destination" && (
         <ActDestination
           content={content.destination}
+          elapsedMs={destinationElapsedMs}
           onAdvance={advanceFromDestination}
         />
       )}
