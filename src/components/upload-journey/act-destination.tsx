@@ -17,7 +17,7 @@
  */
 "use client";
 
-import { SketchCar } from "@/components/sketches";
+import { CarSmiley } from "@/components/car-smiley";
 import type { ActContent } from "@/lib/journey-copy";
 
 interface ActDestinationProps {
@@ -32,14 +32,19 @@ export function ActDestination({ content, onAdvance }: ActDestinationProps) {
         · Destination ·
       </div>
 
-      {/* Hero illustration — car parked at the finish line */}
+      {/* Hero illustration — the Delighted CarSmiley (rating 5) pops
+       *  in with a brief overshoot. Replaces the SketchCar with the
+       *  emotional payoff: a smiling face that says "your car is in
+       *  good hands". The pulse rings stay — they read as "you've
+       *  arrived" energy. */}
       <div className="mt-3 relative text-brand-plum">
-        {/* Subtle pulse rings behind the car */}
         <span
-          className="absolute inset-0 -m-4 rounded-full bg-brand-plum/8 animate-roadpulse"
+          className="absolute inset-0 -m-6 rounded-full bg-brand-plum/8 animate-roadpulse"
           aria-hidden
         />
-        <SketchCar width={210} color="currentColor" />
+        <div className="relative animate-smiley-pop">
+          <CarSmiley rating={5} width={170} />
+        </div>
       </div>
 
       <h2 className="mt-5 font-serif font-medium text-[28px] md:text-[40px] leading-[1.1] tracking-[-0.02em] text-brand-charcoal m-0 max-w-2xl">

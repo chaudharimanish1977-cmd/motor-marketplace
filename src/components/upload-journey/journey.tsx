@@ -238,6 +238,7 @@ export function Journey({
 
   return (
     <ActFrame
+      masthead={content.masthead}
       stops={stops as unknown as { key: string; label: string }[]}
       currentIndex={currentIndex}
       bodyMinHeight={bodyMinHeight}

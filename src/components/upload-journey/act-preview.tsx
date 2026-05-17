@@ -79,9 +79,11 @@ export function ActPreview({ content }: ActPreviewProps) {
     <div className="flex flex-col items-center">
       <ActHeading heading={content.heading} body={content.body} />
 
-      {/* Spotlight counter */}
+      {/* Spotlight kicker — counter ("N of M") dropped to lower
+       *  cognitive load; the cycling itself + the "Full reveal on
+       *  the next screen" footnote do the "more is coming" job. */}
       <div className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold">
-        · Coming up · {idx + 1} of {TEASER_ITEMS.length} ·
+        · Coming up ·
       </div>
 
       {/* Spotlight panel — single card, cycles via keyframe re-mount.

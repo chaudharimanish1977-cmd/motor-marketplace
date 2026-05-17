@@ -30,6 +30,10 @@ export interface ActContent {
 }
 
 export interface JourneyContent {
+  /** Conversational masthead pinned above the road bar for the entire
+   *  journey. Sets the tone — a 2-min test drive together for healthy
+   *  states, urgency framing for lapsed (State D). */
+  masthead: string;
   hello: ActContent;
   read: ActContent;
   ask: ActContent;
@@ -81,6 +85,15 @@ export function getJourneyContent(
   const vehicle = ctx.vehicleLabel || FALLBACK_VEHICLE;
   const days = ctx.daysUntilExpiry;
   const docCount = ctx.docCount ?? 1;
+
+  // State-specific masthead — pinned above the road bar across every
+  // stop. Sets the conversational tone for the whole experience.
+  // Healthy states (A/B/C) frame the journey as a shared test drive;
+  // State D leans into urgency since the customer is uncovered.
+  const masthead =
+    state === "D"
+      ? "· Let's get you back on cover ·"
+      : "· Let's take a 2-min test drive together ·";
 
   // Shared destination content — personalised by vehicle in all states.
   const destination: ActContent = {
@@ -136,6 +149,7 @@ export function getJourneyContent(
         destination,
         skipAsk: false,
         minTotalMs: 87_000,
+        masthead,
       };
     }
 
@@ -166,13 +180,14 @@ export function getJourneyContent(
           durationMs: 15_000,
         },
         stitching: {
-          heading: "Stitching your verdict.",
+          heading: "Filing this year's read.",
           body: "We'll come knocking 45 days before renewal — with the best quotes we can find.",
           durationMs: 18_000,
         },
         destination,
         skipAsk: false,
         minTotalMs: 87_000,
+        masthead,
       };
     }
 
@@ -206,6 +221,7 @@ export function getJourneyContent(
         destination,
         skipAsk: false,
         minTotalMs: 87_000,
+        masthead,
       };
 
     case "D": {
@@ -244,6 +260,7 @@ export function getJourneyContent(
         destination,
         skipAsk: true,
         minTotalMs: 57_000,
+        masthead,
       };
     }
   }

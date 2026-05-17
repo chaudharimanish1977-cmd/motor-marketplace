@@ -173,6 +173,16 @@ const config: Config = {
           "84%": { opacity: "1", transform: "translateY(0px) scale(1)" },
           "100%": { opacity: "0", transform: "translateY(-6px) scale(0.985)" },
         },
+        // Big payoff entrance for the Destination smiley — pop-in
+        // with a soft overshoot then settle. Bigger gesture than the
+        // standard act-fade-in because Destination is the emotional
+        // climax of the journey, not just another stop.
+        smileyPop: {
+          "0%": { opacity: "0", transform: "scale(0.5)" },
+          "55%": { opacity: "1", transform: "scale(1.08)" },
+          "75%": { opacity: "1", transform: "scale(0.97)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         roadhover: "roadhover 2.8s ease-in-out infinite",
@@ -182,6 +192,7 @@ const config: Config = {
         "towing-in": "towingIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "spotlight-cycle":
           "spotlightCycle 3500ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "smiley-pop": "smileyPop 760ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
       },
     },
   },

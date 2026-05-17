@@ -77,13 +77,16 @@ export function ActAsk({ content, answers, onChange }: ActAskProps) {
       <div className="mt-6 md:mt-8 max-w-2xl mx-auto min-h-[170px] flex items-center justify-center">
         {current ? (
           <div key={current.key} className="w-full animate-towing-in">
-            {/* Counter + tiny towing car */}
+            {/* Tiny towing car — visual anchor that says "the car
+             *  brought this question in". Counter (`N of M`) removed
+             *  to drop cognitive load; the car-tow-in animation does
+             *  the work of suggesting "more is coming". */}
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="text-brand-plum" aria-hidden>
                 <SketchCarStatic width={20} color="currentColor" />
               </span>
               <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-plum font-bold">
-                · Question {idx + 1} of {total} ·
+                · A question for you ·
               </span>
             </div>
 

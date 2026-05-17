@@ -19,6 +19,10 @@ import type React from "react";
 import { RoadBar } from "./road-bar";
 
 interface ActFrameProps {
+  /** Conversational masthead pinned above the road bar — the "Let's
+   *  take a 2-min test drive together" line that sets the tone for
+   *  the whole journey. Stays put across every stop. */
+  masthead?: string;
   /** Ordered list of stops + their tiny labels for the road bar. */
   stops: { key: string; label: string }[];
   /** Index of the stop currently being rendered. */
@@ -30,6 +34,7 @@ interface ActFrameProps {
 }
 
 export function ActFrame({
+  masthead,
   stops,
   currentIndex,
   children,
@@ -37,6 +42,13 @@ export function ActFrame({
 }: ActFrameProps) {
   return (
     <div className="relative w-full max-w-2xl mx-auto">
+      {/* Masthead — conversational invitation that frames the journey */}
+      {masthead && (
+        <div className="text-center mb-3 md:mb-4 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
+          {masthead}
+        </div>
+      )}
+
       {/* Road bar (pinned, never moves between stops) */}
       <RoadBar stops={stops} currentIndex={currentIndex} />
 

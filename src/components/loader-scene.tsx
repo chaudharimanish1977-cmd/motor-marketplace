@@ -102,10 +102,11 @@ export function LoaderScene({ width = 520, className }: LoaderSceneProps) {
           </div>
         </div>
 
-        {/* ── Reassurance line ─────────────────────────────────────── */}
-        <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-brand-sage">
-          · Usually under 2 minutes ·
-        </div>
+        {/* Reassurance line was here ("Usually under 2 minutes ·") —
+         *  removed in the Phase 5.2 polish pass. The same framing now
+         *  lives at the top of the journey card as the conversational
+         *  masthead ("Let's take a 2-min test drive together"), which
+         *  invites the chat in Stop 3 instead of feeling buried here. */}
       </div>
     </div>
   );
