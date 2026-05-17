@@ -64,28 +64,36 @@ export function DrivingProfileCard({ initialProfile, reportId }: Props) {
 
   if (chips.length === 0) return null;
 
+  // Editorial vocabulary — matches the rest of the report.
+  //   · No card frame, no shadow, no rounded boxes
+  //   · Mono kicker · serif chip body · sage accent (signals this
+  //     content is "what's working for you", not "alert")
+  //   · Plum left-rule echoes the GapEvidence + ClaimSimulator
+  //     left-rule pattern so the customer reads the chips as part
+  //     of the audit voice
   return (
-    <div className="rounded-2xl border border-brand-light-gray bg-white shadow-sm overflow-hidden">
-      <div className="bg-brand-navy/5 px-5 py-2.5 border-b border-brand-light-gray">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy">
-          Tailored to your driving profile
-        </div>
+    <div className="my-5 md:my-6 pl-4 md:pl-5 border-l-2 border-brand-sage">
+      <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-sage">
+        · Tailored to your driving profile ·
       </div>
-      <div className="px-5 py-4 flex flex-wrap gap-2">
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
         {chips.map((c) => (
           <div
             key={c.label}
-            className="inline-flex items-center gap-1.5 rounded-full bg-brand-offwhite border border-brand-light-gray px-3 py-1.5"
+            className="flex items-baseline gap-1.5"
           >
-            <span className="text-[10px] uppercase tracking-wider text-brand-slate font-semibold">
+            <span className="font-mono text-[9.5px] uppercase tracking-[0.12em] font-bold text-brand-slate">
               {c.label}
             </span>
-            <span className="text-xs font-bold text-brand-charcoal">
+            <span className="font-serif italic text-[13.5px] md:text-[14px] text-brand-charcoal">
               {c.value}
             </span>
           </div>
         ))}
       </div>
+      <p className="mt-2 font-mono text-[9.5px] uppercase tracking-[0.12em] text-brand-slate">
+        · Reflected in each gap&rsquo;s &ldquo;show our work&rdquo; trail below ·
+      </p>
     </div>
   );
 }

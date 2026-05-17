@@ -21,6 +21,7 @@
  */
 
 import type { ParsedPolicy } from "@/lib/types";
+import type { DrivingProfile } from "@/components/driving-profile-card";
 
 export interface IndustryBenchmark {
   /** Plain-English description of the benchmark and the cohort it
@@ -42,6 +43,10 @@ export interface VehicleContext {
   ncbPercent: number;
   isFloodProneCity: boolean;
   hasSmartKey: boolean;
+  /** Driving profile captured during the upload mid-load carousel.
+   *  Optional — gap evidence falls back to vehicle-only signals when
+   *  the customer hasn't answered the questions. */
+  drivingProfile?: DrivingProfile;
 }
 
 const FLOOD_PRONE_CITY_PATTERNS = [
@@ -77,7 +82,8 @@ const SMART_KEY_MAKES = new Set([
 ]);
 
 export function deriveVehicleContext(
-  parsedPolicy: ParsedPolicy
+  parsedPolicy: ParsedPolicy,
+  drivingProfile?: DrivingProfile
 ): VehicleContext {
   const year = parsedPolicy.vehicle.yearOfManufacture;
   const vehicleAge = Math.max(0, new Date().getFullYear() - (year || 0));
@@ -111,6 +117,7 @@ export function deriveVehicleContext(
     ncbPercent,
     isFloodProneCity,
     hasSmartKey,
+    drivingProfile,
   };
 }
 

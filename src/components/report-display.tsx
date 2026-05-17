@@ -3,10 +3,7 @@ import clsx from "clsx";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { ReportGuard } from "@/components/report-guard";
-import {
-  DrivingProfileCard,
-  type DrivingProfile,
-} from "@/components/driving-profile-card";
+import type { DrivingProfile } from "@/components/driving-profile-card";
 import { SimplifyToggle } from "@/components/simplify-toggle";
 import { ReportCover } from "@/components/report-cover";
 import { ReportSummary } from "@/components/report-summary";
@@ -113,6 +110,7 @@ export function ReportDisplay({
         <WhatsMissingSection
           parsedPolicy={parsedPolicy}
           report={report}
+          drivingProfile={drivingProfile}
           printMode={printMode}
         />
 
@@ -149,18 +147,11 @@ export function ReportDisplay({
              *  pricing snapshot data is already folded inline into
              *  AtRenewalSection so the card was redundant. */}
 
-            {/* Optional driving profile chips — only when the user
-             *  answered the mid-load survey. Visually demoted to a
-             *  small editorial footnote pending the Phase 6.2
-             *  embed-into-body work. */}
-            {drivingProfile && (
-              <div className="mt-12 md:mt-16 max-w-2xl mx-auto px-5 md:px-6">
-                <DrivingProfileCard
-                  initialProfile={drivingProfile}
-                  reportId={parsedPolicy.id}
-                />
-              </div>
-            )}
+            {/* The driving-profile chips used to live here at the
+             *  bottom as decorative chrome. As of Phase 7b they sit
+             *  inside §02 What's Missing (right under the heading)
+             *  so the customer sees the personalization context
+             *  immediately alongside the gaps it shaped. */}
 
             {/* Disclaimer — editorial mono footnote */}
             <div className="mt-12 md:mt-16 max-w-2xl mx-auto px-5 md:px-6">

@@ -40,6 +40,10 @@ import { totalMoneyAtRisk, matchCanonicalAddOn } from "@/lib/claim-scenarios";
 import { buildGapEvidence } from "@/lib/audit-checks";
 import { GapEvidenceDisclosure } from "@/components/gap-evidence";
 import { ClaimSimulator } from "@/components/claim-simulator";
+import {
+  DrivingProfileCard,
+  type DrivingProfile,
+} from "@/components/driving-profile-card";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 
 /* ─── 01 · What's Working ───────────────────────────────────────────── */
@@ -85,10 +89,16 @@ export function WhatsWorkingSection({
 export function WhatsMissingSection({
   parsedPolicy,
   report,
+  drivingProfile,
   printMode = false,
 }: {
   parsedPolicy: ParsedPolicy;
   report: PolicyReport;
+  /** Optional answers from the upload mid-load carousel. When present,
+   *  each gap's "Show our work" trail gains profile-aware checks
+   *  (mileage, claim history, household reliance, priority) so the
+   *  audit reads as actually tailored to the customer — Phase 7b. */
+  drivingProfile?: DrivingProfile;
   /** When true (PDF render), the per-gap "Show our work" disclosure is
    *  rendered expanded by default so the saved document carries the
    *  full audit trail. */
@@ -126,6 +136,18 @@ export function WhatsMissingSection({
       sketch={<SketchExitSign width={130} color="currentColor" />}
       anchor="gaps"
     >
+      {/* Driving-profile chips — surfaces the customer's mid-load
+          answers at the top of §02 so they see immediately that the
+          gaps below are tailored to them. Editorial vocab (sage
+          left-rule, mono kicker, serif chips). Only renders when
+          there's at least one answer; safely null otherwise. */}
+      {drivingProfile && (
+        <DrivingProfileCard
+          initialProfile={drivingProfile}
+          reportId={parsedPolicy.id}
+        />
+      )}
+
       {/* Money-at-risk callout — editorial pull quote, not a gradient card */}
       {moneyAtRisk.total > 0 && (
         <SectionPullQuote
@@ -157,7 +179,7 @@ export function WhatsMissingSection({
           gaps.map((gap, i) => {
             const canonical = matchCanonicalAddOn(gap.title);
             const evidence = canonical
-              ? buildGapEvidence(canonical, parsedPolicy)
+              ? buildGapEvidence(canonical, parsedPolicy, drivingProfile)
               : null;
             // Compose the two transparency artifacts per gap:
             //   1. ClaimSimulator — visceral money-grounding (Phase 7a),
