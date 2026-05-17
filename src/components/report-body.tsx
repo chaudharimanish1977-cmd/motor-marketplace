@@ -36,7 +36,9 @@ import {
 } from "@/components/sketches-scenes";
 import { SketchVerdict } from "@/components/sketches";
 import { formatINR } from "@/lib/format";
-import { totalMoneyAtRisk } from "@/lib/claim-scenarios";
+import { totalMoneyAtRisk, matchCanonicalAddOn } from "@/lib/claim-scenarios";
+import { buildGapEvidence } from "@/lib/audit-checks";
+import { GapEvidenceDisclosure } from "@/components/gap-evidence";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 
 /* ─── 01 · What's Working ───────────────────────────────────────────── */
@@ -82,9 +84,14 @@ export function WhatsWorkingSection({
 export function WhatsMissingSection({
   parsedPolicy,
   report,
+  printMode = false,
 }: {
   parsedPolicy: ParsedPolicy;
   report: PolicyReport;
+  /** When true (PDF render), the per-gap "Show our work" disclosure is
+   *  rendered expanded by default so the saved document carries the
+   *  full audit trail. */
+  printMode?: boolean;
 }) {
   const gaps = report.keyGaps.items;
   const idv = report.idvCheck;
@@ -134,7 +141,11 @@ export function WhatsMissingSection({
         </SectionPullQuote>
       )}
 
-      {/* Gap list */}
+      {/* Gap list — each row carries an inline "Show our work"
+          disclosure rendering the deterministic audit-check trail +
+          industry benchmark for that gap (Phase 7c). Graceful: if a
+          gap's title doesn't map to a canonical add-on we know how to
+          audit, the disclosure simply doesn't render. */}
       <div className="mt-2">
         {gaps.length === 0 ? (
           <p className="font-serif italic text-[15px] text-brand-slate py-3">
@@ -142,14 +153,28 @@ export function WhatsMissingSection({
             covers what to ask for.
           </p>
         ) : (
-          gaps.map((gap, i) => (
-            <SectionItem
-              key={i}
-              status={i < 2 ? "alert" : "watch"}
-              title={gap.title}
-              body={gap.description}
-            />
-          ))
+          gaps.map((gap, i) => {
+            const canonical = matchCanonicalAddOn(gap.title);
+            const evidence = canonical
+              ? buildGapEvidence(canonical, parsedPolicy)
+              : null;
+            return (
+              <SectionItem
+                key={i}
+                status={i < 2 ? "alert" : "watch"}
+                title={gap.title}
+                body={gap.description}
+                callout={
+                  evidence ? (
+                    <GapEvidenceDisclosure
+                      evidence={evidence}
+                      printMode={printMode}
+                    />
+                  ) : undefined
+                }
+              />
+            );
+          })
         )}
       </div>
 

@@ -113,6 +113,7 @@ export function ReportDisplay({
         <WhatsMissingSection
           parsedPolicy={parsedPolicy}
           report={report}
+          printMode={printMode}
         />
 
         {/* THE GATE — sits between What's Missing (gaps + IDV) and
