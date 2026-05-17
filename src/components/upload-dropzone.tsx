@@ -70,16 +70,16 @@ function BackChip({ href }: { href: string }) {
 }
 
 /**
- * Editorial replacement for the old circular StopwatchChip.
- *
- * A small mono caption fixed to the top-right of the journey card:
+ * Editorial timer caption shown in the journey card's top-right
+ * during the parsing run:
  *
  *     · 14s · STILL READING ·
  *
- * Once the journey arrives at Destination, the dropzone passes
- * `endedAt` and the timer freezes at that moment + swaps "Still
- * reading" → "Drive complete", so the chip reads as the official
- * record of the run.
+ * Rendered INLINE (not absolutely positioned) inside a flex header
+ * row so it never overlaps the conversational masthead below. Once
+ * the journey arrives at Destination, the dropzone passes `endedAt`
+ * and the timer freezes at that moment + swaps "Still reading" →
+ * "Drive complete".
  */
 function TimerChip({
   startedAt,
@@ -104,7 +104,7 @@ function TimerChip({
           .padStart(2, "0")}s`;
   return (
     <div
-      className="absolute top-4 right-5 z-10 font-mono text-[10px] uppercase tracking-[0.16em] text-brand-slate print:hidden"
+      className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand-slate print:hidden whitespace-nowrap"
       aria-label={`Elapsed time ${display}`}
     >
       <span
@@ -117,6 +117,24 @@ function TimerChip({
       <span className="mx-1.5">·</span>
       <span>{endedAt ? "Drive complete" : "Still reading"}</span>
     </div>
+  );
+}
+
+/**
+ * Inline back-arrow used in the journey card's header row. Separate
+ * from the absolute-positioned `BackChip` used on the idle dropzone
+ * tile (which works fine there because it doesn't share vertical
+ * space with anything).
+ */
+function InlineBackArrow({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white border border-brand-light-gray text-brand-slate hover:text-brand-charcoal shadow-soft transition-colors print:hidden"
+      aria-label="Back"
+    >
+      <ArrowLeft className="w-4 h-4" />
+    </Link>
   );
 }
 
@@ -338,11 +356,21 @@ export function UploadDropzone({
   // hit "See the verdict" (or after a 30s fallback).
   if (state === "uploading" || state === "parsing") {
     return (
-      <div className="relative rounded-3xl bg-brand-offwhite border border-brand-charcoal/10 p-6 md:p-10">
-        <BackChip href={backHref} />
-        {startedAt !== null && !error && (
-          <TimerChip startedAt={startedAt} endedAt={arrivedAt} />
-        )}
+      <div className="relative rounded-3xl bg-brand-offwhite border border-brand-charcoal/10 p-5 md:p-10">
+        {/* Inline header row — back arrow + elapsed timer. Replaces the
+         *  previous absolute overlays, which on mobile collided
+         *  horizontally with the conversational masthead below
+         *  ("Let's take a 2-min test drive together"). Inline keeps
+         *  everything in its own vertical band; masthead now sits
+         *  cleanly below this row with no overlap risk. */}
+        <div className="flex items-center justify-between gap-3 mb-4 md:mb-6 min-h-[36px]">
+          <InlineBackArrow href={backHref} />
+          {startedAt !== null && !error ? (
+            <TimerChip startedAt={startedAt} endedAt={arrivedAt} />
+          ) : (
+            <span aria-hidden />
+          )}
+        </div>
         <Journey
           state={journeyState}
           context={{

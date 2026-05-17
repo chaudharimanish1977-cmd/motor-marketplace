@@ -67,6 +67,10 @@ export function JourneySandbox() {
   const [simulatedElapsedMs, setSimulatedElapsedMs] = useState<
     number | null
   >(null);
+  // Show the dropzone's outer chrome (back arrow + editorial timer)
+  // so we can verify on mobile that the conversational masthead
+  // doesn't collide with the corner widgets.
+  const [showChrome, setShowChrome] = useState(true);
 
   const ctx = {
     vehicleLabel: PRESETS[preset].vehicleLabel,
@@ -154,6 +158,12 @@ export function JourneySandbox() {
           <Chip active={errorOn} onClick={() => setErrorOn((v) => !v)}>
             Inject error
           </Chip>
+          <Chip
+            active={showChrome}
+            onClick={() => setShowChrome((v) => !v)}
+          >
+            Show chrome
+          </Chip>
           <Chip onClick={reset}>↻ Restart</Chip>
         </ControlRow>
 
@@ -232,8 +242,29 @@ export function JourneySandbox() {
         )}
       </div>
 
-      {/* The Journey itself, mounted inside the same shell the dropzone uses */}
-      <div className="rounded-3xl bg-brand-offwhite border border-brand-charcoal/10 p-6 md:p-10">
+      {/* The Journey itself, mounted inside the same shell the
+       *  dropzone uses. When `showChrome` is on, we additionally
+       *  render the dropzone's inline header (back arrow + mock
+       *  timer caption) above the Journey so we can verify mobile
+       *  layout doesn't collide with the masthead. */}
+      <div className="relative rounded-3xl bg-brand-offwhite border border-brand-charcoal/10 p-5 md:p-10">
+        {showChrome && (
+          <div className="flex items-center justify-between gap-3 mb-4 md:mb-6 min-h-[36px]">
+            <span
+              className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/80 border border-brand-light-gray text-brand-slate shadow-soft"
+              aria-label="Back (mock)"
+            >
+              ←
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand-slate whitespace-nowrap">
+              <span className="text-brand-plum font-bold tabular-nums">
+                14s
+              </span>
+              <span className="mx-1.5">·</span>
+              <span>Still reading</span>
+            </span>
+          </div>
+        )}
         <Journey
           key={journeyKey}
           state={state}
