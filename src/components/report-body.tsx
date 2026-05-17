@@ -39,6 +39,7 @@ import { formatINR } from "@/lib/format";
 import { totalMoneyAtRisk, matchCanonicalAddOn } from "@/lib/claim-scenarios";
 import { buildGapEvidence } from "@/lib/audit-checks";
 import { GapEvidenceDisclosure } from "@/components/gap-evidence";
+import { ClaimSimulator } from "@/components/claim-simulator";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 
 /* ─── 01 · What's Working ───────────────────────────────────────────── */
@@ -158,20 +159,39 @@ export function WhatsMissingSection({
             const evidence = canonical
               ? buildGapEvidence(canonical, parsedPolicy)
               : null;
+            // Compose the two transparency artifacts per gap:
+            //   1. ClaimSimulator — visceral money-grounding (Phase 7a),
+            //      always visible. Renders only when the gap maps to a
+            //      canonical add-on with a known scenario.
+            //   2. GapEvidenceDisclosure — collapsible "Show our work"
+            //      audit trail + industry benchmark (Phase 7c).
+            const callout =
+              canonical || evidence ? (
+                <div>
+                  {canonical && (
+                    <ClaimSimulator
+                      canonical={canonical}
+                      parsedPolicy={parsedPolicy}
+                      printMode={printMode}
+                    />
+                  )}
+                  {evidence && (
+                    <div className="mt-3">
+                      <GapEvidenceDisclosure
+                        evidence={evidence}
+                        printMode={printMode}
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : undefined;
             return (
               <SectionItem
                 key={i}
                 status={i < 2 ? "alert" : "watch"}
                 title={gap.title}
                 body={gap.description}
-                callout={
-                  evidence ? (
-                    <GapEvidenceDisclosure
-                      evidence={evidence}
-                      printMode={printMode}
-                    />
-                  ) : undefined
-                }
+                callout={callout}
               />
             );
           })

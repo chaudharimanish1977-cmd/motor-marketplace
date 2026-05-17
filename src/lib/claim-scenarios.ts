@@ -16,6 +16,57 @@ export interface ClaimScenario {
     youPay: number;
     extraPremiumThisYear?: number; // What the add-on cost
   };
+  /**
+   * Whether the bill split scales meaningfully with claim size. True
+   * for scenarios where the customer can move the simulator slider
+   * and see different out-of-pocket numbers (Zero Dep, Engine Protect,
+   * Consumables, Key Replacement, LoPB). False for scenarios where
+   * the math doesn't bend (RSA: flat per-call; NCB Protection:
+   * compounded lost-discount value; RTI: bound to IDV).
+   */
+  scalesWithClaimSize?: boolean;
+  /** Suggested claim sizes (in INR) to expose on the slider as snap
+   *  points. Only used when `scalesWithClaimSize` is true. */
+  sliderSnapPoints?: number[];
+}
+
+/**
+ * Rough annual premium of the add-on for this vehicle profile (₹).
+ * Used by the inline ClaimSimulator to show the customer "what the
+ * cover would cost" alongside the bill-split — turning the gap from
+ * an abstract recommendation into a price-tag they can weigh.
+ *
+ * Numbers are conservative estimates anchored on:
+ *   - IDV-percentage rules for zero-dep + RTI
+ *   - Flat-rate market averages for the rest (Engine Protect ~1500,
+ *     RSA ~300, NCB Protect ~500, Consumables ~800, Key Repl ~500,
+ *     LoPB ~250). These match the rough-estimate logic already used
+ *     in the report-generator prompt for addOnRecommendations.
+ */
+export function getAnnualPremiumEstimate(
+  addOnName: string,
+  idv: number
+): number {
+  switch (addOnName) {
+    case "Zero Depreciation":
+      return Math.round((idv * 0.015) / 100) * 100; // ~1.5% of IDV
+    case "Engine Protector":
+      return 1500;
+    case "Return to Invoice":
+      return Math.round((idv * 0.01) / 100) * 100; // ~1% of IDV
+    case "Roadside Assistance":
+      return 300;
+    case "NCB Protection":
+      return 500;
+    case "Consumables":
+      return 800;
+    case "Key Replacement":
+      return 500;
+    case "Loss of Personal Belongings":
+      return 250;
+    default:
+      return 0;
+  }
 }
 
 export function getOutOfPocket(
@@ -51,6 +102,8 @@ export function totalMoneyAtRisk(
   return { total, count };
 }
 
+const DEFAULT_SNAP_POINTS = [10_000, 25_000, 50_000, 75_000, 100_000, 150_000, 200_000];
+
 export function getClaimScenario(
   addOnName: string,
   idv: number,
@@ -74,6 +127,8 @@ export function getClaimScenario(
           insurerPays: claim - 2000,
           youPay: 2000,
         },
+        scalesWithClaimSize: true,
+        sliderSnapPoints: DEFAULT_SNAP_POINTS,
       };
     }
     case "Engine Protector": {
@@ -90,6 +145,8 @@ export function getClaimScenario(
           insurerPays: claim - 2000,
           youPay: 2000,
         },
+        scalesWithClaimSize: true,
+        sliderSnapPoints: DEFAULT_SNAP_POINTS,
       };
     }
     case "Return to Invoice": {
@@ -107,6 +164,7 @@ export function getClaimScenario(
           insurerPays: invoiceValue,
           youPay: 0,
         },
+        scalesWithClaimSize: false, // bound to IDV, not a free claim size
       };
     }
     case "Roadside Assistance": {
@@ -123,6 +181,7 @@ export function getClaimScenario(
           insurerPays: claim,
           youPay: 0,
         },
+        scalesWithClaimSize: false, // flat per-call utility
       };
     }
     case "NCB Protection": {
@@ -141,6 +200,7 @@ export function getClaimScenario(
           insurerPays: ncbValue * yearsToRebuild,
           youPay: 0,
         },
+        scalesWithClaimSize: false, // compounded lost-discount value
       };
     }
     case "Consumables": {
@@ -157,6 +217,8 @@ export function getClaimScenario(
           insurerPays: claim,
           youPay: 0,
         },
+        scalesWithClaimSize: true,
+        sliderSnapPoints: [2_000, 5_000, 8_000, 12_000, 18_000, 25_000],
       };
     }
     case "Key Replacement": {
@@ -173,6 +235,8 @@ export function getClaimScenario(
           insurerPays: claim,
           youPay: 0,
         },
+        scalesWithClaimSize: true,
+        sliderSnapPoints: [5_000, 10_000, 18_000, 25_000],
       };
     }
     case "Loss of Personal Belongings": {
@@ -189,6 +253,72 @@ export function getClaimScenario(
           insurerPays: claim,
           youPay: 0,
         },
+        scalesWithClaimSize: true,
+        sliderSnapPoints: [3_000, 7_000, 12_000, 20_000, 30_000],
+      };
+    }
+    default:
+      return null;
+  }
+}
+
+/**
+ * Re-compute the bill split for an arbitrary claim size on a scenario
+ * that scales linearly. Used by the inline ClaimSimulator slider so
+ * the customer can drag through different claim sizes and watch the
+ * out-of-pocket number move in real time.
+ *
+ * Returns null when the scenario doesn't scale meaningfully (RTI, RSA,
+ * NCB Protection) — in those cases the UI should hide the slider and
+ * show the baseline scenario only.
+ *
+ * The scaling rule per add-on:
+ *   - Zero Depreciation: youPayWithout = claim × depreciationLossPct;
+ *     youPayWith = ₹2k flat (add-on's own deductible).
+ *   - Engine Protector / Consumables / Key Replacement / LoPB: the
+ *     base policy doesn't cover the claim at all, so without-add-on
+ *     out-of-pocket = full claim; with-add-on = ₹2k flat (or zero for
+ *     true zero-deductible add-ons; we model the ₹2k as a conservative
+ *     compulsory deductible to keep the math honest).
+ */
+export function rescaleClaimScenario(
+  addOnName: string,
+  vehicleAge: number,
+  newClaimSize: number
+): { withoutAddOn: { insurerPays: number; youPay: number }; withAddOn: { insurerPays: number; youPay: number } } | null {
+  const claim = Math.max(0, Math.round(newClaimSize));
+  switch (addOnName) {
+    case "Zero Depreciation": {
+      const deprecationLossPct = Math.min(0.6, 0.05 * Math.max(1, vehicleAge));
+      const youPayWithout = Math.round(claim * deprecationLossPct);
+      const withDeductible = Math.min(2000, claim);
+      return {
+        withoutAddOn: {
+          insurerPays: claim - youPayWithout,
+          youPay: youPayWithout,
+        },
+        withAddOn: {
+          insurerPays: Math.max(0, claim - withDeductible),
+          youPay: withDeductible,
+        },
+      };
+    }
+    case "Engine Protector": {
+      const withDeductible = Math.min(2000, claim);
+      return {
+        withoutAddOn: { insurerPays: 0, youPay: claim },
+        withAddOn: {
+          insurerPays: Math.max(0, claim - withDeductible),
+          youPay: withDeductible,
+        },
+      };
+    }
+    case "Consumables":
+    case "Key Replacement":
+    case "Loss of Personal Belongings": {
+      return {
+        withoutAddOn: { insurerPays: 0, youPay: claim },
+        withAddOn: { insurerPays: claim, youPay: 0 },
       };
     }
     default:
