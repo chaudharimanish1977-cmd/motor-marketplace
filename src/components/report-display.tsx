@@ -48,6 +48,7 @@ import { Typewriter } from "@/components/typewriter";
 import { VehicleWatermark } from "@/components/vehicle-watermark";
 import { SimplifyToggle } from "@/components/simplify-toggle";
 import { getBodyType } from "@/lib/vehicle-classifier";
+import { ReportCover } from "@/components/report-cover";
 
 function iconForHint(hint?: string): LucideIcon {
   switch (hint) {
@@ -160,96 +161,31 @@ export function ReportDisplay({
     <div className="min-h-screen bg-brand-offwhite pb-12">
       {!printMode && <ScrollProgress />}
       {view === "customer" && !printMode && <ReportGuard />}
-      {/* Header bar — mobile-first redesign:
-       *  Row 1: "Hey Buddy" left, Shield icon right
-       *  Row 2: "Your Motor Insurance at a Glance" centred
-       *  Row 3: tagline split into two centred lines
-       *  Secondary controls (SimplifyToggle + Generated date) are hidden on
-       *  small screens to keep the header airy. */}
-      <header className="relative bg-gradient-to-r from-brand-navy to-brand-plum text-white shadow-elevated overflow-hidden">
-        <div
-          className="absolute right-0 bottom-0 w-[420px] max-w-[55%] text-white pointer-events-none print:hidden"
-          aria-hidden
-        >
-          <VehicleWatermark bodyType={bodyType} className="w-full h-auto" />
-        </div>
-        <div className="relative max-w-5xl mx-auto px-4 py-5 space-y-3">
-          {/* Top row */}
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl md:text-2xl font-bold text-brand-olive leading-tight">
-              Hey {greetingName}
-            </h2>
-            <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-6 h-6 text-brand-olive" />
-            </div>
-          </div>
+      {/* Phase 6.0 — The Garage cover page. Replaces the old gradient
+       *  header bar + at-a-glance strip + VehicleHero card with a
+       *  single editorial cover (masthead, headline, smiley rating,
+       *  verdict, vehicle factbox). The legacy header + watermark are
+       *  intentionally retired here — print-mode keeps the cover too,
+       *  so the PDF leads with the same editorial first impression. */}
+      <ReportCover parsedPolicy={parsedPolicy} report={report} />
 
-          {/* Title + 2-line tagline, centred */}
-          <div className="text-center">
-            <h1 className="text-xl md:text-2xl font-bold leading-tight">
-              Your Motor Insurance{" "}
-              <span className="text-brand-olive">at a Glance</span>
-            </h1>
-            <p className="text-sm text-white/85 mt-1.5 leading-snug">
-              Smart Review Today.
-              <br />
-              Stronger Protection Tomorrow.
-            </p>
+      {/* Desktop-only controls strip — moved out of the header so the
+       *  cover stays clean. Hidden on mobile + in print to keep the
+       *  cover composition untouched. */}
+      {!printMode && (
+        <div className="hidden md:flex items-center justify-end gap-3 max-w-5xl mx-auto px-4 pt-2 pb-1 print:hidden">
+          <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+            Generated{" "}
+            {new Date(report.generatedAt).toLocaleString("en-IN", {
+              dateStyle: "medium",
+              timeStyle: "short",
+              timeZone: "Asia/Kolkata",
+            })}{" "}
+            IST
           </div>
-
-          {/* Secondary controls — desktop only, suppressed in print-mode */}
-          {!printMode && (
-            <div className="hidden md:flex items-center justify-end gap-3 print:hidden">
-              <div className="text-xs text-white/70">
-                Generated{" "}
-                {new Date(report.generatedAt).toLocaleString("en-IN", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                  timeZone: "Asia/Kolkata",
-                })}{" "}
-                IST
-              </div>
-              <SimplifyToggle />
-            </div>
-          )}
+          <SimplifyToggle />
         </div>
-      </header>
-
-      {/* At a glance — compact 5-fact strip, DD/MM/YY policy period */}
-      <section className="bg-white border-b border-brand-light-gray shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-3">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <Fact
-              label="Policy Period"
-              value={formatPolicyPeriodShort(
-                parsedPolicy.odPeriodStart,
-                parsedPolicy.odPeriodEnd
-              )}
-              valueClassName="text-xs sm:text-sm tabular-nums"
-            />
-            <Fact
-              label="Vehicle"
-              value={atAGlance.vehicleLabel}
-              valueClassName="text-xs sm:text-sm"
-            />
-            <Fact
-              label="IDV"
-              value={formatINR(atAGlance.idv)}
-              valueClassName="text-emerald-700"
-            />
-            <Fact
-              label="NCB"
-              value={`${atAGlance.ncbPercent}%`}
-              valueClassName="text-emerald-700"
-            />
-            <Fact
-              label="Policy Type"
-              value={atAGlance.policyTypeLabel}
-              valueClassName="text-xs sm:text-sm"
-            />
-          </div>
-        </div>
-      </section>
+      )}
 
       {/* Content body — narrative order:
        *   1. Vehicle plate hero + money-at-risk callout
@@ -268,15 +204,11 @@ export function ReportDisplay({
           view === "customer" && !printMode && "report-protected"
         )}
       >
-        {/* §0a Vehicle hero — big plate + money-at-risk callout */}
-        <VehicleHero
-          vehicleLabel={`${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`}
-          variant={parsedPolicy.vehicle.variant}
-          registrationNumber={parsedPolicy.vehicle.registrationNumber}
-          yearOfManufacture={parsedPolicy.vehicle.yearOfManufacture}
-          moneyAtRisk={moneyAtRisk.total}
-          riskGapCount={moneyAtRisk.count}
-        />
+        {/* §0a Vehicle hero retired — the editorial Cover above the
+         *  body now handles the make/model/plate/age presentation in a
+         *  much less cluttered way. The moneyAtRisk callout still
+         *  exists conceptually inside the coverage score + gaps
+         *  sections below. */}
 
         {/* §0 Coverage Score — hero metric */}
         <CoverageScoreCard score={computeCoverageScore(parsedPolicy, report)} />
