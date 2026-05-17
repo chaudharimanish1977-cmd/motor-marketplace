@@ -137,6 +137,7 @@ export function ReportDisplay({
             <BottomLineSection
               parsedPolicy={parsedPolicy}
               report={report}
+              drivingProfile={drivingProfile}
               printMode={printMode}
             />
 

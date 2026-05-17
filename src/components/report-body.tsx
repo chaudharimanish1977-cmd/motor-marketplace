@@ -44,6 +44,7 @@ import {
   DrivingProfileCard,
   type DrivingProfile,
 } from "@/components/driving-profile-card";
+import { SaveReportButton } from "@/components/save-report-button";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 
 /* ─── 01 · What's Working ───────────────────────────────────────────── */
@@ -366,10 +367,14 @@ function PricingFigure({
 export function BottomLineSection({
   parsedPolicy,
   report,
+  drivingProfile,
   printMode = false,
 }: {
   parsedPolicy: ParsedPolicy;
   report: PolicyReport;
+  /** Driving-profile chips — passed through to SaveReportButton so the
+   *  PDF render embeds the same query params the customer saw on-screen. */
+  drivingProfile?: DrivingProfile;
   /** When true, hide the renewal CTA pill so the PDF reads as a
    *  pure printable document with no interactive chrome. */
   printMode?: boolean;
@@ -401,6 +406,21 @@ export function BottomLineSection({
           <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
             · Free to see · Insurers compete for your renewal · No spam ·
           </div>
+
+          {/* "Save my report" affordance — visually demoted (outlined,
+              not filled) so the primary renewal CTA above keeps its
+              gravity. One click fires both the A4 PDF + 1080×1080
+              WhatsApp summary card downloads. Phase 7d.1 + 7d.2. */}
+          <SaveReportButton
+            reportId={parsedPolicy.id}
+            query={{
+              km: drivingProfile?.annualKm,
+              drv: drivingProfile?.drivenBy,
+              oc: drivingProfile?.otherCars,
+              pri: drivingProfile?.priority,
+              pc: drivingProfile?.pastClaims,
+            }}
+          />
         </div>
       )}
     </ReportSection>
