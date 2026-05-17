@@ -523,7 +523,9 @@ function PolicyCard({ policy }: { policy: PortalPolicy }) {
               {vehicleLabel}
             </div>
             <div className="text-xs text-brand-slate mt-0.5">
-              {parsed.vehicle.variant}
+              {parsed.vehicle.yearOfManufacture
+                ? `${parsed.vehicle.yearOfManufacture}`
+                : ""}
               {parsed.vehicle.registrationNumber
                 ? ` · ${parsed.vehicle.registrationNumber}`
                 : ""}

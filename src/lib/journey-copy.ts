@@ -1,33 +1,31 @@
 /**
- * Journey copy — single source of truth for what each of the 5 acts
- * says in each lifecycle state.
+ * Journey copy — single source of truth for what each stop says in
+ * each lifecycle state.
  *
- * The 5-act journey is the editorial 90-second experience that runs
- * during the parsing wait. Same skeleton across states; content shifts
- * by state. This file is pure (no React) so it's easy to scan, edit,
- * and translate later.
+ * Phase 5 expansion:
  *
- * Act structure:
+ *   Stop 1 · Hello       ~12s   confirm + personalise
+ *   Stop 2 · Read        ~22s   show the work
+ *   Stop 3 · Ask         ~20s   capture 2-4 dynamic questions
+ *   Stop 4 · Preview     ~15s   RCP teaser — "what we're recommending"
+ *   Stop 5 · Stitching   ~18s   anticipate quotes / verdict
+ *   Stop 6 · Destination  hold  finish-line beat, tap-to-advance
  *
- *   1 · Hello     ~15s   confirm receipt, personalise
- *   2 · Read      ~25s   show the work, build trust (LoaderScene mounts here)
- *   3 · Ask       ~20s   capture 2 high-leverage questions
- *   4 · skip      —      (educational beat removed by user decision)
- *   5 · Anticipate ~30s  capability tease + reveal hold
+ * State D (lapsed) skips Stop 3 (Ask); ~75s total.
  *
- * State D (lapsed) compresses to 60s total — urgency context, skip Ask.
+ * Pure (no React) so this file is easy to scan, edit, and translate.
  */
 
 import type { LifecycleState } from "./lifecycle-state";
 
-/* ─── Per-act content ──────────────────────────────────────────────── */
+/* ─── Per-stop content ──────────────────────────────────────────────── */
 
 export interface ActContent {
   /** Display heading in editorial serif. */
   heading: string;
   /** Optional body line beneath the heading (italic-serif slate). */
   body?: string;
-  /** Milliseconds this act stays on screen before auto-advance. */
+  /** Milliseconds this stop stays on screen before auto-advance. */
   durationMs: number;
 }
 
@@ -35,11 +33,13 @@ export interface JourneyContent {
   hello: ActContent;
   read: ActContent;
   ask: ActContent;
-  anticipate: ActContent;
-  /** True for State D: collapse the journey, skip the Ask act, urgency framing. */
+  preview: ActContent;
+  stitching: ActContent;
+  destination: ActContent;
+  /** True for State D: collapse the journey, skip the Ask stop. */
   skipAsk: boolean;
-  /** Total expected duration of the journey. Caller uses this to enforce the
-   *  hold-to-90s discipline (or hold-to-60s for State D). */
+  /** Total expected duration of the journey (excludes the destination
+   *  hold which the customer dismisses themselves). */
   minTotalMs: number;
 }
 
@@ -56,9 +56,19 @@ export interface JourneyContext {
   docCount?: number;
 }
 
-/* ─── The map ──────────────────────────────────────────────────────── */
+/* ─── Helpers ───────────────────────────────────────────────────────── */
 
 const FALLBACK_VEHICLE = "your car";
+
+/** Friendly "in N days" string that handles 0/1/negative naturally. */
+function renewalPhrase(days: number | null | undefined): string {
+  if (typeof days !== "number") return "";
+  if (days === 0) return "today";
+  if (days === 1) return "tomorrow";
+  return `in ${days} days`;
+}
+
+/* ─── The map ──────────────────────────────────────────────────────── */
 
 /**
  * Resolve the journey content for a given lifecycle state + context.
@@ -72,69 +82,97 @@ export function getJourneyContent(
   const days = ctx.daysUntilExpiry;
   const docCount = ctx.docCount ?? 1;
 
+  // Shared destination content — personalised by vehicle in all states.
+  const destination: ActContent = {
+    heading: `Your ${vehicle} review is ready.`,
+    body:
+      state === "A"
+        ? "3 partner quotes stacked alongside — let's see which one's actually the Right Offer."
+        : state === "D"
+          ? "We'll show you exactly what to do right now to get back on cover."
+          : "Coverage strengths, gaps, and what to ask for at renewal — all inside.",
+    durationMs: 0,
+  };
+
   switch (state) {
     case "A": {
       const helloBody =
-        typeof days === "number" && days >= 0
-          ? `Renewal's in ${days} days — perfect window.`
+        typeof days === "number"
+          ? days === 0
+            ? "Renewal's today — perfect window."
+            : days === 1
+              ? "Renewal's tomorrow — perfect window."
+              : `Renewal's ${renewalPhrase(days)} — perfect window.`
           : "We're in the renewal window.";
       const helloHeading =
         docCount > 1
           ? `Stacking up your ${docCount} documents.`
           : `Reading your ${vehicle}.`;
       return {
-        hello: { heading: helloHeading, body: helloBody, durationMs: 15_000 },
+        hello: { heading: helloHeading, body: helloBody, durationMs: 12_000 },
         read: {
           heading: "What we're checking.",
           body:
             docCount > 1
-              ? "Side by side: declared value, depreciation cover, no-claim bonus, engine protection, cashless network."
-              : "Declared value, depreciation cover, no-claim bonus, engine protection, cashless network — the things that decide whether your claim lands in full or in fragments.",
-          durationMs: 25_000,
+              ? "Side by side: declared value, depreciation, no-claim bonus, engine protection, cashless network."
+              : "Declared value, depreciation, no-claim bonus, engine protection, cashless network — the things that decide whether your claim lands in full or in fragments.",
+          durationMs: 22_000,
         },
         ask: {
           heading: "Two quick things — so we can tailor.",
-          body: "Tap to choose. Skip if you'd rather not say.",
+          body: "Answer 2, unlock the rest. Skip anytime.",
           durationMs: 20_000,
         },
-        anticipate: {
-          heading: "Stitching your verdict.",
-          body: "We're pulling 3 fresh quotes from our partners — they'll be on the next screen alongside yours.",
-          durationMs: 30_000,
+        preview: {
+          heading: `For your ${vehicle}, we're recommending.`,
+          body: "A first peek at the coverage profile — the full reasoning lands on the next screen.",
+          durationMs: 15_000,
         },
+        stitching: {
+          heading: "Stitching your verdict.",
+          body: "Pulling 3 fresh quotes from our partners — they'll be on the next screen alongside yours.",
+          durationMs: 18_000,
+        },
+        destination,
         skipAsk: false,
-        minTotalMs: 90_000,
+        minTotalMs: 87_000,
       };
     }
 
     case "B": {
       const helloBody =
         typeof days === "number"
-          ? `${days} days till renewal — let's see how this year's policy is holding up.`
+          ? `${renewalPhrase(days)} till renewal — let's see how this year's policy is holding up.`
           : "Let's see how this year's policy is holding up.";
       return {
         hello: {
           heading: `Got your ${vehicle}.`,
           body: helloBody,
-          durationMs: 15_000,
+          durationMs: 12_000,
         },
         read: {
           heading: "What we're checking.",
-          body: "Declared value, depreciation cover, no-claim bonus, engine protection, cashless network — the things that decide whether your claim lands in full or in fragments.",
-          durationMs: 25_000,
+          body: "Declared value, depreciation, no-claim bonus, engine protection, cashless network — the things that decide whether your claim lands in full or in fragments.",
+          durationMs: 22_000,
         },
         ask: {
           heading: "Two quick things — so we can tailor.",
-          body: "Tap to choose. Skip if you'd rather not say.",
+          body: "Answer 2, unlock the rest. Skip anytime.",
           durationMs: 20_000,
         },
-        anticipate: {
+        preview: {
+          heading: `For your ${vehicle}, we're recommending.`,
+          body: "A first peek at the coverage profile — the full reasoning lands on the next screen.",
+          durationMs: 15_000,
+        },
+        stitching: {
           heading: "Stitching your verdict.",
           body: "We'll come knocking 45 days before renewal — with the best quotes we can find.",
-          durationMs: 30_000,
+          durationMs: 18_000,
         },
+        destination,
         skipAsk: false,
-        minTotalMs: 90_000,
+        minTotalMs: 87_000,
       };
     }
 
@@ -143,25 +181,31 @@ export function getJourneyContent(
         hello: {
           heading: `Got your fresh ${vehicle} policy.`,
           body: "Let's check exactly what you signed up for.",
-          durationMs: 15_000,
+          durationMs: 12_000,
         },
         read: {
           heading: "What we're checking.",
-          body: "Declared value, depreciation cover, no-claim bonus, engine protection, cashless network — the things that decide whether your claim lands in full or in fragments.",
-          durationMs: 25_000,
+          body: "Declared value, depreciation, no-claim bonus, engine protection, cashless network — the things that decide whether your claim lands in full or in fragments.",
+          durationMs: 22_000,
         },
         ask: {
           heading: "Two quick things — so we can tailor.",
-          body: "Tap to choose. Skip if you'd rather not say.",
+          body: "Answer 2, unlock the rest. Skip anytime.",
           durationMs: 20_000,
         },
-        anticipate: {
-          heading: "Saving this for the year.",
-          body: "We'll be back when renewal's in sight.",
-          durationMs: 30_000,
+        preview: {
+          heading: `For your ${vehicle}, we're checking.`,
+          body: "Quick look at the coverage profile we'd recommend at renewal time.",
+          durationMs: 15_000,
         },
+        stitching: {
+          heading: "Saving this for the year.",
+          body: "We'll be back when renewal's in sight — with the best quotes we can find.",
+          durationMs: 18_000,
+        },
+        destination,
         skipAsk: false,
-        minTotalMs: 90_000,
+        minTotalMs: 87_000,
       };
 
     case "D": {
@@ -169,15 +213,17 @@ export function getJourneyContent(
       return {
         hello: {
           heading: daysLapsed
-            ? `Your ${vehicle} policy expired ${daysLapsed} day${daysLapsed === 1 ? "" : "s"} ago.`
+            ? `Your ${vehicle} policy expired ${daysLapsed} day${
+                daysLapsed === 1 ? "" : "s"
+              } ago.`
             : `Your ${vehicle} policy has lapsed.`,
           body: "Reviewing what was there — we'll get you up to date next.",
-          durationMs: 15_000,
+          durationMs: 12_000,
         },
         read: {
           heading: "What we're checking.",
-          body: "Declared value, depreciation cover, no-claim bonus, engine protection, cashless network — the things you were paying for last year.",
-          durationMs: 20_000,
+          body: "Declared value, depreciation, no-claim bonus, engine protection, cashless network — the things you were paying for last year.",
+          durationMs: 18_000,
         },
         ask: {
           // Skipped — but keep shape consistent for typing.
@@ -185,37 +231,41 @@ export function getJourneyContent(
           body: "",
           durationMs: 0,
         },
-        anticipate: {
+        preview: {
+          heading: `For your ${vehicle}, we'd recommend.`,
+          body: "What the cover looked like last year vs what it should look like now.",
+          durationMs: 12_000,
+        },
+        stitching: {
           heading: "Reviewing the lapse.",
           body: "On the next screen: what to do right now to get back on cover.",
-          durationMs: 25_000,
+          durationMs: 15_000,
         },
+        destination,
         skipAsk: true,
-        minTotalMs: 60_000,
+        minTotalMs: 57_000,
       };
     }
   }
 }
 
-/* ─── Ask-act option lists ──────────────────────────────────────────── */
+/* ─── Ask stop — dynamic question bank ──────────────────────────────── */
 
 /**
- * The 2 high-leverage questions surfaced in Act 3. Both are
- * single-select chip rows; skipping is allowed.
+ * The Ask-stop question bank. Customer always sees Q1 + Q2. Q3 + Q4 are
+ * "towed in" by the car if the customer answers the first two within
+ * ~8 seconds of arrival on the stop. The home-page priority chip slot
+ * (Q3) auto-skips when an answer was pre-filled upstream.
  *
- * Kept here (not in the component) so translation / A-B-testing can
- * touch labels without component edits.
+ * All options are committal — no "Don't remember" / "Not sure" /
+ * "Middle of the road" answers. Forcing a decision keeps the data
+ * clean and the answers usable.
  */
 export const ASK_QUESTIONS = [
   {
     key: "pastClaims" as const,
     prompt: "Filed a claim in the last 3 years?",
-    options: [
-      "No",
-      "Yes — once",
-      "Yes — more than once",
-      "Don't remember",
-    ],
+    options: ["No", "Yes — once", "Yes — more than once"],
   },
   {
     key: "worry" as const,
@@ -224,15 +274,26 @@ export const ASK_QUESTIONS = [
       "Claim getting denied",
       "Hidden costs",
       "No support when needed",
-      "Not sure",
     ],
+  },
+  {
+    key: "priority" as const,
+    prompt: "What matters more at renewal?",
+    options: ["Pay less", "Worry less"],
+  },
+  {
+    key: "parking" as const,
+    prompt: "Where's the car parked at night?",
+    options: ["Garage / basement", "Driveway / society", "On the street"],
   },
 ] as const;
 
 export type AskQuestionKey = (typeof ASK_QUESTIONS)[number]["key"];
 
-/** Captured answers from Act 3. Optional fields — customer may skip. */
+/** Captured answers from Stop 3. All fields optional — customer may skip. */
 export interface JourneyAnswers {
   pastClaims?: string;
   worry?: string;
+  priority?: string;
+  parking?: string;
 }

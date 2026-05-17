@@ -120,6 +120,49 @@ const config: Config = {
         "gradient-radial":
           "radial-gradient(circle, var(--tw-gradient-stops))",
       },
+      keyframes: {
+        // Journey ambient motion — small, calm, never anxious. The car
+        // micro-hovers above the road; the current-stop dot breathes;
+        // act content fades-in on phase swap.
+        roadhover: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-2px)" },
+        },
+        roadpulse: {
+          "0%, 100%": {
+            transform: "scale(1)",
+            opacity: "1",
+          },
+          "50%": {
+            transform: "scale(1.18)",
+            opacity: "0.85",
+          },
+        },
+        actFadeIn: {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0px)" },
+        },
+        towingIn: {
+          "0%": {
+            opacity: "0",
+            transform: "translateX(40px)",
+          },
+          "60%": {
+            opacity: "1",
+            transform: "translateX(-4px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateX(0px)",
+          },
+        },
+      },
+      animation: {
+        roadhover: "roadhover 2.8s ease-in-out infinite",
+        roadpulse: "roadpulse 1.6s ease-in-out infinite",
+        "act-fade-in": "actFadeIn 380ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "towing-in": "towingIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both",
+      },
     },
   },
   plugins: [],

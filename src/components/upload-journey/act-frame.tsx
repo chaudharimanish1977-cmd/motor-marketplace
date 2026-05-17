@@ -1,59 +1,58 @@
 /**
- * ActFrame — shared layout shell for each of the 5 journey acts.
+ * ActFrame — shared layout shell for each stop in the journey.
  *
- * On mobile, each act fills the viewport as a full-bleed card with
- * the persistent loader-car heartbeat at the top and the progress
- * dots pinned to the bottom. On desktop (md+), the same act renders
- * as a centred rounded card in a stacked column — no card navigation,
- * the act simply occupies its share of vertical space.
- *
- * The persistent-heartbeat car at the top of every act on mobile is
- * deliberate: it tells the customer "we're still working" even when
- * the act they're reading is conceptual (e.g. the Ask act has no
- * loader). Anchoring a small SketchCar to the top keeps the
- * narrative coherent across all 5 acts.
+ * Phase 5 rebuild:
+ *   · Fixed-height shell so content NEVER causes the frame to grow or
+ *     shrink between stops. No more layout shift.
+ *   · RoadBar pinned at the top (replaces the old kicker text +
+ *     progress dots). Spatial progress is the chapter heading.
+ *   · Middle content area is min-height-locked. Heading anchors to a
+ *     consistent Y position; illustration always renders in the same
+ *     box.
+ *   · Each rendered act animates in via `animate-act-fade-in` —
+ *     a 380ms slide-up + opacity tween — so the hand-off feels smooth
+ *     and visible.
  */
 "use client";
 
 import type React from "react";
-import { SketchCarStatic } from "@/components/sketches";
+import { RoadBar } from "./road-bar";
 
 interface ActFrameProps {
-  /** Mono caption above the heading — short ("WHILE WE READ", etc.). */
-  kicker?: string;
-  /** Acts use the `<ActHeading>` directly inside children; this is the
-   *  outer ring (kicker + heartbeat + body slot + dots). */
+  /** Ordered list of stops + their tiny labels for the road bar. */
+  stops: { key: string; label: string }[];
+  /** Index of the stop currently being rendered. */
+  currentIndex: number;
+  /** Body content — heading, illustration, chips, etc. */
   children: React.ReactNode;
-  /** Bottom-pinned progress dots row (rendered by the Journey orchestrator). */
-  progress: React.ReactNode;
+  /** Optional override for the fixed body min-height (px). */
+  bodyMinHeight?: number;
 }
 
-export function ActFrame({ kicker, children, progress }: ActFrameProps) {
+export function ActFrame({
+  stops,
+  currentIndex,
+  children,
+  bodyMinHeight,
+}: ActFrameProps) {
   return (
-    <div className="relative w-full">
-      {/* Persistent heartbeat — a tiny static car at the top-right of the
-       *  desktop card; on mobile we keep it visible top-centre. */}
-      <div className="flex items-center justify-between gap-3 mb-5 md:mb-7">
-        {kicker ? (
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
-            {kicker}
-          </span>
-        ) : (
-          <span />
-        )}
-        <span className="inline-flex items-center gap-1.5 text-brand-plum">
-          <SketchCarStatic width={28} color="currentColor" />
-          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-brand-slate">
-            still reading
-          </span>
-        </span>
+    <div className="relative w-full max-w-2xl mx-auto">
+      {/* Road bar (pinned, never moves between stops) */}
+      <RoadBar stops={stops} currentIndex={currentIndex} />
+
+      {/* Fixed-height body. The key on the inner wrapper drives the
+       *  fade-in animation when phase changes. */}
+      <div
+        className="relative mt-4 md:mt-6 flex items-center justify-center px-1"
+        style={{ minHeight: bodyMinHeight ?? 360 }}
+      >
+        <div
+          key={stops[currentIndex]?.key ?? "frame"}
+          className="w-full animate-act-fade-in"
+        >
+          {children}
+        </div>
       </div>
-
-      {/* Body content — heading, illustration, body, chips, etc. */}
-      <div className="min-h-[260px] md:min-h-[320px]">{children}</div>
-
-      {/* Progress dots */}
-      <div className="mt-7 md:mt-8">{progress}</div>
     </div>
   );
 }
@@ -71,11 +70,11 @@ export function ActHeading({
 }) {
   return (
     <div className="text-center">
-      <h2 className="font-serif font-medium text-3xl md:text-[40px] leading-[1.1] tracking-[-0.02em] text-brand-charcoal m-0 max-w-2xl mx-auto">
+      <h2 className="font-serif font-medium text-[28px] md:text-[40px] leading-[1.1] tracking-[-0.02em] text-brand-charcoal m-0 max-w-2xl mx-auto">
         {renderHighlightedHeading(heading)}
       </h2>
       {body && (
-        <p className="mt-3 font-serif italic text-base md:text-lg leading-[1.55] text-brand-slate max-w-xl mx-auto text-balance">
+        <p className="mt-3 font-serif italic text-[15px] md:text-lg leading-[1.55] text-brand-slate max-w-xl mx-auto text-balance">
           {body}
         </p>
       )}
@@ -86,13 +85,10 @@ export function ActHeading({
 /**
  * Heuristic — if the heading contains a period mid-sentence, the
  * phrase before the final period becomes the italic-plum accent. Lets
- * us write copy like "Reading your Honda City." and get the cadence
+ * us write copy like "Reading your Audi A6." and get the cadence
  * we want without templating special markers in each entry.
- *
- * Falls back to plain rendering when no accent is detectable.
  */
 function renderHighlightedHeading(heading: string): React.ReactNode {
-  // Find the LAST sentence-style phrase: chunk before the trailing period.
   const m = heading.match(/^(.*?)\s+([^.\s][^.]*\.)$/);
   if (!m) return heading;
   const [, lead, accent] = m;

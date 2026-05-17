@@ -7,12 +7,11 @@ import Link from "next/link";
 import { LoadingLink } from "@/components/loading-link";
 import {
   ArrowLeft,
-  Upload,
-  FileText,
   CheckCircle2,
   Plus,
   ArrowRight,
 } from "lucide-react";
+import { SketchCarStatic } from "@/components/sketches";
 import clsx from "clsx";
 import { StopwatchChip } from "@/components/stopwatch-chip";
 import {
@@ -286,13 +285,13 @@ export function UploadDropzone({
     disabled: state === "uploading" || state === "parsing",
   });
 
-  // ---------- Loader (uploading / parsing) — the 5-act Journey ----------
-  // The Journey replaces the old CircularJourneyLoader + MidLoadQuestions
-  // combo with a single editorial 90-second experience. It self-paces
-  // through Hello → Read → Ask → Anticipate and fires onComplete once
-  // both (parseComplete && minimum-duration) are satisfied. Phase 1
-  // hard-codes State B; Phase 2 will compute the live state from
-  // session + parse-preview.
+  // ---------- Loader (uploading / parsing) — the 6-stop Journey ----------
+  // The Journey self-paces through Hello → Read → Ask → Preview →
+  // Stitching → Destination over ~90 seconds. The road bar at the top
+  // of the frame shows progress spatially; the car icon glides between
+  // milestone flags on each transition. The final Destination beat is
+  // tap-to-advance so the customer arrives at /report/[id] when they
+  // hit "See the verdict" (or after a 30s fallback).
   if (state === "uploading" || state === "parsing") {
     return (
       <div className="relative rounded-3xl bg-brand-offwhite border border-brand-charcoal/10 p-6 md:p-10">
@@ -446,25 +445,41 @@ export function UploadDropzone({
         <div
           {...getRootProps()}
           className={clsx(
-            "border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all bg-white",
+            "border-2 border-dashed rounded-3xl px-6 md:px-10 py-10 md:py-14 text-center cursor-pointer transition-all",
             isDragActive
-              ? "border-brand-navy bg-brand-navy/10 scale-[1.01]"
-              : "border-brand-light-gray hover:border-brand-navy/60 hover:bg-brand-offwhite/40"
+              ? "border-brand-plum bg-brand-plum/8 scale-[1.005]"
+              : "border-brand-plum/35 bg-brand-offwhite hover:border-brand-plum/70 hover:bg-brand-plum/[0.03]"
           )}
         >
           <input {...getInputProps()} />
-          <Upload className="w-12 h-12 mx-auto text-brand-slate/70" />
-          <div className="mt-4 space-y-1">
-            <p className="text-lg font-semibold text-brand-charcoal">
-              Drop your policy PDF here
-            </p>
-            <p className="text-sm text-brand-slate">
-              or click to browse from your computer
-            </p>
+
+          {/* Kicker */}
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
+            · Stop 0 · The drop ·
           </div>
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-brand-slate/70">
-            <FileText className="w-4 h-4" />
-            PDF only · max 10 MB
+
+          {/* Sketch — the car driving in from the left */}
+          <div className="mt-4 flex justify-center text-brand-plum animate-roadhover">
+            <SketchCarStatic width={120} color="currentColor" />
+          </div>
+
+          {/* Headline + sub */}
+          <h2 className="mt-5 font-serif font-medium text-2xl md:text-[34px] leading-[1.12] tracking-[-0.018em] text-brand-charcoal m-0">
+            Drop your policy{" "}
+            <span className="italic text-brand-plum">PDF here.</span>
+          </h2>
+          <p className="mt-2 font-serif italic text-[14px] md:text-base text-brand-slate max-w-md mx-auto leading-[1.5]">
+            Or tap anywhere on this card to browse — we&apos;ll be reading
+            within the second.
+          </p>
+
+          {/* Trust strip */}
+          <div className="mt-6 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+            <span>· PDF only ·</span>
+            <span>·</span>
+            <span>Up to 10 MB ·</span>
+            <span>·</span>
+            <span>Original insurer file works best ·</span>
           </div>
         </div>
       </div>

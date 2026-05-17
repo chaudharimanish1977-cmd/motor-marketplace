@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Car, MapPin, ShieldOff } from "lucide-react";
 import { UploadDropzone } from "@/components/upload-dropzone";
 import type { RenewalContext } from "@/app/upload/page";
 import type { LifecycleState } from "@/lib/lifecycle-state";
+import { ShellOff as ShieldOff } from "@/components/upload-shells/shell-icons";
+import { RoadBar } from "@/components/upload-journey/road-bar";
+import { SketchCarStatic } from "@/components/sketches";
 
 interface Props {
   isDemo: boolean;
@@ -13,23 +15,34 @@ interface Props {
    *  translates it into a pre-filled MidLoadQuestions priority answer and
    *  hands it to the dropzone. */
   priorityChip?: string | null;
-  /** Lifecycle state to render the 5-act Journey in. Server-resolved from
-   *  the visitor's session. Defaults to "B" (mid-cycle voice). */
+  /** Lifecycle state to render the 6-stop Journey in. Server-resolved
+   *  from the visitor's session. Defaults to "B" (mid-cycle voice). */
   journeyState?: LifecycleState;
   /** Position of this drop in the visitor's running stack — when > 1,
    *  the Journey copy flips into "Stacking up your N documents" framing.
-   *  Defaults to 1 (the very first drop). */
+   *  Defaults to 1. */
   journeyDocCount?: number;
 }
 
+const PREVIEW_STOPS = [
+  { key: "hello", label: "Hello" },
+  { key: "read", label: "Read" },
+  { key: "ask", label: "Ask" },
+  { key: "preview", label: "Preview" },
+  { key: "stitching", label: "Stitch" },
+  { key: "destination", label: "Done" },
+];
+
 /**
- * Top-level upload flow. Owns the heading + privacy footer so they can be
- * hidden once the dropzone enters loading state — during parsing the user
- * shouldn't see "Upload your current policy" next to the loader.
+ * Top-level upload flow — Phase 5B editorial reframe.
+ *
+ * Owns the hero, dropzone, and the "what to expect" road preview.
+ * Everything outside the dropzone hides once the parse starts so the
+ * 90-second journey stands alone.
  *
  * When `renewalContext` is present (returning customer from /me), the
- * heading is replaced by a personalised "Renewing your <vehicle>" banner.
- * Otherwise the page renders the standard first-time copy.
+ * hero is replaced by an editorial Renewal banner with the same brand
+ * vocabulary as the rest of the journey.
  */
 export function UploadFlow({
   isDemo,
@@ -42,34 +55,30 @@ export function UploadFlow({
 
   return (
     <main className="min-h-screen px-4 py-8 max-w-2xl mx-auto">
-      {/* Heading area — swapped for renewal banner when applicable.
-          Hidden once parsing begins so the loader stands alone. */}
-      {!busy && renewalContext && (
-        <RenewalBanner context={renewalContext} />
-      )}
+      {!busy && renewalContext && <RenewalBanner context={renewalContext} />}
+
       {!busy && !renewalContext && (
-        <div className="space-y-2 mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-brand-ink leading-tight">
-            Upload your current policy
-          </h1>
-          <p className="text-slate-600">
-            We&apos;ll read it in{" "}
-            <span className="font-semibold text-brand-navy">
-              under 2 minutes
-            </span>{" "}
-            — and tell you what&apos;s strong, what&apos;s missing, and what
-            to look for at renewal.
-          </p>
-          <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[11px] text-emerald-800">
-            <ShieldOff className="w-3 h-3" />
-            <span>
-              <strong className="font-semibold">No sales calls. Ever.</strong>{" "}
-              We only message about your renewals.
-            </span>
+        <header className="mb-7 md:mb-9">
+          <div className="inline-flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold mb-3">
+            <ShieldOff />
+            <span>· No sales calls. Ever. ·</span>
           </div>
-        </div>
+
+          <h1 className="font-serif font-medium text-[34px] md:text-[52px] tracking-[-0.02em] leading-[1.05] text-brand-charcoal m-0">
+            Drop your policy.{" "}
+            <span className="italic text-brand-plum">
+              We&apos;ll read it in 90 seconds.
+            </span>
+          </h1>
+
+          <p className="mt-4 font-serif italic text-[15px] md:text-lg text-brand-slate max-w-xl leading-[1.55]">
+            Strong points, missing essentials, and what to look for at
+            renewal — all in one editorial review. Free, no login.
+          </p>
+        </header>
       )}
 
+      {/* Dropzone — the interactive surface */}
       <UploadDropzone
         demoMode={isDemo}
         onBusyChange={setBusy}
@@ -78,47 +87,62 @@ export function UploadFlow({
         journeyState={journeyState}
         journeyDocCount={journeyDocCount}
       />
+
+      {/* What to expect — preview of the road. Hidden while busy so it
+       *  doesn't compete with the live Journey above. */}
+      {!busy && (
+        <>
+          <section className="mt-9 md:mt-11">
+            <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate text-center mb-3">
+              · 90-second read · 6 stops · 1 verdict ·
+            </div>
+            <div className="px-2">
+              <RoadBar stops={PREVIEW_STOPS} currentIndex={0} />
+            </div>
+          </section>
+
+          <p className="mt-7 font-mono text-[10px] uppercase tracking-[0.12em] text-brand-slate text-center">
+            · Free, then and forever · We make money when you renew with
+            us · Never before ·
+          </p>
+        </>
+      )}
     </main>
   );
 }
 
 function RenewalBanner({ context }: { context: RenewalContext }) {
-  const subline = [
-    context.registrationNumber,
-    context.rtoCity,
-  ]
+  const subline = [context.registrationNumber, context.rtoCity]
     .filter(Boolean)
     .join(" · ");
 
   return (
-    <div className="mb-6 rounded-2xl border border-brand-navy/30 bg-gradient-to-br from-brand-navy/10 to-white p-5 md:p-6">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-brand-navy to-brand-plum text-white flex items-center justify-center shadow-soft">
-          <RefreshCw className="w-5 h-5" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
-            Renewal review
-          </div>
-          <div className="font-bold text-brand-charcoal text-lg leading-tight mt-1 flex items-center gap-2 flex-wrap">
-            <Car className="w-4 h-4 text-brand-navy" />
-            Renewing your {context.vehicleLabel}
-          </div>
-          {subline && (
-            <div className="text-xs text-brand-slate mt-1 flex items-center gap-1.5">
-              {context.rtoCity && (
-                <MapPin className="w-3 h-3 text-brand-slate/70" />
-              )}
-              {subline}
-            </div>
-          )}
-          <p className="text-sm text-brand-slate mt-3 leading-relaxed">
-            Drop this year&rsquo;s renewal quote (or your latest policy) and
-            we&rsquo;ll review what&rsquo;s changed, what&rsquo;s missing, and
-            where the better offers are.
-          </p>
-        </div>
+    <header className="mb-7 md:mb-9">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-plum font-bold mb-3">
+        · Renewal review ·
       </div>
-    </div>
+
+      <h1 className="font-serif font-medium text-[32px] md:text-[48px] tracking-[-0.02em] leading-[1.05] text-brand-charcoal m-0 flex items-center gap-3 flex-wrap">
+        <span>Renewing your</span>
+        <span className="italic text-brand-plum">
+          {context.vehicleLabel}.
+        </span>
+        <span className="text-brand-plum" aria-hidden>
+          <SketchCarStatic width={56} color="currentColor" />
+        </span>
+      </h1>
+
+      {subline && (
+        <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+          · {subline} ·
+        </div>
+      )}
+
+      <p className="mt-4 font-serif italic text-[15px] md:text-lg text-brand-slate max-w-xl leading-[1.55]">
+        Drop this year&apos;s renewal quote (or your latest policy) and
+        we&apos;ll review what&apos;s changed, what&apos;s missing, and
+        where the better offers are.
+      </p>
+    </header>
   );
 }
