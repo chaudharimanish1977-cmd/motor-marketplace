@@ -183,6 +183,14 @@ const config: Config = {
           "75%": { opacity: "1", transform: "scale(0.97)" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
+        // Subtle fill animation for each OTP digit landing in its
+        // plate-style slot. Quick scale-pop without overshoot so the
+        // text settles fast and reads as "stamped" into place.
+        platefill: {
+          "0%": { opacity: "0", transform: "scale(0.7)" },
+          "60%": { opacity: "1", transform: "scale(1.06)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         roadhover: "roadhover 2.8s ease-in-out infinite",
@@ -193,6 +201,7 @@ const config: Config = {
         "spotlight-cycle":
           "spotlightCycle 3500ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "smiley-pop": "smileyPop 760ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
+        "plate-fill": "platefill 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
       },
     },
   },

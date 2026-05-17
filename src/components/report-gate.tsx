@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { PlateOtpInput } from "@/components/plate-otp-input";
 
 /**
  * Report gate — Phase 6.3 editorial reframe with Continue-with-Google
@@ -36,9 +37,19 @@ type Step = "form" | "otp";
 interface Props {
   /** Optional — analytics / future server hints. */
   reportId?: string;
+  /** The customer's registration plate, surfaced inside the OTP
+   *  input as a plate-style continuation (e.g. `DL-09-CAU-2020`). */
+  vehiclePlate?: string;
+  /** Fallback shown in the plate area when the registration number
+   *  is missing — typically the make + model (e.g. "Audi A6"). */
+  vehicleLabel?: string;
 }
 
-export function ReportGate({ reportId: _reportId }: Props) {
+export function ReportGate({
+  reportId: _reportId,
+  vehiclePlate,
+  vehicleLabel,
+}: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -259,26 +270,19 @@ export function ReportGate({ reportId: _reportId }: Props) {
                 </p>
               </div>
 
-              <label className="block">
-                <span className="block font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate font-bold mb-1.5 text-center">
-                  Enter the 4-digit code
-                </span>
-                <input
-                  type="text"
-                  required
-                  autoFocus
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={4}
+              <div>
+                <div className="text-center font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate font-bold mb-2.5">
+                  Tap the plate to type the code
+                </div>
+                <PlateOtpInput
+                  vehiclePlate={vehiclePlate}
+                  vehicleLabel={vehicleLabel}
                   value={otp}
-                  onChange={(e) =>
-                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))
-                  }
-                  placeholder="••••"
+                  onChange={setOtp}
                   disabled={submitting}
-                  className="w-full px-4 py-3 font-serif text-[28px] font-semibold text-center tracking-[0.4em] tabular-nums text-brand-charcoal placeholder:text-brand-slate/30 bg-brand-offwhite border border-brand-charcoal/15 rounded-full focus:outline-none focus:border-brand-plum focus:ring-2 focus:ring-brand-plum/15 transition-colors disabled:opacity-60"
+                  autoFocus
                 />
-              </label>
+              </div>
 
               {error && (
                 <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-alert font-bold text-center">

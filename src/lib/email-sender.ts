@@ -160,8 +160,10 @@ export async function sendOtpEmail({
   code: string;
 }): Promise<void> {
   // Subject is intentionally code-first so Gmail's inbox preview surfaces
-  // the code without the user having to open the email at all.
-  const subject = `Your RightOffer code: ${code}`;
+  // the code without the user having to open the email at all. Nods to
+  // the plate-style OTP input on the page ("plate code") so the email
+  // subject + the visual on the page reinforce the same metaphor.
+  const subject = `Your 4-digit plate code · ${code}`;
 
   // Plain-text-feel HTML. No gradient header, no card chrome, no marketing
   // footer — those are the patterns Gmail learns to bucket into "Updates".

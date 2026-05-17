@@ -122,7 +122,13 @@ export function ReportDisplay({
          *  serif headline, mono kicker) so we don't double-frame here. */}
         {showGate && view === "customer" && !printMode && (
           <div className="mt-14 md:mt-20 max-w-2xl mx-auto px-5 md:px-6">
-            <ReportGate reportId={parsedPolicy.id} />
+            <ReportGate
+              reportId={parsedPolicy.id}
+              vehiclePlate={
+                parsedPolicy.vehicle.registrationNumber || undefined
+              }
+              vehicleLabel={`${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`.trim()}
+            />
           </div>
         )}
 
