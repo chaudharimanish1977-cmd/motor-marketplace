@@ -131,14 +131,14 @@ export function ShareButton({
       <button
         type="button"
         onClick={onWhatsApp}
-        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border-2 border-brand-success/40 hover:border-brand-success text-brand-charcoal hover:text-brand-success font-serif italic font-medium text-[14px] md:text-[15px] min-h-[40px] transition-colors"
+        className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-plum hover:text-brand-plum text-brand-charcoal font-serif italic font-medium text-[15px] md:text-[16px] min-h-[44px] transition-colors"
       >
-        <Share2 className="w-3.5 h-3.5" />
+        <Share2 className="w-4 h-4" />
         Share on WhatsApp
       </button>
-      <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
-        · Shared page is depersonalised · No name, plate, email, or address ·
-      </p>
+      <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+        · Depersonalised link · No name, plate, email, or address ·
+      </div>
       {info && (
         <p className="mt-2 font-serif italic text-[12.5px] text-brand-slate break-all">
           {info}
