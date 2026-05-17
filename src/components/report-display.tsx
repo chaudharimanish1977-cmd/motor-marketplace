@@ -1,98 +1,31 @@
-import Link from "next/link";
-import { LoadingLink } from "@/components/loading-link";
-import { RcpSection } from "@/components/rcp-section";
-import { computeRCP } from "@/lib/recommended-coverage-profile";
 import { ReportGate } from "@/components/report-gate";
 import {
-  ShieldCheck,
-  Shield,
   CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Wrench,
-  Truck,
-  Award,
-  Key,
-  Droplet,
-  FileText,
-  Briefcase,
-  TrendingUp,
-  Lightbulb,
-  MapPin,
-  ThumbsUp,
   IndianRupee,
-  Target,
-  ArrowRight,
-  Sparkles,
+  Lightbulb,
+  Lock,
   Eye,
   EyeOff,
-  Lock,
+  TrendingUp,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 import { ReportDownloadGate } from "@/components/report-download-gate";
-import { CoverageScoreCard } from "@/components/coverage-score";
-import { computeCoverageScore } from "@/lib/coverage-score";
-import { ClaimSimulator } from "@/components/claim-simulator";
-import { totalMoneyAtRisk } from "@/lib/claim-scenarios";
-import { NumberPlate } from "@/components/number-plate";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { ReportGuard } from "@/components/report-guard";
 import {
   DrivingProfileCard,
   type DrivingProfile,
 } from "@/components/driving-profile-card";
-import { Typewriter } from "@/components/typewriter";
-import { VehicleWatermark } from "@/components/vehicle-watermark";
 import { SimplifyToggle } from "@/components/simplify-toggle";
-import { getBodyType } from "@/lib/vehicle-classifier";
 import { ReportCover } from "@/components/report-cover";
-
-function iconForHint(hint?: string): LucideIcon {
-  switch (hint) {
-    case "shield":
-    case "shield-check":
-      return ShieldCheck;
-    case "check":
-      return CheckCircle2;
-    case "badge":
-      return Award;
-    case "cng":
-      return Droplet;
-    case "pa":
-      return Shield;
-    case "deductible":
-      return ThumbsUp;
-    case "addon":
-      return Sparkles;
-    case "engine":
-      return Wrench;
-    case "consumables":
-      return Briefcase;
-    case "rsa":
-      return Truck;
-    case "ncb":
-      return Award;
-    case "key":
-      return Key;
-    case "zerodep":
-      return ShieldCheck;
-    case "rti":
-      return FileText;
-    case "personal-belongings":
-      return Briefcase;
-    case "garage":
-      return MapPin;
-    case "service":
-      return ShieldCheck;
-    case "wisely":
-      return Lightbulb;
-    default:
-      return Sparkles;
-  }
-}
+import {
+  WhatsWorkingSection,
+  WhatsMissingSection,
+  AtRenewalSection,
+  BottomLineSection,
+} from "@/components/report-body";
 
 interface Props {
   parsedPolicy: ParsedPolicy;
@@ -120,42 +53,10 @@ export function ReportDisplay({
   drivingProfile,
   printMode = false,
 }: Props) {
-  const {
-    atAGlance,
-    whatCoversWell,
-    keyGaps,
-    idvCheck,
-    renewalTips,
-    pricingSnapshot,
-    idealInsurerProfile,
-    keyTakeaway,
-  } = report;
-
-  const bodyType = getBodyType(
-    parsedPolicy.vehicle.make,
-    parsedPolicy.vehicle.model
-  );
-  // Greeting is intentionally generic — the LLM extractor isn't reliable
-  // enough to surface a clean first name from every policy PDF, and a wrong
-  // name reads worse than a friendly placeholder.
-  const greetingName = "Buddy";
-
-  // RCP — derived from the report's per-add-on relevance tagging.
-  // First-class benchmark for the comparator/auction flows downstream
-  // (Right Offer rule). Surface it as a dedicated section so customers
-  // see the reasoning, not just the verdict.
-  const rcp = computeRCP(parsedPolicy, report);
-  const rcpVehicleLabel =
-    `${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`.trim() ||
-    "your car";
-
-  const vehicleAge =
-    new Date().getFullYear() - parsedPolicy.vehicle.yearOfManufacture;
-  const moneyAtRisk = totalMoneyAtRisk(
-    keyGaps.items.map((g) => g.title),
-    parsedPolicy.idv,
-    vehicleAge
-  );
+  // Pull only the bits the investor-only admin views still use —
+  // everything else flows into the editorial body sections via the
+  // full `report` object.
+  const { pricingSnapshot, idealInsurerProfile } = report;
 
   return (
     <div className="min-h-screen bg-brand-offwhite pb-12">
@@ -187,127 +88,82 @@ export function ReportDisplay({
         </div>
       )}
 
-      {/* Content body — narrative order:
-       *   1. Vehicle plate hero + money-at-risk callout
-       *   2. Coverage Score (anchor)
-       *   3. Driving profile (personalisation chips)
-       *   4. KEY GAPS (full-width, prominent — this is "what's at risk")
-       *   5. What Covers Well (smaller, reassurance)
-       *   6. Renewal action panel (IDV check + tips combined)
-       *   7. Pricing snapshot (investor only — implies bid flow)
-       *   8. Ideal Insurer Profile (investor only — admin)
-       *   9. Key Takeaway with CTA
-       */}
+      {/* Body — Phase 6.1 editorial sections.
+       *
+       *  01 · What's Working
+       *  02 · What's Missing  (gate sits inside this section for
+       *                        non-verified customers; we cut the
+       *                        article off before the IDV-check
+       *                        sub-block and replace with the gate)
+       *  03 · At Renewal
+       *  04 · Bottom Line
+       *
+       *  Investor view still gets the legacy admin toggles (Pricing
+       *  Snapshot + Ideal Insurer Profile) below the body — they're
+       *  not customer-facing and a redesign of those is parked for
+       *  Phase 6.2. Same with the Driving Profile + RCP details. */}
       <main
         className={clsx(
-          "max-w-5xl mx-auto px-4 py-8 space-y-6",
+          "max-w-5xl mx-auto py-2 md:py-6",
           view === "customer" && !printMode && "report-protected"
         )}
       >
-        {/* §0a Vehicle hero retired — the editorial Cover above the
-         *  body now handles the make/model/plate/age presentation in a
-         *  much less cluttered way. The moneyAtRisk callout still
-         *  exists conceptually inside the coverage score + gaps
-         *  sections below. */}
+        <WhatsWorkingSection report={report} />
 
-        {/* §0 Coverage Score — hero metric */}
-        <CoverageScoreCard score={computeCoverageScore(parsedPolicy, report)} />
-
-        {/* Driving profile chips — only when the user answered the mid-load survey */}
-        <DrivingProfileCard
-          initialProfile={drivingProfile}
-          reportId={parsedPolicy.id}
+        <WhatsMissingSection
+          parsedPolicy={parsedPolicy}
+          report={report}
         />
 
-        {/* RCP — The Right Offer profile for this car. Sets the
-         *  recommendation framework that the gaps + comparator are
-         *  measured against. Lives right after the verdict (score) so
-         *  the customer reads "score → why → what to fix" in order. */}
-        <RcpSection rcp={rcp} vehicleLabel={rcpVehicleLabel} />
-
-        {/* §1 KEY GAPS — full width, hero card. This is "what's at risk" and
-         *  matches the customer's emotional reason for reading the report. */}
-        <div id="gaps">
-          <SectionCard
-            number="1"
-            title="Where you're at risk today"
-            color="rose"
-            items={keyGaps.items}
-            isGap
-            vehicleIdv={parsedPolicy.idv}
-            vehicleAge={
-              new Date().getFullYear() -
-              parsedPolicy.vehicle.yearOfManufacture
-            }
-          />
-        </div>
-
-        {/* THE GATE — appears right after the gaps section (highest-
-         *  emotion content). When showGate is true, the customer hasn't
-         *  verified their email yet — gate is rendered and EVERY
-         *  section below this point is hidden until they do.
-         *  Customer view only — investors / print-mode never see it. */}
+        {/* THE GATE — sits between What's Missing (gaps + IDV) and
+         *  At Renewal. Below this point is hidden for non-verified
+         *  customers. Investors + print-mode see everything. */}
         {showGate && view === "customer" && !printMode && (
-          <>
+          <div className="mt-14 md:mt-20 max-w-2xl mx-auto px-5 md:px-6">
             <ReportGate reportId={parsedPolicy.id} />
-            {/* Skip rest of report until verified. The customer's report
-             *  data is already loaded server-side; they're not waiting
-             *  on anything other than the OTP exchange. */}
-            <p className="text-center text-xs text-brand-slate/70 italic">
-              The Right Offer Recommendation, your quote comparison, and
-              the PDF unlock once you verify your email above.
+            <p className="mt-4 text-center font-serif italic text-[14px] text-brand-slate">
+              The renewal advice, pricing snapshot, and the bottom-line
+              unlock once you verify your email above.
             </p>
-          </>
+          </div>
         )}
 
-        {/* Everything below this point is hidden when the gate is
-         *  active (anonymous customer view, not yet OTP-verified).
-         *  Investor + print-mode views always see everything. */}
         {(!showGate || view === "investor" || printMode) && (
           <>
-            {/* §2 What Covers Well — reassurance, smaller weight (after the urgent stuff) */}
-            <SectionCard
-              number="2"
-              title="What's working in your favour"
-              color="emerald"
-              items={whatCoversWell.items}
+            <AtRenewalSection report={report} />
+            <BottomLineSection
+              parsedPolicy={parsedPolicy}
+              report={report}
             />
 
-            {/* §3 Renewal action panel — IDV + renewal tips combined */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <IdvCheckCard idvCheck={idvCheck} />
-              <SectionCard
-                number="3"
-                title="Look out for at renewal"
-                color="amber"
-                items={renewalTips.items}
-              />
-            </div>
-
-            {/* §4 Pricing snapshot — investor only (implies a bid flow we don't expose to customers yet) */}
+            {/* Investor-only admin toggles — Phase 6.2 will redesign
+             *  these properly. For now, kept in place but visually
+             *  pushed to the bottom + slightly muted. */}
             {view === "investor" && (
-              <PricingSnapshotCard snapshot={pricingSnapshot} />
+              <div className="mt-16 md:mt-24 max-w-2xl mx-auto px-5 md:px-6 space-y-4">
+                <PricingSnapshotCard snapshot={pricingSnapshot} />
+                <IdealInsurerProfileToggle profile={idealInsurerProfile} />
+              </div>
             )}
 
-            {/* §5 Ideal Insurer Profile — investor admin reveal */}
-            {view === "investor" && (
-              <IdealInsurerProfileToggle profile={idealInsurerProfile} />
+            {/* Optional driving profile chips — only when the user
+             *  answered the mid-load survey. Visually demoted to a
+             *  small editorial footnote pending the Phase 6.2
+             *  embed-into-body work. */}
+            {drivingProfile && (
+              <div className="mt-12 md:mt-16 max-w-2xl mx-auto px-5 md:px-6">
+                <DrivingProfileCard
+                  initialProfile={drivingProfile}
+                  reportId={parsedPolicy.id}
+                />
+              </div>
             )}
 
-            {/* §6 Key Takeaway with CTA — skipped in print-mode (no CTA in PDF) */}
-            {!printMode && (
-              <KeyTakeawayCard
-                takeaway={keyTakeaway}
-                parsedPolicyId={parsedPolicy.id}
-                view={view}
-              />
-            )}
-
-            {/* Disclaimer */}
-            <div className="text-xs text-slate-400 text-center pt-4">
-              Disclaimer: This is a general information guide. Please refer
-              to policy wordings for exact terms, conditions, limits &amp;
-              exclusions.
+            {/* Disclaimer — editorial mono footnote */}
+            <div className="mt-12 md:mt-16 max-w-2xl mx-auto px-5 md:px-6">
+              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate text-center">
+                · General information guide · Please refer to policy wordings for exact terms ·
+              </div>
             </div>
           </>
         )}
@@ -319,298 +175,6 @@ export function ReportDisplay({
 // ============================================================================
 // Sub-components
 // ============================================================================
-
-function VehicleHero({
-  vehicleLabel,
-  variant,
-  registrationNumber,
-  yearOfManufacture,
-  moneyAtRisk,
-  riskGapCount,
-}: {
-  vehicleLabel: string;
-  variant: string;
-  registrationNumber: string;
-  yearOfManufacture: number;
-  moneyAtRisk: number;
-  riskGapCount: number;
-}) {
-  const hasRisk = moneyAtRisk > 0 && riskGapCount > 0;
-  return (
-    <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft overflow-hidden">
-      <div className="p-6 md:p-8 grid md:grid-cols-2 gap-6 items-center">
-        {/* Left: huge plate + vehicle name */}
-        <div className="text-center md:text-left">
-          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-slate mb-2">
-            Your vehicle
-          </div>
-          <div className="flex justify-center md:justify-start mb-3">
-            <NumberPlate value={registrationNumber} size="lg" />
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-brand-charcoal leading-tight">
-            {vehicleLabel}
-          </h2>
-          <div className="text-sm text-brand-slate mt-0.5">
-            {variant} · {yearOfManufacture}
-          </div>
-        </div>
-
-        {/* Right: money-at-risk hero */}
-        {hasRisk ? (
-          <div className="rounded-2xl bg-gradient-to-br from-brand-coral/10 via-white to-rose-50 border-2 border-brand-coral/30 p-5 md:p-6 text-center md:text-right">
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-coral mb-1.5">
-              At risk today, if a claim happens
-            </div>
-            <div className="text-4xl md:text-5xl font-bold tabular-nums text-brand-coral leading-none">
-              {formatINR(moneyAtRisk)}
-            </div>
-            <div className="text-xs text-brand-slate mt-2 leading-snug">
-              Estimated out-of-pocket across {riskGapCount}{" "}
-              {riskGapCount === 1 ? "gap" : "gaps"} we found in your policy.
-              Detail below.
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 border-2 border-emerald-200 p-5 md:p-6 text-center md:text-right">
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-700 mb-1.5">
-              Your policy looks strong
-            </div>
-            <div className="text-2xl md:text-3xl font-bold text-emerald-800 leading-tight">
-              No critical gaps detected
-            </div>
-            <div className="text-xs text-brand-slate mt-2 leading-snug">
-              Detail below — review at-renewal action items.
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Fact({
-  label,
-  value,
-  valueClassName,
-}: {
-  label: string;
-  value: string;
-  valueClassName?: string;
-}) {
-  return (
-    <div>
-      <div className="text-[9px] text-brand-slate uppercase tracking-wider font-semibold mb-0.5">
-        {label}
-      </div>
-      <div
-        className={clsx(
-          "font-bold text-brand-charcoal leading-snug",
-          valueClassName ?? "text-sm"
-        )}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-/** Format an ISO date pair as `DD/MM/YY – DD/MM/YY` for the at-a-glance strip. */
-function formatPolicyPeriodShort(startIso: string, endIso: string): string {
-  return `${shortDate(startIso)} – ${shortDate(endIso)}`;
-}
-
-function shortDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yy = String(d.getFullYear()).slice(-2);
-  return `${dd}/${mm}/${yy}`;
-}
-
-function SectionCard({
-  number,
-  title,
-  color,
-  items,
-  isGap = false,
-  vehicleIdv,
-  vehicleAge,
-}: {
-  number: string;
-  title: string;
-  color: "emerald" | "rose" | "amber" | "sky";
-  items: { title: string; description: string; iconHint?: string }[];
-  isGap?: boolean;
-  vehicleIdv?: number;
-  vehicleAge?: number;
-}) {
-  const palette = {
-    emerald: {
-      bg: "bg-emerald-50",
-      border: "border-emerald-200",
-      ring: "ring-emerald-200",
-      header: "bg-emerald-600",
-      icon: "text-emerald-600",
-      iconBg: "bg-emerald-100",
-    },
-    rose: {
-      bg: "bg-rose-50",
-      border: "border-rose-200",
-      ring: "ring-rose-200",
-      header: "bg-rose-600",
-      icon: "text-rose-600",
-      iconBg: "bg-rose-100",
-    },
-    amber: {
-      bg: "bg-amber-50",
-      border: "border-amber-200",
-      ring: "ring-amber-200",
-      header: "bg-amber-600",
-      icon: "text-amber-600",
-      iconBg: "bg-amber-100",
-    },
-    sky: {
-      bg: "bg-sky-50",
-      border: "border-sky-200",
-      ring: "ring-sky-200",
-      header: "bg-sky-600",
-      icon: "text-sky-600",
-      iconBg: "bg-sky-100",
-    },
-  }[color];
-
-  return (
-    <div
-      className={clsx(
-        "rounded-2xl border bg-white shadow-sm overflow-hidden",
-        palette.border
-      )}
-    >
-      <div
-        className={clsx(
-          "px-5 py-3 text-white font-bold flex items-center gap-3",
-          palette.header
-        )}
-      >
-        <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">
-          {number}
-        </div>
-        <span className="text-sm md:text-base uppercase tracking-wide">
-          {title}
-        </span>
-      </div>
-      <div className={clsx("px-5 py-5 space-y-4", palette.bg)}>
-        {items.map((item, i) => {
-          const Icon = isGap
-            ? XCircle
-            : iconForHint(item.iconHint);
-          return (
-            <div key={i} className="flex gap-3">
-              <div
-                className={clsx(
-                  "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                  palette.iconBg
-                )}
-              >
-                <Icon className={clsx("w-5 h-5", palette.icon)} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-semibold text-brand-charcoal leading-tight">
-                  {item.title}
-                </div>
-                <div className="report-detail text-sm text-brand-slate mt-0.5">
-                  {item.description}
-                </div>
-                {/* Claim simulator — only on gap cards */}
-                {isGap && vehicleIdv && vehicleAge !== undefined && (
-                  <ClaimSimulator
-                    gapTitle={item.title}
-                    idv={vehicleIdv}
-                    vehicleAge={vehicleAge}
-                  />
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function IdvCheckCard({
-  idvCheck,
-}: {
-  idvCheck: PolicyReport["idvCheck"];
-}) {
-  const assessmentLabel = {
-    appropriate: { text: "Appropriate", color: "text-emerald-700" },
-    low: { text: "Looks Low", color: "text-amber-700" },
-    high: { text: "Looks High", color: "text-amber-700" },
-  }[idvCheck.assessment];
-
-  return (
-    <div className="rounded-2xl border border-sky-200 bg-white shadow-sm overflow-hidden">
-      <div className="bg-sky-600 text-white font-bold px-5 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">
-          3
-        </div>
-        <span className="text-sm md:text-base uppercase tracking-wide">
-          IDV Check
-        </span>
-      </div>
-      <div className="bg-sky-50 px-5 py-5 space-y-4">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-sky-100 flex items-center justify-center shrink-0">
-            <IndianRupee className="w-6 h-6 text-sky-700" />
-          </div>
-          <div>
-            <div className="text-xs text-brand-slate uppercase tracking-wider">
-              Current IDV
-            </div>
-            <div className="text-2xl font-bold text-brand-charcoal">
-              {formatINR(idvCheck.currentIdv)}
-            </div>
-            <div
-              className={clsx(
-                "text-xs font-semibold mt-1",
-                assessmentLabel.color
-              )}
-            >
-              {assessmentLabel.text}
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-xs font-semibold text-brand-slate uppercase mb-2">
-            What to do
-          </div>
-          <ul className="space-y-1.5">
-            {idvCheck.whatToDo.map((item, i) => (
-              <li
-                key={i}
-                className="flex gap-2 text-sm text-brand-charcoal"
-              >
-                <CheckCircle2 className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="report-detail bg-white border border-sky-200 rounded-lg p-3 text-sm flex gap-2">
-          <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-semibold">Tip: </span>
-            {idvCheck.tip}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function PricingSnapshotCard({
   snapshot,
@@ -796,64 +360,3 @@ function IdealInsurerProfileToggle({
   );
 }
 
-function KeyTakeawayCard({
-  takeaway,
-  parsedPolicyId,
-  view,
-}: {
-  takeaway: PolicyReport["keyTakeaway"];
-  parsedPolicyId: string;
-  view: "customer" | "investor";
-}) {
-  const isInvestor = view === "investor";
-
-  return (
-    <div className="rounded-3xl bg-gradient-to-br from-brand-navy via-brand-navy to-brand-plum text-white p-8 md:p-10 text-center shadow-elevated">
-      <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-semibold uppercase tracking-wider mb-5">
-        <Target className="w-3.5 h-3.5" /> Key Takeaway
-      </div>
-      <h2 className="text-2xl md:text-4xl font-bold mb-4 max-w-3xl mx-auto leading-tight">
-        <Typewriter
-          text={takeaway.headline}
-          speed={22}
-          startDelay={300}
-          caretClassName="bg-brand-olive"
-        />
-      </h2>
-      <p className="report-detail text-white/85 max-w-2xl mx-auto mb-7 text-lg">
-        {takeaway.body}
-      </p>
-      {isInvestor ? (
-        <>
-          <LoadingLink
-            href={`/bid/${parsedPolicyId}`}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-olive text-white font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all"
-            spinnerPosition="top-right"
-          >
-            {takeaway.cta}
-            <ArrowRight className="w-5 h-5" />
-          </LoadingLink>
-          <p className="text-white/70 text-xs mt-4">
-            Free to see your offers · Insurers compete for your renewal · No
-            spam
-          </p>
-        </>
-      ) : (
-        <>
-          <ReportDownloadGate
-            variant="hero"
-            label="Get the Full Report"
-            reportId={parsedPolicyId}
-          />
-          <p className="text-white/70 text-xs mt-4 max-w-md mx-auto">
-            We&apos;ll email this report to you so you have it on hand at
-            renewal — and send a reminder before your policy expires. No spam.
-          </p>
-        </>
-      )}
-    </div>
-  );
-}
-
-// Suppress unused warning for AlertTriangle (reserved for future use in IDV warnings)
-void AlertTriangle;
