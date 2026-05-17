@@ -42,7 +42,7 @@ interface ActDestinationProps {
  */
 function buildArrivalFooter(elapsedMs: number | null | undefined): string {
   if (elapsedMs == null || elapsedMs < 30_000) {
-    return "· 90 seconds well spent ·";
+    return "· A 2-min journey well spent ·";
   }
   const seconds = Math.round(elapsedMs / 1000);
   const mm = Math.floor(seconds / 60);

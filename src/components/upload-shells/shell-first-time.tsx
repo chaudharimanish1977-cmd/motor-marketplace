@@ -49,7 +49,7 @@ export function ShellFirstTime({ isDemo, priorityChip }: ShellFirstTimeProps) {
         <h1 className="font-serif font-medium text-[34px] md:text-[52px] tracking-[-0.02em] leading-[1.05] text-brand-charcoal m-0">
           Drop your policy.{" "}
           <span className="italic text-brand-plum">
-            We&apos;ll read it in 90 seconds.
+            Let&apos;s take a 2-min journey together.
           </span>
         </h1>
 
@@ -70,7 +70,7 @@ export function ShellFirstTime({ isDemo, priorityChip }: ShellFirstTimeProps) {
        *  pacing expectations without screaming for attention. */}
       <section className="mt-9 md:mt-11">
         <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate text-center mb-3">
-          · 90-second read · 6 stops · 1 verdict ·
+          · 2-min journey together · 6 stops · 1 verdict ·
         </div>
         <div className="px-2">
           <RoadBar stops={PREVIEW_STOPS} currentIndex={0} />
