@@ -29,6 +29,7 @@ import { ReminderSchedule } from "./reminder-schedule";
 import { SignOutButton } from "./sign-out-button";
 import { DeleteAccountCard } from "./delete-account-card";
 import { DataConsentCard } from "./data-consent-card";
+import { FleetSummary } from "./fleet-summary";
 import { DeletePolicyButton } from "./delete-policy-button";
 import { RunComparisonButton } from "./run-comparison-button";
 
@@ -167,6 +168,13 @@ export default async function PortalHome() {
             <EmptyState />
           ) : (
             <div className="space-y-8">
+              {/* Fleet aggregation (Phase 7e). Renders only when the
+                  customer has 2+ distinct vehicles AND we're in a full
+                  verified session — upload-session mode is scoped to
+                  one browser's docs and "fleet" would be misleading. */}
+              {!isUnverified && (
+                <FleetSummary policies={policies} active={active} />
+              )}
               <Section
                 title="Active policies"
                 subtitle="Currently in force. Renewal reminders fire from these."
