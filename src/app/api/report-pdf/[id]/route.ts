@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     return NextResponse.json(
       {
         error:
-          "Not signed in. Open the report from the email we sent you, or sign in via /me/login.",
+          "Your sign-in has expired. Sign in again at /me/login (Google works on this device) and re-open this report.",
       },
       { status: 401 }
     );

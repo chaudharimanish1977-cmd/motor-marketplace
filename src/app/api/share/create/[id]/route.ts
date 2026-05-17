@@ -52,7 +52,10 @@ export async function POST(_request: NextRequest, { params }: Params) {
   const uploadSessionOk =
     !!uploadSession && uploadSession.docs.includes(id);
   if (!fullSessionOk && !uploadSessionOk) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Sign in at /me/login to mint a share link." },
+      { status: 401 }
+    );
   }
   const sessionEmail = (fullSessionEmail ?? "").toLowerCase();
   const ownerEmail = (parsedPolicy.owner?.email ?? "").toLowerCase();
