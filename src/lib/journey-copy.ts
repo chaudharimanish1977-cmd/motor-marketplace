@@ -133,7 +133,7 @@ export function getJourneyContent(
         },
         ask: {
           heading: "A few quick things — so we can tailor.",
-          body: "Tap one — the next follows.",
+          body: "Help us understand you better.",
           // ~7s per question across 4 questions, plus settle time
           // for the chosen-chip plum confirmation. Tight enough to
           // feel like a chat, loose enough that questions don't
@@ -175,7 +175,7 @@ export function getJourneyContent(
         },
         ask: {
           heading: "A few quick things — so we can tailor.",
-          body: "Tap one — the next follows.",
+          body: "Help us understand you better.",
           // ~7s per question across 4 questions, plus settle time
           // for the chosen-chip plum confirmation. Tight enough to
           // feel like a chat, loose enough that questions don't
@@ -213,7 +213,7 @@ export function getJourneyContent(
         },
         ask: {
           heading: "A few quick things — so we can tailor.",
-          body: "Tap one — the next follows.",
+          body: "Help us understand you better.",
           // ~7s per question across 4 questions, plus settle time
           // for the chosen-chip plum confirmation. Tight enough to
           // feel like a chat, loose enough that questions don't
