@@ -4,12 +4,17 @@ import { notFound } from "next/navigation";
 import { findById, findOne, findMany, Tables } from "@/lib/db";
 import type { ParsedPolicy, PolicyReport, RFQ } from "@/lib/types";
 import { BundleBuilder } from "@/components/bundle-builder";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function BidPage({ params }: PageProps) {
+  // Phase 1 segregation: marketplace UI is hidden in production until V2.
+  // In preview/dev/demo the flag defaults to enabled so this page renders.
+  if (!isMarketplaceEnabled()) notFound();
+
   const { id } = await params;
 
   const parsedPolicy = await findById<ParsedPolicy>(

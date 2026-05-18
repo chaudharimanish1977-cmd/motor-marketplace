@@ -28,6 +28,7 @@ import { ReportDisplay } from "@/components/report-display";
 import { TabStrip, type TabDef } from "./tab-strip";
 import { ComparatorContent } from "./comparator-content";
 import { ResetButton } from "./reset-button";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 export const dynamic = "force-dynamic";
 // 120s for the inline-fallback report-gen path (the parse-time gen
@@ -155,8 +156,13 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   // Build the tab list.
   const tabs: TabDef[] = [];
   // Comparator first (sortedDocs.length >= 2 always here — single-doc
-  // redirected above).
-  tabs.push({ id: "comparator", label: "Comparator" });
+  // redirected above). Phase 1 segregation: the comparator scores
+  // uploaded quotes against the Right Offer profile, which is part of
+  // the marketplace flow. Hide it in production until V2 — customers
+  // can still view each individual doc via its per-doc tab.
+  if (isMarketplaceEnabled()) {
+    tabs.push({ id: "comparator", label: "Comparator" });
+  }
   for (const doc of sortedDocs) {
     const docType = doc.documentType ?? "policy";
     const insurerFirstWord = doc.insurerName?.split(" ")[0] ?? "";

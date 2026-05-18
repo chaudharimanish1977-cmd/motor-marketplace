@@ -7,12 +7,16 @@ import type {
   PolicyReport,
 } from "@/lib/types";
 import { OfferDetail } from "@/components/offer-detail";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 interface PageProps {
   params: Promise<{ bidId: string }>;
 }
 
 export default async function OfferPage({ params }: PageProps) {
+  // Phase 1 segregation: marketplace UI hidden in production until V2.
+  if (!isMarketplaceEnabled()) notFound();
+
   const { bidId } = await params;
 
   const bid = await findById<Bid>(Tables.BIDS, bidId);

@@ -18,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
           "/bid/",
           "/offer/",
           "/checkout/",
+          "/comparison/",
           "/policy/",
           "/renewals/",
           "/thank-you",

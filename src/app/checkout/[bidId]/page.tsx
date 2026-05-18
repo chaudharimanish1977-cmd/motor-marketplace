@@ -5,6 +5,7 @@ import { findById, Tables } from "@/lib/db";
 import type { Bid, ParsedPolicy, RFQ } from "@/lib/types";
 import { CheckoutFlow } from "@/components/checkout-flow";
 import { NumberPlate } from "@/components/number-plate";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 function firstName(fullName: string | undefined | null): string {
   const trimmed = (fullName ?? "").trim();
@@ -17,6 +18,9 @@ interface PageProps {
 }
 
 export default async function CheckoutPage({ params }: PageProps) {
+  // Phase 1 segregation: marketplace UI hidden in production until V2.
+  if (!isMarketplaceEnabled()) notFound();
+
   const { bidId } = await params;
 
   const bid = await findById<Bid>(Tables.BIDS, bidId);

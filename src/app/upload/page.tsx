@@ -5,6 +5,7 @@ import { resolveUploadRouting } from "@/lib/upload-routing";
 import { ShellWelcomeBack } from "@/components/upload-shells/shell-welcome-back";
 import { ShellQuotesOpen } from "@/components/upload-shells/shell-quotes-open";
 import { ShellLapsed } from "@/components/upload-shells/shell-lapsed";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 export const metadata = {
   title: "Upload Your Policy — RightOffer",
@@ -108,6 +109,21 @@ export default async function UploadPage({ searchParams }: PageProps) {
         />
       );
     case "quotes-open":
+      // Phase 1 segregation: ShellQuotesOpen renders the
+      // MarketplacePanel (3 synthetic insurer offers) + QuoteStack.
+      // When marketplace is disabled in production, fall back to
+      // ShellWelcomeBack — same audit-on-file context, no marketplace
+      // promises. Customers in the renewal window still get the
+      // returning-visitor framing; they just don't see offers we
+      // cannot fulfil yet.
+      if (!isMarketplaceEnabled()) {
+        return (
+          <ShellWelcomeBack
+            policy={routing.primaryPolicy}
+            lifecycle={routing.lifecycle!}
+          />
+        );
+      }
       return (
         <ShellQuotesOpen
           policy={routing.primaryPolicy}

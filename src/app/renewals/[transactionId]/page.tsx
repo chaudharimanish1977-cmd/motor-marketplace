@@ -19,6 +19,7 @@ import type {
   RenewalNudge,
 } from "@/lib/types";
 import { formatDateShort } from "@/lib/format";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 interface PageProps {
   params: Promise<{ transactionId: string }>;
@@ -50,6 +51,9 @@ const PHASE_META: Record<
 };
 
 export default async function RenewalsPage({ params }: PageProps) {
+  // Phase 1 segregation: marketplace transaction history hidden in production until V2.
+  if (!isMarketplaceEnabled()) notFound();
+
   const { transactionId } = await params;
 
   const transaction = await findById<Transaction>(

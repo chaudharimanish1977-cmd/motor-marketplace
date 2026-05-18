@@ -13,6 +13,7 @@ import type {
   RenewalSchedule,
 } from "@/lib/types";
 import { formatINR, formatDateRange } from "@/lib/format";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 function firstName(fullName: string | undefined | null): string {
   const trimmed = (fullName ?? "").trim();
@@ -25,6 +26,9 @@ interface PageProps {
 }
 
 export default async function PolicyPage({ params }: PageProps) {
+  // Phase 1 segregation: marketplace UI hidden in production until V2.
+  if (!isMarketplaceEnabled()) notFound();
+
   const { transactionId } = await params;
 
   const transaction = await findById<Transaction>(

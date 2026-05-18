@@ -21,6 +21,7 @@ import { DataConsentCard } from "./data-consent-card";
 import { FleetSummary } from "./fleet-summary";
 import { MeOnboardingPanel } from "./me-onboarding-panel";
 import { PwaInstallCta } from "@/components/pwa-install-cta";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 import { DeletePolicyButton } from "./delete-policy-button";
 import { RunComparisonButton } from "./run-comparison-button";
 import { INSIGHT_CATALOGUE } from "@/lib/insights/catalogue";
@@ -239,8 +240,12 @@ export default async function PortalHome() {
                   policies={quotes}
                 />
               )}
-              {/* Comparator CTA — surfaces with at least one quote */}
-              {quotes.length > 0 && (
+              {/* Comparator CTA — surfaces with at least one quote.
+                  Phase 1 segregation: hidden in production until the
+                  marketplace flow ships in V2. The whole pull-quote
+                  block goes (kicker + copy + button) so customers don't
+                  see "Compare your quotes" promises we don't fulfil yet. */}
+              {quotes.length > 0 && isMarketplaceEnabled() && (
                 <ComparisonLauncher
                   quoteIds={quotes.map((q) => q.parsed.id)}
                   policyId={active[0]?.parsed.id}

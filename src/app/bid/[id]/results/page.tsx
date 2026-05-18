@@ -11,6 +11,7 @@ import type {
   BidTier,
 } from "@/lib/types";
 import { BidResults } from "@/components/bid-results";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,6 +28,9 @@ export default async function ResultsPage({
   params,
   searchParams,
 }: PageProps) {
+  // Phase 1 segregation: marketplace UI hidden in production until V2.
+  if (!isMarketplaceEnabled()) notFound();
+
   const { id } = await params;
   const { rfq: rfqQueryId } = await searchParams;
 

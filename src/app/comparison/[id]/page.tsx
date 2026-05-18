@@ -8,6 +8,7 @@ import type {
 } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 import { LoadingLink } from "@/components/loading-link";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -39,6 +40,9 @@ interface PageProps {
  * pick" CTA) were retired — V1 doesn't promise what we don't deliver.
  */
 export default async function ComparisonPage({ params }: PageProps) {
+  // Phase 1 segregation: marketplace UI hidden in production until V2.
+  if (!isMarketplaceEnabled()) notFound();
+
   const { id } = await params;
 
   const fullSessionEmail = await getSession();
