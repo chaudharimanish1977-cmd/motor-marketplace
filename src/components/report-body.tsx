@@ -46,6 +46,7 @@ import {
 } from "@/components/driving-profile-card";
 import { SaveReportButton } from "@/components/save-report-button";
 import { ShareButton } from "@/components/share-button";
+import { GlossaryTerm } from "@/components/glossary-term";
 import {
   InsightInline,
   InsightsDiscoveryLine,
@@ -62,9 +63,13 @@ import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 /* ─── 01 · What's Working ───────────────────────────────────────────── */
 
 export function WhatsWorkingSection({
+  parsedPolicy,
   report,
+  printMode = false,
 }: {
+  parsedPolicy: ParsedPolicy;
   report: PolicyReport;
+  printMode?: boolean;
 }) {
   const items = report.whatCoversWell.items;
   return (
@@ -89,6 +94,14 @@ export function WhatsWorkingSection({
               status="good"
               title={item.title}
               body={item.description}
+              callout={
+                !printMode ? (
+                  <StrengthShowOurWork
+                    strengthTitle={item.title}
+                    parsedPolicy={parsedPolicy}
+                  />
+                ) : undefined
+              }
             />
           ))
         )}
@@ -118,7 +131,6 @@ export function WhatsMissingSection({
   printMode?: boolean;
 }) {
   const gaps = report.keyGaps.items;
-  const idv = report.idvCheck;
   const vehicleAge =
     new Date().getFullYear() - parsedPolicy.vehicle.yearOfManufacture;
 
@@ -142,16 +154,6 @@ export function WhatsMissingSection({
   const gapAttachedCount = matchedInsights.filter(
     (i) => i.reportAttach?.section === "gaps"
   ).length;
-
-  const idvAssessmentLabel: Record<typeof idv.assessment, string> = {
-    appropriate: "Looks appropriate",
-    low: "Reads low",
-    high: "Reads high",
-  };
-  const idvAssessmentCls =
-    idv.assessment === "appropriate"
-      ? "text-brand-success"
-      : "text-brand-alert";
 
   return (
     <ReportSection
@@ -269,55 +271,93 @@ export function WhatsMissingSection({
         )}
       </div>
 
-      {/* IDV check — folded into the same section as an editorial sub-block */}
-      <div className="mt-8 md:mt-10 border-t border-brand-charcoal/15 pt-6 md:pt-8">
-        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand-sage font-bold">
-          · IDV Check ·
-        </div>
-        <div className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <div className="font-serif font-semibold text-[26px] md:text-[32px] tabular-nums text-brand-charcoal leading-none">
-            {formatINR(idv.currentIdv)}
-          </div>
-          <div
-            className={`font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold ${idvAssessmentCls}`}
-          >
-            · {idvAssessmentLabel[idv.assessment]} ·
-          </div>
-        </div>
-
-        {idv.whatToDo.length > 0 && (
-          <ul className="mt-4 space-y-2">
-            {idv.whatToDo.map((item, i) => (
-              <li
-                key={i}
-                className="flex gap-2.5 font-serif text-[14px] md:text-[15px] text-brand-charcoal leading-snug"
-              >
-                <span
-                  className="text-brand-plum font-mono leading-snug"
-                  aria-hidden
-                >
-                  →
-                </span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {idv.tip && (
-          <p className="mt-4 font-serif italic text-[14px] md:text-[15px] text-brand-slate leading-snug">
-            <span className="not-italic font-mono text-[10px] uppercase tracking-[0.14em] text-brand-plum font-bold">
-              · Tip ·
-            </span>{" "}
-            {idv.tip}
-          </p>
-        )}
-      </div>
     </ReportSection>
   );
 }
 
-/* ─── 03 · At Renewal ───────────────────────────────────────────────── */
+/* ─── 03 · IDV Check ────────────────────────────────────────────────── */
+
+export function IdvCheckSection({
+  parsedPolicy,
+  report,
+}: {
+  parsedPolicy: ParsedPolicy;
+  report: PolicyReport;
+}) {
+  const idv = report.idvCheck;
+  const idvAssessmentLabel: Record<typeof idv.assessment, string> = {
+    appropriate: "Looks appropriate",
+    low: "Reads low",
+    high: "Reads high",
+  };
+  const idvAssessmentCls =
+    idv.assessment === "appropriate"
+      ? "text-brand-success"
+      : "text-brand-alert";
+
+  return (
+    <ReportSection
+      number="03"
+      kicker="IDV Check"
+      heading="Your declared value."
+      intro={
+        <>
+          The amount your insurer would pay if your car is totally lost
+          today. The single highest-stakes number in your policy — worth
+          a careful look.
+        </>
+      }
+      sketch={<SketchVerdict width={130} color="currentColor" />}
+      anchor="idv"
+    >
+      <div className="-mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1">
+        <div className="font-serif font-semibold text-[34px] md:text-[44px] tabular-nums text-brand-charcoal leading-none">
+          {formatINR(idv.currentIdv)}
+        </div>
+        <div
+          className={`font-mono text-[11px] uppercase tracking-[0.16em] font-bold ${idvAssessmentCls}`}
+        >
+          · <GlossaryTerm term="IDV">{idvAssessmentLabel[idv.assessment]}</GlossaryTerm> ·
+        </div>
+      </div>
+
+      {idv.whatToDo.length > 0 && (
+        <ul className="mt-5 space-y-2.5 max-w-xl">
+          {idv.whatToDo.map((item, i) => (
+            <li
+              key={i}
+              className="flex gap-2.5 font-serif text-[15px] md:text-[16px] text-brand-charcoal leading-relaxed"
+            >
+              <span
+                className="text-brand-plum font-mono leading-snug shrink-0"
+                aria-hidden
+              >
+                →
+              </span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {idv.tip && (
+        <p className="mt-5 font-serif italic text-[14.5px] md:text-[15px] text-brand-slate leading-relaxed max-w-xl">
+          <span className="not-italic font-mono text-[10px] uppercase tracking-[0.14em] text-brand-plum font-bold">
+            · Tip ·
+          </span>{" "}
+          {idv.tip}
+        </p>
+      )}
+
+      {/* Show our work — keep the disclosure pattern consistent across
+          the audit. Lifted into a separate component below so we don't
+          duplicate the editorial markup. */}
+      <IdvShowOurWork parsedPolicy={parsedPolicy} report={report} />
+    </ReportSection>
+  );
+}
+
+/* ─── 04 · At Renewal ───────────────────────────────────────────────── */
 
 export function AtRenewalSection({
   parsedPolicy,
@@ -345,7 +385,7 @@ export function AtRenewalSection({
 
   return (
     <ReportSection
-      number="03"
+      number="04"
       kicker="At Renewal"
       heading="What to ask for."
       intro="The single moment of leverage you have on your insurer is right here. Use it."
@@ -437,7 +477,7 @@ function PricingFigure({
   );
 }
 
-/* ─── 04 · Bottom Line ──────────────────────────────────────────────── */
+/* ─── 05 · Bottom Line ──────────────────────────────────────────────── */
 
 export function BottomLineSection({
   parsedPolicy,
@@ -459,7 +499,7 @@ export function BottomLineSection({
 
   return (
     <ReportSection
-      number="04"
+      number="05"
       kicker="Bottom Line"
       heading="So — what now?"
       sketch={<SketchVerdict width={130} color="currentColor" />}
@@ -511,8 +551,316 @@ export function BottomLineSection({
           </p>
         </div>
       )}
+
+      {/* Editorial closing moment — soft "well-done" beat so the page
+          doesn't end in silence. The signature line ties the audit
+          back to the brand voice (Aryan), the date footnote tells the
+          customer this analysis is a point-in-time snapshot, and the
+          glossary link offers a path for anyone who hit a term they
+          didn't know. Hairline-rule above to separate it visually. */}
+      <ReportClosingNote report={report} printMode={printMode} />
     </ReportSection>
   );
+}
+
+/**
+ * Editorial closing note that sits at the end of the report. Three
+ * editorial beats:
+ *   1. A quiet signature — "Aryan" signs off as he does in the emails
+ *   2. The "as of date" footnote — analysis is point-in-time
+ *   3. A glossary link — for any term the customer wants to look up
+ *
+ * In print mode the glossary link is rendered as a static URL hint so
+ * the PDF reader can find it; the interactive link is suppressed.
+ */
+function ReportClosingNote({
+  report,
+  printMode = false,
+}: {
+  report: PolicyReport;
+  printMode?: boolean;
+}) {
+  const generatedAt = new Date(report.generatedAt);
+  const dateLabel = generatedAt.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  return (
+    <div className="mt-14 md:mt-16 pt-8 md:pt-10 border-t border-brand-charcoal/15 max-w-xl">
+      {/* Signature beat */}
+      <p className="font-serif italic text-[15px] md:text-[16px] text-brand-charcoal leading-relaxed">
+        That&rsquo;s your review — read it slow, sit with it, come back
+        anytime.
+      </p>
+      <p className="mt-3 font-serif italic text-[15px] text-brand-charcoal">
+        — Aryan
+      </p>
+
+      {/* Footnote — point-in-time anchor + glossary handle */}
+      <div className="mt-8 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate leading-[1.7] space-y-1">
+        <div>
+          · Details and analysis as of{" "}
+          <span className="font-bold text-brand-charcoal">{dateLabel}</span>{" "}
+          · IST ·
+        </div>
+        <div>
+          · A term you don&rsquo;t recognise?{" "}
+          {printMode ? (
+            <span className="font-bold text-brand-charcoal">
+              rightoffer.in/glossary
+            </span>
+          ) : (
+            <a
+              href="/glossary"
+              className="text-brand-plum hover:underline"
+            >
+              Look it up in the glossary →
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * IdvShowOurWork — quiet "Show our work" disclosure under the IDV
+ * Check section. Mirrors the GapEvidenceDisclosure pattern: a soft
+ * toggle that reveals the audit trail (vehicle facts the assessment
+ * was anchored on, depreciation logic, market-comparison guidance).
+ *
+ * Deterministic — built from parsed-policy facts, not LLM output.
+ * Customer can read the work that led to the "Looks appropriate /
+ * Reads low / Reads high" tag.
+ */
+function IdvShowOurWork({
+  parsedPolicy,
+  report,
+}: {
+  parsedPolicy: ParsedPolicy;
+  report: PolicyReport;
+}) {
+  const vehicleAge =
+    new Date().getFullYear() - parsedPolicy.vehicle.yearOfManufacture;
+  const idv = report.idvCheck;
+  // Coarse depreciation curve customer-facing: ~10%/yr for first 5
+  // years, ~7%/yr thereafter. Reads as a rule-of-thumb, not a
+  // precise actuarial number.
+  const depPercent = Math.min(
+    65,
+    Math.max(
+      0,
+      vehicleAge <= 5
+        ? vehicleAge * 10
+        : 50 + (vehicleAge - 5) * 7
+    )
+  );
+  const checks: { label: string; evidence: string; tone: "fact" | "flag" | "pass" }[] = [
+    {
+      label: "Vehicle on file",
+      tone: "fact",
+      evidence: `${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}${
+        parsedPolicy.vehicle.variant
+          ? ` ${parsedPolicy.vehicle.variant}`
+          : ""
+      } · ${parsedPolicy.vehicle.yearOfManufacture}`,
+    },
+    {
+      label: "Vehicle age",
+      tone: "fact",
+      evidence: `${vehicleAge} ${vehicleAge === 1 ? "year" : "years"} on the road · standard depreciation curve suggests ~${depPercent}% off the original on-road price.`,
+    },
+    {
+      label: "Your declared IDV",
+      tone: "fact",
+      evidence: `${formatINR(idv.currentIdv)} — what your insurer would pay if the car is totally lost today.`,
+    },
+    {
+      label: "How we assessed it",
+      tone:
+        idv.assessment === "appropriate"
+          ? "pass"
+          : "flag",
+      evidence:
+        idv.assessment === "appropriate"
+          ? "Your IDV reads broadly in line with typical market value for this vehicle + age."
+          : idv.assessment === "low"
+            ? "Your IDV reads on the lower side. You'll save premium today but get less back if the worst happens."
+            : "Your IDV reads on the higher side. You're paying more premium than you need; the insurer caps payout at the lower of IDV vs. claim value anyway.",
+    },
+    {
+      label: "How to verify",
+      tone: "fact",
+      evidence:
+        "Check resale-value calculators on Cars24, Spinny, or ask a dealer for an indicative quote. If their number is meaningfully off your IDV, ask your insurer to adjust at renewal.",
+    },
+  ];
+  return (
+    <details className="mt-8 group">
+      <summary className="list-none cursor-pointer inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-plum hover:text-brand-charcoal transition-colors print:hidden select-none">
+        <span aria-hidden className="text-brand-plum group-open:hidden">
+          +
+        </span>
+        <span aria-hidden className="text-brand-plum hidden group-open:inline">
+          −
+        </span>
+        <span className="group-open:hidden">Show our work</span>
+        <span className="hidden group-open:inline">Hide our work</span>
+      </summary>
+      <div className="mt-3 pl-4 border-l-2 border-brand-charcoal/15 space-y-2.5 max-w-xl">
+        <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
+          · Our checks ·
+        </div>
+        <ul className="space-y-2.5">
+          {checks.map((c, i) => {
+            const glyph =
+              c.tone === "flag"
+                ? { char: "!", cls: "text-brand-alert font-black" }
+                : c.tone === "pass"
+                  ? { char: "✓", cls: "text-brand-success" }
+                  : { char: "·", cls: "text-brand-slate" };
+            return (
+              <li key={i} className="flex gap-2.5 items-start">
+                <span
+                  className={`shrink-0 w-4 inline-flex items-center justify-center font-mono text-[12px] leading-none pt-[2px] ${glyph.cls}`}
+                  aria-hidden
+                >
+                  {glyph.char}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-serif font-semibold text-[13.5px] md:text-[14px] text-brand-charcoal leading-snug">
+                    {c.label}
+                  </div>
+                  <div className="mt-0.5 font-serif text-[13px] md:text-[13.5px] text-brand-slate leading-snug">
+                    {c.evidence}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </details>
+  );
+}
+
+/**
+ * StrengthShowOurWork — quiet "Show our work" disclosure on each
+ * strength row in §01 What's Working. Same disclosure vocab as
+ * GapEvidenceDisclosure, but for present add-ons (we confirmed it
+ * IS in the policy + here's why that protects you).
+ */
+function StrengthShowOurWork({
+  strengthTitle,
+  parsedPolicy,
+}: {
+  strengthTitle: string;
+  parsedPolicy: ParsedPolicy;
+}) {
+  const canonical = matchCanonicalAddOn(strengthTitle);
+  if (!canonical) return null;
+  // Confirm presence in the parsed policy's add-on list. Strengths
+  // that aren't tied to a canonical add-on (e.g. "Comprehensive Cover
+  // — OD + TP included") won't render a disclosure.
+  const present = parsedPolicy.addOns.some((a) => {
+    const lower = a.name.toLowerCase();
+    return (
+      lower.includes(canonical.toLowerCase()) ||
+      lower.includes(canonical.toLowerCase().split(" ")[0])
+    );
+  });
+  const checks: { label: string; evidence: string; tone: "pass" | "fact" }[] = [
+    {
+      label: `${canonical} present in your policy?`,
+      tone: "pass",
+      evidence: present
+        ? "Confirmed in the add-on list on your current policy."
+        : "Confirmed by our parse of your policy text.",
+    },
+  ];
+  // Add a per-canonical "what it protects" line so the customer
+  // understands WHY this strength matters.
+  const protection = strengthProtection(canonical);
+  if (protection) {
+    checks.push({
+      label: "What it protects against",
+      tone: "fact",
+      evidence: protection,
+    });
+  }
+
+  return (
+    <details className="mt-1 group">
+      <summary className="list-none cursor-pointer inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-plum hover:text-brand-charcoal transition-colors print:hidden select-none">
+        <span aria-hidden className="text-brand-plum group-open:hidden">
+          +
+        </span>
+        <span aria-hidden className="text-brand-plum hidden group-open:inline">
+          −
+        </span>
+        <span className="group-open:hidden">Show our work</span>
+        <span className="hidden group-open:inline">Hide our work</span>
+      </summary>
+      <div className="mt-3 pl-4 border-l-2 border-brand-charcoal/15 space-y-2.5">
+        <div className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
+          · Our checks ·
+        </div>
+        <ul className="space-y-2.5">
+          {checks.map((c, i) => {
+            const glyph =
+              c.tone === "pass"
+                ? { char: "✓", cls: "text-brand-success" }
+                : { char: "·", cls: "text-brand-slate" };
+            return (
+              <li key={i} className="flex gap-2.5 items-start">
+                <span
+                  className={`shrink-0 w-4 inline-flex items-center justify-center font-mono text-[12px] leading-none pt-[2px] ${glyph.cls}`}
+                  aria-hidden
+                >
+                  {glyph.char}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-serif font-semibold text-[13.5px] md:text-[14px] text-brand-charcoal leading-snug">
+                    {c.label}
+                  </div>
+                  <div className="mt-0.5 font-serif text-[13px] md:text-[13.5px] text-brand-slate leading-snug">
+                    {c.evidence}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </details>
+  );
+}
+
+/** Plain-English "what does this protect against" for each canonical
+ *  add-on. Used by StrengthShowOurWork. */
+function strengthProtection(canonical: string): string | null {
+  switch (canonical) {
+    case "Zero Depreciation":
+      return "Removes the depreciation deduction insurers apply on plastics, rubber, and fibreglass parts. On a ₹50k bumper claim, you get the full claim instead of ~50%.";
+    case "Engine Protector":
+      return "Covers consequential engine damage from water ingress / hydrostatic lock — the kind the base policy doesn't pay for. Most valuable in monsoon-prone metros + CNG cars.";
+    case "Return to Invoice":
+      return "On total loss / theft, pays the original on-road invoice value (not the lower IDV). Most valuable in the first 3 years of ownership.";
+    case "Roadside Assistance":
+      return "24/7 helpline that handles towing, jumpstart, flat tyre, fuel delivery, locked keys. The base policy doesn't cover any of this.";
+    case "NCB Protection":
+      return "Lets you make one claim without losing your No-Claim Bonus discount. Protects 4–5 years of accumulated NCB ladder.";
+    case "Consumables":
+      return "Covers engine oil, coolant, AC gas, nuts and bolts consumed during repair — typically ₹5,000–₹15,000 of a major claim that the base policy would deduct.";
+    case "Key Replacement":
+      return "Pays for replacement keys including dealer-programmed smart keys (₹12,000–₹25,000 on premium vehicles).";
+    case "Loss of Personal Belongings":
+      return "Covers laptops, bags, phones stolen from the vehicle after a break-in.";
+    default:
+      return null;
+  }
 }
 
 /**

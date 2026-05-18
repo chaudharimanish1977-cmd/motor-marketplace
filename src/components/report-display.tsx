@@ -10,6 +10,7 @@ import { ReportSummary } from "@/components/report-summary";
 import {
   WhatsWorkingSection,
   WhatsMissingSection,
+  IdvCheckSection,
   AtRenewalSection,
   BottomLineSection,
 } from "@/components/report-body";
@@ -105,7 +106,11 @@ export function ReportDisplay({
           view === "customer" && !printMode && "report-protected"
         )}
       >
-        <WhatsWorkingSection report={report} />
+        <WhatsWorkingSection
+          parsedPolicy={parsedPolicy}
+          report={report}
+          printMode={printMode}
+        />
 
         <WhatsMissingSection
           parsedPolicy={parsedPolicy}
@@ -114,8 +119,8 @@ export function ReportDisplay({
           printMode={printMode}
         />
 
-        {/* THE GATE — sits between What's Missing (gaps + IDV) and
-         *  At Renewal. Below this point is hidden for non-verified
+        {/* THE GATE — sits between What's Missing (gaps) and IDV
+         *  Check. Below this point is hidden for non-verified
          *  customers. Investors + print-mode see everything. The gate
          *  owns its own editorial framing (hairline section breaks,
          *  serif headline, mono kicker) so we don't double-frame here. */}
@@ -133,6 +138,10 @@ export function ReportDisplay({
 
         {(!showGate || view === "investor" || printMode) && (
           <>
+            <IdvCheckSection
+              parsedPolicy={parsedPolicy}
+              report={report}
+            />
             <AtRenewalSection
               parsedPolicy={parsedPolicy}
               report={report}
