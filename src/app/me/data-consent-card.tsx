@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Download, ShieldCheck, FileText, Loader2, Check } from "lucide-react";
+import { Download, FileText, Loader2, Check } from "lucide-react";
 
 /**
  * /me → Data & Consent surface (DPDP §11 data portability + §6 consent).
@@ -88,98 +88,90 @@ export function DataConsentCard({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-brand-light-gray shadow-soft p-5 md:p-6">
+    <div className="pl-4 py-2 border-l-2 border-brand-sage/60">
       {/* Header */}
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 shrink-0 rounded-xl bg-brand-sage/10 text-brand-sage border border-brand-sage/20 flex items-center justify-center">
-          <ShieldCheck className="w-4 h-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-semibold text-brand-charcoal text-sm">
-            Data &amp; Consent
-          </div>
-          <p className="text-xs text-brand-slate mt-1 leading-relaxed">
-            Everything we hold on{" "}
-            <span className="font-medium text-brand-charcoal">{email}</span>
-            {" — "}exportable in one click. Your DPDP rights, in plain sight.
-          </p>
-        </div>
+      <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-sage">
+        · Data &amp; Consent ·
       </div>
+      <p className="mt-1 font-serif italic text-[14px] text-brand-slate leading-relaxed max-w-md">
+        Everything we hold on{" "}
+        <span className="not-italic font-medium text-brand-charcoal">
+          {email}
+        </span>
+        {" — "}exportable in one click. Your DPDP rights, in plain sight.
+      </p>
 
       {/* Consent timestamp */}
       {consentLabel && (
-        <div className="mt-4 rounded-xl bg-brand-offwhite border border-brand-light-gray px-3.5 py-2.5 flex items-center gap-2">
-          <Check className="w-3.5 h-3.5 text-brand-sage shrink-0" />
-          <div className="text-[11.5px] text-brand-slate leading-relaxed">
-            Consent given on{" "}
-            <span className="font-semibold text-brand-charcoal">
-              {consentLabel}
-            </span>
-            {" — "}
-            <Link
-              href="/privacy"
-              className="italic text-brand-plum hover:underline"
-            >
-              what you consented to
-            </Link>
-          </div>
-        </div>
+        <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-brand-slate">
+          · Consent given on{" "}
+          <span className="font-bold text-brand-charcoal">
+            {consentLabel}
+          </span>{" "}
+          ·{" "}
+          <Link
+            href="/privacy"
+            className="text-brand-plum hover:underline normal-case tracking-normal"
+          >
+            <span className="font-serif italic">what you consented to</span>
+          </Link>
+        </p>
       )}
 
       {/* Export action */}
-      <div className="mt-4 pt-4 border-t border-brand-light-gray">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-semibold text-brand-charcoal">
-              Download my data
-            </div>
-            <p className="text-[11.5px] text-brand-slate mt-0.5 leading-relaxed">
-              Account record, every uploaded policy, every audit, every
-              renewal reminder, every quote comparison — as a single
-              JSON file.
-            </p>
+      <div className="mt-5 flex items-start justify-between gap-3 flex-wrap">
+        <div className="min-w-0 flex-1">
+          <div className="font-serif font-semibold text-[14px] md:text-[15px] text-brand-charcoal">
+            Download my data
           </div>
-          <button
-            type="button"
-            onClick={onExport}
-            disabled={downloading}
-            className="shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-navy px-3 py-1.5 rounded-xl border border-brand-navy/30 hover:bg-brand-navy/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {downloading ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Preparing…
-              </>
-            ) : downloaded ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                Downloaded
-              </>
-            ) : (
-              <>
-                <Download className="w-3.5 h-3.5" />
-                Export JSON
-              </>
-            )}
-          </button>
+          <p className="mt-0.5 font-serif italic text-[12.5px] text-brand-slate leading-relaxed max-w-md">
+            Account record, every uploaded policy, every audit, every
+            renewal reminder, every quote comparison — as a single JSON
+            file.
+          </p>
         </div>
-        {error && (
-          <p className="mt-2 text-[11.5px] text-rose-600">{error}</p>
-        )}
+        <button
+          type="button"
+          onClick={onExport}
+          disabled={downloading}
+          className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-plum hover:text-brand-plum text-brand-charcoal font-serif italic font-medium text-[13px] md:text-[14px] min-h-[36px] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {downloading ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Preparing…
+            </>
+          ) : downloaded ? (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              Downloaded
+            </>
+          ) : (
+            <>
+              <Download className="w-3.5 h-3.5" />
+              Export JSON
+            </>
+          )}
+        </button>
       </div>
+      {error && (
+        <p className="mt-2 font-serif italic text-[12.5px] text-brand-alert">
+          {error}
+        </p>
+      )}
 
       {/* Policy link + grievance */}
-      <div className="mt-4 pt-4 border-t border-brand-light-gray flex items-center justify-between gap-3 flex-wrap">
+      <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
         <Link
           href="/privacy"
-          className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-brand-plum hover:underline"
+          className="inline-flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-plum hover:underline"
         >
-          <FileText className="w-3.5 h-3.5" />
+          <FileText className="w-3 h-3" />
           Read the privacy policy
         </Link>
         <a
           href="mailto:grievance@rightoffer.in?subject=Data%20request"
-          className="text-[11.5px] italic text-brand-slate hover:text-brand-charcoal"
+          className="font-serif italic text-[12px] text-brand-slate hover:text-brand-charcoal"
         >
           grievance@rightoffer.in
         </a>

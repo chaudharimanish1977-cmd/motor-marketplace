@@ -1,15 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import {
-  ShieldCheck,
-  Sparkles,
-  X as XIcon,
-  Car,
-  AlertCircle,
-  CheckCircle2,
-  Trophy,
-  Gauge,
-  ChevronRight,
-} from "lucide-react";
 import { findById, Tables } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
@@ -32,31 +21,27 @@ interface PageProps {
 }
 
 /**
- * Comparison report page — Right Offer comparator output.
+ * Comparison report page — Right Offer comparator output (editorial).
  *
  * Section order:
- *   1. Vehicle / context header
- *   2. RCP (what we recommend)
- *   3. Your uploaded quotes — side-by-side, scored against RCP
+ *   1. Vehicle / context masthead
+ *   2. RCP (what we recommend for this car)
+ *   3. Your uploaded quotes — hairline rows, each scored against RCP
  *   4. Lapsed-policy caring nudge (only when the anchor policy has
- *      expired — encourages the customer to upload a fresh one or
- *      get covered if they haven't yet)
- *   5. Verdict
- *   6. CTA row — back-to-portal link
+ *      expired)
+ *   5. Verdict — editorial pull-quote in functional palette
+ *   6. Back-to-portal link
  *
- * Auth-gated by session ownership of the ComparisonReport.
+ * Editorial vocabulary throughout — mono kickers, serif body, hairline
+ * rules, functional palette (sage / plum / alert / slate / success).
+ * No card frames, no shadows, no emerald / amber / rose leakage.
  *
- * The "RightOffer auction" placeholder + the "Reserve a RightOffer
- * pick" CTA were both retired here — marketplace isn't V1 and we
- * don't pre-announce features.
+ * Marketplace teasers ("RightOffer auction", "Reserve a RightOffer
+ * pick" CTA) were retired — V1 doesn't promise what we don't deliver.
  */
 export default async function ComparisonPage({ params }: PageProps) {
   const { id } = await params;
 
-  // Accept either full session OR upload session — comparator is a
-  // legitimate same-session action after upload. Upload session is
-  // additionally scoped to docs the customer actually uploaded in
-  // this browser, so cross-customer access via guessed ID still fails.
   const fullSessionEmail = await getSession();
   const uploadSession = fullSessionEmail ? null : await getUploadSession();
   const sessionEmail = fullSessionEmail ?? uploadSession?.email ?? null;
@@ -77,30 +62,18 @@ export default async function ComparisonPage({ params }: PageProps) {
   ) {
     notFound();
   }
-  // Extra scoping for upload session: every quote in the comparison
-  // must be in the upload-session's doc list. Otherwise this is
-  // someone trying to access a comparison whose docs were uploaded
-  // in a different browser (full magic-link verification required
-  // for that).
   if (uploadSession) {
     const allowedDocs = new Set(uploadSession.docs);
     const allInScope = comparison.quoteIds.every((q) => allowedDocs.has(q));
     if (!allInScope) notFound();
   }
 
-  // Hydrate the linked quote records so the side-by-side table has the
-  // full add-on lists + premium breakdown to render.
   const quoteDocs: ParsedPolicy[] = [];
   for (const qid of comparison.quoteIds) {
     const q = await findById<ParsedPolicy>(Tables.PARSED_POLICIES, qid);
     if (q) quoteDocs.push(q);
   }
 
-  // Anchor policy — when the comparison was launched with a specific
-  // "current policy" attached, we load it so we can detect whether
-  // that policy has lapsed. A lapsed anchor surfaces a caring nudge
-  // below the quotes (upload your new policy / get covered if you
-  // haven't yet).
   const anchorPolicy = comparison.policyId
     ? await findById<ParsedPolicy>(
         Tables.PARSED_POLICIES,
@@ -114,114 +87,101 @@ export default async function ComparisonPage({ params }: PageProps) {
   return (
     <>
       <BrandBlobs />
-      <main className="relative z-10 min-h-screen px-4 py-10 md:py-14">
-        <div className="max-w-4xl mx-auto space-y-7">
+      <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
+        <article className="max-w-3xl mx-auto font-serif text-brand-charcoal space-y-12">
           <Header comparison={comparison} />
-
-          {/* 1. RCP */}
           <RcpBlock comparison={comparison} />
-
-          {/* 2. Customer's quotes */}
-          <QuotesBlock
-            comparison={comparison}
-            quoteDocs={quoteDocs}
-          />
-
-          {/* 3. Lapsed-policy caring nudge — only fires when the
-              anchor policy is past its expiry date. */}
+          <QuotesBlock comparison={comparison} quoteDocs={quoteDocs} />
           {anchorLapsed && anchorPolicy && (
             <LapsedPolicyNudge anchorPolicy={anchorPolicy} />
           )}
-
-          {/* 4. Verdict */}
           <VerdictBlock comparison={comparison} quoteDocs={quoteDocs} />
-
-          {/* 5. CTA row */}
           <CtaRow />
-        </div>
+        </article>
       </main>
     </>
   );
 }
 
 // ----------------------------------------------------------------------------
-// Header
+// Header — masthead
 // ----------------------------------------------------------------------------
 function Header({ comparison }: { comparison: ComparisonReport }) {
   return (
-    <header className="space-y-2">
-      <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full">
-        <Sparkles className="w-3.5 h-3.5" />
-        Right Offer comparison
+    <header className="border-b border-brand-charcoal/15 pb-5">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
+        · Reading Room · Right Offer comparison ·
       </div>
-      <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-brand-charcoal flex items-center gap-2">
-        <Car className="w-7 h-7 text-brand-navy" />
+      <h1 className="font-serif font-medium text-4xl md:text-5xl leading-[1.05] tracking-[-0.02em] text-brand-charcoal m-0">
         {comparison.vehicleLabel}
       </h1>
-      <p className="text-sm text-brand-slate">
+      <p className="mt-3 font-serif italic text-[15px] md:text-[16px] text-brand-slate leading-relaxed max-w-xl">
         {comparison.quoteIds.length}{" "}
-        {comparison.quoteIds.length === 1 ? "quote" : "quotes"} compared
+        {comparison.quoteIds.length === 1 ? "quote" : "quotes"} scored
         against the Right Offer profile for this car
         {comparison.policyId ? " · anchored on your current policy" : ""}
+        .
       </p>
     </header>
   );
 }
 
 // ----------------------------------------------------------------------------
-// RCP block
+// RCP block — what we recommend
 // ----------------------------------------------------------------------------
 function RcpBlock({ comparison }: { comparison: ComparisonReport }) {
   const { rcp } = comparison;
   return (
-    <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
-      <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          What we recommend
-        </div>
-        <h2 className="mt-1.5 text-xl md:text-2xl font-bold text-brand-charcoal tracking-tight">
-          The Right Offer profile for your {comparison.vehicleLabel}
-        </h2>
-        <p className="mt-1.5 text-xs text-brand-slate leading-relaxed">
-          The coverage we believe is right for your car &amp; profile —
-          every quote below is scored against this.
-        </p>
-      </header>
+    <section>
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold text-brand-sage">
+        · What we recommend ·
+      </div>
+      <h2 className="mt-2 font-serif font-medium text-[26px] md:text-[32px] leading-[1.1] tracking-[-0.015em] text-brand-charcoal m-0">
+        The Right Offer profile for{" "}
+        <span className="italic text-brand-plum">
+          your {comparison.vehicleLabel}
+        </span>
+        .
+      </h2>
+      <p className="mt-3 font-serif italic text-[14.5px] md:text-[15px] text-brand-slate leading-relaxed max-w-xl">
+        The coverage we believe is right for your car &amp; profile —
+        every quote below is scored against this.
+      </p>
 
-      <div className="px-5 md:px-6 py-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-charcoal">
-            Required add-ons
+      <div className="mt-6 border-t border-brand-charcoal/15">
+        <div className="pt-5 flex items-baseline justify-between gap-3">
+          <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-charcoal">
+            · Required add-ons ·
           </div>
-          <div className="text-[10px] text-brand-slate tabular-nums">
+          <div className="font-mono text-[10px] text-brand-slate tabular-nums">
             ~ {formatINR(rcp.requiredAddOnsPremiumTotal)}/yr together
           </div>
         </div>
+
         {rcp.requiredAddOns.length === 0 ? (
-          <p className="text-xs text-brand-slate">
+          <p className="mt-3 font-serif italic text-[13.5px] text-brand-slate">
             No specific add-ons strictly required for your profile.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="mt-3 divide-y divide-brand-charcoal/10">
             {rcp.requiredAddOns.map((a) => (
-              <li
-                key={a.name}
-                className="flex items-start gap-3 p-3 rounded-xl bg-emerald-50/40 border border-emerald-100"
-              >
-                <div className="w-6 h-6 shrink-0 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                </div>
+              <li key={a.name} className="py-3 flex items-start gap-3">
+                <span
+                  aria-hidden
+                  className="shrink-0 w-5 text-center font-mono text-[14px] font-bold text-brand-success leading-snug"
+                >
+                  ✓
+                </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="font-semibold text-brand-charcoal text-sm">
+                  <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                    <div className="font-serif font-semibold text-[15px] md:text-[16px] text-brand-charcoal">
                       {a.name}
                     </div>
-                    <div className="text-[11px] tabular-nums text-brand-slate">
+                    <div className="font-mono text-[11px] tabular-nums text-brand-slate">
                       ~ {formatINR(a.estimatedAnnualPremium)}/yr
                     </div>
                   </div>
-                  <div className="text-xs text-brand-slate leading-snug mt-0.5">
+                  <div className="mt-0.5 font-serif italic text-[13.5px] text-brand-slate leading-snug">
                     {a.why}
                   </div>
                 </div>
@@ -232,22 +192,19 @@ function RcpBlock({ comparison }: { comparison: ComparisonReport }) {
       </div>
 
       {rcp.idv.note && (
-        <div className="px-5 md:px-6 py-3 border-t border-brand-light-gray bg-brand-offwhite/40 text-xs text-brand-slate flex items-start gap-2">
-          <Gauge className="w-3.5 h-3.5 text-brand-navy shrink-0 mt-0.5" />
-          <span>
-            <strong className="text-brand-charcoal">
-              IDV {formatINR(rcp.idv.current)}
-            </strong>{" "}
-            · {rcp.idv.note}
-          </span>
-        </div>
+        <p className="mt-5 pl-4 border-l-2 border-brand-plum/40 font-serif italic text-[13.5px] md:text-[14px] text-brand-slate leading-relaxed max-w-xl">
+          <span className="not-italic font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-plum">
+            · IDV · {formatINR(rcp.idv.current)} ·
+          </span>{" "}
+          {rcp.idv.note}
+        </p>
       )}
     </section>
   );
 }
 
 // ----------------------------------------------------------------------------
-// Quotes block
+// Quotes block — hairline rows, no card frames
 // ----------------------------------------------------------------------------
 function QuotesBlock({
   comparison,
@@ -259,20 +216,19 @@ function QuotesBlock({
   const quoteById = new Map(quoteDocs.map((q) => [q.id, q]));
 
   return (
-    <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
-      <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
-          <Trophy className="w-3.5 h-3.5" />
-          Your quotes
-        </div>
-        <h2 className="mt-1.5 text-xl md:text-2xl font-bold text-brand-charcoal tracking-tight">
-          {comparison.quoteIds.length}{" "}
-          {comparison.quoteIds.length === 1 ? "quote" : "quotes"} scored against
-          the profile
-        </h2>
-      </header>
+    <section>
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold text-brand-plum">
+        · Your quotes ·{" "}
+        <span className="text-brand-slate tabular-nums">
+          {comparison.quoteIds.length}
+        </span>{" "}
+        ·
+      </div>
+      <h2 className="mt-2 font-serif font-medium text-[24px] md:text-[28px] leading-[1.1] tracking-[-0.015em] text-brand-charcoal m-0">
+        Scored against the profile.
+      </h2>
 
-      <div className="p-4 md:p-5 space-y-3">
+      <div className="mt-5 border-t border-brand-charcoal/15">
         {comparison.quoteScores.map((score) => {
           const doc = quoteById.get(score.quoteId);
           return (
@@ -295,64 +251,62 @@ function QuoteCard({
   score: ComparisonReport["quoteScores"][number];
   doc: ParsedPolicy | null;
 }) {
-  const verdictBadge = score.isExactlyRcp
-    ? {
-        label: "Exactly Right",
-        cls: "bg-emerald-50 text-emerald-700 border-emerald-100",
-      }
+  // Editorial status — mono kicker in functional palette, no rounded
+  // pill, no light tint. Same vocab as the /me PolicyCard status.
+  const status = score.isExactlyRcp
+    ? { label: "Exactly right", cls: "text-brand-success" }
     : score.isRcpComplete
-      ? {
-          label: "Covers + extras",
-          cls: "bg-amber-50 text-amber-700 border-amber-100",
-        }
-      : {
-          label: "Missing essentials",
-          cls: "bg-rose-50 text-rose-700 border-rose-100",
-        };
+      ? { label: "Covers + extras", cls: "text-brand-plum" }
+      : { label: "Missing essentials", cls: "text-brand-alert" };
 
   return (
-    <article className="rounded-2xl border border-brand-light-gray bg-white p-4 md:p-5">
+    <article className="py-6 md:py-7 border-b border-brand-charcoal/10 last:border-b-0">
+      {/* Top row — insurer + status + premium */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0">
-          <div className="font-bold text-brand-charcoal text-lg leading-tight">
+          <div className="font-serif font-semibold text-[20px] md:text-[22px] tracking-[-0.01em] text-brand-charcoal leading-tight">
             {score.insurerName}
           </div>
           {doc?.policyNumber && (
-            <div className="text-[11px] text-brand-slate mt-0.5 font-mono">
+            <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
               {doc.policyNumber}
             </div>
           )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] rounded-full border ${verdictBadge.cls}`}
+          <div
+            className={`mt-2 font-mono text-[10px] uppercase tracking-[0.16em] font-bold ${status.cls}`}
           >
-            {verdictBadge.label}
-          </span>
-          <div className="text-right">
-            <div className="font-bold text-brand-charcoal text-base tabular-nums">
-              {formatINR(score.grandTotal)}
-            </div>
-            <div className="text-[10px] text-brand-slate">premium</div>
+            · {status.label} ·
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-brand-slate">
+            · Premium ·
+          </div>
+          <div className="mt-0.5 font-serif font-semibold text-[22px] md:text-[26px] tabular-nums text-brand-charcoal leading-none">
+            {formatINR(score.grandTotal)}
           </div>
         </div>
       </div>
 
       {/* Missing required */}
       {score.missingRequired.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-brand-light-gray">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-rose-700 mb-1.5 flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            Missing essentials
+        <div className="mt-4 pl-4 border-l-2 border-brand-alert">
+          <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-alert">
+            · Missing essentials ·
           </div>
-          <ul className="space-y-0.5">
+          <ul className="mt-1.5 space-y-1">
             {score.missingRequired.map((m) => (
               <li
                 key={m}
-                className="text-xs text-brand-charcoal flex items-center gap-1.5"
+                className="flex items-baseline gap-2 font-serif text-[13.5px] md:text-[14px] text-brand-charcoal"
               >
-                <XIcon className="w-3 h-3 text-rose-600 shrink-0" />
-                {m}
+                <span
+                  aria-hidden
+                  className="font-mono text-[12px] font-bold text-brand-alert leading-snug"
+                >
+                  ✕
+                </span>
+                <span>{m}</span>
               </li>
             ))}
           </ul>
@@ -361,19 +315,23 @@ function QuoteCard({
 
       {/* Extras / over-coverage */}
       {score.extraNonRcp.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-brand-light-gray">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-amber-700 mb-1.5 flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
-            Extras you didn&rsquo;t need to buy
+        <div className="mt-4 pl-4 border-l-2 border-brand-plum/40">
+          <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-plum">
+            · Extras you didn&rsquo;t need to buy ·
           </div>
-          <ul className="space-y-0.5">
+          <ul className="mt-1.5 space-y-1">
             {score.extraNonRcp.map((e) => (
               <li
                 key={e}
-                className="text-xs text-brand-slate flex items-center gap-1.5"
+                className="flex items-baseline gap-2 font-serif italic text-[13.5px] md:text-[14px] text-brand-slate"
               >
-                <ChevronRight className="w-3 h-3 text-amber-600 shrink-0" />
-                {e}
+                <span
+                  aria-hidden
+                  className="font-mono text-[12px] text-brand-plum leading-snug not-italic"
+                >
+                  ›
+                </span>
+                <span>{e}</span>
               </li>
             ))}
           </ul>
@@ -382,23 +340,20 @@ function QuoteCard({
 
       {/* RCP-complete cheer */}
       {score.isExactlyRcp && (
-        <div className="mt-3 pt-3 border-t border-brand-light-gray text-xs text-emerald-800 flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5" />
+        <p className="mt-4 pl-4 border-l-2 border-brand-success/60 font-serif italic text-[13.5px] md:text-[14px] text-brand-charcoal leading-relaxed">
+          <span className="not-italic font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-success">
+            · Right Offer ·
+          </span>{" "}
           Covers every Right Offer essential — no missing items, no
           padding.
-        </div>
+        </p>
       )}
     </article>
   );
 }
 
 // ----------------------------------------------------------------------------
-// Lapsed-policy caring nudge — only fires when the comparison's anchor
-// ParsedPolicy has expired. Editorial vocab (coral left-rule, mono
-// kicker, serif body) matching the design language elsewhere. Two
-// soft paths: (a) "you renewed elsewhere — bring it here so we can
-// review the new one", (b) "you haven't renewed — please get cover
-// first; legally required."
+// Lapsed-policy caring nudge
 // ----------------------------------------------------------------------------
 function LapsedPolicyNudge({ anchorPolicy }: { anchorPolicy: ParsedPolicy }) {
   const vehicleLabel =
@@ -450,7 +405,7 @@ function LapsedPolicyNudge({ anchorPolicy }: { anchorPolicy: ParsedPolicy }) {
 }
 
 // ----------------------------------------------------------------------------
-// Verdict
+// Verdict — editorial pull-quote
 // ----------------------------------------------------------------------------
 function VerdictBlock({
   comparison,
@@ -460,73 +415,61 @@ function VerdictBlock({
   quoteDocs: ParsedPolicy[];
 }) {
   const { verdict } = comparison;
+  // Editorial tone mapping — replaces the emerald/amber/navy tint
+  // cards with functional palette left-rules. take_existing = strong
+  // win (success), rightoffer_pitch = our pick (plum), anything else
+  // = needs attention (alert).
   const tone =
     verdict.type === "take_existing"
-      ? "emerald"
+      ? "success"
       : verdict.type === "rightoffer_pitch"
-        ? "deepblue"
-        : "amber";
-  const toneCls =
-    tone === "emerald"
-      ? "border-emerald-200 bg-emerald-50/40"
-      : tone === "deepblue"
-        ? "border-brand-navy/30 bg-brand-navy/10"
-        : "border-amber-200 bg-amber-50/40";
-  const iconCls =
-    tone === "emerald"
-      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-      : tone === "deepblue"
-        ? "bg-brand-navy/15 text-brand-navy border-brand-navy/30"
-        : "bg-amber-100 text-amber-700 border-amber-200";
+        ? "plum"
+        : "alert";
+  const ruleCls =
+    tone === "success"
+      ? "border-brand-success"
+      : tone === "plum"
+        ? "border-brand-plum"
+        : "border-brand-alert";
+  const kickerCls =
+    tone === "success"
+      ? "text-brand-success"
+      : tone === "plum"
+        ? "text-brand-plum"
+        : "text-brand-alert";
 
   const recommendedQuote = verdict.recommendedQuoteId
     ? quoteDocs.find((q) => q.id === verdict.recommendedQuoteId)
     : null;
 
   return (
-    <section
-      className={`rounded-2xl border-2 ${toneCls} p-5 md:p-6 shadow-soft`}
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className={`w-10 h-10 shrink-0 rounded-xl border flex items-center justify-center ${iconCls}`}
-        >
-          {verdict.type === "take_existing" ? (
-            <Trophy className="w-5 h-5" />
-          ) : verdict.type === "rightoffer_pitch" ? (
-            <Sparkles className="w-5 h-5" />
-          ) : (
-            <AlertCircle className="w-5 h-5" />
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-slate">
-            Right Offer verdict
-          </div>
-          <h3 className="mt-1 text-xl md:text-2xl font-bold text-brand-charcoal leading-tight">
-            {verdict.headline}
-          </h3>
-          <p className="mt-2 text-sm text-brand-charcoal leading-relaxed">
-            {verdict.body}
-          </p>
-          {recommendedQuote && (
-            <div className="mt-3 text-[11px] text-brand-slate">
-              Recommended option: {recommendedQuote.insurerName}
-              {recommendedQuote.policyNumber
-                ? ` · ${recommendedQuote.policyNumber}`
-                : ""}
-            </div>
-          )}
-        </div>
+    <section className={`pl-5 border-l-4 ${ruleCls}`}>
+      <div
+        className={`font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold ${kickerCls}`}
+      >
+        · Right Offer verdict ·
       </div>
+      <h3 className="mt-2 font-serif font-medium text-[26px] md:text-[32px] leading-[1.1] tracking-[-0.015em] text-brand-charcoal m-0">
+        {verdict.headline}
+      </h3>
+      <p className="mt-3 font-serif text-[14.5px] md:text-[15.5px] leading-[1.6] text-brand-charcoal max-w-xl">
+        {verdict.body}
+      </p>
+      {recommendedQuote && (
+        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
+          · Recommended option · {recommendedQuote.insurerName}
+          {recommendedQuote.policyNumber
+            ? ` · ${recommendedQuote.policyNumber}`
+            : ""}{" "}
+          ·
+        </p>
+      )}
     </section>
   );
 }
 
 // ----------------------------------------------------------------------------
-// CTA row — quiet. The "Reserve a RightOffer pick" button was retired
-// because the underlying marketplace isn't live in V1 and a disabled
-// button is worse than no button. The back-to-portal link is enough.
+// CTA row — back to portal only (Reserve a RightOffer pick retired)
 // ----------------------------------------------------------------------------
 function CtaRow() {
   return (

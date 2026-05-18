@@ -178,8 +178,12 @@ function ClaimSimulatorInner({
         </p>
       )}
 
-      {/* Local slider styling — keeps thumbs editorial (plum, slim).
-          Scoped via the descendant class so it doesn't leak. */}
+      {/* Local slider styling — track and thumb both honour dark mode
+          via `currentColor`-style overrides: the track flips from a
+          light charcoal tint (visible on white) to a light tint (visible
+          on warm-dark), and the thumb's border flips to match the page
+          background so it always reads as a clean disc. Scoped to the
+          .claim-simulator-slider descendant class. */}
       <style jsx global>{`
         .claim-simulator-slider {
           -webkit-appearance: none;
@@ -189,6 +193,9 @@ function ClaimSimulatorInner({
           border-radius: 999px;
           outline: none;
           cursor: pointer;
+        }
+        html.dark .claim-simulator-slider {
+          background: rgba(243, 238, 240, 0.22); /* brand-charcoal @ 22% in dark mode */
         }
         .claim-simulator-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
@@ -201,6 +208,10 @@ function ClaimSimulatorInner({
           cursor: grab;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
+        html.dark .claim-simulator-slider::-webkit-slider-thumb {
+          background: #c485c9; /* brand-plum lifted in dark mode */
+          border-color: #0e0a10; /* brand-offwhite in dark mode (warm near-black) */
+        }
         .claim-simulator-slider::-moz-range-thumb {
           width: 16px;
           height: 16px;
@@ -208,6 +219,10 @@ function ClaimSimulatorInner({
           background: #6b4f8a;
           border: 2px solid #fdfbf6;
           cursor: grab;
+        }
+        html.dark .claim-simulator-slider::-moz-range-thumb {
+          background: #c485c9;
+          border-color: #0e0a10;
         }
       `}</style>
     </div>

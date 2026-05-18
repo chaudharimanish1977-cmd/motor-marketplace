@@ -219,40 +219,40 @@ export default async function PortalHome() {
                 />
               )}
               {expired.length > 0 && (
-                <Section
-                  title="Expired"
-                  subtitle="Past policies, kept here for reference. Reports remain viewable."
-                  tone="slate"
-                  policies={expired}
-                />
+                <>
+                  <Section
+                    title="Expired"
+                    subtitle="Past policies, kept here for reference. Reports remain viewable."
+                    tone="slate"
+                    policies={expired}
+                  />
+                  {/* Caring nudge — anchored to the Expired section
+                      because that's where it semantically belongs.
+                      Fires when the customer has at least one expired
+                      policy (regardless of whether they also have
+                      active ones — a multi-car household can have
+                      both). */}
+                  <LapsedHandback
+                    referencePolicyId={expired[0]?.parsed.id}
+                  />
+                </>
               )}
             </div>
           )}
 
-          {/* Footer renewal CTA — editorial pull-quote, not a gradient card */}
-          <section className="mt-12 pl-5 border-l-2 border-brand-plum">
-            <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold text-brand-plum">
-              · Up for renewal soon? ·
-            </div>
-            <h2 className="mt-2 font-serif font-medium text-[26px] md:text-[32px] leading-[1.1] tracking-[-0.015em] text-brand-charcoal m-0">
-              Bring your latest quote — we&rsquo;ll{" "}
-              <span className="italic text-brand-plum">
-                review this year&rsquo;s cover
-              </span>
-              .
-            </h2>
-            <p className="mt-3 font-serif italic text-[15px] md:text-[16px] text-brand-slate leading-relaxed max-w-md">
-              Under 2 minutes. Completely free. No sales calls.
-            </p>
-            <LoadingLink
-              href={renewalSeed ? `/upload?renewal=${renewalSeed}` : "/upload"}
-              spinnerPosition="right"
-              className="mt-5 inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[16px] min-h-[48px] hover:opacity-90 transition-opacity"
-            >
-              <Upload className="w-4 h-4" />
-              Get a fresh review <span aria-hidden>→</span>
-            </LoadingLink>
-          </section>
+          {/* Footer renewal CTA — context-aware:
+              · Customer with active policies → "Up for renewal soon?"
+                framing, primary action is uploading a renewal QUOTE,
+                secondary is uploading a fresh policy.
+              · Customer with only expired (or only quotes / nothing
+                active) → the Lapsed handback above already handles
+                the messaging; the footer goes quiet with just a small
+                "Upload something new" link. */}
+          {active.length > 0 ? (
+            <RenewalFooterCta renewalSeed={renewalSeed} />
+          ) : (
+            <QuietUploadCta />
+          )}
 
           {/* Account controls — quiet, separate from the policy list */}
           {!isUnverified && (
@@ -657,5 +657,130 @@ function Fact({ label, value }: { label: string; value: string }) {
         {value}
       </div>
     </div>
+  );
+}
+
+/**
+ * LapsedHandback — caring nudge anchored to the Expired section.
+ * Fires when the customer has at least one expired policy. Two soft
+ * paths: (a) "you renewed elsewhere → bring it in", (b) "you
+ * haven't renewed → please get cover first; legally required".
+ * Primary action is filled plum (upload renewal); secondary is a
+ * quiet outlined plum (help me get covered).
+ */
+function LapsedHandback({
+  referencePolicyId,
+}: {
+  referencePolicyId?: string;
+}) {
+  const renewHref = referencePolicyId
+    ? `/upload?renewal=${referencePolicyId}`
+    : "/upload";
+  return (
+    <section className="mt-2 pl-5 border-l-2 border-brand-alert">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold text-brand-alert">
+        · Heads up ·
+      </div>
+      <h3 className="mt-2 font-serif font-medium text-[22px] md:text-[26px] leading-[1.1] tracking-[-0.015em] text-brand-charcoal m-0">
+        We hope your car&rsquo;s{" "}
+        <span className="italic text-brand-plum">still covered.</span>
+      </h3>
+      <p className="mt-3 font-serif text-[14.5px] md:text-[15px] leading-[1.6] text-brand-charcoal max-w-xl">
+        If you&rsquo;ve renewed elsewhere — welcome, that&rsquo;s fine
+        — upload the new policy here and we&rsquo;ll review it. If you
+        haven&rsquo;t renewed yet, please get cover first;
+        third-party insurance is mandatory by law.
+      </p>
+      <div className="mt-5 flex items-center gap-3 flex-wrap">
+        <LoadingLink
+          href={renewHref}
+          spinnerPosition="right"
+          className="inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[15px] min-h-[44px] hover:opacity-90 transition-opacity"
+        >
+          <Upload className="w-4 h-4" />
+          Upload my new policy <span aria-hidden>→</span>
+        </LoadingLink>
+        <LoadingLink
+          href="/upload"
+          spinnerPosition="right"
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-plum hover:text-brand-plum text-brand-charcoal font-serif italic font-medium text-[13px] md:text-[14px] min-h-[36px] transition-colors"
+        >
+          Help me get covered <span aria-hidden>→</span>
+        </LoadingLink>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * RenewalFooterCta — shown when the customer has at least one active
+ * policy. Frames the upload as a renewal-quote action with a clear
+ * primary/secondary split:
+ *   Primary  (filled plum)  — Audit my renewal quote
+ *   Secondary (quiet link)  — Or upload a new policy you've already bought
+ * Both link to /upload?renewal=<id>; the same upload flow handles
+ * "this is a quote" vs "this is a bound policy" via document-type
+ * classification on parse.
+ */
+function RenewalFooterCta({ renewalSeed }: { renewalSeed: string | null }) {
+  const href = renewalSeed ? `/upload?renewal=${renewalSeed}` : "/upload";
+  return (
+    <section className="mt-12 pl-5 border-l-2 border-brand-plum">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold text-brand-plum">
+        · Up for renewal soon? ·
+      </div>
+      <h2 className="mt-2 font-serif font-medium text-[26px] md:text-[32px] leading-[1.1] tracking-[-0.015em] text-brand-charcoal m-0">
+        Bring your latest{" "}
+        <span className="italic text-brand-plum">renewal quote</span>{" "}
+        and we&rsquo;ll review this year&rsquo;s cover.
+      </h2>
+      <p className="mt-3 font-serif italic text-[15px] md:text-[16px] text-brand-slate leading-relaxed max-w-md">
+        Under 2 minutes. Completely free. No sales calls.
+      </p>
+      <div className="mt-5 flex items-center gap-4 flex-wrap">
+        <LoadingLink
+          href={href}
+          spinnerPosition="right"
+          className="inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[16px] min-h-[48px] hover:opacity-90 transition-opacity"
+        >
+          <Upload className="w-4 h-4" />
+          Audit my renewal quote <span aria-hidden>→</span>
+        </LoadingLink>
+        <LoadingLink
+          href={href}
+          spinnerPosition="right"
+          className="font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-plum hover:underline"
+        >
+          · Or upload a new policy →
+        </LoadingLink>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * QuietUploadCta — shown to customers with no active policies (only
+ * expired or quotes). The LapsedHandback above already carries the
+ * caring framing + primary CTAs, so the footer here goes quiet — just
+ * a small "Got something new to upload?" link to avoid duplicating
+ * the message.
+ */
+function QuietUploadCta() {
+  return (
+    <section className="mt-12 pl-5 border-l-2 border-brand-charcoal/15">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] font-bold text-brand-slate">
+        · Anything else to upload? ·
+      </div>
+      <p className="mt-2 font-serif italic text-[14px] text-brand-slate leading-relaxed max-w-md">
+        A new policy, a renewal quote, an older policy worth keeping
+        on file — drop it in and we&rsquo;ll review it.{" "}
+        <LoadingLink
+          href="/upload"
+          className="not-italic text-brand-plum hover:underline"
+        >
+          Upload →
+        </LoadingLink>
+      </p>
+    </section>
   );
 }
