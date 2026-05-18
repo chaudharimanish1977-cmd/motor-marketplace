@@ -147,6 +147,18 @@ export interface PolicyReport {
   // Per-add-on relevance tagging — drives bundle builder defaults + tiered bid composition.
   // Optional for backward compat with reports generated before this field was added.
   addOnRecommendations?: AddOnRecommendation[];
+
+  /**
+   * Lowercased emails we've already auto-delivered the PDF to for this
+   * report. Read by /report/[id]/page.tsx on every server render: if
+   * the customer is verified AND their email isn't in this list, we
+   * fire the PDF pipeline once (waitUntil) and push their email here.
+   * Prevents re-firing on every page refresh.
+   *
+   * Optional for backward compat with reports generated before this
+   * field was added; treat null/undefined as an empty list.
+   */
+  emailsSent?: string[];
 }
 
 /**

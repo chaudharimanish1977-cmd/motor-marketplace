@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
-import { findById, findOne, appendRow, Tables } from "@/lib/db";
+import { headers } from "next/headers";
+import { waitUntil } from "@vercel/functions";
+import { findById, findOne, appendRow, updateById, Tables } from "@/lib/db";
 import { generateReport } from "@/lib/report-generator";
+import { sendReportPdfEmail } from "@/lib/email-pdf-pipeline";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { ReportDisplay } from "@/components/report-display";
 import { getSession } from "@/lib/session";
@@ -22,6 +25,21 @@ interface PageProps {
     /** pastClaims — captured by MidLoadQuestions during parsing. */
     pc?: string;
   }>;
+}
+
+/** Resolve the request origin so puppeteer (running in a background
+ *  waitUntil) knows where to fetch the report page from. Honours
+ *  x-forwarded-* headers that Vercel injects; falls back to the
+ *  configured public site URL. */
+async function resolveBaseUrl(): Promise<string> {
+  const hdrs = await headers();
+  const proto = hdrs.get("x-forwarded-proto") ?? "https";
+  const host =
+    hdrs.get("x-forwarded-host") ??
+    hdrs.get("host") ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "rightoffer.in";
+  return `${proto}://${host}`;
 }
 
 export default async function ReportPage({ params, searchParams }: PageProps) {
@@ -96,6 +114,54 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
   const hasVerifiedSession = !!(fullSessionEmail || uploadSession);
   const showGate = view === "customer" && !printMode && !hasVerifiedSession;
 
+  // Auto-deliver the PDF to the customer's inbox on their first
+  // verified visit. The customer just verified themselves (via OTP
+  // or OAuth) — emailing them a copy of the audit is what the gate
+  // promised when they handed over their email.
+  //
+  // Idempotent: we keep a list of emails we've already delivered to
+  // on the report (`emailsSent`). If the customer's verified email
+  // is already in the list, we skip. We mark BEFORE firing so a
+  // page refresh during the puppeteer render doesn't trigger a
+  // second send.
+  //
+  // Gated to view=customer + non-print so investor / PDF-render
+  // paths don't accidentally fan out emails.
+  const verifiedEmail =
+    fullSessionEmail ?? uploadSession?.email ?? null;
+  if (
+    verifiedEmail &&
+    view === "customer" &&
+    !printMode &&
+    !hasEmailBeenSent(report, verifiedEmail)
+  ) {
+    const updatedSent = [
+      ...(report.emailsSent ?? []),
+      verifiedEmail.toLowerCase(),
+    ];
+    // Mark synchronously so refreshes during the puppeteer render
+    // don't re-fire. Best-effort — DB failure here is non-fatal.
+    try {
+      await updateById<PolicyReport>(Tables.REPORTS, report.id, {
+        emailsSent: updatedSent,
+      });
+      report.emailsSent = updatedSent;
+    } catch (err) {
+      console.error("[report] Failed to mark email sent:", err);
+    }
+    // Fire the pipeline in the background; the customer's HTML
+    // response ships immediately while puppeteer + Resend run.
+    const baseUrl = await resolveBaseUrl();
+    waitUntil(
+      sendReportPdfEmail({
+        reportId: parsedPolicy.id,
+        email: verifiedEmail,
+        baseUrl,
+        query: { km, drv, oc, pri, pc },
+      })
+    );
+  }
+
   return (
     <ReportDisplay
       parsedPolicy={parsedPolicy}
@@ -105,5 +171,13 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
       drivingProfile={drivingProfile}
       printMode={printMode}
     />
+  );
+}
+
+/** Has this email already been sent the PDF for this report? */
+function hasEmailBeenSent(report: PolicyReport, email: string): boolean {
+  const lowered = email.toLowerCase();
+  return (report.emailsSent ?? []).some(
+    (e) => e.toLowerCase() === lowered
   );
 }
