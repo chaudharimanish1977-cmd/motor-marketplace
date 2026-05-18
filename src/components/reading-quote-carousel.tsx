@@ -1,5 +1,5 @@
 /**
- * Reading-Room testimonial carousel — replaces the earlier marketing-style
+ * Editorial testimonial carousel — replaces the earlier marketing-style
  * TestimonialCarousel. Mounts inside V7Quote on the home page.
  *
  * Behaviour:

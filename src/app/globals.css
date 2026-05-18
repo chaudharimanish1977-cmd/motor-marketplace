@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  /* Reading Room v3 theme tokens — light (default) and dark.
+  /* RightOffer editorial v3 theme tokens — light (default) and dark.
    *
    * Per the brand mockup (tokens.jsx → reading), the editorial palette is:
    *   light: bg #FFFFFF · fg #1a1218 · muted #6b6571 · rule #1a1218
@@ -37,7 +37,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ─── Reading Room sketch animations ────────────────────────────────── */
+  /* ─── RightOffer editorial sketch animations ────────────────────────────────── */
   /* Hand-drawn SVGs in src/components/sketches.tsx use these keyframes:
    *   .ro-car      — gentle bounce, suggests motion without distracting
    *   .ro-wheel    — wheel spin
@@ -47,7 +47,7 @@
    *
    * Iteration counts are capped (not infinite) so the car comes to rest
    * after ~7s. After that the page is fully static, which respects the
-   * editorial "reading-room" voice and stops the animation from competing
+   * editorial voice and stops the animation from competing
    * with body copy once the user has scrolled past the headline.
    *
    * `prefers-reduced-motion` opts the user out entirely — important for
@@ -259,7 +259,7 @@
     --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--color-surface)) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
   }
 
-  /* Reading Room: brand.navy/olive/coral/plum/sage all resolve to CSS
+  /* RightOffer editorial: brand.navy/olive/coral/plum/sage all resolve to CSS
    * variables (--color-charcoal/--color-plum/--color-sage) that flip
    * automatically with theme. No bespoke dark-mode overrides needed here. */
 

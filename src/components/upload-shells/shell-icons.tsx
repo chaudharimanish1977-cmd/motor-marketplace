@@ -1,7 +1,7 @@
 /**
  * Tiny inline icons used inside the upload shells. Kept here (not in
  * sketches-scenes.tsx) because they're UI affordances, not part of the
- * editorial brand vocabulary. Reading-Room-style: round caps, currentColor,
+ * editorial brand vocabulary. Editorial style: round caps, currentColor,
  * thin strokes.
  */
 import type { SVGProps } from "react";

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 // Apple touch icon — used by iOS home-screen "Add to Home Screen" and many
-// link-preview services. Same Reading Room car-on-plum mark as the
+// link-preview services. Same editorial car-on-plum mark as the
 // favicon, scaled to 180×180 with the wheels detailed (cross spokes
 // render legibly at this size where they don't at 32×32).
 export const runtime = "edge";

@@ -6,7 +6,7 @@
  * Protection Act, 2023 (DPDP Act). Marked as a draft at the top — the
  * final policy will be reviewed by counsel before public launch.
  *
- * Layout: Reading Room editorial typography but minimal — no sketches,
+ * Layout: editorial typography but minimal — no sketches,
  * no carousels. Long-form readable prose with mono section markers.
  *
  * ESLint's `react/no-unescaped-entities` rule is disabled at the top of
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
       {/* Masthead */}
       <header className="border-b border-brand-charcoal/15 pb-5 mb-8">
         <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold mb-3">
-          · Reading Room ·
+          · RightOffer · Privacy ·
         </div>
         <h1 className="font-serif font-medium text-4xl md:text-5xl leading-[1.05] tracking-[-0.02em] text-brand-charcoal m-0">
           Privacy <span className="italic text-brand-plum">Policy</span>

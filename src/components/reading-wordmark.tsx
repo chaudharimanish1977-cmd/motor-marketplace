@@ -1,8 +1,7 @@
 /**
- * Reading Room wordmark — text-based mixed-medium signature.
+ * RightOffer wordmark — text-based mixed-medium signature.
  *
- * The brand mockup (home page_files/reading-motor.jsx · V7Brand) defines
- * the wordmark as:
+ * The brand mark is:
  *   · italic serif lowercase "r"   (plum accent · A1)
  *   · small-caps "RightOffer"      (body fg · charcoal)
  *   · uppercase mono "CAR" pill    (sage bg · A2, body bg · fg)

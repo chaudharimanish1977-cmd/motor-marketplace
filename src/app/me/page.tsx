@@ -115,7 +115,7 @@ export default async function PortalHome() {
           {/* Masthead */}
           <header className="border-b border-brand-charcoal/15 pb-6 mb-8">
             <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
-              · Reading Room · Your portal ·
+              · Your portal ·
             </div>
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="min-w-0">
@@ -168,7 +168,7 @@ export default async function PortalHome() {
                   hasUrgentInsight ? "text-brand-alert" : "text-brand-plum"
                 }`}
               >
-                · Reading Room ·{" "}
+                ·{" "}
                 {hasUrgentInsight ? "Urgent update" : "Insights for your car"}
                 {" ·"}
               </div>

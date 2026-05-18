@@ -1,7 +1,7 @@
 /**
  * /sample-review/[slug] — a single anonymised sample review.
  *
- * Reading Room editorial layout, mirrors the V7CaseStudy block on the
+ * Editorial layout, mirrors the V7CaseStudy block on the
  * home page but expanded into a full-page reading experience. Each
  * sample serves three jobs:
  *
@@ -79,7 +79,7 @@ export default async function SampleReviewPage({ params }: PageProps) {
             href="/sample-review"
             className="text-brand-sage hover:text-brand-plum transition-colors"
           >
-            · Reading Room ·
+            · All samples ·
           </Link>
           <span className="text-brand-slate">
             Sample № {sample.issueNumber} ·{" "}

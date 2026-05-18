@@ -1,7 +1,7 @@
 /**
  * CarSmiley — a 5-point rating scale where each point is an ink-line
  * car drawn from the front, with the headlights doubling as eyes and
- * the bumper line as a mouth. Same Reading Room visual language as
+ * the bumper line as a mouth. Same RightOffer editorial visual language as
  * the rest of the brand sketches.
  *
  * Designed for use in:
@@ -30,7 +30,7 @@ export interface CarSmileyProps {
   rating: SmileyRating;
   /** Stroke color. Defaults to currentColor so the smiley inherits
    *  the text color of its container (consistent with the other
-   *  Reading Room ink-line sketches). */
+   *  RightOffer editorial ink-line sketches). */
   color?: string;
   /** Render width in pixels. Height matches (the smiley is square). */
   width?: number;

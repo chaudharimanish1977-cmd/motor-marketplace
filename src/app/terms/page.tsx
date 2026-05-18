@@ -5,7 +5,7 @@
  * Generic Indian-context copy. Marked as draft at the top — final
  * terms will be reviewed by counsel before public launch.
  *
- * Layout: matches /privacy. Reading Room editorial typography but
+ * Layout: matches /privacy. Editorial typography but
  * minimal — no sketches, no carousels. Long-form readable prose with
  * mono section markers.
  *
@@ -33,7 +33,7 @@ export default function TermsPage() {
     <article className="relative z-10 max-w-3xl mx-auto px-6 md:px-8 py-10 md:py-14 font-serif text-brand-charcoal">
       <header className="border-b border-brand-charcoal/15 pb-5 mb-8">
         <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold mb-3">
-          · Reading Room ·
+          · RightOffer · Terms ·
         </div>
         <h1 className="font-serif font-medium text-4xl md:text-5xl leading-[1.05] tracking-[-0.02em] text-brand-charcoal m-0">
           Terms of <span className="italic text-brand-plum">Use</span>

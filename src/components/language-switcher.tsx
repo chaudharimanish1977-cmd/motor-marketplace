@@ -11,7 +11,7 @@
  *     which writes the cookie + revalidates. The page re-renders in
  *     the chosen language without a hard navigation.
  *
- * Visual treatment matches the Reading Room editorial system: bordered
+ * Visual treatment matches the editorial system: bordered
  * pill, mono uppercase for the EN code, serif body for native scripts,
  * subtle plum tint on the active row.
  */

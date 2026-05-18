@@ -5,7 +5,7 @@
  * ## Why this file exists
  *
  * Machine translation does ~80% of the job well, but on editorial
- * copy (the Reading Room voice — italic accents, plain-English idioms,
+ * copy (the editorial voice — italic accents, plain-English idioms,
  * "we help you decide", "trusted by 1,000+ Indian car owners") it
  * often produces stilted, awkward, or just-plain-wrong renderings.
  * Bad translation in an insurance product is worse than no translation.

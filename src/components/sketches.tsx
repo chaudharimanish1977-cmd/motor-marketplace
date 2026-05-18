@@ -1,5 +1,5 @@
 /**
- * Reading Room hand-drawn sketches.
+ * RightOffer editorial hand-drawn sketches.
  *
  * Ink-line illustrations (pen-and-paper feel, round caps, slight stroke
  * variation) used across the editorial home page and other surfaces.
@@ -8,7 +8,7 @@
  *
  * All sketches accept `color` (stroke + primary fill) and an optional
  * `accent` (secondary fill for stamps/highlights). Default is the
- * Reading Room plum accent.
+ * RightOffer editorial plum accent.
  *
  * The car sketch is animated (bounce + spin + road) via the shared
  * keyframes in globals.css. Static sketches have no motion.

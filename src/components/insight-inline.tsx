@@ -78,7 +78,7 @@ export function InsightsDiscoveryLine({ count }: { count: number }) {
       className="block my-4 pl-4 border-l-2 border-brand-plum/40 hover:border-brand-plum transition-colors group"
     >
       <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-plum">
-        · Reading Room · {count}{" "}
+        · {count}{" "}
         {count === 1 ? "update tied" : "updates tied"} to gaps below ·
       </div>
       <p className="mt-0.5 font-serif italic text-[13.5px] md:text-[14px] text-brand-slate">

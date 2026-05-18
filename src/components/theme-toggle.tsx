@@ -38,9 +38,8 @@ export function ThemeToggle() {
 
   const isDark = theme === "dark";
 
-  // Reading Room mode-pill: a fixed top-right monospace pill ("LIGHT · TAP"
-  // / "DARK · TAP") with a small accent dot. Matches the brand mockup's
-  // ModeToggle aesthetic (tokens.jsx → ModeToggle): bordered, letter-spaced,
+  // Editorial mode-pill: a fixed top-right monospace pill ("LIGHT · TAP"
+  // / "DARK · TAP") with a small accent dot. Bordered, letter-spaced,
   // tiny — feels like the masthead chip on a newspaper rather than an OS
   // affordance.
   return (

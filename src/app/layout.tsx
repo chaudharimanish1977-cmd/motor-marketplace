@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Manrope, Newsreader, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-// DesktopAmbientArt (old-palette side panels) retired with Reading Room
-// v3 — the editorial layout owns its own visual interest via sketches
+// DesktopAmbientArt (old-palette side panels) retired with the editorial
+// redesign — the editorial layout owns its own visual interest via sketches
 // and typography; ambient washes were a vestige of the earlier marketing-
 // hero pattern. Removed from the global mount; component file is left in
 // place for now to keep other commits clean.
@@ -37,7 +37,7 @@ const manrope = Manrope({
   weight: ["800"],
 });
 
-// Newsreader is the Reading Room editorial serif. It's the brand voice —
+// Newsreader is the editorial serif. It's the brand voice —
 // long-form body text, headlines, italics for accent words. Round-cap
 // warmth, optical-size variable, paired with JetBrains Mono for technical
 // labels. Both upright and italic styles loaded.
@@ -51,7 +51,7 @@ const newsreader = Newsreader({
 
 // JetBrains Mono for masthead labels, footnotes, section markers
 // (§ I. · 03 STEPS · ·), small-caps technical metadata. Letter-spaced
-// uppercase per the Reading Room mockup.
+// uppercase per the editorial brand mark.
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",

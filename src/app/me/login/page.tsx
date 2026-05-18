@@ -17,7 +17,7 @@ interface PageProps {
  * Sign-in landing — Phase 6.2.1 editorial reframe.
  *
  * Bounces signed-in visitors straight to /me. Otherwise renders the
- * Reading Room style sign-in: Garage masthead, serif headline, the
+ * editorial sign-in: masthead, serif headline, the
  * official Google + Apple buttons (when configured), magic-link
  * email fallback, "new here?" link to /upload.
  *

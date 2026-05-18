@@ -1,5 +1,5 @@
 /**
- * Home page — Reading Room edition.
+ * Home page — editorial RightOffer surface.
  *
  * An editorial newspaper-style landing page. Adapted from the Reading
  * Room brand mockup (downloads/home page_files/reading-motor.jsx),
@@ -19,7 +19,7 @@
  *    8. Final CTA    · "Decide for yourself."
  *    9. Footer       · monospace uppercase legal row (centred on mobile)
  *
- * BrandBlobs is intentionally absent — the Reading Room calls for a pure
+ * BrandBlobs is intentionally absent — the editorial canvas calls for a pure
  * white (light) / warm-near-black (dark) page surface. The SiteHeader
  * mounted globally from layout.tsx is replaced *visually* on this page
  * by section 1's brand row (the SiteHeader still renders for app routes).

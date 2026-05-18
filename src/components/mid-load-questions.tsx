@@ -22,7 +22,7 @@
  * The carousel auto-advances on tap, persists answers to localStorage,
  * and skips already-answered questions via `skipAnswered`.
  *
- * Visual treatment: Reading-Room editorial — italic-serif prompts,
+ * Visual treatment: editorial — italic-serif prompts,
  * plum-tinted active chips, mono uppercase caption header, plain SVG
  * chevrons (not lucide), surface card with no drop shadow.
  */

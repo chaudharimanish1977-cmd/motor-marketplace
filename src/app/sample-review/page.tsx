@@ -26,7 +26,7 @@ export default function SampleReviewsIndexPage() {
       {/* Masthead */}
       <header className="border-b border-brand-charcoal/15 pb-5 mb-8">
         <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold mb-3">
-          · Reading Room ·
+          · RightOffer · Sample reviews ·
         </div>
         <h1 className="font-serif font-medium text-4xl md:text-5xl leading-[1.05] tracking-[-0.02em] text-brand-charcoal m-0">
           Sample{" "}

@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 // Route segment config — Next.js renders this as /icon (PNG) and uses it
 // as the site favicon, replacing the default Vercel mark in Google search.
 //
-// Reading Room favicon: same ink-line car the home page uses as an inline
+// RightOffer favicon: same ink-line car the home page uses as an inline
 // icon, scaled into a 32×32 tile on the deep-plum brand surface. Sage
 // stroke + plum bg lifts off the dark Chrome tab strip and stays
 // recognisable at favicon resolution.

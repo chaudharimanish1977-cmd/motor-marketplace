@@ -378,7 +378,7 @@ function renderReminderHtml({
 }: Omit<ReminderArgs, "to">): string {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
 
-  // Editorial Reading-Room treatment — but still:
+  // Editorial treatment — but still:
   //   · no gradient header
   //   · no colored CTA button
   //   · no card chrome / box shadow
@@ -402,7 +402,7 @@ function renderReminderHtml({
   </div>
   <div style="max-width:560px;">
     <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
-      &middot; Reading Room &middot; Renewal reminder &middot;
+      &middot; RightOffer &middot; Renewal reminder &middot;
     </div>
 
     <p style="margin:0 0 18px;">Hi ${escape(firstName)},</p>
@@ -439,7 +439,7 @@ function renderReminderText({
 }: Omit<ReminderArgs, "to">): string {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
   return [
-    `· Reading Room · Renewal reminder ·`,
+    `· RightOffer · Renewal reminder ·`,
     ``,
     `Hi ${firstName},`,
     ``,

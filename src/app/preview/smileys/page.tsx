@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /**
  * /preview/smileys — internal preview of every reusable cute element
- * in the Reading Room visual library, with mock contexts showing where
+ * in the editorial visual library, with mock contexts showing where
  * each one lands across the product.
  *
  * Sections (top to bottom):
@@ -54,7 +54,7 @@ import {
 export const metadata: Metadata = {
   title: "Cute element library · preview",
   description:
-    "Internal preview of all reusable Reading Room cute elements and the surfaces they're designed for.",
+    "Internal preview of all reusable editorial cute elements and the surfaces they're designed for.",
 };
 
 const RATINGS: Array<{
@@ -81,7 +81,7 @@ export default function SmileysPreviewPage() {
           <span className="italic text-brand-plum">library.</span>
         </h1>
         <p className="mt-3 font-serif italic text-[15.5px] md:text-[17px] leading-[1.55] text-brand-slate max-w-xl">
-          Every reusable ink-line illustration in the Reading Room library,
+          Every reusable ink-line illustration in the editorial library,
           mocked into the actual surface it's designed for. Mocks only —
           live surfaces get the elements once we approve here.
         </p>
@@ -554,7 +554,7 @@ function MockLegalMasthead() {
         </div>
         <div className="flex-1">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold mb-2">
-            · Reading Room ·
+            · RightOffer ·
           </div>
           <h3 className="font-serif font-medium text-3xl md:text-4xl tracking-[-0.02em] text-brand-charcoal m-0">
             Privacy{" "}

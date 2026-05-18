@@ -13,7 +13,7 @@ import type { ParsedPolicy, PolicyReport } from "@/lib/types";
  * card (PNG, 1080×1080 square) for the report (Phase 7d.2).
  *
  * Single editorial composition:
- *   · top — RightOffer wordmark + "RightOffer Reading Room · No. XXXX"
+ *   · top — RightOffer wordmark + "Motor insurance review · No. XXXX"
  *   · middle — vehicle line + verdict label, with the verdict's smiley
  *     rating expressed as a single big number (1-5)
  *   · centre — "At risk today · ₹X" hero, the strongest social-proof beat
@@ -118,7 +118,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
             fontWeight: 700,
           }}
         >
-          <span>· RightOffer · Reading Room ·</span>
+          <span>· RightOffer · Motor insurance review ·</span>
           <span style={{ color: "#928BB6" /* slate */ }}>No. {issueNo}</span>
         </div>
 

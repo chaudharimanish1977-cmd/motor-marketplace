@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Site-wide header — Reading Room edition.
+ * Site-wide header — editorial RightOffer surface.
  *
  * Renders the editorial wordmark (italic serif "r" + small-caps RightOffer
  * + sage "CAR" pill) and a discreet sign-in entry on every internal
@@ -49,7 +49,7 @@ export function SiteHeader({ signedIn = false }: Props) {
   return (
     <header className="relative z-20 w-full px-6 md:px-12 pt-5 pb-3 print:hidden">
       <div className="relative flex items-center justify-between gap-4">
-        {/* Reading Room wordmark — italic serif r + small-caps RightOffer
+        {/* RightOffer wordmark — italic serif r + small-caps RightOffer
          *  + sage CAR pill, all text, no SVG. Links to /. */}
         <Link
           href="/"
