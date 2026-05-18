@@ -30,6 +30,12 @@ import { SignOutButton } from "./sign-out-button";
 import { DeleteAccountCard } from "./delete-account-card";
 import { DataConsentCard } from "./data-consent-card";
 import { FleetSummary } from "./fleet-summary";
+import { INSIGHT_CATALOGUE } from "@/lib/insights/catalogue";
+import {
+  buildCustomerContext,
+  matchAllInsights,
+} from "@/lib/insights/matcher";
+import type { Insight } from "@/lib/insights/types";
 import { DeletePolicyButton } from "./delete-policy-button";
 import { RunComparisonButton } from "./run-comparison-button";
 
@@ -104,6 +110,23 @@ export default async function PortalHome() {
       )
     : allPolicies;
 
+  // Match the global insight catalogue against each policy the
+  // customer owns, dedupe by id. Surfaces a "X insights waiting"
+  // link in the header strip when the matched set is non-empty.
+  const matchedInsights = new Map<string, Insight>();
+  for (const portalPolicy of policies) {
+    const ctx = buildCustomerContext(portalPolicy.parsed);
+    for (const insight of matchAllInsights(INSIGHT_CATALOGUE, ctx)) {
+      if (!matchedInsights.has(insight.id)) {
+        matchedInsights.set(insight.id, insight);
+      }
+    }
+  }
+  const insightCount = matchedInsights.size;
+  const hasUrgentInsight = Array.from(matchedInsights.values()).some(
+    (i) => i.urgent
+  );
+
   const active = policies.filter((p) => p.bucket === "active");
   const quotes = policies.filter((p) => p.bucket === "quote");
   const expired = policies.filter((p) => p.bucket === "expired");
@@ -162,6 +185,41 @@ export default async function PortalHome() {
                 </p>
               </div>
             </div>
+          )}
+
+          {/* Insights entry-point. Renders only when there's at least
+              one matched insight AND we're in a full verified session.
+              Editorial chip — plum left-rule, mono kicker — pulls the
+              eye without competing with the policies list. */}
+          {!isUnverified && insightCount > 0 && (
+            <LoadingLink
+              href="/me/insights"
+              className={`mb-6 block pl-4 py-2 border-l-2 ${
+                hasUrgentInsight
+                  ? "border-brand-alert"
+                  : "border-brand-plum"
+              } hover:bg-brand-offwhite/60 transition-colors group`}
+            >
+              <div
+                className={`font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold ${
+                  hasUrgentInsight ? "text-brand-alert" : "text-brand-plum"
+                }`}
+              >
+                · Reading Room ·{" "}
+                {hasUrgentInsight ? "Urgent update" : "Insights for your car"}
+                {" ·"}
+              </div>
+              <div className="mt-1 font-serif text-[15px] md:text-[16px] text-brand-charcoal">
+                <span className="font-semibold tabular-nums">
+                  {insightCount}
+                </span>{" "}
+                {insightCount === 1 ? "insight" : "insights"} matched to your
+                profile{" "}
+                <span className="italic text-brand-plum group-hover:underline">
+                  Read them →
+                </span>
+              </div>
+            </LoadingLink>
           )}
 
           {policies.length === 0 ? (

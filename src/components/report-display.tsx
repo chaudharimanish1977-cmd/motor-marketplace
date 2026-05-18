@@ -133,7 +133,12 @@ export function ReportDisplay({
 
         {(!showGate || view === "investor" || printMode) && (
           <>
-            <AtRenewalSection report={report} />
+            <AtRenewalSection
+              parsedPolicy={parsedPolicy}
+              report={report}
+              drivingProfile={drivingProfile}
+              printMode={printMode}
+            />
             <BottomLineSection
               parsedPolicy={parsedPolicy}
               report={report}

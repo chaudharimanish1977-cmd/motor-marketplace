@@ -46,6 +46,17 @@ import {
 } from "@/components/driving-profile-card";
 import { SaveReportButton } from "@/components/save-report-button";
 import { ShareButton } from "@/components/share-button";
+import {
+  InsightInline,
+  InsightsDiscoveryLine,
+} from "@/components/insight-inline";
+import { INSIGHT_CATALOGUE } from "@/lib/insights/catalogue";
+import {
+  buildCustomerContext,
+  matchAllInsights,
+  insightsForGap,
+} from "@/lib/insights/matcher";
+import type { CanonicalAddOn } from "@/lib/insights/types";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 
 /* ─── 01 · What's Working ───────────────────────────────────────────── */
@@ -119,6 +130,19 @@ export function WhatsMissingSection({
     vehicleAge
   );
 
+  // Insight matching for inline rendering — runs the engagement-layer
+  // catalogue (src/content/insights/*) against this customer's context
+  // and surfaces the matches:
+  //   1. A discovery line at the top of §02 counting gap-attached matches
+  //   2. The matched insight itself, tucked inline under each gap card
+  // Insights without a `reportAttach: gaps` target stay in /me/insights
+  // and don't surface here.
+  const customerCtx = buildCustomerContext(parsedPolicy, drivingProfile);
+  const matchedInsights = matchAllInsights(INSIGHT_CATALOGUE, customerCtx);
+  const gapAttachedCount = matchedInsights.filter(
+    (i) => i.reportAttach?.section === "gaps"
+  ).length;
+
   const idvAssessmentLabel: Record<typeof idv.assessment, string> = {
     appropriate: "Looks appropriate",
     low: "Reads low",
@@ -148,6 +172,14 @@ export function WhatsMissingSection({
           initialProfile={drivingProfile}
           reportId={parsedPolicy.id}
         />
+      )}
+
+      {/* Insights discovery line — quiet entry-point to /me/insights
+          when there's at least one gap-attached insight matched for
+          this customer's profile. Print mode hides it (PDFs don't
+          carry live links). */}
+      {!printMode && gapAttachedCount > 0 && (
+        <InsightsDiscoveryLine count={gapAttachedCount} />
       )}
 
       {/* Money-at-risk callout — editorial pull quote, not a gradient card */}
@@ -183,15 +215,30 @@ export function WhatsMissingSection({
             const evidence = canonical
               ? buildGapEvidence(canonical, parsedPolicy, drivingProfile)
               : null;
-            // Compose the two transparency artifacts per gap:
-            //   1. ClaimSimulator — visceral money-grounding (Phase 7a),
+            // Pull any insight attached to this canonical gap. Multiple
+            // matches are allowed; we render the most-recently-published
+            // one inline and let the rest live in /me/insights. Keeps
+            // the gap card readable when an evergreen + a fresh urgent
+            // insight target the same gap.
+            const gapInsights = canonical
+              ? insightsForGap(matchedInsights, canonical as CanonicalAddOn)
+              : [];
+            const inlineInsight = gapInsights[0] ?? null;
+            // Compose the transparency + engagement artifacts per gap:
+            //   1. InsightInline — engagement-layer note tying the gap to
+            //      a recent market / seasonal / regulatory update (v1
+            //      Insights). Print mode hides it.
+            //   2. ClaimSimulator — visceral money-grounding (Phase 7a),
             //      always visible. Renders only when the gap maps to a
             //      canonical add-on with a known scenario.
-            //   2. GapEvidenceDisclosure — collapsible "Show our work"
+            //   3. GapEvidenceDisclosure — collapsible "Show our work"
             //      audit trail + industry benchmark (Phase 7c).
             const callout =
-              canonical || evidence ? (
+              canonical || evidence || inlineInsight ? (
                 <div>
+                  {inlineInsight && !printMode && (
+                    <InsightInline insight={inlineInsight} />
+                  )}
                   {canonical && (
                     <ClaimSimulator
                       canonical={canonical}
@@ -273,12 +320,28 @@ export function WhatsMissingSection({
 /* ─── 03 · At Renewal ───────────────────────────────────────────────── */
 
 export function AtRenewalSection({
+  parsedPolicy,
   report,
+  drivingProfile,
+  printMode = false,
 }: {
+  parsedPolicy: ParsedPolicy;
   report: PolicyReport;
+  drivingProfile?: DrivingProfile;
+  printMode?: boolean;
 }) {
   const tips = report.renewalTips.items;
   const pricing = report.pricingSnapshot;
+
+  // Renewal-attached insights from the engagement layer — surface
+  // ABOVE the renewal-tips list so the customer reads "what's moved
+  // in the market lately" before the standing-tips advice that's
+  // the same year-on-year. Print mode hides them.
+  const customerCtx = buildCustomerContext(parsedPolicy, drivingProfile);
+  const matched = matchAllInsights(INSIGHT_CATALOGUE, customerCtx);
+  const renewalInsights = matched.filter(
+    (i) => i.reportAttach?.section === "renewal"
+  );
 
   return (
     <ReportSection
@@ -289,6 +352,17 @@ export function AtRenewalSection({
       sketch={<SketchPetrolPump width={130} color="currentColor" />}
       anchor="renewal"
     >
+      {/* Renewal-attached engagement insights (v1 Insights). Editorial
+          inline notes — kicker, title, one-liner, "read full update"
+          link. Multiple matches stack. */}
+      {!printMode && renewalInsights.length > 0 && (
+        <div className="mb-6">
+          {renewalInsights.map((insight) => (
+            <InsightInline key={insight.id} insight={insight} />
+          ))}
+        </div>
+      )}
+
       {/* Tips list */}
       <div className="-mt-2">
         {tips.map((tip, i) => (
