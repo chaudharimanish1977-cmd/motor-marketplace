@@ -17,6 +17,7 @@ Remove an entry when it's actually done **and** verified — not when the code l
 
 | Added | Item | Validation criteria |
 |---|---|---|
+| 2026-05-18 | **`/me` portal editorial redesign** (`8602b20`) | (1) Masthead reads "Reading Room · Your portal" with serif italic-plum headline. (2) Policy cards now hairline-separated rows; status appears as mono uppercase kicker ("· Active ·", "· Renewal · 47d to go ·", "· Lapsed · 12d ago ·"). (3) Comparison launcher + renewal CTA + empty state all use editorial pull-quote vocab — no gradients, no shadowed cards. (4) Delete account confirm + delete policy confirm use coral left-rule + mono kicker + serif body. (5) Reminder schedule editor reads editorial in both summary + edit modes. (6) Mobile reads cleanly. (7) Account section sits below a hairline rule with mono "· Account ·" kicker. |
 | 2026-05-18 | **Insights v1 — feed + inline rendering** (`810f6b3`) | (1) Open `/me/insights` on a verified session — feed shows the 3 sample insights filtered by your car profile. (2) Open `/report/[id]` for a CNG car in Mumbai with no Engine Protect — monsoon-engine-protect insight appears inline above the simulator. (3) Discovery line "N updates tied to gaps below" appears at top of §02. (4) Print mode (`?print=1`) hides all engagement-layer content. (5) Mobile: editorial spacing reads cleanly. |
 | 2026-05-17 | **Save / Share buttons mobile fixes** (`723dc06`) | PDF downloads reliably on iOS Safari with the simplified single-file flow. Share-on-WhatsApp opens WhatsApp with pre-filled message. Both buttons match editorial plum styling. |
 | 2026-05-17 | **Share-page copy update** (`723dc06`) | `/share/[token]` headline reads "Want the same audit on your car insurance?" and CTA reads "Audit my car insurance →". |
@@ -52,11 +53,6 @@ Remove an entry when it's actually done **and** verified — not when the code l
 - **Error monitoring** — Sentry or equivalent. Currently console.error only; we lose stack traces from real users.
 - **Performance / APM** — slow-route detection, LLM latency tracking, cron job health. Datadog / Vercel Observability / etc.
 - **Note**: V1 build plan explicitly flagged this as "can wait", but a single LLM hiccup in front of an investor is fixable only if we have telemetry.
-
-### `/me` portal editorial redesign
-- Today's policy cards, reminder schedule editor, empty state, and Account section still wear the legacy SaaS palette (navy badges, rounded-2xl shadow cards). FleetSummary, DataConsentCard, and now the Insights chip are editorial; the rest isn't.
-- Bring the whole portal into design parity with the report. Includes `DeletePolicyButton`, `RunComparisonButton`, `ReminderToggle`, `ReminderSchedule` UI.
-- Single focused session — 1-2 chapters of work.
 
 ### Renewal reminder email — editorial polish
 - Cron + reminder rows work. Email template hasn't had editorial treatment.
@@ -145,4 +141,4 @@ Remove an entry when it's actually done **and** verified — not when the code l
 
 ---
 
-*Last updated: 2026-05-18*
+*Last updated: 2026-05-18 (post `/me` editorial redesign)*
