@@ -74,15 +74,23 @@ export function SiteHeader({ signedIn = false }: Props) {
           <span className="sr-only">RightOffer Car</span>
         </Link>
 
-        {!hidePortalLink && (
+        <div className="flex items-center gap-4 md:gap-5">
           <Link
-            href="/me"
-            className="inline-flex items-center gap-1.5 font-serif italic text-sm text-brand-slate hover:text-brand-charcoal transition-colors"
+            href="/about"
+            className="hidden md:inline-flex items-center font-serif italic text-sm text-brand-slate hover:text-brand-charcoal transition-colors"
           >
-            {signedIn ? "My policies" : "Sign in"}
-            <span aria-hidden>→</span>
+            About
           </Link>
-        )}
+          {!hidePortalLink && (
+            <Link
+              href="/me"
+              className="inline-flex items-center gap-1.5 font-serif italic text-sm text-brand-slate hover:text-brand-charcoal transition-colors"
+            >
+              {signedIn ? "My policies" : "Sign in"}
+              <span aria-hidden>→</span>
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );

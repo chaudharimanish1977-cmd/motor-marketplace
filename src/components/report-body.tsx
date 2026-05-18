@@ -302,9 +302,10 @@ export function IdvCheckSection({
       heading="Your declared value."
       intro={
         <>
-          The amount your insurer would pay if your car is totally lost
-          today. The single highest-stakes number in your policy — worth
-          a careful look.
+          Your <GlossaryTerm term="IDV">IDV</GlossaryTerm> — the amount
+          your insurer would pay if your car is totally lost today. The
+          single highest-stakes number in your policy, worth a careful
+          look.
         </>
       }
       sketch={<SketchVerdict width={130} color="currentColor" />}
@@ -749,8 +750,10 @@ function IdvShowOurWork({
 /**
  * StrengthShowOurWork — quiet "Show our work" disclosure on each
  * strength row in §01 What's Working. Same disclosure vocab as
- * GapEvidenceDisclosure, but for present add-ons (we confirmed it
- * IS in the policy + here's why that protects you).
+ * GapEvidenceDisclosure. Matches the LLM's broad strength-title
+ * patterns (canonical add-ons + comprehensive cover + NCB +
+ * CNG declaration + Personal Accident + voluntary deductible),
+ * not just the canonical-add-on subset.
  */
 function StrengthShowOurWork({
   strengthTitle,
@@ -759,37 +762,8 @@ function StrengthShowOurWork({
   strengthTitle: string;
   parsedPolicy: ParsedPolicy;
 }) {
-  const canonical = matchCanonicalAddOn(strengthTitle);
-  if (!canonical) return null;
-  // Confirm presence in the parsed policy's add-on list. Strengths
-  // that aren't tied to a canonical add-on (e.g. "Comprehensive Cover
-  // — OD + TP included") won't render a disclosure.
-  const present = parsedPolicy.addOns.some((a) => {
-    const lower = a.name.toLowerCase();
-    return (
-      lower.includes(canonical.toLowerCase()) ||
-      lower.includes(canonical.toLowerCase().split(" ")[0])
-    );
-  });
-  const checks: { label: string; evidence: string; tone: "pass" | "fact" }[] = [
-    {
-      label: `${canonical} present in your policy?`,
-      tone: "pass",
-      evidence: present
-        ? "Confirmed in the add-on list on your current policy."
-        : "Confirmed by our parse of your policy text.",
-    },
-  ];
-  // Add a per-canonical "what it protects" line so the customer
-  // understands WHY this strength matters.
-  const protection = strengthProtection(canonical);
-  if (protection) {
-    checks.push({
-      label: "What it protects against",
-      tone: "fact",
-      evidence: protection,
-    });
-  }
+  const match = matchStrengthPattern(strengthTitle, parsedPolicy);
+  if (!match) return null;
 
   return (
     <details className="mt-1 group">
@@ -808,7 +782,7 @@ function StrengthShowOurWork({
           · Our checks ·
         </div>
         <ul className="space-y-2.5">
-          {checks.map((c, i) => {
+          {match.checks.map((c, i) => {
             const glyph =
               c.tone === "pass"
                 ? { char: "✓", cls: "text-brand-success" }
@@ -838,9 +812,197 @@ function StrengthShowOurWork({
   );
 }
 
+interface StrengthCheck {
+  label: string;
+  evidence: string;
+  tone: "pass" | "fact";
+}
+
+/**
+ * Match a strength title against the broader set of patterns the LLM
+ * tends to produce. Returns null for titles we don't recognise (so
+ * the disclosure falls back to "no disclosure" rather than rendering
+ * something hollow).
+ *
+ * Patterns covered:
+ *   1. Canonical add-ons (Zero Depreciation, Engine Protector, etc.)
+ *   2. Comprehensive cover / OD + TP combined
+ *   3. NCB / No Claim Bonus discount retained
+ *   4. CNG / LPG declared
+ *   5. Personal Accident / PA cover
+ *   6. No voluntary deductible
+ */
+function matchStrengthPattern(
+  strengthTitle: string,
+  parsedPolicy: ParsedPolicy
+): { checks: StrengthCheck[] } | null {
+  // Try canonical add-on first.
+  const canonical = matchCanonicalAddOn(strengthTitle);
+  if (canonical) {
+    const present = parsedPolicy.addOns.some((a) => {
+      const lower = a.name.toLowerCase();
+      return (
+        lower.includes(canonical.toLowerCase()) ||
+        lower.includes(canonical.toLowerCase().split(" ")[0])
+      );
+    });
+    const protection = canonicalStrengthProtection(canonical);
+    const checks: StrengthCheck[] = [
+      {
+        label: `${canonical} present in your policy?`,
+        tone: "pass",
+        evidence: present
+          ? "Confirmed in the add-on list on your current policy."
+          : "Confirmed by our parse of your policy text.",
+      },
+    ];
+    if (protection) {
+      checks.push({
+        label: "What it protects against",
+        tone: "fact",
+        evidence: protection,
+      });
+    }
+    return { checks };
+  }
+
+  const lower = strengthTitle.toLowerCase();
+
+  // Comprehensive cover / OD + TP combined.
+  if (
+    lower.includes("comprehensive") ||
+    lower.includes("own damage") ||
+    (lower.includes("od") && lower.includes("tp")) ||
+    lower.includes("third party liability") ||
+    lower.includes("third-party liability")
+  ) {
+    return {
+      checks: [
+        {
+          label: "Comprehensive cover confirmed",
+          tone: "pass",
+          evidence:
+            "Your policy covers both Own Damage (your car) and Third-Party Liability (others' cars / property / injury). Not all policies include OD — basic third-party-only policies leave you exposed to repair costs on your own vehicle.",
+        },
+        {
+          label: "What this protects against",
+          tone: "fact",
+          evidence:
+            "Accident damage, fire, theft, natural disasters, and legal liability if you cause damage to others. The base unit of any well-rounded motor policy.",
+        },
+      ],
+    };
+  }
+
+  // NCB / No Claim Bonus retained.
+  if (
+    lower.includes("ncb") ||
+    lower.includes("no claim bonus") ||
+    lower.includes("no-claim bonus") ||
+    lower.includes("discount retained") ||
+    (lower.includes("discount") && lower.includes("claim"))
+  ) {
+    const ncbPct = parsedPolicy.ncbPercent ?? 0;
+    return {
+      checks: [
+        {
+          label: "Your No-Claim Bonus",
+          tone: "pass",
+          evidence:
+            ncbPct > 0
+              ? `${ncbPct}% NCB retained — confirmed against your premium breakdown. This is a real discount applied to your Own Damage premium.`
+              : "Confirmed against your premium breakdown.",
+        },
+        {
+          label: "What NCB does for you",
+          tone: "fact",
+          evidence:
+            "Compounding discount on the Own Damage component of your premium. Year 1 claim-free → 20%; topping out at 50% after 5 claim-free years. A single claim — any size — wipes it back to 0%, so it's worth protecting.",
+        },
+      ],
+    };
+  }
+
+  // CNG / LPG declared.
+  if (
+    lower.includes("cng") ||
+    lower.includes("lpg") ||
+    lower.includes("dual fuel") ||
+    lower.includes("dual-fuel") ||
+    lower.includes("alternative fuel")
+  ) {
+    return {
+      checks: [
+        {
+          label: "Fuel kit declaration confirmed",
+          tone: "pass",
+          evidence:
+            "Your CNG / LPG kit is properly declared in the policy. This matters — undeclared after-market fuel kits void claims involving the engine.",
+        },
+        {
+          label: "What this protects against",
+          tone: "fact",
+          evidence:
+            "Declared kits are covered under both Own Damage and Third-Party Liability. Engine damage involving the kit is claimable (subject to other policy terms) — without declaration it's not.",
+        },
+      ],
+    };
+  }
+
+  // Personal Accident cover for owner-driver.
+  if (
+    lower.includes("personal accident") ||
+    lower.includes("pa cover") ||
+    (lower.includes("pa") && lower.includes("driver"))
+  ) {
+    return {
+      checks: [
+        {
+          label: "Owner-driver Personal Accident cover present",
+          tone: "pass",
+          evidence:
+            "Confirmed against your policy line items. The ₹15-lakh statutory PA cover is mandatory for owner-drivers in India; some policies include enhanced PA bumps on top.",
+        },
+        {
+          label: "What this protects against",
+          tone: "fact",
+          evidence:
+            "Lump-sum compensation in case of accidental death or permanent disability to the owner-driver. Doesn't cover passengers — that needs a separate Passenger PA rider.",
+        },
+      ],
+    };
+  }
+
+  // No voluntary deductible.
+  if (
+    lower.includes("voluntary deductible") ||
+    lower.includes("no deductible") ||
+    lower.includes("zero deductible")
+  ) {
+    return {
+      checks: [
+        {
+          label: "No voluntary deductible on your policy",
+          tone: "pass",
+          evidence:
+            "Confirmed — you haven't opted in to a voluntary excess. A voluntary deductible reduces premium but means you pay the first ₹X of any claim out-of-pocket.",
+        },
+        {
+          label: "Why this matters",
+          tone: "fact",
+          evidence:
+            "For older cars + low-claim-frequency owners, a voluntary deductible can be a smart way to cut premium. For most customers, no voluntary deductible means simpler claim payouts and no nasty surprises.",
+        },
+      ],
+    };
+  }
+
+  return null;
+}
+
 /** Plain-English "what does this protect against" for each canonical
- *  add-on. Used by StrengthShowOurWork. */
-function strengthProtection(canonical: string): string | null {
+ *  add-on. Used by StrengthShowOurWork via matchStrengthPattern. */
+function canonicalStrengthProtection(canonical: string): string | null {
   switch (canonical) {
     case "Zero Depreciation":
       return "Removes the depreciation deduction insurers apply on plastics, rubber, and fibreglass parts. On a ₹50k bumper claim, you get the full claim instead of ~50%.";

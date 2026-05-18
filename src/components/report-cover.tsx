@@ -41,6 +41,7 @@
 import { CarSmiley, type SmileyRating } from "@/components/car-smiley";
 import type React from "react";
 import { NumberPlate } from "@/components/number-plate";
+import { GlossaryTerm } from "@/components/glossary-term";
 import { computeCoverageScore } from "@/lib/coverage-score";
 import { formatINR } from "@/lib/format";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
@@ -207,7 +208,8 @@ export function ReportCover({ parsedPolicy, report }: ReportCoverProps) {
             )}
             <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
               Cover: {formatDateShort(parsedPolicy.odPeriodStart)} →{" "}
-              {formatDateShort(parsedPolicy.odPeriodEnd)} · IDV{" "}
+              {formatDateShort(parsedPolicy.odPeriodEnd)} ·{" "}
+              <GlossaryTerm term="IDV" />{" "}
               {formatINR(parsedPolicy.idv)}
             </div>
           </div>
