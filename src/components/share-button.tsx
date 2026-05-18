@@ -81,9 +81,24 @@ export function ShareButton({
     };
   }, [reportId]);
 
+  /**
+   * Build the share URL for a given token, with UTM params appended.
+   * The UTM tags let us attribute downstream uploads back to the
+   * customer who shared. We don't run a referral program (yet), so
+   * the params are purely analytics signal — show up in PostHog /
+   * Google Analytics / etc. once instrumentation lands. No
+   * referral-credit logic on the receiver side; the params are read-
+   * only attribution.
+   */
   function shareUrl(t: string): string {
-    if (typeof window === "undefined") return `/share/${t}`;
-    return `${window.location.origin}/share/${t}`;
+    const params = new URLSearchParams({
+      utm_source: "whatsapp",
+      utm_medium: "share",
+      utm_campaign: "audit-forward",
+    });
+    const path = `/share/${t}?${params.toString()}`;
+    if (typeof window === "undefined") return path;
+    return `${window.location.origin}${path}`;
   }
 
   function whatsappText(t: string): string {

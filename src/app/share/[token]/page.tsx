@@ -45,16 +45,38 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { token } = await params;
-  // Keep metadata generic — the share page shows the audit but the
-  // social-preview card (handled by /api/report-card via the rendered
-  // page's open-graph image route once we set it up) shouldn't leak
-  // either. For now, fall back to the brand-wide OG image.
-  void token;
+  // Token-keyed OG card via /api/share-card/[token] gives WhatsApp,
+  // LinkedIn, Twitter, Slack a rich unfurl preview — vehicle + at-
+  // risk number + brand mark, depersonalised. Title + description
+  // stay generic so search engines / scrapers don't surface
+  // anything specific about the customer; the card itself carries
+  // the editorial preview.
   return {
     title: "A motor insurance audit · RightOffer",
     description:
       "An independent, free motor insurance review. See the gaps, see what's at risk, get yours in under 2 minutes.",
     robots: { index: false, follow: false },
+    openGraph: {
+      title: "A motor insurance audit · RightOffer",
+      description:
+        "An independent, free motor insurance review. See the gaps, see what's at risk, get yours in under 2 minutes.",
+      type: "article",
+      images: [
+        {
+          url: `/api/share-card/${token}`,
+          width: 1200,
+          height: 630,
+          alt: "RightOffer motor insurance audit preview",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "A motor insurance audit · RightOffer",
+      description:
+        "An independent, free motor insurance review. See the gaps, see what's at risk, get yours in under 2 minutes.",
+      images: [`/api/share-card/${token}`],
+    },
   };
 }
 
