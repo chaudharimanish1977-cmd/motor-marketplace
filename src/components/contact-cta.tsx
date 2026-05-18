@@ -97,8 +97,9 @@ export function ContactCTA({
               We&apos;ll help you make sense of this report
             </h2>
             <p className="text-sm text-brand-slate mb-5 leading-relaxed">
-              Reach out and a real human will respond within 24 hours — no bots,
-              no upsell, no obligation.
+              Reach out and we&rsquo;ll come back within 24 hours —
+              every reply is read and answered. No upsell, no
+              obligation.
             </p>
 
             {/* Email row */}

@@ -150,11 +150,10 @@ export default function AboutPage() {
         <p className="mt-3 font-serif italic text-[14.5px] md:text-[15px] text-brand-slate leading-relaxed">
           I&rsquo;m a system, not a single person — built and tuned by
           the founders of RightOffer to read insurance the way they
-          would, every time. But the editorial voice you read is
-          theirs, the checks I run are ones they wrote, and the email
-          you&rsquo;ll get from me is one a real human at RightOffer
-          is on the other end of. Reply to it and someone will write
-          back.
+          would, every time. The editorial voice you read is theirs,
+          the checks I run are ones they wrote. Reply to any email
+          from us and we&rsquo;ll come back to you — every reply is
+          read and answered.
         </p>
       </section>
 

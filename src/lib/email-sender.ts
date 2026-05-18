@@ -127,7 +127,7 @@ function renderHtml({
 
     <p style="margin:0 0 18px;"><a href="${escape(reportUrl)}" style="color:#3a1e3d;">${escape(reportUrlLabel(reportUrl))}</a></p>
 
-    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">Spot something off, or just have a question? Reply to this email — a real human reads every one.</p>
+    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">Spot something off, or just have a question? Reply to this email — we read every one and come back to you.</p>
 
     <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
 
@@ -162,7 +162,7 @@ function renderText({
     ``,
     reportUrl,
     ``,
-    `Spot something off, or just have a question? Reply to this email — a real human reads every one.`,
+    `Spot something off, or just have a question? Reply to this email — we read every one and come back to you.`,
     ``,
     `— Aryan`,
     ``,

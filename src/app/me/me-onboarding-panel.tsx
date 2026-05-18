@@ -195,8 +195,9 @@ export function MeOnboardingPanel({
               Default quiet
             </div>
             <p className="mt-0.5 font-serif italic text-[13.5px] md:text-[14px] text-brand-slate leading-relaxed">
-              No sales calls. No marketing. Reply to any email and a
-              human at RightOffer writes back.
+              No sales calls. No marketing. Reply to any email and
+              we&rsquo;ll come back to you — every one read and
+              answered.
             </p>
           </div>
         </li>

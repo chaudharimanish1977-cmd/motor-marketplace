@@ -42,7 +42,7 @@ export default async function UnsubscribePage({ params }: PageProps) {
         <Card
           tone="warn"
           title="Link expired or invalid"
-          body="This unsubscribe link is no longer valid. If you're still getting reminders, just reply to any RightOffer email — a real person reads every one and will turn them off for you."
+          body="This unsubscribe link is no longer valid. If you're still getting reminders, just reply to any RightOffer email — we read every reply and will turn them off for you."
           actionLabel="Back to RightOffer"
           actionHref="/"
         />
