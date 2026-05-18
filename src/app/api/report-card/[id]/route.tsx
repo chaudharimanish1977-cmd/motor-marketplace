@@ -96,12 +96,12 @@ export async function GET(_request: NextRequest, { params }: Params) {
         style={{
           width: "100%",
           height: "100%",
-          background: "#FDFBF6", // brand-offwhite
+          background: "#FFFFFF", // brand-offwhite
           display: "flex",
           flexDirection: "column",
           padding: "72px 76px",
           fontFamily: "Georgia, 'Times New Roman', serif",
-          color: "#2A2640", // brand-charcoal
+          color: "#1A1218", // brand-charcoal
           position: "relative",
         }}
       >
@@ -114,12 +114,12 @@ export async function GET(_request: NextRequest, { params }: Params) {
             fontSize: 22,
             letterSpacing: 4,
             textTransform: "uppercase",
-            color: "#7A8B7A", // brand-sage
+            color: "#8B9D80", // brand-sage
             fontWeight: 700,
           }}
         >
           <span>· RightOffer · Motor insurance review ·</span>
-          <span style={{ color: "#928BB6" /* slate */ }}>No. {issueNo}</span>
+          <span style={{ color: "#6B6571" /* slate */ }}>No. {issueNo}</span>
         </div>
 
         {/* Hairline */}
@@ -127,7 +127,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
           style={{
             width: "100%",
             height: 2,
-            background: "rgba(42, 38, 64, 0.15)",
+            background: "rgba(26, 18, 24, 0.15)",
             marginTop: 16,
           }}
         />
@@ -139,7 +139,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
               fontSize: 24,
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: "#928BB6",
+              color: "#6B6571",
               fontWeight: 700,
               fontFamily: "Menlo, monospace",
             }}
@@ -153,7 +153,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
               lineHeight: 1.05,
               letterSpacing: -2,
               fontWeight: 500,
-              color: "#2A2640",
+              color: "#1A1218",
               display: "flex",
             }}
           >
@@ -163,7 +163,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
                 style={{
                   marginLeft: 18,
                   fontStyle: "italic",
-                  color: "#6B4F8A" /* brand-plum */,
+                  color: "#3A1E3D" /* brand-plum */,
                   fontWeight: 500,
                 }}
               >
@@ -213,7 +213,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
               fontSize: 132,
               fontWeight: 700,
               letterSpacing: -3,
-              color: "#2A2640",
+              color: "#1A1218",
               lineHeight: 1,
               fontVariantNumeric: "tabular-nums",
               display: "flex",
@@ -226,7 +226,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
               marginTop: 6,
               fontSize: 28,
               fontStyle: "italic",
-              color: "#666377",
+              color: "#6B6571",
               display: "flex",
             }}
           >
@@ -246,29 +246,29 @@ export async function GET(_request: NextRequest, { params }: Params) {
             alignItems: "center",
             justifyContent: "space-between",
             paddingTop: 32,
-            borderTop: "2px solid rgba(42, 38, 64, 0.15)",
+            borderTop: "2px solid rgba(26, 18, 24, 0.15)",
           }}
         >
           <div
             style={{
               fontSize: 30,
-              color: "#2A2640",
+              color: "#1A1218",
               display: "flex",
               alignItems: "center",
             }}
           >
             <span style={{ fontWeight: 700 }}>right</span>
-            <span style={{ fontWeight: 700, color: "#6B4F8A", fontStyle: "italic" }}>
+            <span style={{ fontWeight: 700, color: "#3A1E3D", fontStyle: "italic" }}>
               offer
             </span>
-            <span style={{ color: "#666377", marginLeft: 4 }}>.in</span>
+            <span style={{ color: "#6B6571", marginLeft: 4 }}>.in</span>
           </div>
           <div
             style={{
               fontSize: 22,
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: "#928BB6",
+              color: "#6B6571",
               fontWeight: 700,
               fontFamily: "Menlo, monospace",
             }}
@@ -292,7 +292,7 @@ function verdictLabel(score: number): string {
 
 function verdictColor(score: number): string {
   if (score >= 70) return "#00B894"; // brand-success teal
-  if (score >= 50) return "#6B4F8A"; // brand-plum
+  if (score >= 50) return "#3A1E3D"; // brand-plum
   return "#E17055"; // brand-alert coral
 }
 
