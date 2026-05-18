@@ -99,11 +99,9 @@ export function getJourneyContent(
   const destination: ActContent = {
     heading: `Your ${vehicle} review is ready.`,
     body:
-      state === "A"
-        ? "3 partner quotes stacked alongside — let's see which one's actually the Right Offer."
-        : state === "D"
-          ? "We'll show you exactly what to do right now to get back on cover."
-          : "Coverage strengths, gaps, and what to ask for at renewal — all inside.",
+      state === "D"
+        ? "We'll show you exactly what to do right now to get back on cover."
+        : "Coverage strengths, gaps, and what to ask for at renewal — all inside.",
     durationMs: 0,
   };
 
@@ -147,7 +145,7 @@ export function getJourneyContent(
         },
         stitching: {
           heading: "Stitching your verdict.",
-          body: "Pulling 3 fresh quotes from our partners — they'll be on the next screen alongside yours.",
+          body: "Pulling the threads together — strengths, gaps, and what to ask for at renewal.",
           durationMs: 18_000,
         },
         destination,
@@ -189,7 +187,7 @@ export function getJourneyContent(
         },
         stitching: {
           heading: "Filing this year's read.",
-          body: "We'll come knocking 45 days before renewal — with the best quotes we can find.",
+          body: "We'll come knocking 45 days before renewal — with a fresh review for the next round.",
           durationMs: 18_000,
         },
         destination,
@@ -227,7 +225,7 @@ export function getJourneyContent(
         },
         stitching: {
           heading: "Saving this for the year.",
-          body: "We'll be back when renewal's in sight — with the best quotes we can find.",
+          body: "We'll be back when renewal's in sight — with a fresh review for the next round.",
           durationMs: 18_000,
         },
         destination,
