@@ -50,6 +50,14 @@ interface ActAskProps {
  *  short enough that it doesn't feel like a stall. */
 const ALL_SET_HOLD_MS = 1500;
 
+/** How long we wait, with no answer tapped on the current question,
+ *  before fading in the gentle nudge below the chips. 8 seconds is
+ *  about the threshold where a thoughtful customer reads + picks
+ *  vs. starts to drift. Earlier than this and the nudge reads as
+ *  impatient; later and the journey timer is breathing down the
+ *  customer's neck. */
+const NUDGE_DELAY_MS = 8_000;
+
 export function ActAsk({
   content,
   answers,
@@ -75,6 +83,15 @@ export function ActAsk({
   // Advances on each commit; runs until the queue is exhausted.
   const [idx, setIdx] = useState(0);
 
+  // Gentle nudge state — fades in below the chips when the customer
+  // has lingered on the current question for NUDGE_DELAY_MS without
+  // tapping. Resets on every question change. The journey can't
+  // advance past Ask without all questions answered (orchestrator
+  // dropped its time-based auto-advance for this stop), so this
+  // nudge is what carries the "we're holding the wait for you,
+  // please tap" message editorially.
+  const [showNudge, setShowNudge] = useState(false);
+
   const total = queue.length;
   const done = idx >= total;
   const current = done ? null : queue[idx];
@@ -90,6 +107,17 @@ export function ActAsk({
     // own. Tap → immediate transition → car tows the new question in.
     advance();
   };
+
+  // Reset + arm the nudge timer on every question change. The nudge
+  // fades in after NUDGE_DELAY_MS of inactivity on the current
+  // question; on tap, the question changes and the timer resets so
+  // the customer doesn't see the nudge stack up.
+  useEffect(() => {
+    if (done || !current) return;
+    setShowNudge(false);
+    const id = setTimeout(() => setShowNudge(true), NUDGE_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [idx, done, current]);
 
   // Once the queue is exhausted, show the "All set" beat for a
   // moment, then signal the orchestrator to move us to Stop 4.
@@ -152,6 +180,28 @@ export function ActAsk({
                 );
               })}
             </div>
+
+            {/* Editorial nudge — fades in after NUDGE_DELAY_MS of
+                inactivity on the current question. Two beats: the
+                mono kicker pushes gently ("your answer shapes the
+                verdict"), the serif italic line reassures we're
+                not rushing them ("we're holding the wait for you").
+                The pulsing dot draws the eye without strobing. */}
+            {showNudge && (
+              <div className="mt-5 mx-auto max-w-xs text-center animate-act-fade-in">
+                <div className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-plum">
+                  <span
+                    aria-hidden
+                    className="inline-block w-1.5 h-1.5 rounded-full bg-brand-plum animate-attention-pulse"
+                  />
+                  Tap one — your answer shapes the verdict
+                </div>
+                <p className="mt-1.5 font-serif italic text-[12.5px] text-brand-slate leading-snug">
+                  We&rsquo;re holding the wait for you so the 2-minute
+                  promise stays good.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           // Queue exhausted — brief "All set" beat that holds for

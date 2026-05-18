@@ -172,10 +172,19 @@ export function Journey({
     }
   }, [parseError, phase]);
 
-  // Auto-advance through the linear stops. Stitching gates separately
-  // because it waits on parseComplete; Destination is tap-driven.
+  // Auto-advance through the linear stops. Two stops opt out of the
+  // timer-based auto-advance entirely:
+  //   · Stitching — gates on (elapsed >= minMs AND parseComplete)
+  //   · Ask       — gates on the customer actually answering every
+  //                 question (ActAsk fires `onComplete`). Time elapse
+  //                 alone is NOT enough to advance from Ask, because
+  //                 the audit's personalisation depends on those
+  //                 answers; we'd rather hold the customer here with
+  //                 a gentle nudge than skip past their input.
+  // Destination is tap-driven.
   useEffect(() => {
     if (
+      phase === "ask" ||
       phase === "stitching" ||
       phase === "destination" ||
       phase === "error"
@@ -191,9 +200,6 @@ export function Journey({
     } else if (phase === "read") {
       duration = content.read.durationMs;
       next = content.skipAsk ? "preview" : "ask";
-    } else if (phase === "ask") {
-      duration = content.ask.durationMs;
-      next = "preview";
     } else if (phase === "preview") {
       duration = content.preview.durationMs;
       next = "stitching";
