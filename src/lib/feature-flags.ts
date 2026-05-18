@@ -49,3 +49,16 @@ export function isMarketplaceEnabledClient(): boolean {
   if (explicit === "false") return false;
   return process.env.NEXT_PUBLIC_VERCEL_ENV !== "production";
 }
+
+/**
+ * True ONLY on the canonical production deployment (rightoffer.in).
+ * Returns false on Vercel preview URLs, demo.rightoffer.in, local dev.
+ *
+ * Used by robots.ts + sitemap.ts to gate indexability — we only want
+ * Google crawling the production domain. Demo + preview deployments
+ * must be uncrawlable so they don't pollute the search index with
+ * marketplace-visible content or stale preview-URL content.
+ */
+export function isProductionEnvironment(): boolean {
+  return process.env.VERCEL_ENV === "production";
+}

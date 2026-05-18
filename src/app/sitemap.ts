@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { CITIES } from "@/lib/cities";
 import { VEHICLES } from "@/lib/vehicles";
+import { isProductionEnvironment } from "@/lib/feature-flags";
 
 // Only public, indexable URLs go here. Investor, pitch, logo, and the
 // user-specific flow pages (upload/report/bid/checkout/policy/renewals/
@@ -9,7 +10,13 @@ import { VEHICLES } from "@/lib/vehicles";
 // SEO landing pages: every city profile in src/lib/cities.ts and every
 // vehicle profile in src/lib/vehicles.ts gets a sitemap entry. Adding
 // a new entry to either array auto-registers the route here.
+//
+// Non-production deployments return an empty sitemap. Combined with the
+// blanket robots disallow on non-prod, this keeps demo + preview URLs
+// out of Google's index.
 export default function sitemap(): MetadataRoute.Sitemap {
+  if (!isProductionEnvironment()) return [];
+
   const now = new Date();
 
   const baseEntries: MetadataRoute.Sitemap = [
