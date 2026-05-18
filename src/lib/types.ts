@@ -236,6 +236,20 @@ export interface User {
   email?: string;
   createdAt: string;
   dpdpConsentGivenAt?: string;
+  /**
+   * Customer's preferred first / display name. Populated automatically
+   * by Google / Apple OAuth signins (from the provider profile).
+   * Optional for OTP-only signups where we don't ask. Used for the
+   * editorial welcome panel + future personalised email subjects.
+   */
+  name?: string;
+  /**
+   * Timestamp the customer first dismissed the editorial welcome
+   * panel on /me. Unset means the customer has never seen the
+   * onboarding; setting it permanently hides the panel for that
+   * user. See /api/me/onboarding/done + MeOnboardingPanel.
+   */
+  meOnboardedAt?: string;
 }
 
 /**

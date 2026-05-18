@@ -19,6 +19,7 @@ import { SignOutButton } from "./sign-out-button";
 import { DeleteAccountCard } from "./delete-account-card";
 import { DataConsentCard } from "./data-consent-card";
 import { FleetSummary } from "./fleet-summary";
+import { MeOnboardingPanel } from "./me-onboarding-panel";
 import { DeletePolicyButton } from "./delete-policy-button";
 import { RunComparisonButton } from "./run-comparison-button";
 import { INSIGHT_CATALOGUE } from "@/lib/insights/catalogue";
@@ -109,6 +110,24 @@ export default async function PortalHome() {
 
   const renewalSeed = active[0]?.parsed.id ?? expired[0]?.parsed.id ?? null;
 
+  // First-visit onboarding. Shows ONLY when:
+  //   · The customer has a full verified session (not upload-session
+  //     only) — the User row is the source of truth for the
+  //     dismissed flag.
+  //   · The User row exists AND its `meOnboardedAt` is unset.
+  // After they tap "Got it" the panel POSTs to /api/me/onboarding/done
+  // which stamps the timestamp; this server render then re-evaluates
+  // and the panel disappears for all future visits, on any device.
+  const showOnboarding =
+    !isUnverified && !!userRow && !userRow.meOnboardedAt;
+  // Pick the active subscription to wire the "Preview the email"
+  // affordance — first active one in any active policy. If the
+  // customer hasn't uploaded anything yet (fresh OAuth signin), this
+  // is undefined and the panel hides the preview link.
+  const previewSubscriptionId =
+    active.find((p) => p.subscription?.status === "active")
+      ?.subscription?.id;
+
   return (
     <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
         <article className="max-w-3xl mx-auto font-serif text-brand-charcoal">
@@ -148,6 +167,17 @@ export default async function PortalHome() {
                 + enable PDF downloads.
               </p>
             </div>
+          )}
+
+          {/* First-visit onboarding — fires only on the customer's first
+              landing inside /me, persists dismissal on the User row so
+              it never shows again on any device. */}
+          {showOnboarding && (
+            <MeOnboardingPanel
+              firstName={userRow.name}
+              vehicleCount={policies.length}
+              testSubscriptionId={previewSubscriptionId}
+            />
           )}
 
           {/* Insights entry-point. Verified session only + at least one
