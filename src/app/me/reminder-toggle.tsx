@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { Bell, BellOff, Loader2 } from "lucide-react";
 
 /**
- * Per-subscription pause / resume button. Optimistically flips the
- * pill on click; on failure we revert and surface a quiet error. The
- * server is the source of truth — after the fetch settles we call
- * router.refresh() so the rest of the card stays consistent.
+ * Per-subscription pause / resume toggle. Editorial outlined-plum pill,
+ * same shape as the View report + Delete sibling buttons inside the
+ * policy card action row. Optimistic flip on click; on failure we
+ * revert and surface a quiet inline error.
  */
 export function ReminderToggle({
   subscriptionId,
@@ -62,7 +62,7 @@ export function ReminderToggle({
         type="button"
         onClick={onToggle}
         disabled={pending}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-charcoal px-3 py-1.5 rounded-xl border border-brand-light-gray hover:bg-brand-offwhite disabled:opacity-60 transition-colors"
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-plum hover:text-brand-plum text-brand-charcoal font-serif italic font-medium text-[13px] md:text-[14px] min-h-[36px] transition-colors disabled:opacity-60"
       >
         {pending ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -71,7 +71,11 @@ export function ReminderToggle({
         )}
         {label}
       </button>
-      {error && <span className="text-[10px] text-red-600">{error}</span>}
+      {error && (
+        <span className="font-serif italic text-[11px] text-brand-alert">
+          {error}
+        </span>
+      )}
     </div>
   );
 }

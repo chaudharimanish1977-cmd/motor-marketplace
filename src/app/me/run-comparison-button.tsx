@@ -5,12 +5,10 @@ import { useRouter } from "next/navigation";
 import { Sparkles, Loader2 } from "lucide-react";
 
 /**
- * Triggers a Right Offer comparison run from the /me portal. The
- * customer hits this when they've collected quotes (and optionally
- * have a current policy uploaded) and want the comparator verdict.
- *
- * Sends the canonical (latest-parse) ID per group so we avoid
- * double-comparing duplicate uploads of the same document.
+ * Triggers a Right Offer comparison run from the /me portal. Primary
+ * CTA inside the editorial Comparison Launcher section — filled plum,
+ * serif italic, same gravity as the renewal CTA in the report's
+ * Bottom Line.
  */
 export function RunComparisonButton({
   quoteIds,
@@ -48,17 +46,18 @@ export function RunComparisonButton({
       type="button"
       onClick={onRun}
       disabled={pending || quoteIds.length === 0}
-      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-navy hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-soft transition-all"
+      className="inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[15px] md:text-[16px] min-h-[48px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {pending ? (
         <>
           <Loader2 className="w-4 h-4 animate-spin" />
-          Running comparison...
+          Running comparison…
         </>
       ) : (
         <>
           <Sparkles className="w-4 h-4" />
-          Run Right Offer comparison
+          Run Right Offer comparison{" "}
+          <span aria-hidden>→</span>
         </>
       )}
     </button>

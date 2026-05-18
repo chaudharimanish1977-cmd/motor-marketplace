@@ -2,20 +2,23 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 
 /**
  * DPDP self-service: permanent account + data deletion.
  *
- * Two-step UX so accidental clicks can't wipe a customer's data:
- *   1. "Delete my account" button surfaces the confirm panel.
- *   2. Panel asks the user to type their email exactly. The
- *      Confirm button stays disabled until the typed string matches
+ * Editorial vocab — coral left-rule for the destructive intent, mono
+ * kicker, serif body. Two-step UX so accidental clicks can't wipe a
+ * customer's data:
+ *
+ *   1. "Delete my account" surfaces the confirm panel.
+ *   2. Panel asks the user to type their email exactly. The Confirm
+ *      button stays disabled until the typed string matches
  *      (case-insensitive trim). This is the same pattern GitHub uses
  *      for repo deletion — high-friction by design.
  *
- * On success: server clears the session cookie, we client-side push
- * the user to `/` and force a refresh so the header re-evaluates auth.
+ * On success: server clears the session cookie, we hard-reload to `/`
+ * so the header re-evaluates auth.
  */
 export function DeleteAccountCard({ email }: { email: string }) {
   const router = useRouter();
@@ -40,8 +43,6 @@ export function DeleteAccountCard({ email }: { email: string }) {
           setError(data.error ?? "Couldn't delete — try again.");
           return;
         }
-        // Hard reload to clear any client-cached server-component data
-        // tied to the now-deleted session.
         window.location.href = "/?deleted=1";
       } catch {
         setError("Network error. Try again.");
@@ -49,29 +50,35 @@ export function DeleteAccountCard({ email }: { email: string }) {
     });
   }
 
+  // `router` reference is intentional so React doesn't warn about an
+  // unused import; client transitions handle the redirect via
+  // window.location.href to ensure session cookies clear before the
+  // next render.
+  void router;
+
   if (!open) {
     return (
-      <div className="bg-white rounded-2xl border border-rose-100 shadow-soft p-5 md:p-6">
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 shrink-0 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
-            <Trash2 className="w-4 h-4" />
-          </div>
+      <div className="pl-4 py-2 border-l-2 border-brand-alert/60">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="font-semibold text-brand-charcoal text-sm">
-              Delete my account
+            <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-alert">
+              · Delete my account ·
             </div>
-            <p className="text-xs text-brand-slate mt-1 leading-relaxed">
-              Permanently removes every policy, report, bid, and reminder we
-              hold for{" "}
-              <span className="font-medium text-brand-charcoal">{email}</span>.
-              This can&rsquo;t be undone.
+            <p className="mt-1 font-serif italic text-[14px] text-brand-slate leading-relaxed max-w-md">
+              Permanently removes every policy, report, bid, and
+              reminder we hold for{" "}
+              <span className="not-italic font-medium text-brand-charcoal">
+                {email}
+              </span>
+              . This can&rsquo;t be undone.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="shrink-0 text-xs font-semibold text-rose-700 hover:text-rose-900 px-3 py-1.5 rounded-xl border border-rose-200 hover:bg-rose-50 transition-colors"
+            className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-alert hover:text-brand-alert text-brand-charcoal font-serif italic font-medium text-[13px] md:text-[14px] min-h-[36px] transition-colors"
           >
+            <Trash2 className="w-3.5 h-3.5" />
             Delete
           </button>
         </div>
@@ -82,27 +89,22 @@ export function DeleteAccountCard({ email }: { email: string }) {
   return (
     <form
       onSubmit={onConfirm}
-      className="bg-white rounded-2xl border border-rose-200 shadow-soft p-5 md:p-6 space-y-4"
+      className="pl-4 py-2 border-l-4 border-brand-alert space-y-4"
     >
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 shrink-0 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
-          <AlertTriangle className="w-4 h-4" />
+      <div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-alert">
+          · Permanent deletion ·
         </div>
-        <div className="min-w-0">
-          <div className="font-bold text-brand-charcoal">
-            This deletes everything tied to your email
-          </div>
-          <p className="text-xs text-brand-slate mt-1 leading-relaxed">
-            All parsed policies, reports, bids, transactions, and renewal
-            reminders. Permanently. We&rsquo;ll sign you out right after.
-          </p>
-        </div>
+        <p className="mt-1 font-serif italic text-[14px] text-brand-charcoal leading-relaxed max-w-md">
+          All parsed policies, reports, bids, transactions and renewal
+          reminders. Permanently. We&rsquo;ll sign you out right after.
+        </p>
       </div>
 
-      <label className="block">
-        <span className="block text-[11px] font-semibold text-brand-charcoal mb-1.5">
+      <label className="block max-w-md">
+        <span className="block font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-charcoal mb-2">
           To confirm, type{" "}
-          <span className="font-mono">{email}</span> below
+          <span className="text-brand-alert">{email}</span> below
         </span>
         <input
           type="text"
@@ -112,13 +114,17 @@ export function DeleteAccountCard({ email }: { email: string }) {
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
           placeholder={email}
-          className="w-full px-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 transition-colors font-mono"
+          className="w-full px-3 py-2.5 text-[14px] rounded-md border border-brand-charcoal/25 bg-brand-offwhite/40 focus:outline-none focus:border-brand-alert focus:ring-2 focus:ring-brand-alert/30 transition-colors font-mono tabular-nums"
         />
       </label>
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <p className="font-serif italic text-[13px] text-brand-alert">
+          {error}
+        </p>
+      )}
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-3">
         <button
           type="button"
           onClick={() => {
@@ -127,19 +133,19 @@ export function DeleteAccountCard({ email }: { email: string }) {
             setError(null);
           }}
           disabled={pending}
-          className="text-xs font-semibold text-brand-slate hover:text-brand-charcoal px-3 py-2 rounded-xl border border-brand-light-gray hover:bg-brand-offwhite transition-colors disabled:opacity-60"
+          className="font-serif italic text-[13px] text-brand-slate hover:text-brand-charcoal px-3 py-2 transition-colors disabled:opacity-60"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!matches || pending}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-xl transition-colors"
+          className="inline-flex items-center gap-1.5 font-serif italic font-medium text-[13px] text-brand-offwhite bg-brand-alert hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-full transition-opacity"
         >
           {pending ? (
             <>
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Deleting...
+              Deleting…
             </>
           ) : (
             <>

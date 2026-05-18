@@ -3,7 +3,6 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Calendar,
   CheckCircle2,
   Edit3,
   Loader2,
@@ -15,22 +14,18 @@ import {
 import clsx from "clsx";
 
 /**
- * Per-subscription reminder controls. Two modes:
+ * Per-subscription reminder controls. Editorial vocab throughout —
+ * mono kickers, serif body, hairline rules, no card frames.
  *
- *   - Summary (default): one-line list of upcoming fire dates with a
- *     small ✓ on checkpoints that already fired. Two top-right
- *     actions: "Send test email" (preview without waiting for cron)
- *     and "Edit" (toggle into editor mode).
- *
- *   - Editor: a checkbox grid for [60, 45, 30, 15, 7, 3, 1] days
- *     before expiry + channel toggles (Email always available;
- *     WhatsApp marked "coming soon" — saves to DB so the rails are
- *     ready once WhatsApp delivery is wired up). Save disabled
- *     until at least one checkpoint AND one channel are ticked.
- *
- * The PATCH endpoint handles cascading across all sibling subs in
- * the same policy group, so the user only ever sees / acts on one
- * schedule per car-period.
+ * Two modes:
+ *   - Summary (default): mono kicker · list of upcoming fire dates
+ *     with a small "Sent" mark on fired ones. Two top-right actions:
+ *     "Send test" and "Edit".
+ *   - Editor: hairline-bordered panel with mono kicker and serif-
+ *     bodied checkbox rows for [60, 45, 30, 15, 7, 3, 1] days before
+ *     expiry + channel toggles (Email always available; WhatsApp
+ *     "coming soon"). Save disabled until at least one checkpoint
+ *     AND one channel are ticked.
  */
 
 const CHECKPOINT_OPTIONS = [60, 45, 30, 15, 7, 3, 1] as const;
@@ -74,9 +69,7 @@ export function ReminderSchedule({
     [policyExpiryDate]
   );
 
-  // -----------------------------------------------------------
-  // Test send — works from either mode, no edit required.
-  // -----------------------------------------------------------
+  // ─── Test send — works from either mode ───
   function onTestSend() {
     if (testPending) return;
     setTestFeedback(null);
@@ -107,22 +100,21 @@ export function ReminderSchedule({
     });
   }
 
-  // -----------------------------------------------------------
-  // Summary mode
-  // -----------------------------------------------------------
+  // ─── Summary mode ───
   if (!editing) {
     const visiblePicks = [...daysBefore].sort((a, b) => b - a);
     return (
-      <div className={clsx("space-y-1.5", paused && "opacity-60")}>
-        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-slate">
-          <Calendar className="w-3 h-3" />
-          Schedule
-          <div className="ml-auto flex items-center gap-2">
+      <div className={clsx("space-y-2", paused && "opacity-60")}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-sage">
+            · Schedule ·
+          </div>
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={onTestSend}
               disabled={testPending}
-              className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-slate hover:text-brand-charcoal transition-colors disabled:opacity-60"
+              className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-slate hover:text-brand-charcoal transition-colors disabled:opacity-60"
             >
               {testPending ? (
                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -134,30 +126,30 @@ export function ReminderSchedule({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="inline-flex items-center gap-1 text-[10px] font-semibold text-brand-navy hover:underline"
+              className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-plum hover:underline"
             >
               <Edit3 className="w-3 h-3" />
               Edit
             </button>
           </div>
         </div>
-        <ul className="text-[11px] text-brand-charcoal/90 space-y-0.5">
+        <ul className="font-serif text-[13px] text-brand-charcoal space-y-1">
           {visiblePicks.map((d) => {
             const dateLabel = formatFireDate(expiryMs, d);
             const fired = nudgesFired.includes(d);
             return (
               <li
                 key={d}
-                className="flex items-center gap-1.5 leading-snug"
+                className="flex items-baseline gap-2 leading-snug"
               >
-                <span className="tabular-nums w-[5.5rem] shrink-0">
+                <span className="font-mono text-[12px] tabular-nums w-[6rem] shrink-0 text-brand-charcoal">
                   {dateLabel}
                 </span>
-                <span className="text-brand-slate/80">
+                <span className="font-serif italic text-[12.5px] text-brand-slate">
                   · {d}d before
                 </span>
                 {fired && (
-                  <span className="ml-1 inline-flex items-center gap-0.5 text-emerald-700 text-[10px] font-semibold">
+                  <span className="ml-1 inline-flex items-center gap-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] font-bold text-brand-success">
                     <CheckCircle2 className="w-3 h-3" />
                     Sent
                   </span>
@@ -169,21 +161,23 @@ export function ReminderSchedule({
         <ChannelsLine channels={channels} />
         {testFeedback &&
           (testFeedback.kind === "ok" ? (
-            <div className="mt-1 rounded-lg border border-emerald-200 bg-emerald-50/60 p-2.5 space-y-1">
-              <p className="text-[11px] text-emerald-800 font-semibold leading-relaxed">
-                {testFeedback.msg}
+            <div className="mt-2 pl-3 border-l-2 border-brand-success/60 space-y-1">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-success">
+                · {testFeedback.msg} ·
               </p>
-              <p className="text-[10px] text-emerald-900/80 leading-relaxed">
-                Can&rsquo;t find it? Check{" "}
-                <strong>Promotions</strong>, <strong>Updates</strong>, or{" "}
-                <strong>Spam</strong>. If it&rsquo;s there, drag it to your
-                Primary inbox (or add{" "}
-                <span className="font-mono">hello@rightoffer.in</span> to your
-                contacts) so future reminders come straight to your inbox.
+              <p className="font-serif italic text-[12px] text-brand-slate leading-relaxed">
+                Can&rsquo;t find it? Check Promotions, Updates, or Spam.
+                If it&rsquo;s there, drag it to your Primary inbox (or
+                add{" "}
+                <span className="not-italic font-mono">
+                  hello@rightoffer.in
+                </span>{" "}
+                to your contacts) so future reminders come straight to
+                your inbox.
               </p>
             </div>
           ) : (
-            <p className="text-[11px] text-red-600 leading-relaxed">
+            <p className="font-serif italic text-[12px] text-brand-alert leading-relaxed">
               {testFeedback.msg}
             </p>
           ))}
@@ -191,9 +185,7 @@ export function ReminderSchedule({
     );
   }
 
-  // -----------------------------------------------------------
-  // Editor mode
-  // -----------------------------------------------------------
+  // ─── Editor mode ───
   function toggleCheckpoint(d: number) {
     setPicked((prev) => {
       const next = new Set(prev);
@@ -253,10 +245,10 @@ export function ReminderSchedule({
   }
 
   return (
-    <div className="rounded-xl border border-brand-light-gray bg-brand-offwhite/40 p-3 space-y-3">
+    <div className="pl-4 border-l-2 border-brand-plum space-y-4">
       <div className="flex items-center justify-between">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-slate">
-          Reminder schedule
+        <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-plum">
+          · Reminder schedule ·
         </div>
         <button
           type="button"
@@ -269,11 +261,11 @@ export function ReminderSchedule({
         </button>
       </div>
 
-      <div className="text-[11px] text-brand-slate leading-relaxed">
+      <p className="font-serif italic text-[13px] text-brand-slate leading-relaxed">
         Pick the days before expiry on which we should remind you.
-      </div>
+      </p>
 
-      <div className="grid grid-cols-1 gap-1.5">
+      <div className="space-y-1">
         {CHECKPOINT_OPTIONS.map((d) => {
           const checked = picked.has(d);
           const fired = nudgesFired.includes(d);
@@ -281,26 +273,24 @@ export function ReminderSchedule({
             <label
               key={d}
               className={clsx(
-                "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[12px] cursor-pointer transition-colors",
-                checked
-                  ? "bg-brand-navy/10 border-brand-navy/30 text-brand-charcoal"
-                  : "bg-white border-brand-light-gray text-brand-slate hover:bg-brand-offwhite"
+                "flex items-center gap-2.5 py-1.5 cursor-pointer border-b border-brand-charcoal/10 last:border-b-0",
+                pending && "opacity-60 cursor-not-allowed"
               )}
             >
               <input
                 type="checkbox"
                 checked={checked}
                 onChange={() => toggleCheckpoint(d)}
-                className="w-3.5 h-3.5 accent-brand-navy"
+                className="w-3.5 h-3.5 accent-brand-plum"
               />
-              <span className="font-semibold tabular-nums w-12 shrink-0">
+              <span className="font-mono font-bold tabular-nums w-10 shrink-0 text-[12px] text-brand-charcoal">
                 {d}d
               </span>
-              <span className="text-brand-slate/80 tabular-nums">
+              <span className="font-serif italic text-[12.5px] text-brand-slate tabular-nums">
                 {formatFireDate(expiryMs, d)}
               </span>
               {fired && (
-                <span className="ml-auto inline-flex items-center gap-0.5 text-emerald-700 text-[10px] font-semibold">
+                <span className="ml-auto inline-flex items-center gap-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] font-bold text-brand-success">
                   <CheckCircle2 className="w-3 h-3" />
                   Already sent
                 </span>
@@ -311,11 +301,11 @@ export function ReminderSchedule({
       </div>
 
       {/* Channels */}
-      <div className="pt-2 border-t border-brand-light-gray space-y-1.5">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-slate">
-          Where we send
+      <div className="pt-3 border-t border-brand-charcoal/15 space-y-2">
+        <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-sage">
+          · Where we send ·
         </div>
-        <div className="grid grid-cols-1 gap-1.5">
+        <div className="space-y-1">
           <ChannelOption
             channel="email"
             label="Email"
@@ -333,21 +323,25 @@ export function ReminderSchedule({
             onToggle={() => toggleChannel("whatsapp")}
           />
         </div>
-        <p className="text-[10px] text-brand-slate/80 leading-relaxed">
+        <p className="pt-1 font-serif italic text-[12px] text-brand-slate leading-relaxed">
           WhatsApp delivery isn&rsquo;t live yet — we&rsquo;ll switch
           it on as soon as our Business API approval comes through.
           You can tick it now and we&rsquo;ll honour it from day one.
         </p>
       </div>
 
-      {error && <p className="text-[11px] text-red-600">{error}</p>}
+      {error && (
+        <p className="font-serif italic text-[12px] text-brand-alert">
+          {error}
+        </p>
+      )}
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-3">
         <button
           type="button"
           onClick={onCancel}
           disabled={pending}
-          className="text-[11px] font-semibold text-brand-slate hover:text-brand-charcoal px-3 py-1.5 rounded-lg border border-brand-light-gray hover:bg-white transition-colors disabled:opacity-60"
+          className="font-serif italic text-[13px] text-brand-slate hover:text-brand-charcoal px-3 py-2 transition-colors disabled:opacity-60"
         >
           Cancel
         </button>
@@ -355,12 +349,12 @@ export function ReminderSchedule({
           type="button"
           onClick={onSave}
           disabled={!canSave}
-          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-brand-navy hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed px-3.5 py-1.5 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 bg-brand-plum text-brand-offwhite px-4 py-2 rounded-full font-serif italic font-medium text-[13px] min-h-[36px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? (
             <>
               <Loader2 className="w-3 h-3 animate-spin" />
-              Saving...
+              Saving…
             </>
           ) : (
             "Save schedule"
@@ -371,9 +365,7 @@ export function ReminderSchedule({
   );
 }
 
-// ----------------------------------------------------------------------------
-// Helpers
-// ----------------------------------------------------------------------------
+// ─── Helpers ───
 
 function ChannelOption({
   label,
@@ -390,25 +382,20 @@ function ChannelOption({
   onToggle: () => void;
 }) {
   return (
-    <label
-      className={clsx(
-        "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[12px] cursor-pointer transition-colors",
-        checked
-          ? "bg-brand-navy/10 border-brand-navy/30 text-brand-charcoal"
-          : "bg-white border-brand-light-gray text-brand-slate hover:bg-brand-offwhite"
-      )}
-    >
+    <label className="flex items-center gap-2.5 py-1.5 cursor-pointer border-b border-brand-charcoal/10 last:border-b-0">
       <input
         type="checkbox"
         checked={checked}
         onChange={onToggle}
-        className="w-3.5 h-3.5 accent-brand-navy"
+        className="w-3.5 h-3.5 accent-brand-plum"
       />
       <Icon className="w-3.5 h-3.5 text-brand-slate" />
-      <span className="font-semibold">{label}</span>
+      <span className="font-serif text-[13px] text-brand-charcoal">
+        {label}
+      </span>
       {badge && (
-        <span className="ml-auto inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-          {badge}
+        <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.14em] font-bold text-brand-plum">
+          · {badge} ·
         </span>
       )}
     </label>
@@ -418,8 +405,8 @@ function ChannelOption({
 function ChannelsLine({ channels }: { channels: Channel[] }) {
   if (!channels.length) return null;
   return (
-    <div className="flex items-center gap-1.5 pt-1 text-[10px] text-brand-slate">
-      <span className="font-semibold uppercase tracking-[0.1em]">Via</span>
+    <div className="flex items-center gap-2 pt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+      <span className="font-bold">Via</span>
       {channels.includes("email") && (
         <span className="inline-flex items-center gap-1">
           <Mail className="w-3 h-3" />
@@ -430,7 +417,7 @@ function ChannelsLine({ channels }: { channels: Channel[] }) {
         <span className="inline-flex items-center gap-1">
           <MessageCircle className="w-3 h-3" />
           WhatsApp
-          <span className="text-[9px] text-brand-slate/70">(soon)</span>
+          <span className="text-brand-charcoal/40">(soon)</span>
         </span>
       )}
     </div>

@@ -6,22 +6,14 @@ import { Trash2, Loader2, FileText, X } from "lucide-react";
 import clsx from "clsx";
 
 /**
- * Per-card delete control.
+ * Per-card delete control. Editorial vocab — outlined brand-alert
+ * (coral) for the destructive intent, hairline rules for the confirm
+ * panels, mono kicker + serif body in the multi-record selector.
  *
- * Single-record group: idle button -> tight inline "Delete this
- * record? [Cancel] [Yes, delete]" cluster. Same blast radius / same
- * UX as the previous version.
- *
- * Multi-record group (the duplicate-parse case): idle button ->
- * expanded selection panel listing every record in the group with
- * a checkbox each. Default selection = ALL records so a customer
- * who just wants "delete this card" still gets one-click behaviour;
- * uncheck specific rows to keep them.
- *
- * Why expose the records at all: until now, "Delete" silently
- * removed every duplicate parse in the group with no UI cue that
- * multiple records were being touched. Customers reasonably asked
- * to see what's there before nuking it.
+ * Single-record group → tight inline confirm.
+ * Multi-record group → expanded selection panel (default = all rows
+ * pre-selected so a customer who just wants "delete this card" still
+ * gets one-click behaviour; uncheck specific rows to keep them).
  */
 
 interface RecordRow {
@@ -104,21 +96,19 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
     });
   }
 
-  // ----------------------------------------------------------------
-  // Idle button (same look for both single + multi groups)
-  // ----------------------------------------------------------------
+  // -------- Idle button (same look for both single + multi groups) --------
   if (!open) {
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Delete ${vehicleLabel} record`}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-slate hover:text-rose-700 px-3 py-1.5 rounded-xl border border-brand-light-gray hover:border-rose-200 hover:bg-rose-50 transition-colors"
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-alert hover:text-brand-alert text-brand-charcoal font-serif italic font-medium text-[13px] md:text-[14px] min-h-[36px] transition-colors"
       >
         <Trash2 className="w-3.5 h-3.5" />
         Delete
         {isMulti && (
-          <span className="ml-0.5 text-[10px] font-bold tabular-nums text-brand-slate/70">
+          <span className="ml-0.5 font-mono text-[11px] tabular-nums text-brand-slate">
             ({records.length})
           </span>
         )}
@@ -126,21 +116,19 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
     );
   }
 
-  // ----------------------------------------------------------------
-  // Single-record group → tight inline confirm
-  // ----------------------------------------------------------------
+  // -------- Single-record group → tight inline confirm --------
   if (!isMulti) {
     return (
       <div className="flex flex-col items-end gap-1">
-        <div className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50/70 px-2 py-1">
-          <span className="text-[11px] font-semibold text-rose-800">
-            Delete this record?
+        <div className="inline-flex items-center gap-2 pl-3 pr-1 py-1 border-l-2 border-brand-alert">
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-alert">
+            · Delete this record? ·
           </span>
           <button
             type="button"
             onClick={close}
             disabled={pending}
-            className="text-[11px] font-semibold text-brand-slate hover:text-brand-charcoal px-2 py-0.5 rounded-lg hover:bg-white transition-colors disabled:opacity-60"
+            className="font-serif italic text-[12px] text-brand-slate hover:text-brand-charcoal px-2 py-1 transition-colors disabled:opacity-60"
           >
             Cancel
           </button>
@@ -148,12 +136,12 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
             type="button"
             onClick={submit}
             disabled={pending}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-60 px-2.5 py-1 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1 font-serif italic font-medium text-[12px] text-brand-offwhite bg-brand-alert hover:opacity-90 disabled:opacity-60 px-3 py-1.5 rounded-full transition-opacity"
           >
             {pending ? (
               <>
                 <Loader2 className="w-3 h-3 animate-spin" />
-                Deleting...
+                Deleting…
               </>
             ) : (
               "Yes, delete"
@@ -161,7 +149,7 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
           </button>
         </div>
         {error && (
-          <span className="text-[10px] text-red-600 leading-relaxed">
+          <span className="font-serif italic text-[11px] text-brand-alert leading-relaxed">
             {error}
           </span>
         )}
@@ -169,17 +157,15 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
     );
   }
 
-  // ----------------------------------------------------------------
-  // Multi-record group → full selection panel
-  // ----------------------------------------------------------------
+  // -------- Multi-record group → full selection panel --------
   return (
-    <div className="w-full mt-2 rounded-xl border border-rose-200 bg-rose-50/40 p-3 space-y-3">
+    <div className="w-full mt-3 pl-4 border-l-2 border-brand-alert">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-rose-800">
-            Delete records · {vehicleLabel}
+          <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-alert">
+            · Delete records · {vehicleLabel} ·
           </div>
-          <p className="text-[11px] text-brand-slate leading-relaxed mt-0.5">
+          <p className="mt-1 font-serif italic text-[13px] text-brand-slate leading-relaxed">
             {records.length} parses in this group. Pick which to delete —
             all are pre-selected.
           </p>
@@ -195,16 +181,16 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
         </button>
       </div>
 
-      <div className="flex items-center gap-2 text-[10px] font-semibold">
+      <div className="mt-2 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.12em] font-bold">
         <button
           type="button"
           onClick={selectAll}
           disabled={pending}
-          className="text-brand-navy hover:underline disabled:opacity-60"
+          className="text-brand-plum hover:underline disabled:opacity-60"
         >
           Select all
         </button>
-        <span className="text-brand-slate/60">·</span>
+        <span className="text-brand-charcoal/20">·</span>
         <button
           type="button"
           onClick={selectNone}
@@ -215,44 +201,42 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
         </button>
       </div>
 
-      <ul className="space-y-1.5 max-h-64 overflow-auto pr-1">
+      <ul className="mt-3 space-y-2 max-h-64 overflow-auto pr-1">
         {sortedRecords.map((r, idx) => {
           const checked = picked.has(r.id);
           return (
             <li key={r.id}>
               <label
                 className={clsx(
-                  "flex items-start gap-2 px-2.5 py-2 rounded-lg border text-[11px] cursor-pointer transition-colors",
-                  checked
-                    ? "bg-white border-rose-300"
-                    : "bg-white/40 border-brand-light-gray hover:bg-white"
+                  "flex items-start gap-2 py-2 cursor-pointer border-b border-brand-charcoal/10 last:border-b-0 transition-colors",
+                  pending && "opacity-60 cursor-not-allowed"
                 )}
               >
                 <input
                   type="checkbox"
                   checked={checked}
                   onChange={() => togglePicked(r.id)}
-                  className="mt-0.5 w-3.5 h-3.5 accent-rose-600"
+                  className="mt-0.5 w-3.5 h-3.5 accent-brand-alert"
                   disabled={pending}
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <FileText className="w-3 h-3 text-brand-slate/70 shrink-0" />
-                    <span className="font-semibold text-brand-charcoal truncate">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <FileText className="w-3 h-3 text-brand-slate shrink-0" />
+                    <span className="font-serif font-semibold text-[13px] text-brand-charcoal truncate">
                       {r.fileName || "policy.pdf"}
                     </span>
                     {idx === 0 && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Latest
+                      <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] font-bold text-brand-success">
+                        · Latest ·
                       </span>
                     )}
                     {r.documentType === "quote" && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] rounded-full bg-brand-navy/10 text-brand-navy border border-brand-navy/20">
-                        Quote
+                      <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] font-bold text-brand-plum">
+                        · Quote ·
                       </span>
                     )}
                   </div>
-                  <div className="text-brand-slate mt-0.5 tabular-nums">
+                  <div className="mt-0.5 font-mono text-[10.5px] text-brand-slate tabular-nums">
                     Uploaded {formatUploaded(r.uploadedAt)}
                     {r.policyNumber ? ` · ${r.policyNumber}` : ""}
                   </div>
@@ -264,15 +248,17 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
       </ul>
 
       {error && (
-        <p className="text-[11px] text-red-600 leading-relaxed">{error}</p>
+        <p className="mt-2 font-serif italic text-[12px] text-brand-alert leading-relaxed">
+          {error}
+        </p>
       )}
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="mt-3 flex items-center justify-end gap-3">
         <button
           type="button"
           onClick={close}
           disabled={pending}
-          className="text-[11px] font-semibold text-brand-slate hover:text-brand-charcoal px-3 py-1.5 rounded-lg border border-brand-light-gray hover:bg-white transition-colors disabled:opacity-60"
+          className="font-serif italic text-[13px] text-brand-slate hover:text-brand-charcoal px-3 py-2 transition-colors disabled:opacity-60"
         >
           Cancel
         </button>
@@ -280,12 +266,12 @@ export function DeletePolicyButton({ vehicleLabel, records }: Props) {
           type="button"
           onClick={submit}
           disabled={pending || picked.size === 0}
-          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed px-3.5 py-1.5 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 font-serif italic font-medium text-[13px] text-brand-offwhite bg-brand-alert hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-full transition-opacity"
         >
           {pending ? (
             <>
               <Loader2 className="w-3 h-3 animate-spin" />
-              Deleting...
+              Deleting…
             </>
           ) : (
             `Delete ${picked.size} ${picked.size === 1 ? "record" : "records"}`
