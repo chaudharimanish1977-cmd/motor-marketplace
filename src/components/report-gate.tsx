@@ -187,21 +187,27 @@ export function ReportGate({
       <div className="border-t border-brand-charcoal/15" />
 
       <div className="max-w-xl mx-auto pt-9 md:pt-12">
-        {/* Kicker */}
+        {/* Kicker — caring, not "locked". The customer just spent
+            two minutes giving us their policy and their answers; the
+            tone here should acknowledge that, not gatekeep. */}
         <div className="text-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold">
-          · The Rest of Your Review · Locked ·
+          · Oops — we haven&rsquo;t met yet ·
         </div>
 
         {/* Headline */}
         <h2 className="mt-4 text-center font-serif font-medium text-[28px] md:text-[36px] tracking-[-0.02em] leading-[1.1] text-brand-charcoal m-0">
-          One step{" "}
-          <span className="italic text-brand-plum">to keep reading.</span>
+          Wait, we&rsquo;d love to{" "}
+          <span className="italic text-brand-plum">send this to you.</span>
         </h2>
 
-        {/* Intro */}
+        {/* Intro — empathetic, considerate. Names the trade-off (you
+            lose the saved copy + future updates) without making the
+            customer feel locked out. */}
         <p className="mt-3 text-center font-serif italic text-[15px] md:text-[16px] leading-[1.55] text-brand-slate max-w-md mx-auto">
-          The Right Offer pick for your car, the quote comparison, and
-          the downloadable PDF unlock once we know who you are.
+          Your full review is ready — but without your email we
+          can&rsquo;t keep a copy for you, remind you when renewal
+          comes around, or share insights we curate for your car. One
+          quick step, no sales calls, ever.
         </p>
 
         {/* Google button — primary path */}

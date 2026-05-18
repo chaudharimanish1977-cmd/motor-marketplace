@@ -471,21 +471,12 @@ export function BottomLineSection({
 
       {!printMode && (
         <div className="mt-6 md:mt-8 print:hidden">
-          <LoadingLink
-            href={renewHref}
-            className="inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[16px] min-h-[48px] hover:opacity-90 transition-opacity"
-          >
-            {takeaway.cta || "Get my renewal quotes"}{" "}
-            <span aria-hidden>→</span>
-          </LoadingLink>
-          <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
-            · Free to see · Insurers compete for your renewal · No spam ·
-          </div>
-
-          {/* "Save my report" affordance — visually demoted (outlined,
-              not filled) so the primary renewal CTA above keeps its
-              gravity. One click fires both the A4 PDF + 1080×1080
-              WhatsApp summary card downloads. Phase 7d.1 + 7d.2. */}
+          {/* Two equal-weight editorial CTAs — Save + Share. The
+              marketplace-oriented "Get my renewal quotes" primary CTA
+              was retired because the marketplace isn't live yet; we
+              don't promise what we can't deliver. Customer's "now
+              what?" answer at the end of the audit is to save the
+              PDF, share with family, and wait for renewal time. */}
           <SaveReportButton
             reportId={parsedPolicy.id}
             query={{
@@ -497,18 +488,27 @@ export function BottomLineSection({
             }}
           />
 
-          {/* "Share this audit" — WhatsApp deep-link + copy-link to a
-              depersonalized /share/[token] page. Phase 7d.3. */}
           <ShareButton
             reportId={parsedPolicy.id}
-            atRiskTotalLabel={
-              shareAtRiskLabel(parsedPolicy, report)
-            }
+            atRiskTotalLabel={shareAtRiskLabel(parsedPolicy, report)}
             vehicleLabel={
               `${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`.trim() ||
               undefined
             }
           />
+
+          {/* Renewal hand-back — quiet tertiary line. The customer can
+              come back with their renewal quote when it arrives and
+              we'll audit it free. No marketplace promise. */}
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+            · When your renewal quote arrives ·{" "}
+            <LoadingLink
+              href={renewHref}
+              className="text-brand-plum hover:underline"
+            >
+              Bring it back for a fresh audit →
+            </LoadingLink>
+          </p>
         </div>
       )}
     </ReportSection>

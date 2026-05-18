@@ -191,6 +191,15 @@ const config: Config = {
           "60%": { opacity: "1", transform: "scale(1.06)" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
+        // Subtle attention pulse — used on the "Show our work" gap
+        // disclosure toggle. Breathes the opacity gently from 0.55 to
+        // 1.0 so the eye catches it on first scroll without being a
+        // strobe. Pauses after the customer's first interaction
+        // (handled in JS by switching the animation class off).
+        attentionPulse: {
+          "0%, 100%": { opacity: "0.55" },
+          "50%": { opacity: "1" },
+        },
       },
       animation: {
         roadhover: "roadhover 2.8s ease-in-out infinite",
@@ -202,6 +211,7 @@ const config: Config = {
           "spotlightCycle 3500ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "smiley-pop": "smileyPop 760ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
         "plate-fill": "platefill 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "attention-pulse": "attentionPulse 2.4s ease-in-out infinite",
       },
     },
   },

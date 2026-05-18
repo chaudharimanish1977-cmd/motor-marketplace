@@ -206,7 +206,7 @@ export function MidLoadQuestions({
                     "inline-flex items-center px-4 py-1.5 rounded-full border font-serif italic text-sm transition-all",
                     selected
                       ? "border-brand-plum bg-brand-plum/10 text-brand-plum"
-                      : "border-brand-charcoal/20 text-brand-slate hover:border-brand-charcoal/50 hover:text-brand-charcoal"
+                      : "border-brand-charcoal/20 text-brand-slate [@media(hover:hover)]:hover:border-brand-charcoal/50 [@media(hover:hover)]:hover:text-brand-charcoal"
                   )}
                 >
                   {opt}

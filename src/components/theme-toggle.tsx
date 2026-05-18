@@ -49,7 +49,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="fixed top-4 right-4 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border-[1.5px] border-brand-charcoal/30 bg-brand-offwhite text-brand-charcoal font-mono text-[10.5px] font-bold tracking-[0.1em] uppercase hover:border-brand-charcoal/60 transition-colors print:hidden"
+      className="fixed bottom-4 right-4 md:bottom-auto md:top-4 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border-[1.5px] border-brand-charcoal/30 bg-brand-offwhite text-brand-charcoal font-mono text-[10.5px] font-bold tracking-[0.1em] uppercase hover:border-brand-charcoal/60 transition-colors print:hidden shadow-sm md:shadow-none"
     >
       <span
         className={`w-2 h-2 rounded-full ${

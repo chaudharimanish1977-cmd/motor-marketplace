@@ -28,19 +28,35 @@ export function GapEvidenceDisclosure({
   printMode?: boolean;
 }) {
   const [open, setOpen] = useState(printMode);
+  // Once the customer has interacted with the toggle (opened or
+  // closed it at least once), we stop the attention pulse on the
+  // icon. The pulse is a discovery cue, not a permanent state —
+  // calling it back to attention every render would be obnoxious.
+  const [interacted, setInteracted] = useState(false);
 
   return (
     <div className="mt-1">
-      {/* Toggle — quiet, editorial. Hidden in print mode (content is
-          already expanded for the PDF). */}
+      {/* Toggle — quiet, editorial. The `+` icon breathes gently
+          (attention-pulse) when the disclosure has never been opened
+          on this view, so the customer's eye catches the affordance.
+          Pulse pauses after first interaction. Hidden in print mode
+          (content is already expanded for the PDF). */}
       {!printMode && (
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            setOpen((v) => !v);
+            setInteracted(true);
+          }}
           aria-expanded={open}
           className="group inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] font-bold text-brand-plum hover:text-brand-charcoal transition-colors print:hidden"
         >
-          <span aria-hidden className="text-brand-plum/60">
+          <span
+            aria-hidden
+            className={`text-brand-plum/80 ${
+              !open && !interacted ? "animate-attention-pulse" : ""
+            }`}
+          >
             {open ? "−" : "+"}
           </span>
           <span>{open ? "Hide our work" : "Show our work"}</span>
