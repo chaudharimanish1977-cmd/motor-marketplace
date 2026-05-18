@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { kv } from "@vercel/kv";
-import { findById, Tables } from "@/lib/db";
+import { findById, findOne, Tables } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { sendRenewalReminderEmail } from "@/lib/email-sender";
 import { buildUnsubscribeUrl } from "@/lib/email-token";
 import { friendlyFirstName } from "@/lib/format";
-import type { ParsedPolicy, RenewalSubscription } from "@/lib/types";
+import { buildPreviousAuditSnapshot } from "@/lib/previous-audit-snapshot";
+import type {
+  ParsedPolicy,
+  PolicyReport,
+  RenewalSubscription,
+} from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -110,6 +115,25 @@ export async function POST(
   );
   const unsubscribeUrl = buildUnsubscribeUrl(sub.id, SITE_URL);
 
+  // Preview should reflect what the real cron would send today,
+  // including the previous-audit enrichment block. Best-effort —
+  // if the report lookup fails, fall through to the un-enriched copy.
+  let previousAudit;
+  try {
+    const report = await findOne<PolicyReport>(
+      Tables.REPORTS,
+      (r) => r.parsedPolicyId === policy.id
+    );
+    previousAudit =
+      buildPreviousAuditSnapshot(
+        policy,
+        report,
+        `${SITE_URL}/report/${policy.id}`
+      ) ?? undefined;
+  } catch (err) {
+    console.warn("[me/reminders/test] Could not load report:", err);
+  }
+
   try {
     await sendRenewalReminderEmail({
       to: sub.customerEmail,
@@ -119,6 +143,7 @@ export async function POST(
       daysUntilExpiry,
       reviewUrl: `${SITE_URL}/upload`,
       unsubscribeUrl,
+      previousAudit,
     });
   } catch (err) {
     console.error("[me/reminders/test] Send failed:", err);

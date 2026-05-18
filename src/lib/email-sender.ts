@@ -321,6 +321,30 @@ export async function sendMagicLinkEmail({
 // Renewal reminder
 // ============================================================================
 
+/**
+ * Snapshot of the customer's last audit, included in renewal +
+ * anniversary emails so the message acts as a "re-audit reminder"
+ * rather than a bare "drop the quote back here" nudge.
+ *
+ * Optional — when absent (e.g. no PolicyReport exists for this
+ * subscription's policy), the email falls back to the original
+ * factual reminder copy.
+ */
+export interface PreviousAuditSnapshot {
+  /** "Decent — meaningful gaps worth closing.", etc. */
+  verdictLabel: string;
+  /** 0–100 coverage score from computeCoverageScore. */
+  coverageScore: number;
+  /** Pre-formatted INR, e.g. "₹2.4L". Empty string if no money at risk. */
+  atRiskInr: string;
+  /** Count of gaps contributing to atRiskInr. */
+  atRiskCount: number;
+  /** Up to 3 key-gap titles, in display order. */
+  topGapTitles: string[];
+  /** Deep-link to the saved /report/[id] page (requires session). */
+  reportUrl: string;
+}
+
 interface ReminderArgs {
   to: string;
   firstName: string;
@@ -333,6 +357,10 @@ interface ReminderArgs {
   reviewUrl: string;
   /** One-click unsubscribe URL (signed token). */
   unsubscribeUrl: string;
+  /** Optional carry-forward of the last audit's headline findings.
+   *  When present, the email renders an "what your last audit found"
+   *  block so the reminder reads as a re-audit nudge. */
+  previousAudit?: PreviousAuditSnapshot;
 }
 
 /**
@@ -367,6 +395,7 @@ export async function sendRenewalReminderEmail({
   daysUntilExpiry,
   reviewUrl,
   unsubscribeUrl,
+  previousAudit,
 }: ReminderArgs): Promise<void> {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
   // Factual subject — no em-dash sales hook, no "quick review?" tail.
@@ -381,6 +410,7 @@ export async function sendRenewalReminderEmail({
     daysUntilExpiry,
     reviewUrl,
     unsubscribeUrl,
+    previousAudit,
   });
   const text = renderReminderText({
     firstName,
@@ -389,6 +419,7 @@ export async function sendRenewalReminderEmail({
     daysUntilExpiry,
     reviewUrl,
     unsubscribeUrl,
+    previousAudit,
   });
 
   const { error } = await client().emails.send({
@@ -417,8 +448,12 @@ function renderReminderHtml({
   daysUntilExpiry,
   reviewUrl,
   unsubscribeUrl,
+  previousAudit,
 }: Omit<ReminderArgs, "to">): string {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
+  const auditBlock = previousAudit
+    ? renderPreviousAuditHtml(previousAudit)
+    : "";
 
   // Editorial treatment — but still:
   //   · no gradient header
@@ -451,7 +486,9 @@ function renderReminderHtml({
 
     <p style="margin:0 0 18px;">Quick note &mdash; your <em style="font-style:italic;color:#3a1e3d;">${escape(vehicleLabel)}</em> insurance is up for renewal on <strong>${escape(expiryDate)}</strong>, which is ${daysUntilExpiry} ${dayWord} away.</p>
 
-    <p style="margin:0 0 18px;">When your renewal quote arrives, drop it back here and I&rsquo;ll review this year&rsquo;s cover &mdash; the gaps, what&rsquo;s worth keeping, and what to ask your insurer for.</p>
+    ${auditBlock}
+
+    <p style="margin:0 0 18px;">When your renewal quote arrives, drop it back here and I&rsquo;ll re-run the audit on the new cover &mdash; what changed, what&rsquo;s worth keeping, and what to ask your insurer for.</p>
 
     <p style="margin:0 0 18px;"><a href="${escape(reviewUrl)}" style="color:#3a1e3d;">${escape(reviewUrl)}</a></p>
 
@@ -478,6 +515,7 @@ function renderReminderText({
   daysUntilExpiry,
   reviewUrl,
   unsubscribeUrl,
+  previousAudit,
 }: Omit<ReminderArgs, "to">): string {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
   return [
@@ -487,7 +525,8 @@ function renderReminderText({
     ``,
     `Quick note — your ${vehicleLabel} insurance is up for renewal on ${expiryDate}, which is ${daysUntilExpiry} ${dayWord} away.`,
     ``,
-    `When your renewal quote arrives, drop it back here and I'll review this year's cover — the gaps, what's worth keeping, and what to ask your insurer for.`,
+    ...(previousAudit ? renderPreviousAuditText(previousAudit) : []),
+    `When your renewal quote arrives, drop it back here and I'll re-run the audit on the new cover — what changed, what's worth keeping, and what to ask your insurer for.`,
     ``,
     reviewUrl,
     ``,
@@ -498,6 +537,223 @@ function renderReminderText({
     `———`,
     ``,
     `PS · If this landed in Promotions or Spam, drag it to Primary or add hello@rightoffer.in to your contacts so the next one comes straight through.`,
+    ``,
+    `PPS · Don't want these? Unsubscribe: ${unsubscribeUrl}`,
+  ].join("\n");
+}
+
+/** Render the "what your last audit found" block as an HTML island
+ *  matching the surrounding editorial type (Georgia body + Menlo
+ *  mono kicker + plum italic accent). Spaced as its own paragraph
+ *  so it slots into the existing reminder flow cleanly. */
+function renderPreviousAuditHtml(snap: PreviousAuditSnapshot): string {
+  const gapsList = snap.topGapTitles
+    .slice(0, 3)
+    .map(
+      (g) =>
+        `<li style="margin:0 0 4px;">${escape(g)}</li>`
+    )
+    .join("");
+  const atRiskLine =
+    snap.atRiskInr && snap.atRiskCount > 0
+      ? `<p style="margin:0 0 10px;"><strong style="color:#1a1218;">${escape(
+          snap.atRiskInr
+        )}</strong> at risk across ${snap.atRiskCount} ${
+          snap.atRiskCount === 1 ? "gap" : "gaps"
+        } in the current cover.</p>`
+      : "";
+  const gapsBlock = gapsList
+    ? `<p style="margin:0 0 6px;">Top items worth re-checking on the new policy:</p>
+       <ul style="margin:0 0 14px 22px;padding:0;color:#1a1218;">${gapsList}</ul>`
+    : "";
+  return `<div style="margin:0 0 22px;padding:14px 16px;border-left:3px solid #3a1e3d;background:#f7f4f7;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:#3a1e3d;font-weight:700;margin:0 0 8px;">
+      &middot; What last year&rsquo;s audit found &middot;
+    </div>
+    <p style="margin:0 0 10px;font-style:italic;color:#3a1e3d;">${escape(
+      snap.verdictLabel
+    )}</p>
+    ${atRiskLine}
+    ${gapsBlock}
+    <p style="margin:0;font-size:13px;color:#6b6571;"><a href="${escape(
+      snap.reportUrl
+    )}" style="color:#3a1e3d;">View your saved audit &rarr;</a></p>
+  </div>`;
+}
+
+function renderPreviousAuditText(snap: PreviousAuditSnapshot): string[] {
+  const lines: string[] = [
+    `· What last year's audit found ·`,
+    snap.verdictLabel,
+  ];
+  if (snap.atRiskInr && snap.atRiskCount > 0) {
+    lines.push(
+      `${snap.atRiskInr} at risk across ${snap.atRiskCount} ${
+        snap.atRiskCount === 1 ? "gap" : "gaps"
+      } in the current cover.`
+    );
+  }
+  if (snap.topGapTitles.length > 0) {
+    lines.push(``, `Top items worth re-checking on the new policy:`);
+    for (const title of snap.topGapTitles.slice(0, 3)) {
+      lines.push(`  - ${title}`);
+    }
+  }
+  lines.push(``, `Saved audit: ${snap.reportUrl}`, ``);
+  return lines;
+}
+
+// ----------------------------------------------------------------------------
+// Annual re-audit (12-month anniversary) email
+// ----------------------------------------------------------------------------
+
+interface AnniversaryArgs {
+  to: string;
+  firstName: string;
+  vehicleLabel: string;
+  /** Pre-formatted date the original upload was made, e.g. "15 Feb 2026". */
+  originalAuditDate: string;
+  /** Where customers go to start the fresh review. */
+  reviewUrl: string;
+  /** One-click unsubscribe URL (signed token, sub id). */
+  unsubscribeUrl: string;
+  /** Optional carry-forward — same shape as the renewal-reminder. */
+  previousAudit?: PreviousAuditSnapshot;
+}
+
+/**
+ * Annual anniversary nudge — sent ~12 months after the customer
+ * uploaded their policy, regardless of policy-expiry timing. Acts as
+ * a belt-and-braces reminder for customers whose parsed policy-expiry
+ * date is unreliable or who never opted into renewal reminders.
+ *
+ * Distinct from renewal-reminder so Gmail's classifier learns the
+ * two streams separately and so the copy can sit further from the
+ * expiry-date frame ("it's been a year" rather than "you have N days").
+ */
+export async function sendAnniversaryAuditEmail({
+  to,
+  firstName,
+  vehicleLabel,
+  originalAuditDate,
+  reviewUrl,
+  unsubscribeUrl,
+  previousAudit,
+}: AnniversaryArgs): Promise<void> {
+  const subject = `${vehicleLabel} insurance — it's been a year`;
+  const html = renderAnniversaryHtml({
+    firstName,
+    vehicleLabel,
+    originalAuditDate,
+    reviewUrl,
+    unsubscribeUrl,
+    previousAudit,
+  });
+  const text = renderAnniversaryText({
+    firstName,
+    vehicleLabel,
+    originalAuditDate,
+    reviewUrl,
+    unsubscribeUrl,
+    previousAudit,
+  });
+
+  const { error } = await client().emails.send({
+    from: REMINDER_FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+    headers: {
+      "List-Unsubscribe": `<${unsubscribeUrl}>, <mailto:${REPLY_TO}?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  });
+
+  if (error) {
+    throw new Error(`Resend (anniversary) failed: ${error.message}`);
+  }
+}
+
+function renderAnniversaryHtml({
+  firstName,
+  vehicleLabel,
+  originalAuditDate,
+  reviewUrl,
+  unsubscribeUrl,
+  previousAudit,
+}: Omit<AnniversaryArgs, "to">): string {
+  const auditBlock = previousAudit
+    ? renderPreviousAuditHtml(previousAudit)
+    : "";
+  return `<!doctype html>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    It's been a year since your ${escape(vehicleLabel)} audit. Time for a fresh look.
+  </div>
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Annual re-audit &middot;
+    </div>
+
+    <p style="margin:0 0 18px;">Hi ${escape(firstName)},</p>
+
+    <p style="margin:0 0 18px;">It&rsquo;s been a year since I last read your <em style="font-style:italic;color:#3a1e3d;">${escape(
+      vehicleLabel
+    )}</em> policy &mdash; the original audit was ${escape(
+      originalAuditDate
+    )}. A lot can shift in twelve months: insurer terms, your driving pattern, the market.</p>
+
+    ${auditBlock}
+
+    <p style="margin:0 0 18px;">If you&rsquo;ve renewed since (or are about to), drop the latest policy and I&rsquo;ll run a fresh audit. Same as last time &mdash; free, two minutes, no sales calls.</p>
+
+    <p style="margin:0 0 18px;"><a href="${escape(
+      reviewUrl
+    )}" style="color:#3a1e3d;">${escape(reviewUrl)}</a></p>
+
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+
+    <hr style="margin:36px 0 22px;border:none;border-top:1px solid #e6e4e8;" />
+
+    <p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PS &middot; If this landed in Promotions or Spam, drag it to Primary or add <strong style="color:#1a1218;">hello@rightoffer.in</strong> to your contacts.
+    </p>
+    <p style="margin:0;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PPS &middot; Don&rsquo;t want these? <a href="${escape(
+        unsubscribeUrl
+      )}" style="color:#6b6571;">Unsubscribe here</a> and I&rsquo;ll stop.
+    </p>
+  </div>
+</body></html>`;
+}
+
+function renderAnniversaryText({
+  firstName,
+  vehicleLabel,
+  originalAuditDate,
+  reviewUrl,
+  unsubscribeUrl,
+  previousAudit,
+}: Omit<AnniversaryArgs, "to">): string {
+  return [
+    `· RightOffer · Annual re-audit ·`,
+    ``,
+    `Hi ${firstName},`,
+    ``,
+    `It's been a year since I last read your ${vehicleLabel} policy — the original audit was ${originalAuditDate}. A lot can shift in twelve months: insurer terms, your driving pattern, the market.`,
+    ``,
+    ...(previousAudit ? renderPreviousAuditText(previousAudit) : []),
+    `If you've renewed since (or are about to), drop the latest policy and I'll run a fresh audit. Same as last time — free, two minutes, no sales calls.`,
+    ``,
+    reviewUrl,
+    ``,
+    `— Aryan`,
+    ``,
+    `———`,
+    ``,
+    `PS · If this landed in Promotions or Spam, drag it to Primary or add hello@rightoffer.in to your contacts.`,
     ``,
     `PPS · Don't want these? Unsubscribe: ${unsubscribeUrl}`,
   ].join("\n");

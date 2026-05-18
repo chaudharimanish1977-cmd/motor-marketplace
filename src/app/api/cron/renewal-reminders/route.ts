@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { readTable, updateById, Tables } from "@/lib/db";
-import type { ParsedPolicy, RenewalSubscription } from "@/lib/types";
+import type {
+  ParsedPolicy,
+  PolicyReport,
+  RenewalSubscription,
+} from "@/lib/types";
 import { sendRenewalReminderEmail } from "@/lib/email-sender";
 import { buildUnsubscribeUrl } from "@/lib/email-token";
 import { policyGroupKey } from "@/lib/policy-group";
 import { friendlyFirstName } from "@/lib/format";
+import { buildPreviousAuditSnapshot } from "@/lib/previous-audit-snapshot";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -52,11 +57,18 @@ export async function GET(request: NextRequest) {
     const now = Date.now();
     const todayIst = istDateString(now);
 
-    const [subs, policies] = await Promise.all([
+    const [subs, policies, reports] = await Promise.all([
       readTable<RenewalSubscription>(Tables.RENEWAL_SUBSCRIPTIONS),
       readTable<ParsedPolicy>(Tables.PARSED_POLICIES),
+      readTable<PolicyReport>(Tables.REPORTS),
     ]);
     const policyById = new Map(policies.map((p) => [p.id, p]));
+    // Index reports by parsedPolicyId for O(1) lookup. There's only
+    // ever one report per policy, but readTable is the simplest way
+    // to pull all of them in a single pass.
+    const reportByPolicyId = new Map(
+      reports.map((r) => [r.parsedPolicyId, r])
+    );
 
     const sentRecords: SentRecord[] = [];
     const skippedRecords: SkippedRecord[] = [];
@@ -143,6 +155,16 @@ export async function GET(request: NextRequest) {
         });
         const unsubscribeUrl = buildUnsubscribeUrl(sub.id, SITE_URL);
 
+        // Enrich with the previous audit's headline findings when we
+        // have a report on file. Falls back to the bare reminder copy
+        // when the report is missing (older policies, parse failures).
+        const previousAudit =
+          buildPreviousAuditSnapshot(
+            policy,
+            reportByPolicyId.get(policy.id),
+            `${SITE_URL}/report/${policy.id}`
+          ) ?? undefined;
+
         await sendRenewalReminderEmail({
           to: sub.customerEmail,
           firstName,
@@ -151,6 +173,7 @@ export async function GET(request: NextRequest) {
           daysUntilExpiry,
           reviewUrl: `${SITE_URL}/upload`,
           unsubscribeUrl,
+          previousAudit,
         });
 
         await updateById<RenewalSubscription>(

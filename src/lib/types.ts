@@ -65,6 +65,16 @@ export interface ParsedPolicy {
   // Stored so we can re-extract, audit, or surface the source doc later.
   uploadedPdfUrl?: string;
   uploadedPdfFileName?: string;
+
+  /**
+   * Timestamp of the most recent "12-month anniversary" email send.
+   * Written by /api/cron/annual-reaudit when it nudges a customer
+   * around the 1-year mark after upload. Used to dedup: the same
+   * policy never fires two anniversary emails in the same year.
+   * Optional for backward compat with policies created before this
+   * field existed.
+   */
+  anniversaryEmailedAt?: string;
 }
 
 export type PolicyType =
