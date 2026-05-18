@@ -378,20 +378,53 @@ function renderReminderHtml({
 }: Omit<ReminderArgs, "to">): string {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
 
+  // Editorial Reading-Room treatment — but still:
+  //   · no gradient header
+  //   · no colored CTA button
+  //   · no card chrome / box shadow
+  //   · plain underlined link instead of a button
+  //   · PS/PPS lines as the unsubscribe + Promotions tip
+  // ...so the Gmail Promotions classifier still reads this as a
+  // personal letter rather than a campaign. The typography upgrade is
+  // safe: serif body fonts + a small mono kicker are common in
+  // newsletters that land Primary (Stratechery, The Atlantic, etc.).
+  //
+  // Hex values mirror the brand tokens defined in globals.css:
+  //   #1a1218 = brand-charcoal (light-mode body text)
+  //   #3a1e3d = brand-plum     (accent, italic + link)
+  //   #6b6571 = brand-slate    (muted body, PS lines)
+  //   #8b9d80 = brand-sage     (top kicker)
+  //   #e6e4e8 = brand-light-gray (hairline rule)
   return `<!doctype html>
-<html><body style="margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#202124;">
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
   <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
-    ${escape(vehicleLabel)} insurance renewal in ${daysUntilExpiry} ${dayWord}. Want a quick free review?
+    ${escape(vehicleLabel)} renewal in ${daysUntilExpiry} ${dayWord}. A free, independent review when the quote arrives.
   </div>
   <div style="max-width:560px;">
-    <p style="margin:0 0 16px;">Hi ${escape(firstName)},</p>
-    <p style="margin:0 0 16px;">Quick heads-up &mdash; your ${escape(vehicleLabel)} insurance is up for renewal on <strong>${escape(expiryDate)}</strong>, which is ${daysUntilExpiry} ${dayWord} away.</p>
-    <p style="margin:0 0 16px;">Want me to put together a free, independent review of this year&rsquo;s options? Just drop your renewal quote (or last year&rsquo;s policy) here:</p>
-    <p style="margin:0 0 16px;"><a href="${escape(reviewUrl)}" style="color:#1a3470;">${escape(reviewUrl)}</a></p>
-    <p style="margin:0 0 16px;">Takes under 2 minutes. No sales calls.</p>
-    <p style="margin:24px 0 0;">&mdash; Aryan</p>
-    <p style="margin:32px 0 0;color:#9aa0a6;font-size:13px;line-height:1.55;">PS &mdash; If you&rsquo;re reading this in Promotions or Spam, drag it to Primary or add <strong style="color:#9aa0a6;">hello@rightoffer.in</strong> to your contacts so future reminders land in your inbox.</p>
-    <p style="margin:14px 0 0;color:#9aa0a6;font-size:13px;line-height:1.55;">PPS &mdash; If you&rsquo;d rather not get these at all, <a href="${escape(unsubscribeUrl)}" style="color:#9aa0a6;">click here</a> and I&rsquo;ll stop.</p>
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; Reading Room &middot; Renewal reminder &middot;
+    </div>
+
+    <p style="margin:0 0 18px;">Hi ${escape(firstName)},</p>
+
+    <p style="margin:0 0 18px;">Quick note &mdash; your <em style="font-style:italic;color:#3a1e3d;">${escape(vehicleLabel)}</em> insurance is up for renewal on <strong>${escape(expiryDate)}</strong>, which is ${daysUntilExpiry} ${dayWord} away.</p>
+
+    <p style="margin:0 0 18px;">When your renewal quote arrives, drop it back here and I&rsquo;ll review this year&rsquo;s cover &mdash; the gaps, what&rsquo;s worth keeping, and what to ask your insurer for.</p>
+
+    <p style="margin:0 0 18px;"><a href="${escape(reviewUrl)}" style="color:#3a1e3d;">${escape(reviewUrl)}</a></p>
+
+    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">Under two minutes. Free. No sales calls.</p>
+
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+
+    <hr style="margin:36px 0 22px;border:none;border-top:1px solid #e6e4e8;" />
+
+    <p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PS &middot; If this landed in Promotions or Spam, drag it to Primary or add <strong style="color:#1a1218;">hello@rightoffer.in</strong> to your contacts so the next one comes straight through.
+    </p>
+    <p style="margin:0;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PPS &middot; Don&rsquo;t want these? <a href="${escape(unsubscribeUrl)}" style="color:#6b6571;">Unsubscribe here</a> and I&rsquo;ll stop.
+    </p>
   </div>
 </body></html>`;
 }
@@ -406,20 +439,24 @@ function renderReminderText({
 }: Omit<ReminderArgs, "to">): string {
   const dayWord = daysUntilExpiry === 1 ? "day" : "days";
   return [
+    `· Reading Room · Renewal reminder ·`,
+    ``,
     `Hi ${firstName},`,
     ``,
-    `Quick heads-up — your ${vehicleLabel} insurance is up for renewal on ${expiryDate}, which is ${daysUntilExpiry} ${dayWord} away.`,
+    `Quick note — your ${vehicleLabel} insurance is up for renewal on ${expiryDate}, which is ${daysUntilExpiry} ${dayWord} away.`,
     ``,
-    `Want me to put together a free, independent review of this year's options? Just drop your renewal quote (or last year's policy) here:`,
+    `When your renewal quote arrives, drop it back here and I'll review this year's cover — the gaps, what's worth keeping, and what to ask your insurer for.`,
     ``,
     reviewUrl,
     ``,
-    `Takes under 2 minutes. No sales calls.`,
+    `Under two minutes. Free. No sales calls.`,
     ``,
     `— Aryan`,
     ``,
-    `PS — If you're reading this in Promotions or Spam, drag it to Primary or add hello@rightoffer.in to your contacts so future reminders land in your inbox.`,
+    `———`,
     ``,
-    `PPS — If you'd rather not get these at all, click here and I'll stop: ${unsubscribeUrl}`,
+    `PS · If this landed in Promotions or Spam, drag it to Primary or add hello@rightoffer.in to your contacts so the next one comes straight through.`,
+    ``,
+    `PPS · Don't want these? Unsubscribe: ${unsubscribeUrl}`,
   ].join("\n");
 }
