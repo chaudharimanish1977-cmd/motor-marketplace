@@ -26,7 +26,6 @@
  * lays them out in a single horizontal band.
  */
 
-import { LoadingLink } from "@/components/loading-link";
 import { formatINR } from "@/lib/format";
 import { totalMoneyAtRisk } from "@/lib/claim-scenarios";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
@@ -73,7 +72,13 @@ export function ReportSummary({
         }
       : null);
 
+  // Renewal href stays around in case we re-introduce a CTA — kept
+  // referenced via `void` so the lint stays clean. The marketplace-
+  // oriented "Get my renewal quotes" CTA was retired here; the
+  // summary now ends with a quiet pointer to the full review below,
+  // letting the audit content itself carry the customer forward.
   const renewHref = `/upload?fresh=1&renewal=${parsedPolicy.id}`;
+  void renewHref;
 
   return (
     <section
@@ -129,19 +134,14 @@ export function ReportSummary({
         />
       </div>
 
-      {/* CTA + scroll prompt — hidden in print so the PDF reads as a
-       *  clean static document. */}
+      {/* Scroll prompt — replaces the marketplace-oriented "Get my
+       *  renewal quotes" primary CTA. The audit body itself is the
+       *  content; the customer scrolls into the four sections below
+       *  for the full review. Hidden in print so the PDF reads as a
+       *  pure static document. */}
       {!printMode && (
-        <div className="mt-7 md:mt-9 flex flex-col items-center text-center">
-          <LoadingLink
-            href={renewHref}
-            className="inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[16px] min-h-[48px] hover:opacity-90 transition-opacity"
-          >
-            Get my renewal quotes <span aria-hidden>→</span>
-          </LoadingLink>
-          <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
-            · Or read the full review below ·
-          </div>
+        <div className="mt-7 md:mt-9 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate">
+          · Read the full review below ·
         </div>
       )}
 

@@ -62,9 +62,27 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
     await appendRow<PolicyReport>(Tables.REPORTS, report);
   }
 
-  // `from` is still accepted in the URL so the upload→report timer flow keeps
-  // working, but the header no longer surfaces it (removed per design ask).
-  void from;
+  // Minimum hold on the editorial loading page. Without this, customers
+  // whose report is pre-generated see loading.tsx flash for a fraction
+  // of a second — they feel they "missed something." We enforce a 6s
+  // floor from the journey-start timestamp (passed in via `?from=`)
+  // so every customer gets a paced "we're personalising for you" beat
+  // before the report appears.
+  //
+  // If the server already took longer than 6s (e.g. on-demand report
+  // generation), no extra hold — the loading.tsx already filled the
+  // time naturally.
+  const MIN_HOLD_MS = 6_000;
+  if (from) {
+    const journeyStart = parseInt(from, 10);
+    if (Number.isFinite(journeyStart) && journeyStart > 0) {
+      const elapsed = Date.now() - journeyStart;
+      const remaining = MIN_HOLD_MS - elapsed;
+      if (remaining > 0) {
+        await new Promise((r) => setTimeout(r, remaining));
+      }
+    }
+  }
 
   // Right Offer gate: customers who haven't verified their email yet
   // see the report up to the "what's missing" section, then a hard

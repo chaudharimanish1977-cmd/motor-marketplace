@@ -47,7 +47,7 @@ const Schema = z.object({
  *
  * Auction (M4) hasn't been wired yet — the verdict here only weighs
  * the customer's uploaded quotes against the RCP. M4 will extend
- * `verdict` to factor in the RightOffer auction bids too.
+ * `verdict` to factor in any future partner-network input too.
  *
  * Auth:
  *   - Session required.
@@ -200,12 +200,7 @@ async function loadOrGenerateReport(
  *     We'd still pitch the lean version, but until M4 wires the
  *     auction we don't have a "lean" option to offer.
  *   - Else (no quote covers the full RCP): "needs_attention" — the
- *     customer should ask their insurer to add the missing items,
- *     or wait for the RightOffer auction (when M4 is live).
- *
- * Once M4 is in place, "needs_attention" rarely fires — the auction
- * will almost always produce an RCP-complete bid, flipping the verdict
- * to "rightoffer_pitch" with a defensible reason.
+ *     customer should ask their insurer to add the missing items.
  */
 function computeVerdict({
   quoteScores,
@@ -247,7 +242,7 @@ function computeVerdict({
       headline: `${winner.insurerName} covers everything you need — with a couple of extras.`,
       body: `This quote includes every Right Offer essential plus ${winner.extraNonRcp.join(
         ", "
-      )} which we wouldn't have added. If the price difference is small, it's still a fine choice. Our auction (coming soon) will surface a leaner alternative.`,
+      )} which we wouldn't have added. If the price difference is small, it's still a fine choice — ask your insurer whether they'll drop the extras at renewal.`,
       recommendedQuoteId: winner.quoteId,
     };
   }
@@ -264,6 +259,6 @@ function computeVerdict({
       ...aggregateMissing,
     ].join(
       ", "
-    )}. Ask your insurer to add the missing items, or wait for the RightOffer auction — when it goes live, our partner insurers will compete to fill the gap.`,
+    )}. Ask your insurer to add the missing items. If they can't, the gap is genuine — we'll watch the market and flag better options as they come up.`,
   };
 }

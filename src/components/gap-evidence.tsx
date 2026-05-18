@@ -36,10 +36,10 @@ export function GapEvidenceDisclosure({
 
   return (
     <div className="mt-1">
-      {/* Toggle — quiet, editorial. The `+` icon breathes gently
-          (attention-pulse) when the disclosure has never been opened
-          on this view, so the customer's eye catches the affordance.
-          Pulse pauses after first interaction. Hidden in print mode
+      {/* Toggle — quiet, editorial. The `+` icon bounces (scale +
+          opacity) 3 times on first appearance, then settles. Calls
+          attention discretely, doesn't strobe. After first
+          interaction it stays at rest forever. Hidden in print mode
           (content is already expanded for the PDF). */}
       {!printMode && (
         <button
@@ -53,8 +53,8 @@ export function GapEvidenceDisclosure({
         >
           <span
             aria-hidden
-            className={`text-brand-plum/80 ${
-              !open && !interacted ? "animate-attention-pulse" : ""
+            className={`inline-block text-brand-plum origin-center ${
+              !open && !interacted ? "animate-attention-bounce" : ""
             }`}
           >
             {open ? "−" : "+"}

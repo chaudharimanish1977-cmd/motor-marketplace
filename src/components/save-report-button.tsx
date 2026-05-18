@@ -75,7 +75,7 @@ export function SaveReportButton({ reportId, query }: Props) {
         type="button"
         onClick={onSave}
         disabled={state === "saving"}
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-plum hover:text-brand-plum text-brand-charcoal font-serif italic font-medium text-[15px] md:text-[16px] min-h-[44px] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className="inline-flex items-center justify-center gap-2 w-full md:w-auto px-6 py-3 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-plum hover:text-brand-plum text-brand-charcoal font-serif italic font-medium text-[14px] md:text-[15px] min-h-[44px] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {state === "saving" ? (
           <>

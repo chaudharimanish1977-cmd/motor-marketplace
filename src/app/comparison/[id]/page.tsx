@@ -7,7 +7,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Trophy,
-  ArrowRight,
   Gauge,
   ChevronRight,
 } from "lucide-react";
@@ -35,17 +34,21 @@ interface PageProps {
 /**
  * Comparison report page — Right Offer comparator output.
  *
- * Section order (locked with user):
+ * Section order:
  *   1. Vehicle / context header
  *   2. RCP (what we recommend)
  *   3. Your uploaded quotes — side-by-side, scored against RCP
- *   4. RightOffer auction (M4 — placeholder for now)
+ *   4. Lapsed-policy caring nudge (only when the anchor policy has
+ *      expired — encourages the customer to upload a fresh one or
+ *      get covered if they haven't yet)
  *   5. Verdict
- *   6. CTA (reserve / download)
+ *   6. CTA row — back-to-portal link
  *
- * Auth-gated by session ownership of the ComparisonReport. The auction
- * placeholder doubles as honest signal — "the live partner-network
- * auction lands next; the comparison and verdict are real today."
+ * Auth-gated by session ownership of the ComparisonReport.
+ *
+ * The "RightOffer auction" placeholder + the "Reserve a RightOffer
+ * pick" CTA were both retired here — marketplace isn't V1 and we
+ * don't pre-announce features.
  */
 export default async function ComparisonPage({ params }: PageProps) {
   const { id } = await params;
@@ -93,6 +96,21 @@ export default async function ComparisonPage({ params }: PageProps) {
     if (q) quoteDocs.push(q);
   }
 
+  // Anchor policy — when the comparison was launched with a specific
+  // "current policy" attached, we load it so we can detect whether
+  // that policy has lapsed. A lapsed anchor surfaces a caring nudge
+  // below the quotes (upload your new policy / get covered if you
+  // haven't yet).
+  const anchorPolicy = comparison.policyId
+    ? await findById<ParsedPolicy>(
+        Tables.PARSED_POLICIES,
+        comparison.policyId
+      )
+    : null;
+  const anchorLapsed =
+    !!anchorPolicy &&
+    new Date(anchorPolicy.odPeriodEnd).getTime() < Date.now();
+
   return (
     <>
       <BrandBlobs />
@@ -109,14 +127,17 @@ export default async function ComparisonPage({ params }: PageProps) {
             quoteDocs={quoteDocs}
           />
 
-          {/* 3. Auction placeholder (M4) */}
-          <AuctionPlaceholder />
+          {/* 3. Lapsed-policy caring nudge — only fires when the
+              anchor policy is past its expiry date. */}
+          {anchorLapsed && anchorPolicy && (
+            <LapsedPolicyNudge anchorPolicy={anchorPolicy} />
+          )}
 
           {/* 4. Verdict */}
           <VerdictBlock comparison={comparison} quoteDocs={quoteDocs} />
 
           {/* 5. CTA row */}
-          <CtaRow comparison={comparison} />
+          <CtaRow />
         </div>
       </main>
     </>
@@ -372,23 +393,58 @@ function QuoteCard({
 }
 
 // ----------------------------------------------------------------------------
-// Auction placeholder (M4 will replace)
+// Lapsed-policy caring nudge — only fires when the comparison's anchor
+// ParsedPolicy has expired. Editorial vocab (coral left-rule, mono
+// kicker, serif body) matching the design language elsewhere. Two
+// soft paths: (a) "you renewed elsewhere — bring it here so we can
+// review the new one", (b) "you haven't renewed — please get cover
+// first; legally required."
 // ----------------------------------------------------------------------------
-function AuctionPlaceholder() {
+function LapsedPolicyNudge({ anchorPolicy }: { anchorPolicy: ParsedPolicy }) {
+  const vehicleLabel =
+    `${anchorPolicy.vehicle.make} ${anchorPolicy.vehicle.model}`.trim() ||
+    "your car";
+  const expiry = new Date(anchorPolicy.odPeriodEnd);
+  const daysSinceExpiry = Math.max(
+    1,
+    Math.floor((Date.now() - expiry.getTime()) / (24 * 60 * 60 * 1000))
+  );
   return (
-    <section className="rounded-2xl border-2 border-dashed border-brand-light-gray bg-brand-offwhite/40 p-6 text-center">
-      <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-slate bg-white border border-brand-light-gray rounded-full">
-        <Sparkles className="w-3 h-3" />
-        Coming next
+    <section className="pl-5 border-l-2 border-brand-alert">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold text-brand-alert">
+        · A gentle nudge ·
       </div>
-      <h3 className="mt-3 text-base md:text-lg font-bold text-brand-charcoal">
-        RightOffer auction
+      <h3 className="mt-2 font-serif font-medium text-[24px] md:text-[28px] leading-[1.1] tracking-[-0.015em] text-brand-charcoal m-0">
+        We hope your{" "}
+        <span className="italic text-brand-plum">{vehicleLabel}</span>{" "}
+        is still covered.
       </h3>
-      <p className="mt-1 text-xs text-brand-slate max-w-md mx-auto leading-relaxed">
-        Our partner insurers will compete to fill the gaps in your
-        quotes — the auction goes live shortly. The verdict below
-        compares only your uploaded quotes for now.
+      <p className="mt-3 font-serif text-[14.5px] md:text-[15.5px] leading-[1.6] text-brand-charcoal max-w-xl">
+        Your last policy with us shows as lapsed{" "}
+        <span className="font-mono text-[12px] text-brand-slate tabular-nums">
+          ({daysSinceExpiry} {daysSinceExpiry === 1 ? "day" : "days"} ago)
+        </span>
+        . If you&rsquo;ve renewed elsewhere — welcome, that&rsquo;s
+        fine — drop the new policy here and we&rsquo;ll review it.
+        If you haven&rsquo;t renewed yet, please get cover first;
+        third-party insurance is mandatory by law.
       </p>
+      <div className="mt-5 flex items-center gap-3 flex-wrap">
+        <LoadingLink
+          href={`/upload?renewal=${anchorPolicy.id}`}
+          spinnerPosition="right"
+          className="inline-flex items-center justify-center gap-1.5 bg-brand-plum text-brand-offwhite px-7 py-3.5 rounded-full font-serif italic font-medium text-[15px] min-h-[44px] hover:opacity-90 transition-opacity"
+        >
+          Upload my new policy <span aria-hidden>→</span>
+        </LoadingLink>
+        <LoadingLink
+          href="/upload"
+          spinnerPosition="right"
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-plum hover:text-brand-plum text-brand-charcoal font-serif italic font-medium text-[13px] md:text-[14px] min-h-[36px] transition-colors"
+        >
+          Help me get covered <span aria-hidden>→</span>
+        </LoadingLink>
+      </div>
     </section>
   );
 }
@@ -468,36 +524,20 @@ function VerdictBlock({
 }
 
 // ----------------------------------------------------------------------------
-// CTA row
+// CTA row — quiet. The "Reserve a RightOffer pick" button was retired
+// because the underlying marketplace isn't live in V1 and a disabled
+// button is worse than no button. The back-to-portal link is enough.
 // ----------------------------------------------------------------------------
-function CtaRow({ comparison }: { comparison: ComparisonReport }) {
-  const hasRecommendedQuote = !!comparison.verdict.recommendedQuoteId;
-
+function CtaRow() {
   return (
-    <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="flex items-center justify-center pt-2">
       <LoadingLink
         href="/me"
         spinnerPosition="right"
-        className="text-xs font-semibold text-brand-slate hover:text-brand-charcoal px-3 py-1.5 rounded-xl border border-brand-light-gray hover:bg-white transition-colors"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full border-2 border-brand-charcoal/25 hover:border-brand-plum hover:text-brand-plum text-brand-charcoal font-serif italic font-medium text-[13px] md:text-[14px] min-h-[36px] transition-colors"
       >
-        Back to my portal
+        Back to my portal <span aria-hidden>→</span>
       </LoadingLink>
-      {hasRecommendedQuote && comparison.verdict.type === "take_existing" ? (
-        <div className="text-xs text-brand-slate italic">
-          Take this quote directly from your insurer — you&rsquo;ve done
-          your homework.
-        </div>
-      ) : (
-        <button
-          type="button"
-          disabled
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-olive/60 text-white font-semibold text-sm rounded-xl cursor-not-allowed opacity-80"
-          title="Reservation goes live once the RightOffer auction ships"
-        >
-          Reserve a RightOffer pick
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      )}
     </div>
   );
 }

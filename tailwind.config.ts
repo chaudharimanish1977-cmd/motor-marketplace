@@ -191,14 +191,24 @@ const config: Config = {
           "60%": { opacity: "1", transform: "scale(1.06)" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
-        // Subtle attention pulse — used on the "Show our work" gap
-        // disclosure toggle. Breathes the opacity gently from 0.55 to
-        // 1.0 so the eye catches it on first scroll without being a
-        // strobe. Pauses after the customer's first interaction
-        // (handled in JS by switching the animation class off).
+        // Subtle attention pulse — used on the small dot indicator
+        // in the Ask carousel's idle-nudge. Breathes the opacity
+        // gently from 0.55 to 1.0 so the eye catches it on first
+        // scroll without being a strobe. Pauses after first
+        // interaction (handled in JS).
         attentionPulse: {
           "0%, 100%": { opacity: "0.55" },
           "50%": { opacity: "1" },
+        },
+        // Finite attention bounce — used on the "Show our work" gap
+        // disclosure toggle. Scale + opacity combined so the `+`
+        // physically grows + brightens, three times, then settles at
+        // full opacity / scale 1. Calls the customer's attention
+        // discretely, not continuously — a polite tap on the shoulder
+        // vs. constant waving.
+        attentionBounce: {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.65" },
+          "50%": { transform: "scale(1.25)", opacity: "1" },
         },
       },
       animation: {
@@ -212,6 +222,11 @@ const config: Config = {
         "smiley-pop": "smileyPop 760ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
         "plate-fill": "platefill 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "attention-pulse": "attentionPulse 2.4s ease-in-out infinite",
+        // 3 cycles × 700ms = 2.1s total then settles. `both` keeps
+        // the final keyframe state so the icon ends at scale(1) /
+        // opacity(0.65) — same as resting state, no jump back.
+        "attention-bounce":
+          "attentionBounce 700ms cubic-bezier(0.4, 0, 0.6, 1) 3 both",
       },
     },
   },

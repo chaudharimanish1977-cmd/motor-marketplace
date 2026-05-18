@@ -187,23 +187,25 @@ export function ReportGate({
       <div className="border-t border-brand-charcoal/15" />
 
       <div className="max-w-xl mx-auto pt-9 md:pt-12">
-        {/* Kicker — caring, not "locked". The customer just spent
-            two minutes giving us their policy and their answers; the
-            tone here should acknowledge that, not gatekeep. */}
-        <div className="text-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold">
-          · Oops — we haven&rsquo;t met yet ·
+        {/* Oops! — standalone editorial moment. Serif italic plum,
+            larger than a kicker. Carries the "wait, this is important"
+            energy on its own before the headline lands. */}
+        <div className="text-center font-serif italic font-semibold text-brand-plum text-[42px] md:text-[56px] leading-none tracking-[-0.02em]">
+          Oops!
         </div>
 
-        {/* Headline */}
-        <h2 className="mt-4 text-center font-serif font-medium text-[28px] md:text-[36px] tracking-[-0.02em] leading-[1.1] text-brand-charcoal m-0">
-          Wait, we&rsquo;d love to{" "}
-          <span className="italic text-brand-plum">send this to you.</span>
+        {/* Headline — chic reframe of the "you haven't given us your
+            email" beat. "We don't know where to meet you" lands warm
+            without sounding gate-y. */}
+        <h2 className="mt-3 md:mt-4 text-center font-serif font-medium text-[26px] md:text-[34px] tracking-[-0.02em] leading-[1.1] text-brand-charcoal m-0">
+          We don&rsquo;t know{" "}
+          <span className="italic text-brand-plum">where to meet you.</span>
         </h2>
 
         {/* Intro — empathetic, considerate. Names the trade-off (you
             lose the saved copy + future updates) without making the
             customer feel locked out. */}
-        <p className="mt-3 text-center font-serif italic text-[15px] md:text-[16px] leading-[1.55] text-brand-slate max-w-md mx-auto">
+        <p className="mt-4 text-center font-serif italic text-[15px] md:text-[16px] leading-[1.55] text-brand-slate max-w-md mx-auto">
           Your full review is ready — but without your email we
           can&rsquo;t keep a copy for you, remind you when renewal
           comes around, or share insights we curate for your car. One
