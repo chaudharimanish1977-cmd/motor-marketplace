@@ -5,7 +5,6 @@ import { findById, findOne, Tables, updateById } from "@/lib/db";
 import { computeCoverageScore } from "@/lib/coverage-score";
 import { totalMoneyAtRisk } from "@/lib/claim-scenarios";
 import { formatINR } from "@/lib/format";
-import { BrandBlobs } from "@/components/brand-blobs";
 import type {
   ParsedPolicy,
   PolicyReport,
@@ -110,9 +109,7 @@ export default async function SharePage({ params }: PageProps) {
   const topGaps = (report?.keyGaps.items ?? []).slice(0, 3);
 
   return (
-    <>
-      <BrandBlobs />
-      <article className="relative z-10 max-w-2xl mx-auto px-6 md:px-8 py-12 md:py-16 font-serif text-brand-charcoal">
+    <article className="relative z-10 max-w-2xl mx-auto px-6 md:px-8 py-12 md:py-16 font-serif text-brand-charcoal">
         {/* Masthead */}
         <header className="border-b border-brand-charcoal/15 pb-5 mb-10">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
@@ -199,8 +196,7 @@ export default async function SharePage({ params }: PageProps) {
             · Free to see · No sales calls · DPDP-aligned ·
           </div>
         </section>
-      </article>
-    </>
+    </article>
   );
 }
 

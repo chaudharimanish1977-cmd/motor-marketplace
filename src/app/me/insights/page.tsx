@@ -5,7 +5,6 @@ import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 import { readTable, Tables } from "@/lib/db";
 import type { ParsedPolicy } from "@/lib/types";
-import { BrandBlobs } from "@/components/brand-blobs";
 import { INSIGHT_CATALOGUE } from "@/lib/insights/catalogue";
 import {
   buildCustomerContext,
@@ -64,9 +63,7 @@ export default async function InsightsPage() {
   );
 
   return (
-    <>
-      <BrandBlobs />
-      <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
+    <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
         <article className="max-w-2xl mx-auto font-serif text-brand-charcoal">
           {/* Back link */}
           <Link
@@ -112,8 +109,7 @@ export default async function InsightsPage() {
             </p>
           </footer>
         </article>
-      </main>
-    </>
+    </main>
   );
 }
 

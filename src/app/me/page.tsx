@@ -12,7 +12,6 @@ import type {
 import { formatDateShort, formatINR } from "@/lib/format";
 import { policyGroupKey } from "@/lib/policy-group";
 import { computeLifecycleState } from "@/lib/lifecycle-state";
-import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 import { ReminderToggle } from "./reminder-toggle";
 import { ReminderSchedule } from "./reminder-schedule";
@@ -111,9 +110,7 @@ export default async function PortalHome() {
   const renewalSeed = active[0]?.parsed.id ?? expired[0]?.parsed.id ?? null;
 
   return (
-    <>
-      <BrandBlobs />
-      <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
+    <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
         <article className="max-w-3xl mx-auto font-serif text-brand-charcoal">
           {/* Masthead */}
           <header className="border-b border-brand-charcoal/15 pb-6 mb-8">
@@ -270,8 +267,7 @@ export default async function PortalHome() {
             </div>
           )}
         </article>
-      </main>
-    </>
+    </main>
   );
 }
 

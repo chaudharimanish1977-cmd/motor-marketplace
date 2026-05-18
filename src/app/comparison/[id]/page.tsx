@@ -7,7 +7,6 @@ import type {
   ParsedPolicy,
 } from "@/lib/types";
 import { formatINR } from "@/lib/format";
-import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 
 export const dynamic = "force-dynamic";
@@ -85,9 +84,7 @@ export default async function ComparisonPage({ params }: PageProps) {
     new Date(anchorPolicy.odPeriodEnd).getTime() < Date.now();
 
   return (
-    <>
-      <BrandBlobs />
-      <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
+    <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
         <article className="max-w-3xl mx-auto font-serif text-brand-charcoal space-y-12">
           <Header comparison={comparison} />
           <RcpBlock comparison={comparison} />
@@ -98,8 +95,7 @@ export default async function ComparisonPage({ params }: PageProps) {
           <VerdictBlock comparison={comparison} quoteDocs={quoteDocs} />
           <CtaRow />
         </article>
-      </main>
-    </>
+    </main>
   );
 }
 

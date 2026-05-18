@@ -1,6 +1,5 @@
 "use client";
 
-import { BrandBlobs } from "@/components/brand-blobs";
 import { SketchCarStatic } from "@/components/sketches";
 
 /**
@@ -16,9 +15,7 @@ import { SketchCarStatic } from "@/components/sketches";
  */
 export default function Loading() {
   return (
-    <>
-      <BrandBlobs />
-      <main className="relative z-10 min-h-screen flex items-center justify-center px-5 md:px-6 py-12">
+    <main className="relative z-10 min-h-screen flex items-center justify-center px-5 md:px-6 py-12">
         <div className="max-w-md w-full text-center font-serif text-brand-charcoal">
           {/* Reading Room kicker */}
           <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold">
@@ -53,7 +50,6 @@ export default function Loading() {
             · Folding in everything you told us ·
           </p>
         </div>
-      </main>
-    </>
+    </main>
   );
 }

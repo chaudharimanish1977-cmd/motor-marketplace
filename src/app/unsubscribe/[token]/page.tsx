@@ -6,7 +6,6 @@ import type {
   ParsedPolicy,
   RenewalSubscription,
 } from "@/lib/types";
-import { BrandBlobs } from "@/components/brand-blobs";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -121,12 +120,9 @@ export default async function UnsubscribePage({ params }: PageProps) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <BrandBlobs />
-      <main className="relative z-10 min-h-[80vh] flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">{children}</div>
-      </main>
-    </>
+    <main className="relative z-10 min-h-[80vh] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">{children}</div>
+    </main>
   );
 }
 
