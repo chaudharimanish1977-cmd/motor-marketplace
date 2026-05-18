@@ -20,6 +20,7 @@ import { DeleteAccountCard } from "./delete-account-card";
 import { DataConsentCard } from "./data-consent-card";
 import { FleetSummary } from "./fleet-summary";
 import { MeOnboardingPanel } from "./me-onboarding-panel";
+import { PwaInstallCta } from "@/components/pwa-install-cta";
 import { DeletePolicyButton } from "./delete-policy-button";
 import { RunComparisonButton } from "./run-comparison-button";
 import { INSIGHT_CATALOGUE } from "@/lib/insights/catalogue";
@@ -279,6 +280,16 @@ export default async function PortalHome() {
             <RenewalFooterCta renewalSeed={renewalSeed} />
           ) : (
             <QuietUploadCta />
+          )}
+
+          {/* PWA install nudge — self-hiding if not installable or
+              already installed. Slots between the renewal CTA and the
+              account controls so it's discoverable on every visit
+              without dominating above-the-fold. */}
+          {!isUnverified && (
+            <div className="mt-14">
+              <PwaInstallCta />
+            </div>
           )}
 
           {/* Account controls — quiet, separate from the policy list */}
