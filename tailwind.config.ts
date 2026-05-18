@@ -210,6 +210,25 @@ const config: Config = {
           "0%, 100%": { transform: "scale(1)", opacity: "0.65" },
           "50%": { transform: "scale(1.25)", opacity: "1" },
         },
+        // Horn-blow rhythm — used on the idle-nudge horn icon in the
+        // Ask carousel. The horn body scales 1 → 1.15 → 0.95 → 1
+        // over 1.2s as if pulling air in and pushing it out.
+        // Translate-origin shifts to the back of the horn so the
+        // animation feels like the wide end is doing the work.
+        hornBlow: {
+          "0%, 100%": { transform: "scale(1)" },
+          "30%": { transform: "scale(1.18)" },
+          "70%": { transform: "scale(0.94)" },
+        },
+        // Sound waves emanating from the horn. Each wave fades in at
+        // its start, expands rightward, and fades out — three waves
+        // staggered create the "honking" feel. Defined as opacity +
+        // translate-x; applied per-wave with different delays.
+        waveOut: {
+          "0%": { opacity: "0", transform: "translateX(0) scale(0.6)" },
+          "30%": { opacity: "0.9", transform: "translateX(2px) scale(0.85)" },
+          "100%": { opacity: "0", transform: "translateX(8px) scale(1.15)" },
+        },
       },
       animation: {
         roadhover: "roadhover 2.8s ease-in-out infinite",
@@ -227,6 +246,12 @@ const config: Config = {
         // opacity(0.65) — same as resting state, no jump back.
         "attention-bounce":
           "attentionBounce 700ms cubic-bezier(0.4, 0, 0.6, 1) 3 both",
+        // Horn body — gentle rhythmic blow, 1.2s per cycle, infinite.
+        "horn-blow": "hornBlow 1.2s ease-in-out infinite",
+        // Sound waves — same duration as the horn-blow so the waves
+        // sync with the "push" phase. Staggered start delays applied
+        // per wave via animationDelay style props in the consumer.
+        "wave-out": "waveOut 1.2s ease-out infinite",
       },
     },
   },

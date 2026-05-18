@@ -20,11 +20,12 @@
  * A failed delivery here doesn't break the customer's experience.
  */
 
-import { findById, Tables } from "@/lib/db";
+import { findById, findOne, Tables } from "@/lib/db";
 import { renderReportPdf } from "@/lib/pdf-renderer";
 import { storeReportPdf } from "@/lib/blob-store";
 import { sendReportEmail } from "@/lib/email-sender";
-import type { ParsedPolicy } from "@/lib/types";
+import { friendlyFirstName } from "@/lib/format";
+import type { ParsedPolicy, User } from "@/lib/types";
 
 interface PipelineArgs {
   reportId: string;
@@ -53,6 +54,21 @@ export async function sendReportPdfEmail(
       `${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`.trim() ||
       "your vehicle";
 
+    // Look up the customer's display name from the User row so the
+    // editorial email can address them by first name. Falls back to
+    // the policy's owner.name if we don't have a User record yet
+    // (rare — happens on fresh OAuth before any upload), then to
+    // a generic greeting if both are missing.
+    const lowered = email.toLowerCase();
+    const userRow = await findOne<User>(
+      Tables.USERS,
+      (u) => (u.email ?? "").toLowerCase() === lowered
+    );
+    const firstName =
+      friendlyFirstName(userRow?.name) ||
+      friendlyFirstName(parsedPolicy.owner?.name) ||
+      undefined;
+
     console.log(
       `[pdf-pipeline] Rendering PDF for report ${reportId} → ${email}`
     );
@@ -70,6 +86,7 @@ export async function sendReportPdfEmail(
       vehicleLabel,
       reportUrl: `${baseUrl}/report/${reportId}`,
       pdf,
+      firstName,
     });
     console.log(`[pdf-pipeline] Sent to ${email}`);
   } catch (err) {

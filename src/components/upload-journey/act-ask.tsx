@@ -182,26 +182,11 @@ export function ActAsk({
             </div>
 
             {/* Editorial nudge — fades in after NUDGE_DELAY_MS of
-                inactivity on the current question. Two beats: the
-                mono kicker pushes gently ("your answer shapes the
-                verdict"), the serif italic line reassures we're
-                not rushing them ("we're holding the wait for you").
-                The pulsing dot draws the eye without strobing. */}
-            {showNudge && (
-              <div className="mt-5 mx-auto max-w-xs text-center animate-act-fade-in">
-                <div className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-brand-plum">
-                  <span
-                    aria-hidden
-                    className="inline-block w-1.5 h-1.5 rounded-full bg-brand-plum animate-attention-pulse"
-                  />
-                  Tap one — your answer shapes the verdict
-                </div>
-                <p className="mt-1.5 font-serif italic text-[12.5px] text-brand-slate leading-snug">
-                  We&rsquo;re holding the wait for you so the 2-minute
-                  promise stays good.
-                </p>
-              </div>
-            )}
+                inactivity on the current question. Aryan honks the
+                horn (rhythmic scale + sound waves emanating) to ask
+                for the answer. Whimsical but on-brand with the
+                journey / driving metaphor. */}
+            {showNudge && <HornNudge />}
           </div>
         ) : (
           // Queue exhausted — brief "All set" beat that holds for
@@ -217,5 +202,92 @@ export function ActAsk({
         )}
       </div>
     </div>
+  );
+}
+
+/* ─── Horn nudge — animated honk + editorial copy ────────────────────────
+ *
+ * Fires after NUDGE_DELAY_MS of inactivity on a question. Visually:
+ *
+ *   [horn body that scales 1 → 1.18 → 0.94 → 1, infinite]
+ *   [three sound-wave arcs to the right, fading + expanding outward
+ *    on staggered delays]
+ *   · HONK HONK ·  (mono kicker, plum, animate-act-fade-in)
+ *   Aryan's honking the horn — your answer keeps us moving.
+ *   (serif italic, slate)
+ *
+ * Whimsical without strobing — the horn-blow keyframe is ~120bpm
+ * which reads as "calm honking" rather than panic. Stays gentle.
+ */
+function HornNudge() {
+  return (
+    <div className="mt-5 mx-auto max-w-sm text-center animate-act-fade-in">
+      <div className="flex justify-center mb-2 text-brand-plum">
+        <HornSvg />
+      </div>
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] font-bold text-brand-plum">
+        · Honk honk ·
+      </div>
+      <p className="mt-1.5 font-serif italic text-[13.5px] md:text-[14px] text-brand-slate leading-snug">
+        Aryan&rsquo;s honking the horn — your answer keeps the
+        journey moving.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Inline SVG horn with three animated sound waves. Stroke uses
+ * currentColor so the parent controls the tint; ink-line style
+ * matches the rest of the brand sketches (round caps, no fill).
+ *
+ * Horn body: stylized side-view megaphone (small narrow end on the
+ * left, wide flare on the right). Three sound-wave arcs to the right
+ * of the flare expand + fade in sequence (0ms, 240ms, 480ms delays)
+ * to feel like a honk emanating.
+ */
+function HornSvg() {
+  return (
+    <svg
+      width="56"
+      height="32"
+      viewBox="0 0 56 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {/* Horn body — wrap in a g with origin set so the scale pivots
+          around the centre of the flare, not the SVG corner. */}
+      <g
+        className="animate-horn-blow"
+        style={{ transformOrigin: "20px 16px" }}
+      >
+        {/* Mouthpiece — small rectangle on the left */}
+        <path d="M3 13 L3 19 L7 19 L7 13 Z" />
+        {/* Horn flare — wider trapezoid */}
+        <path d="M7 13 L7 19 L20 24 L20 8 Z" />
+      </g>
+
+      {/* Sound waves — three arcs to the right of the flare, each
+          with its own delay so the honk reads as a sequence. */}
+      <path
+        d="M26 16 Q28 13 28 16 Q28 19 26 16"
+        className="animate-wave-out"
+        style={{ animationDelay: "0ms" }}
+      />
+      <path
+        d="M32 16 Q35 11 35 16 Q35 21 32 16"
+        className="animate-wave-out"
+        style={{ animationDelay: "240ms" }}
+      />
+      <path
+        d="M40 16 Q44 9 44 16 Q44 23 40 16"
+        className="animate-wave-out"
+        style={{ animationDelay: "480ms" }}
+      />
+    </svg>
   );
 }

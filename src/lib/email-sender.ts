@@ -12,7 +12,6 @@
 
 import { Resend } from "resend";
 
-const FROM = "RightOffer <hello@rightoffer.in>";
 const REPLY_TO = "hello@rightoffer.in";
 
 // OTP emails use a personal-sounding From name so Gmail is more likely to
@@ -29,6 +28,12 @@ const OTP_FROM = "RightOffer Buddy Aryan <hello@rightoffer.in>";
 // fingerprint inside Gmail's per-sender model.
 const REMINDER_FROM = "Aryan from RightOffer <hello@rightoffer.in>";
 
+// Report-delivery mail follows the same person-shape pattern. Distinct
+// from OTP_FROM and REMINDER_FROM so Gmail's per-sender classifier
+// learns each stream independently. Subject + body are factual /
+// editorial, not marketing-y.
+const REPORT_FROM = "Aryan at RightOffer <hello@rightoffer.in>";
+
 let cached: Resend | null = null;
 function client(): Resend {
   if (cached) return cached;
@@ -43,6 +48,9 @@ interface SendArgs {
   vehicleLabel: string;
   reportUrl: string;
   pdf: Buffer;
+  /** Customer's display name (Google OAuth profile / typed at OTP).
+   *  Optional — falls back to "there" if missing. */
+  firstName?: string;
 }
 
 export async function sendReportEmail({
@@ -50,13 +58,17 @@ export async function sendReportEmail({
   vehicleLabel,
   reportUrl,
   pdf,
+  firstName,
 }: SendArgs): Promise<void> {
-  const subject = `Your RightOffer policy review — ${vehicleLabel}`;
-  const html = renderHtml({ vehicleLabel, reportUrl });
-  const text = renderText({ vehicleLabel, reportUrl });
+  // Subject is factual, no marketing punctuation — keeps Gmail's
+  // Promotions classifier off the scent. Matches the renewal-reminder
+  // pattern.
+  const subject = `Your motor insurance review — ${vehicleLabel}`;
+  const html = renderHtml({ vehicleLabel, reportUrl, firstName });
+  const text = renderText({ vehicleLabel, reportUrl, firstName });
 
   const { error } = await client().emails.send({
-    from: FROM,
+    from: REPORT_FROM,
     replyTo: REPLY_TO,
     to,
     subject,
@@ -64,7 +76,7 @@ export async function sendReportEmail({
     text,
     attachments: [
       {
-        filename: "rightoffer-policy-review.pdf",
+        filename: "rightoffer-motor-insurance-review.pdf",
         content: pdf,
       },
     ],
@@ -78,65 +90,95 @@ export async function sendReportEmail({
 function renderHtml({
   vehicleLabel,
   reportUrl,
+  firstName,
 }: {
   vehicleLabel: string;
   reportUrl: string;
+  firstName?: string;
 }): string {
+  // Editorial treatment matches the renewal-reminder email:
+  //   · No gradient header
+  //   · No colored CTA button — plain underlined link
+  //   · No card chrome / box shadow
+  //   · Georgia serif body, mono kicker, italic plum accent
+  //   · Signed by Aryan (the analyst character on /about)
+  //   · Hairline rule before PS lines
+  //
+  // Hex values mirror the brand tokens in globals.css:
+  //   #1a1218 brand-charcoal · #3a1e3d brand-plum
+  //   #6b6571 brand-slate · #8b9d80 brand-sage
+  //   #e6e4e8 brand-light-gray
+  const greeting = (firstName ?? "").trim() || "there";
   return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#F8F9FA;font-family:Inter,system-ui,sans-serif;color:#2D3436;">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8F9FA;padding:24px 12px;">
-    <tr><td align="center">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
-        <tr><td style="background:linear-gradient(135deg,#1a3470,#3A1E3D);padding:24px;color:#fff;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;opacity:0.9;">RightOffer</div>
-          <div style="font-size:22px;font-weight:700;margin-top:6px;line-height:1.2;">Your policy review is ready</div>
-          <div style="font-size:14px;opacity:0.88;margin-top:4px;">${escape(vehicleLabel)}</div>
-        </td></tr>
-        <tr><td style="padding:24px;">
-          <p style="margin:0 0 12px;font-size:15px;line-height:1.55;">Hey Buddy,</p>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.55;">
-            Thanks for trusting RightOffer with your policy review. Your full report is attached as a PDF you can keep, print, or forward — and the live version is always available at the link below.
-          </p>
-          <div style="text-align:center;margin:24px 0;">
-            <a href="${reportUrl}" style="display:inline-block;background:#ff5a30;color:#fff;text-decoration:none;font-weight:700;padding:14px 28px;border-radius:14px;font-size:15px;">View report online →</a>
-          </div>
-          <p style="margin:0 0 8px;font-size:13px;color:#636e72;line-height:1.55;">
-            Have a question about anything in the report? Just reply to this email — a real person reads every one.
-          </p>
-        </td></tr>
-        <tr><td style="padding:18px 24px;background:#F8F9FA;border-top:1px solid #E9ECEF;text-align:center;">
-          <div style="font-size:13px;font-weight:700;color:#1a3470;margin-bottom:4px;">
-            Most people sell insurance. <span style="color:#ff5a30;">We help you decide.</span>
-          </div>
-          <div style="font-size:10px;color:#636e72;">
-            RightOffer · Independent motor insurance reviews · Made for India
-          </div>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Your motor insurance review for ${escape(vehicleLabel)} is attached. Yours to keep, forward, or print.
+  </div>
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Your motor insurance review &middot;
+    </div>
+
+    <p style="margin:0 0 18px;">Hi ${escape(greeting)},</p>
+
+    <p style="margin:0 0 18px;">
+      Here&rsquo;s the full review of your <em style="font-style:italic;color:#3a1e3d;">${escape(vehicleLabel)}</em> — attached as a PDF you can keep, forward, or print. The live version stays at the link below if you&rsquo;d rather read it on screen.
+    </p>
+
+    <p style="margin:0 0 18px;"><a href="${escape(reportUrl)}" style="color:#3a1e3d;">${escape(reportUrlLabel(reportUrl))}</a></p>
+
+    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">Spot something off, or just have a question? Reply to this email — a real human reads every one.</p>
+
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+
+    <hr style="margin:36px 0 22px;border:none;border-top:1px solid #e6e4e8;" />
+
+    <p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PS &middot; Details and analysis as of today. If your policy changes, drop the new one at <strong style="color:#1a1218;">rightoffer.in/upload</strong> and I&rsquo;ll re-audit.
+    </p>
+    <p style="margin:0;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PPS &middot; A term you don&rsquo;t recognise? Plain-English definitions live at <a href="https://rightoffer.in/glossary" style="color:#6b6571;">rightoffer.in/glossary</a>.
+    </p>
+  </div>
 </body></html>`;
 }
 
 function renderText({
   vehicleLabel,
   reportUrl,
+  firstName,
 }: {
   vehicleLabel: string;
   reportUrl: string;
+  firstName?: string;
 }): string {
+  const greeting = (firstName ?? "").trim() || "there";
   return [
-    "Hey Buddy,",
-    "",
-    `Your full RightOffer policy review for ${vehicleLabel} is attached as a PDF.`,
-    "",
-    `You can also view the live version any time: ${reportUrl}`,
-    "",
-    "Have a question? Just reply to this email — a real person reads every one.",
-    "",
-    "— Team RightOffer",
-    "Most people sell insurance. We help you decide.",
+    `· RightOffer · Your motor insurance review ·`,
+    ``,
+    `Hi ${greeting},`,
+    ``,
+    `Here's the full review of your ${vehicleLabel} — attached as a PDF you can keep, forward, or print. The live version stays at the link below if you'd rather read it on screen.`,
+    ``,
+    reportUrl,
+    ``,
+    `Spot something off, or just have a question? Reply to this email — a real human reads every one.`,
+    ``,
+    `— Aryan`,
+    ``,
+    `———`,
+    ``,
+    `PS · Details and analysis as of today. If your policy changes, drop the new one at rightoffer.in/upload and I'll re-audit.`,
+    ``,
+    `PPS · A term you don't recognise? Plain-English definitions live at https://rightoffer.in/glossary`,
   ].join("\n");
+}
+
+/** Strip the protocol prefix from a URL for a cleaner display in
+ *  the email body — "https://rightoffer.in/report/abc" reads worse
+ *  than "rightoffer.in/report/abc" in editorial copy. */
+function reportUrlLabel(url: string): string {
+  return url.replace(/^https?:\/\//, "");
 }
 
 function escape(s: string): string {
