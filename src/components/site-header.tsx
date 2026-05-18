@@ -76,6 +76,12 @@ export function SiteHeader({ signedIn = false }: Props) {
 
         <div className="flex items-center gap-4 md:gap-5">
           <Link
+            href="/insurance"
+            className="hidden md:inline-flex items-center font-serif italic text-sm text-brand-slate hover:text-brand-charcoal transition-colors"
+          >
+            Briefs
+          </Link>
+          <Link
             href="/about"
             className="hidden md:inline-flex items-center font-serif italic text-sm text-brand-slate hover:text-brand-charcoal transition-colors"
           >

@@ -91,6 +91,7 @@ export default async function Home() {
       // Footer links
       footer_made: "© RIGHTOFFER · MADE FOR INDIA",
       footer_sample: "SAMPLE",
+      footer_briefs: "BRIEFS",
       footer_about: "ABOUT",
       footer_privacy: "PRIVACY",
       footer_terms: "TERMS",
@@ -115,6 +116,7 @@ export default async function Home() {
         labels={{
           made: t.footer_made,
           sample: t.footer_sample,
+          briefs: t.footer_briefs,
           about: t.footer_about,
           privacy: t.footer_privacy,
           terms: t.footer_terms,
@@ -603,6 +605,7 @@ interface FooterProps {
   labels: {
     made: string;
     sample: string;
+    briefs: string;
     about: string;
     privacy: string;
     terms: string;
@@ -631,6 +634,12 @@ function V7Foot({ labels }: FooterProps) {
           className="hover:text-brand-charcoal transition-colors"
         >
           {labels.sample}
+        </Link>
+        <Link
+          href="/insurance"
+          className="hover:text-brand-charcoal transition-colors"
+        >
+          {labels.briefs}
         </Link>
         <Link
           href="/about"
