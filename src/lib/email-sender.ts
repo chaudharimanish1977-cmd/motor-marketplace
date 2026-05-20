@@ -911,6 +911,40 @@ export interface InboundMultiAuditAttachment {
   pdf: Buffer;
 }
 
+/** Audit-flavoured comparator summary for inline rendering in the
+ *  multi-audit reply. Computed by the caller (the inbound webhook
+ *  has access to the parsed policies + reports); we just render. */
+export interface InboundComparatorSummary {
+  /** "Audi A6" — used in the section heading. */
+  vehicleLabel: string;
+  /** Required add-on names, in display order. */
+  requiredAddOns: string[];
+  /** Optional add-on names, in display order. */
+  optionalAddOns: string[];
+  /** ~₹2,400/yr — pre-formatted INR for the required-addons-total. */
+  requiredAddOnsPremiumLabel: string;
+  /** Recommended IDV, pre-formatted (e.g. "₹8.5L"). */
+  idvLabel: string;
+  /** Per-doc scores, in display order. */
+  scores: Array<{
+    /** "Policy" or "Renewal quote" — display label for this doc. */
+    roleLabel: string;
+    /** "Tata AIG" — insurer name. */
+    insurerName: string;
+    /** "2024" — year for disambiguation. */
+    yearLabel: string;
+    /** "₹14,500" — pre-formatted premium. */
+    premiumLabel: string;
+    /** Add-on names this doc is missing vs RCP. */
+    missingRequired: string[];
+    /** True when this doc covers everything required. */
+    isRcpComplete: boolean;
+  }>;
+  /** Plain-English verdict shown after the scores table. */
+  verdictHeadline: string;
+  verdictBody: string;
+}
+
 interface InboundMultiReplyArgs {
   to: string;
   firstName?: string;
@@ -919,6 +953,10 @@ interface InboundMultiReplyArgs {
   /** Magic-link to /reports tabbed multi-doc view. */
   magicLinkUrl: string;
   includeDpdpConsentLine: boolean;
+  /** When present, the email body renders a "Side-by-side" section
+   *  with the comparator data. Omitted when comparator computation
+   *  failed; the email still ships with attachments + magic-link. */
+  comparator?: InboundComparatorSummary;
 }
 
 export async function sendInboundMultiAuditReply({
@@ -927,6 +965,7 @@ export async function sendInboundMultiAuditReply({
   audits,
   magicLinkUrl,
   includeDpdpConsentLine,
+  comparator,
 }: InboundMultiReplyArgs): Promise<void> {
   if (audits.length < 2) {
     throw new Error(
@@ -942,12 +981,14 @@ export async function sendInboundMultiAuditReply({
     audits,
     magicLinkUrl,
     includeDpdpConsentLine,
+    comparator,
   });
   const text = renderInboundMultiReplyText({
     firstName,
     audits,
     magicLinkUrl,
     includeDpdpConsentLine,
+    comparator,
   });
 
   // Build attachments with descriptive, unique filenames.
@@ -1042,11 +1083,87 @@ function sanitizeForFilename(s: string): string {
     .slice(0, 60);
 }
 
+/** Comparator section, inline in the multi-audit reply. Mono kicker
+ *  + serif body matching the rest of the editorial template. Returns
+ *  empty string when no comparator data was passed in. */
+function renderComparatorSectionHtml(
+  comparator: InboundComparatorSummary | undefined
+): string {
+  if (!comparator) return "";
+  const required = comparator.requiredAddOns.length
+    ? comparator.requiredAddOns.map(escape).join(", ")
+    : "None — your existing policy already covers what's recommended";
+  const scoresRows = comparator.scores
+    .map((s) => {
+      const missing = s.isRcpComplete
+        ? `<span style="color:#4a7a3f;">covers everything recommended</span>`
+        : `missing ${escape(s.missingRequired.join(", "))}`;
+      return `<tr>
+        <td style="padding:4px 8px 4px 0;vertical-align:top;"><strong>${escape(s.roleLabel)}</strong></td>
+        <td style="padding:4px 8px 4px 0;vertical-align:top;">${escape(s.insurerName)}${s.yearLabel ? ` &middot; ${escape(s.yearLabel)}` : ""}</td>
+        <td style="padding:4px 8px 4px 0;vertical-align:top;text-align:right;">${escape(s.premiumLabel)}</td>
+        <td style="padding:4px 0;vertical-align:top;font-style:italic;color:#6b6571;">${missing}</td>
+      </tr>`;
+    })
+    .join("");
+  return `<div style="margin:24px 0 22px;padding:14px 16px;border-left:3px solid #3a1e3d;background:#f7f4f7;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:#3a1e3d;font-weight:700;margin:0 0 12px;">
+      &middot; Side-by-side &middot;
+    </div>
+    <p style="margin:0 0 8px;font-size:14.5px;"><strong>Recommended cover for your ${escape(comparator.vehicleLabel)}:</strong></p>
+    <p style="margin:0 0 6px;font-size:14px;color:#1a1218;">Required add-ons (~${escape(comparator.requiredAddOnsPremiumLabel)}/yr): ${required}</p>
+    ${
+      comparator.optionalAddOns.length
+        ? `<p style="margin:0 0 12px;font-size:14px;color:#6b6571;">Optional: ${escape(comparator.optionalAddOns.join(", "))}</p>`
+        : ""
+    }
+    <p style="margin:0 0 12px;font-size:14px;color:#6b6571;">Recommended IDV: ${escape(comparator.idvLabel)}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 14px;">${scoresRows}</table>
+    <p style="margin:8px 0 4px;font-size:14.5px;font-style:italic;color:#3a1e3d;"><strong>${escape(comparator.verdictHeadline)}</strong></p>
+    <p style="margin:0;font-size:14px;color:#1a1218;">${escape(comparator.verdictBody)}</p>
+  </div>`;
+}
+
+function renderComparatorSectionText(
+  comparator: InboundComparatorSummary | undefined
+): string[] {
+  if (!comparator) return [];
+  const lines: string[] = [
+    ``,
+    `· Side-by-side ·`,
+    ``,
+    `Recommended cover for your ${comparator.vehicleLabel}:`,
+    `  Required add-ons (~${comparator.requiredAddOnsPremiumLabel}/yr): ${
+      comparator.requiredAddOns.length
+        ? comparator.requiredAddOns.join(", ")
+        : "None — your existing policy already covers what's recommended"
+    }`,
+  ];
+  if (comparator.optionalAddOns.length) {
+    lines.push(`  Optional: ${comparator.optionalAddOns.join(", ")}`);
+  }
+  lines.push(`  Recommended IDV: ${comparator.idvLabel}`);
+  lines.push(``);
+  for (const s of comparator.scores) {
+    const missing = s.isRcpComplete
+      ? "covers everything recommended"
+      : `missing ${s.missingRequired.join(", ")}`;
+    const yearBit = s.yearLabel ? ` · ${s.yearLabel}` : "";
+    lines.push(
+      `  ${s.roleLabel} · ${s.insurerName}${yearBit} · ${s.premiumLabel} · ${missing}`
+    );
+  }
+  lines.push(``, `Verdict: ${comparator.verdictHeadline}`);
+  lines.push(comparator.verdictBody);
+  return lines;
+}
+
 function renderInboundMultiReplyHtml({
   firstName,
   audits,
   magicLinkUrl,
   includeDpdpConsentLine,
+  comparator,
 }: Omit<InboundMultiReplyArgs, "to">): string {
   const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
   const opener = `Thanks for forwarding ${
@@ -1092,9 +1209,11 @@ function renderInboundMultiReplyHtml({
     <p style="margin:0 0 6px;">What&rsquo;s attached:</p>
     <ul style="margin:0 0 18px 22px;padding:0;color:#1a1218;">${items}</ul>
 
+    ${renderComparatorSectionHtml(comparator)}
+
     <p style="margin:0 0 18px;"><a href="${escape(magicLinkUrl)}" style="color:#3a1e3d;">Open all audits side-by-side &rarr;</a></p>
 
-    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">The web view shows each audit in its own tab and surfaces the comparison between them — what each cover gives you, where the gaps are, and which one comes out ahead.</p>
+    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">The web view lets you switch between each audit and the side-by-side comparison.</p>
 
     <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
 
@@ -1116,6 +1235,7 @@ function renderInboundMultiReplyText({
   audits,
   magicLinkUrl,
   includeDpdpConsentLine,
+  comparator,
 }: Omit<InboundMultiReplyArgs, "to">): string {
   const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
   const lines = [
@@ -1136,11 +1256,13 @@ function renderInboundMultiReplyText({
       `  · ${role} · ${a.vehicleLabel} · ${a.insurerName}${yearBit}`
     );
   }
+  // Comparator summary, if provided.
+  lines.push(...renderComparatorSectionText(comparator));
   lines.push(
     ``,
     `Open all audits side-by-side: ${magicLinkUrl}`,
     ``,
-    `The web view shows each audit in its own tab and surfaces the comparison between them — what each cover gives you, where the gaps are, and which one comes out ahead.`,
+    `The web view lets you switch between each audit and the side-by-side comparison.`,
     ``,
     `— Aryan`,
     ``,

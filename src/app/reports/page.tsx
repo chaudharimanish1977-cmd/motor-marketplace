@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Upload, Lock, ArrowRight } from "lucide-react";
-import { findById, findOne, appendRow, Tables } from "@/lib/db";
+import { findById, findMany, findOne, appendRow, Tables } from "@/lib/db";
 import { generateReport } from "@/lib/report-generator";
 import {
   computeRCP,
@@ -75,18 +75,48 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   ]);
 
   const isVerified = !!(fullSessionEmail || uploadSession);
-  const docIds =
-    uploadSession?.docs ?? anonSession?.docs ?? [];
 
-  if (docIds.length === 0) {
-    return <EmptyState hasFullSession={!!fullSessionEmail} />;
-  }
+  // Doc discovery — two paths, merged:
+  //
+  //   1. Browser-session cookies (upload-session / anonymous-session)
+  //      give us the IDs of docs uploaded in THIS browser session.
+  //      Used by the web-upload flow before sign-in.
+  //
+  //   2. Full session (signed-in email) lets us scope by owner.email.
+  //      Used when the customer arrives via a magic-link (email-forward
+  //      audit reply) — the magic-link clears the browser-session
+  //      cookies during sign-in, so cookie-only discovery comes up empty.
+  //      Without this fallback, /reports shows "Nothing to show yet"
+  //      even when the customer has multiple forwarded audits on file.
+  //
+  // Both paths feed into a single deduped doc list.
+  const docIdSet = new Set<string>();
+  for (const id of uploadSession?.docs ?? []) docIdSet.add(id);
+  for (const id of anonSession?.docs ?? []) docIdSet.add(id);
 
   const docs: ParsedPolicy[] = [];
-  for (const id of docIds) {
+  if (fullSessionEmail) {
+    // Pull every ParsedPolicy owned by the signed-in email. This is the
+    // same lookup /me uses, so the two surfaces stay consistent.
+    const ownerLower = fullSessionEmail.toLowerCase();
+    const ownerDocs = await findMany<ParsedPolicy>(
+      Tables.PARSED_POLICIES,
+      (p) => (p.owner?.email ?? "").toLowerCase() === ownerLower
+    );
+    for (const d of ownerDocs) {
+      docIdSet.add(d.id);
+      docs.push(d);
+    }
+  }
+
+  // Fill in any cookie-only docs that didn't come through the email
+  // match (e.g. anonymous upload session that hasn't been claimed yet).
+  for (const id of docIdSet) {
+    if (docs.some((d) => d.id === id)) continue;
     const p = await findById<ParsedPolicy>(Tables.PARSED_POLICIES, id);
     if (p) docs.push(p);
   }
+
   if (docs.length === 0) {
     return <EmptyState hasFullSession={!!fullSessionEmail} />;
   }
@@ -265,7 +295,9 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     : null;
   const activeReport = activeDocId ? reports.get(activeDocId) : null;
 
-  const rawDocCount = docIds.length;
+  // Count of discovered docs BEFORE the policyGroupKey dedup pass.
+  // Used in the header for the "N docs in session · M unique" diagnostic.
+  const rawDocCount = docs.length;
   const dedupedCount = sortedDocs.length;
   const wasDeduped = rawDocCount > dedupedCount;
 

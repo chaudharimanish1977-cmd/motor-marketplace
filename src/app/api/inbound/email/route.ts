@@ -8,6 +8,7 @@ import {
   sendInboundAuditReply,
   sendInboundMultiAuditReply,
   sendInboundNoMatchReply,
+  type InboundComparatorSummary,
   type InboundMultiAuditAttachment,
   type InboundNoMatchReason,
 } from "@/lib/email-sender";
@@ -15,8 +16,12 @@ import { buildAuditMagicLinkUrl } from "@/lib/email-token";
 import { renderReportPdf } from "@/lib/pdf-renderer";
 import { storeReportPdf } from "@/lib/blob-store";
 import { findById, findMany, findOne, Tables } from "@/lib/db";
-import { friendlyFirstName } from "@/lib/format";
-import type { ParsedPolicy, User } from "@/lib/types";
+import { friendlyFirstName, formatINR } from "@/lib/format";
+import {
+  computeRCP,
+  scoreAgainstRcp,
+} from "@/lib/recommended-coverage-profile";
+import type { ParsedPolicy, PolicyReport, User } from "@/lib/types";
 
 const SITE_URL = "https://rightoffer.in";
 
@@ -712,6 +717,20 @@ async function sendConsolidatedReplyForForward(args: {
     }
   }
 
+  // Compute the side-by-side comparator data inline for the reply
+  // body. Best-effort — if computation fails (e.g. missing reports),
+  // the email still ships with attachments + magic-link, just without
+  // the inline comparison summary.
+  const comparator = await computeComparatorForReply(args.audits).catch(
+    (err) => {
+      console.error(
+        "[inbound/email] comparator computation failed (non-fatal):",
+        err
+      );
+      return undefined;
+    }
+  );
+
   // Normal multi-reply path.
   await sendInboundMultiAuditReply({
     to: args.fromEmail,
@@ -719,10 +738,173 @@ async function sendConsolidatedReplyForForward(args: {
     audits: validAttachments,
     magicLinkUrl,
     includeDpdpConsentLine: args.includeDpdpConsentLine,
+    comparator,
   });
   console.log(
-    `[inbound/email] consolidated reply sent to ${args.fromEmail} with ${validAttachments.length} audits attached`
+    `[inbound/email] consolidated reply sent to ${args.fromEmail} with ${validAttachments.length} audits attached${comparator ? " + comparator" : ""}`
   );
+}
+
+/**
+ * Build the inline comparator summary that goes in the multi-audit
+ * reply body. Mirrors the comparator engine /reports uses but is
+ * scoped to the docs from THIS forward. Returns undefined when there
+ * aren't enough docs to compare (caller skips the section).
+ *
+ * Anchor pick (which doc defines the RCP):
+ *   1. The first policy in the forward (most-realistic baseline), OR
+ *   2. The first doc overall (when no policy was forwarded).
+ *
+ * Audit-only verdict path — same logic as /reports comparator when
+ * marketplace is off: rank docs by RCP-completeness + price; if
+ * nothing is RCP-complete, surface the closest-fit with gaps.
+ */
+async function computeComparatorForReply(
+  audited: Array<Extract<AuditPipelineResult, { kind: "audited" }>>
+): Promise<InboundComparatorSummary | undefined> {
+  if (audited.length < 2) return undefined;
+
+  // Fetch ParsedPolicy + PolicyReport for each audited doc.
+  const fetched = await Promise.all(
+    audited.map(async (a) => {
+      const [parsed, report] = await Promise.all([
+        findById<ParsedPolicy>(Tables.PARSED_POLICIES, a.parsedPolicyId),
+        a.policyReportId
+          ? findById<PolicyReport>(Tables.REPORTS, a.policyReportId)
+          : findOne<PolicyReport>(
+              Tables.REPORTS,
+              (r) => r.parsedPolicyId === a.parsedPolicyId
+            ),
+      ]);
+      if (!parsed || !report) return null;
+      return { parsed, report };
+    })
+  );
+  const valid = fetched.filter(
+    (f): f is { parsed: ParsedPolicy; report: PolicyReport } => f !== null
+  );
+  if (valid.length < 2) return undefined;
+
+  // Anchor: first policy in the list, else first doc.
+  const anchor =
+    valid.find((v) => (v.parsed.documentType ?? "policy") === "policy") ??
+    valid[0];
+
+  const rcp = computeRCP(anchor.parsed, anchor.report);
+
+  const scores = valid.map((v) => {
+    const addOnNames = (v.parsed.addOns ?? []).map((a) => a.name);
+    const scored = scoreAgainstRcp(addOnNames, rcp);
+    const role =
+      (v.parsed.documentType ?? "policy") === "quote"
+        ? "Renewal quote"
+        : "Policy";
+    const yearLabel = v.parsed.odPeriodEnd
+      ? new Date(v.parsed.odPeriodEnd).getFullYear().toString()
+      : "";
+    const grandTotal = v.parsed.premium?.grandTotal ?? 0;
+    return {
+      roleLabel: role,
+      insurerName: v.parsed.insurerName || "Unknown insurer",
+      yearLabel,
+      premiumLabel: grandTotal > 0 ? formatINR(grandTotal) : "—",
+      missingRequired: scored.missingRequired,
+      isRcpComplete: scored.isRcpComplete,
+      grandTotal,
+      isExactlyRcp: scored.isExactlyRcp,
+      extraNonRcp: scored.extraNonRcp,
+    };
+  });
+
+  // Audit-only verdict — same logic as the comparator on /reports when
+  // marketplace=off. Surface the best fit; if nothing is complete,
+  // surface the closest with gaps and what to ask about.
+  const verdict = buildAuditOnlyVerdict(scores);
+
+  const vehicleLabel =
+    `${anchor.parsed.vehicle.make} ${anchor.parsed.vehicle.model}`.trim() ||
+    "your car";
+
+  return {
+    vehicleLabel,
+    requiredAddOns: rcp.requiredAddOns.map((a) => a.name),
+    optionalAddOns: rcp.optionalAddOns.map((a) => a.name),
+    requiredAddOnsPremiumLabel:
+      rcp.requiredAddOnsPremiumTotal > 0
+        ? formatINR(rcp.requiredAddOnsPremiumTotal)
+        : "₹0",
+    idvLabel: rcp.idv.current > 0 ? formatINR(rcp.idv.current) : "—",
+    scores: scores.map((s) => ({
+      roleLabel: s.roleLabel,
+      insurerName: s.insurerName,
+      yearLabel: s.yearLabel,
+      premiumLabel: s.premiumLabel,
+      missingRequired: s.missingRequired,
+      isRcpComplete: s.isRcpComplete,
+    })),
+    verdictHeadline: verdict.headline,
+    verdictBody: verdict.body,
+  };
+}
+
+interface AuditOnlyScoredDoc {
+  roleLabel: string;
+  insurerName: string;
+  yearLabel: string;
+  premiumLabel: string;
+  missingRequired: string[];
+  isRcpComplete: boolean;
+  grandTotal: number;
+  isExactlyRcp: boolean;
+  extraNonRcp: string[];
+}
+
+/** Mirrors the marketplace-off branch of /reports' computeVerdict.
+ *  Picks the best fit among the customer's own docs. */
+function buildAuditOnlyVerdict(scores: AuditOnlyScoredDoc[]): {
+  headline: string;
+  body: string;
+} {
+  // Exactly-RCP-complete (no padding) — preferred.
+  const exactly = scores
+    .filter((s) => s.isExactlyRcp)
+    .sort((a, b) => a.grandTotal - b.grandTotal);
+  if (exactly.length > 0) {
+    const w = exactly[0];
+    return {
+      headline: `${w.insurerName} comes out ahead.`,
+      body: `Covers every recommendation at ${w.premiumLabel} — no missing essentials, no padding. The cleanest fit among what you've forwarded.`,
+    };
+  }
+
+  // RCP-complete (extras allowed).
+  const complete = scores
+    .filter((s) => s.isRcpComplete)
+    .sort((a, b) => a.grandTotal - b.grandTotal);
+  if (complete.length > 0) {
+    const w = complete[0];
+    const extras = w.extraNonRcp.length
+      ? ` (with ${w.extraNonRcp.join(", ")} thrown in)`
+      : "";
+    return {
+      headline: `${w.insurerName} comes out ahead.`,
+      body: `Covers everything we recommend${extras} at ${w.premiumLabel}. The most complete cover among what you've forwarded.`,
+    };
+  }
+
+  // Closest fit — surface what's missing.
+  const sorted = [...scores].sort(
+    (a, b) =>
+      a.missingRequired.length - b.missingRequired.length ||
+      a.grandTotal - b.grandTotal
+  );
+  const closest = sorted[0];
+  return {
+    headline: `Closest fit: ${closest.insurerName}, but with gaps.`,
+    body: `Missing ${closest.missingRequired.join(", ")}. Worth asking the insurer to add ${
+      closest.missingRequired.length === 1 ? "this" : "these"
+    } before you bind, or shopping for a quote that already includes them.`,
+  };
 }
 
 /**
