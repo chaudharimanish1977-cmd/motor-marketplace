@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { waitUntil } from "@vercel/functions";
+import { kv } from "@vercel/kv";
 import { storeInboxPdf } from "@/lib/blob-store";
 import { runAuditPipeline, type AuditPipelineResult } from "@/lib/audit-pipeline";
 import {
@@ -16,6 +17,30 @@ import { friendlyFirstName } from "@/lib/format";
 import type { ParsedPolicy, User } from "@/lib/types";
 
 const SITE_URL = "https://rightoffer.in";
+
+/** Per-sender rate limits. Defensive against spam, accidental
+ *  re-forward loops, and abusive automation. Real customers will
+ *  never hit these. */
+const RATE_LIMIT_HOURLY = 5;
+const RATE_LIMIT_DAILY = 20;
+
+/** Throwaway/disposable email providers — silent drop these senders.
+ *  A real customer's policy email will never be on a throwaway domain.
+ *  List is conservative — only blocks domains that exist primarily
+ *  for one-shot signups. Expand if abuse appears in production. */
+const SPAM_DOMAINS = new Set([
+  "mailinator.com",
+  "guerrillamail.com",
+  "10minutemail.com",
+  "yopmail.com",
+  "tempmail.com",
+  "trashmail.com",
+  "throwaway.email",
+  "sharklasers.com",
+  "maildrop.cc",
+]);
+
+const useKv = !!process.env.KV_REST_API_URL;
 
 /**
  * /api/inbound/email — webhook receiver for the email-forward channel.
@@ -140,6 +165,34 @@ export async function POST(request: NextRequest) {
     // No usable sender = nothing we can reply to. Log + drop.
     console.warn("[inbound/email] No From address; dropping silently");
     return NextResponse.json({ ok: true, processed: 0 });
+  }
+
+  // ---- Spam-domain block ----
+  // Silent drop senders on throwaway domains. We never want to be a
+  // free OCR service for one-shot accounts.
+  const domain = fromEmail.split("@")[1] || "";
+  if (SPAM_DOMAINS.has(domain)) {
+    console.warn(
+      `[inbound/email] sender on blocked domain (${domain}); dropping silently`
+    );
+    return NextResponse.json({ ok: true, dropped: "spam-domain" });
+  }
+
+  // ---- Per-sender rate limit ----
+  // Sliding-window-ish: two counters (hourly + daily) keyed by sender
+  // email, both TTL'd. Throttled senders return 200 to Postmark (no
+  // webhook retry loop) but skip all downstream work.
+  const limit = await checkRateLimit(fromEmail);
+  if (!limit.ok) {
+    console.warn(
+      `[inbound/email] rate limit exceeded for ${fromEmail} (hourly=${limit.hourly}, daily=${limit.daily})`
+    );
+    return NextResponse.json({
+      ok: true,
+      dropped: "rate-limit",
+      hourly: limit.hourly,
+      daily: limit.daily,
+    });
   }
 
   // ---- Filter PDF attachments ----
@@ -543,4 +596,52 @@ export async function GET() {
     },
     { status: 405 }
   );
+}
+
+/**
+ * Two-window rate-limiter, keyed by sender email. INCR-with-EXPIRE
+ * pattern: first hit per window creates the counter and stamps TTL;
+ * subsequent hits in the same window increment it. Both windows are
+ * checked on every request — a sender at the daily limit gets dropped
+ * even if their hourly window has refreshed.
+ *
+ * Returns ok=false when EITHER window is over its limit; the caller
+ * returns 200 to Postmark (no retry) but skips downstream work.
+ *
+ * Falls open (ok=true) when KV isn't configured — preserves dev/test
+ * behaviour where local builds run without Upstash.
+ */
+async function checkRateLimit(senderEmail: string): Promise<{
+  ok: boolean;
+  hourly: number;
+  daily: number;
+}> {
+  if (!useKv) {
+    return { ok: true, hourly: 0, daily: 0 };
+  }
+  const lowered = senderEmail.toLowerCase();
+  const hourKey = `inbound-rate:${lowered}:h`;
+  const dayKey = `inbound-rate:${lowered}:d`;
+
+  try {
+    const hourly = await kv.incr(hourKey);
+    if (hourly === 1) {
+      await kv.expire(hourKey, 60 * 60); // 1 hour
+    }
+    const daily = await kv.incr(dayKey);
+    if (daily === 1) {
+      await kv.expire(dayKey, 60 * 60 * 24); // 24 hours
+    }
+    return {
+      ok: hourly <= RATE_LIMIT_HOURLY && daily <= RATE_LIMIT_DAILY,
+      hourly,
+      daily,
+    };
+  } catch (err) {
+    console.error(
+      "[inbound/email] rate-limit KV failed; falling open:",
+      err
+    );
+    return { ok: true, hourly: 0, daily: 0 };
+  }
 }

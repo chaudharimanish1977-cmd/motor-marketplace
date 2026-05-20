@@ -69,8 +69,24 @@ export default function PrivacyPage() {
           review:
           <ul className="mt-3 space-y-2 list-none pl-0">
             <Item label="Your motor insurance document">
-              uploaded as a PDF. Stored encrypted; only our parser reads
-              its contents.
+              the PDF of your policy or renewal quote — sent to us
+              either by uploading it directly at{" "}
+              <Link
+                href="/upload"
+                className="italic text-brand-plum hover:underline"
+              >
+                rightoffer.in/upload
+              </Link>{" "}
+              or by forwarding the email containing it to{" "}
+              <a
+                href="mailto:review@rightoffer.in"
+                className="italic text-brand-plum hover:underline"
+              >
+                review@rightoffer.in
+              </a>
+              . Either action is treated as your affirmative consent to
+              process the document. Stored encrypted; only our parser
+              reads its contents.
             </Item>
             <Item label="Email address and (optionally) WhatsApp number">
               used to deliver your review and a sign-in link. Never sold.
@@ -170,7 +186,20 @@ export default function PrivacyPage() {
               account.
             </Item>
             <Item label="Email delivery">
-              Resend, for transactional messages.
+              Resend, for transactional outbound messages (your review,
+              sign-in codes, renewal reminders, and replies when you
+              forward a policy to us).
+            </Item>
+            <Item label="Inbound email processing">
+              Postmark, for receiving emails forwarded to{" "}
+              <a
+                href="mailto:review@rightoffer.in"
+                className="italic text-brand-plum hover:underline"
+              >
+                review@rightoffer.in
+              </a>
+              . Postmark parses the email and hands the attachment to our
+              servers; it does not retain the document long-term.
             </Item>
             <Item label="Sign-in via Google or Apple">
               only when you choose to use those providers; we receive
