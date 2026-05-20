@@ -796,6 +796,16 @@ function RenewalFooterCta({ renewalSeed }: { renewalSeed: string | null }) {
           · Or upload a new policy →
         </LoadingLink>
       </div>
+      <p className="mt-4 font-serif italic text-[13.5px] text-brand-slate max-w-md">
+        Or just forward the insurer email to{" "}
+        <a
+          href="mailto:review@rightoffer.in?subject=My%20renewal%20quote"
+          className="not-italic text-brand-plum hover:underline"
+        >
+          review@rightoffer.in
+        </a>{" "}
+        — we&rsquo;ll read it and reply with the audit.
+      </p>
     </section>
   );
 }
@@ -822,6 +832,16 @@ function QuietUploadCta() {
         >
           Upload →
         </LoadingLink>
+      </p>
+      <p className="mt-2 font-serif italic text-[13.5px] text-brand-slate max-w-md">
+        Or forward straight from your inbox to{" "}
+        <a
+          href="mailto:review@rightoffer.in"
+          className="not-italic text-brand-plum hover:underline"
+        >
+          review@rightoffer.in
+        </a>
+        .
       </p>
     </section>
   );

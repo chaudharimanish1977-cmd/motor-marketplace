@@ -25,6 +25,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LoadingLink } from "@/components/loading-link";
 
+const FORWARD_ADDRESS = "review@rightoffer.in";
+/** mailto link that opens the default mail client pre-filled with To
+ *  and a draft subject. Subject is deliberately generic — the customer
+ *  will likely paste/forward something inline anyway, but a pre-filled
+ *  subject prevents "no subject" bounces on stricter mail servers. */
+const FORWARD_MAILTO = `mailto:${FORWARD_ADDRESS}?subject=My%20motor%20insurance%20policy`;
+
 type Priority = "pay_less" | "worry_less" | null;
 
 const STORAGE_KEY = "ro-profile-priority";
@@ -123,9 +130,35 @@ export function HeadlineCTA({ labels = DEFAULT_LABELS }: HeadlineCTAProps) {
         {labels.ctaPrimary} <span aria-hidden>→</span>
       </LoadingLink>
 
+      {/* "OR" divider — visually separates the two CTAs so they read
+       *  as co-equal alternatives rather than primary + secondary.
+       *  Light enough not to compete with either pill. */}
+      <div className="flex items-center gap-3 mt-4 mb-3 max-w-[280px] w-full">
+        <div className="flex-1 h-px bg-brand-charcoal/10" />
+        <span className="font-serif italic text-[13px] text-brand-slate">
+          or
+        </span>
+        <div className="flex-1 h-px bg-brand-charcoal/10" />
+      </div>
+
+      {/* Forward CTA — co-equal alternative to the upload pill.
+       *  mailto link opens the customer's default mail client with
+       *  To: pre-filled, which is muscle memory in a way that
+       *  copy-paste isn't. Mobile mail apps honour mailto cleanly. */}
+      <a
+        href={FORWARD_MAILTO}
+        className="inline-flex items-center gap-1 bg-brand-sage text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[18px] hover:opacity-90 transition-opacity"
+      >
+        Forward to {FORWARD_ADDRESS} <span aria-hidden>→</span>
+      </a>
+      <p className="mt-2 font-serif italic text-[13.5px] text-brand-slate max-w-md text-center text-balance">
+        Drop the insurer email straight from your inbox. We&rsquo;ll
+        read it and reply with the audit.
+      </p>
+
       {/* Trust line — small mono sage caption to anchor the CTA with a
        *  proof point above the fold. */}
-      <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage">
+      <p className="mt-5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage">
         · {labels.trustLine} ·
       </p>
 
