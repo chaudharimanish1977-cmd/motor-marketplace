@@ -890,6 +890,276 @@ function renderInboundReplyHtml({
 }
 
 // ----------------------------------------------------------------------------
+// Inbound-forward MULTI-AUDIT reply (K11) — sent when a forward yields
+// 2+ audited PDFs. One consolidated email per forward with all audit
+// PDFs attached (descriptively named), one magic-link landing on the
+// /reports tabbed view so the customer can switch between docs side-
+// by-side. Body content adapts to the doc landscape.
+// ----------------------------------------------------------------------------
+
+export interface InboundMultiAuditAttachment {
+  /** Vehicle make+model — used in the body line for this audit. */
+  vehicleLabel: string;
+  /** Whether this audit is for a bound policy or an unbound quote. */
+  documentType: "policy" | "quote";
+  /** Insurer name (e.g. "Tata AIG") — used for filename + body line. */
+  insurerName: string;
+  /** OD period end year (e.g. 2024) — used for filename disambiguation
+   *  when multiple docs share the same insurer + documentType. */
+  yearLabel: string;
+  /** Pre-rendered audit PDF for this doc. */
+  pdf: Buffer;
+}
+
+interface InboundMultiReplyArgs {
+  to: string;
+  firstName?: string;
+  /** All audited docs from this forward, in arrival order. */
+  audits: InboundMultiAuditAttachment[];
+  /** Magic-link to /reports tabbed multi-doc view. */
+  magicLinkUrl: string;
+  includeDpdpConsentLine: boolean;
+}
+
+export async function sendInboundMultiAuditReply({
+  to,
+  firstName,
+  audits,
+  magicLinkUrl,
+  includeDpdpConsentLine,
+}: InboundMultiReplyArgs): Promise<void> {
+  if (audits.length < 2) {
+    throw new Error(
+      "sendInboundMultiAuditReply requires 2+ audits. Use sendInboundAuditReply for single."
+    );
+  }
+
+  // Subject summarises the doc landscape briefly.
+  const subject = buildMultiAuditSubject(audits);
+
+  const html = renderInboundMultiReplyHtml({
+    firstName,
+    audits,
+    magicLinkUrl,
+    includeDpdpConsentLine,
+  });
+  const text = renderInboundMultiReplyText({
+    firstName,
+    audits,
+    magicLinkUrl,
+    includeDpdpConsentLine,
+  });
+
+  // Build attachments with descriptive, unique filenames.
+  const filenames = buildAttachmentFilenames(audits);
+  const attachments = audits.map((a, i) => ({
+    filename: filenames[i],
+    content: a.pdf,
+  }));
+
+  const { error } = await client().emails.send({
+    from: INBOUND_REPLY_FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+    attachments,
+  });
+
+  if (error) {
+    throw new Error(`Resend (inbound-multi) failed: ${error.message}`);
+  }
+}
+
+/** Subject reflects what the customer forwarded.
+ *  Common patterns:
+ *    - "Audi A6 policy + renewal quote audits ready"  (1 policy + 1 quote, same vehicle)
+ *    - "Audi A6 audits ready (3 docs)"                (mixed, same vehicle)
+ *    - "Your 3 audits are ready"                       (mixed vehicles)
+ */
+function buildMultiAuditSubject(
+  audits: InboundMultiAuditAttachment[]
+): string {
+  // Group by vehicle — if all same, mention it; otherwise stay generic.
+  const vehicles = new Set(audits.map((a) => a.vehicleLabel));
+  const singleVehicle = vehicles.size === 1;
+  const sample = audits[0];
+
+  if (!singleVehicle) {
+    return `Your ${audits.length} audits are ready`;
+  }
+
+  const policies = audits.filter((a) => a.documentType === "policy").length;
+  const quotes = audits.filter((a) => a.documentType === "quote").length;
+
+  // Classic "policy + renewal quote" pair
+  if (policies === 1 && quotes === 1) {
+    return `${sample.vehicleLabel} policy + renewal quote audits ready`;
+  }
+  // All quotes
+  if (policies === 0 && quotes >= 2) {
+    return `${sample.vehicleLabel} quote comparison ready (${quotes} quotes)`;
+  }
+  // Multiple policies (old + new etc.)
+  if (policies >= 2 && quotes === 0) {
+    return `${sample.vehicleLabel} policy comparison ready`;
+  }
+  // Anything mixed
+  return `${sample.vehicleLabel} audits ready (${audits.length} docs)`;
+}
+
+/** Descriptive, unique filenames per attachment.
+ *  Pattern: "{Vehicle} - {policy|quote} - {Insurer or Year}.pdf"
+ *  Disambiguation: if multiple share Vehicle+Type+Insurer, append year.
+ *  All filenames sanitised — letters, digits, spaces, hyphens only. */
+function buildAttachmentFilenames(
+  audits: InboundMultiAuditAttachment[]
+): string[] {
+  const filenames: string[] = [];
+  const seen = new Map<string, number>();
+  for (const a of audits) {
+    const vehicle = sanitizeForFilename(a.vehicleLabel) || "Vehicle";
+    const type = a.documentType === "quote" ? "quote" : "policy";
+    const insurer = sanitizeForFilename(a.insurerName) || "audit";
+    const base = `${vehicle} - ${type} - ${insurer}`;
+    const count = (seen.get(base) ?? 0) + 1;
+    seen.set(base, count);
+    const withYear =
+      count > 1
+        ? `${base} ${a.yearLabel || count}`
+        : base;
+    filenames.push(`${withYear}.pdf`);
+  }
+  return filenames;
+}
+
+function sanitizeForFilename(s: string): string {
+  return (s ?? "")
+    .replace(/[^A-Za-z0-9 \-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60);
+}
+
+function renderInboundMultiReplyHtml({
+  firstName,
+  audits,
+  magicLinkUrl,
+  includeDpdpConsentLine,
+}: Omit<InboundMultiReplyArgs, "to">): string {
+  const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
+  const opener = `Thanks for forwarding ${
+    audits.length === 2 ? "both documents" : `all ${audits.length} documents`
+  }. I just finished reading each one — the audits are attached as PDFs, and you can also view them side-by-side on the web with one click below. No password needed; the link signs you in.`;
+
+  // List items — one per audit, briefly describing what it is.
+  const items = audits
+    .map((a) => {
+      const role =
+        a.documentType === "quote"
+          ? "Renewal quote"
+          : "Policy";
+      return `<li style="margin:0 0 8px;">
+        <strong style="color:#1a1218;">${escape(role)}</strong> &middot;
+        ${escape(a.vehicleLabel)} &middot; ${escape(a.insurerName)}${
+          a.yearLabel ? ` &middot; ${escape(a.yearLabel)}` : ""
+        }
+      </li>`;
+    })
+    .join("");
+
+  const dpdpLine = includeDpdpConsentLine
+    ? `<p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      &middot; By forwarding to RightOffer you&rsquo;ve consented to us processing these documents. Reply with the word DELETE to remove your data.
+    </p>`
+    : "";
+
+  return `<!doctype html>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    ${audits.length} audits attached, plus a side-by-side comparison view at the link below.
+  </div>
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Audits ready &middot;
+    </div>
+
+    <p style="margin:0 0 18px;">${greeting}</p>
+
+    <p style="margin:0 0 18px;">${escape(opener)}</p>
+
+    <p style="margin:0 0 6px;">What&rsquo;s attached:</p>
+    <ul style="margin:0 0 18px 22px;padding:0;color:#1a1218;">${items}</ul>
+
+    <p style="margin:0 0 18px;"><a href="${escape(magicLinkUrl)}" style="color:#3a1e3d;">Open all audits side-by-side &rarr;</a></p>
+
+    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">The web view shows each audit in its own tab and surfaces the comparison between them — what each cover gives you, where the gaps are, and which one comes out ahead.</p>
+
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+
+    <hr style="margin:36px 0 22px;border:none;border-top:1px solid #e6e4e8;" />
+
+    ${dpdpLine}
+    <p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PS &middot; If this landed in Promotions or Spam, drag it to Primary or add <strong style="color:#1a1218;">review@rightoffer.in</strong> to your contacts so future audits arrive cleanly.
+    </p>
+    <p style="margin:0;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PPS &middot; The link above is valid for seven days. If it expires, forward your documents again and I&rsquo;ll send a fresh one.
+    </p>
+  </div>
+</body></html>`;
+}
+
+function renderInboundMultiReplyText({
+  firstName,
+  audits,
+  magicLinkUrl,
+  includeDpdpConsentLine,
+}: Omit<InboundMultiReplyArgs, "to">): string {
+  const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
+  const lines = [
+    `· RightOffer · Audits ready ·`,
+    ``,
+    greeting,
+    ``,
+    `Thanks for forwarding ${
+      audits.length === 2 ? "both documents" : `all ${audits.length} documents`
+    }. I just finished reading each one — the audits are attached as PDFs, and you can also view them side-by-side on the web with one click below. No password needed; the link signs you in.`,
+    ``,
+    `What's attached:`,
+  ];
+  for (const a of audits) {
+    const role = a.documentType === "quote" ? "Renewal quote" : "Policy";
+    const yearBit = a.yearLabel ? ` · ${a.yearLabel}` : "";
+    lines.push(
+      `  · ${role} · ${a.vehicleLabel} · ${a.insurerName}${yearBit}`
+    );
+  }
+  lines.push(
+    ``,
+    `Open all audits side-by-side: ${magicLinkUrl}`,
+    ``,
+    `The web view shows each audit in its own tab and surfaces the comparison between them — what each cover gives you, where the gaps are, and which one comes out ahead.`,
+    ``,
+    `— Aryan`,
+    ``,
+    `———`,
+    ``,
+    ...(includeDpdpConsentLine
+      ? [
+          `· By forwarding to RightOffer you've consented to us processing these documents. Reply with the word DELETE to remove your data.`,
+          ``,
+        ]
+      : []),
+    `PS · If this landed in Promotions or Spam, drag it to Primary or add review@rightoffer.in to your contacts.`,
+    ``,
+    `PPS · The link above is valid for seven days. If it expires, forward your documents again and I'll send a fresh one.`
+  );
+  return lines.join("\n");
+}
+
+// ----------------------------------------------------------------------------
 // Inbound-forward NO-MATCH reply (K5) — sent when a customer forwarded
 // something to review@ but none of the attachments qualify as a motor
 // policy or quote. Same editorial voice as the success reply; different
