@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { waitUntil } from "@vercel/functions";
 import { storeInboxPdf } from "@/lib/blob-store";
+import { runAuditPipeline, type AuditPipelineResult } from "@/lib/audit-pipeline";
 
 /**
  * /api/inbound/email — webhook receiver for the email-forward channel.
@@ -35,11 +37,14 @@ import { storeInboxPdf } from "@/lib/blob-store";
  */
 
 export const runtime = "nodejs";
-// 60s window covers the inbound payload decode + Blob writes. The
-// actual parse + audit (K4) happens via the existing parse pipeline,
-// which can take up to ~120s — we'll fire that via waitUntil so the
-// webhook itself returns fast and Postmark doesn't retry.
-export const maxDuration = 60;
+// 300s covers the inbound payload decode + Blob writes + per-PDF
+// audit pipeline (extractPdfText ~5s + classify ~3s + extract ~25s +
+// generateReport ~30s = ~63s per PDF, with headroom for outlier LLM
+// latency and the rare 2-PDF forward). Postmark's webhook timeout is
+// 30s — anything longer triggers a retry. We work around this by
+// firing the audit work inside waitUntil so the webhook handler
+// itself returns fast.
+export const maxDuration = 300;
 
 /**
  * Subset of the Postmark Inbound webhook payload we actually use.
@@ -72,6 +77,10 @@ interface SavedAttachment {
   sizeBytes: number;
   blobUrl: string;
   inboundId: string;
+  /** Raw PDF bytes — kept on the in-memory record so the audit
+   *  pipeline doesn't need to re-fetch from Blob. waitUntil keeps
+   *  this scope alive past the response. */
+  buffer: Buffer;
 }
 
 /** Maximum size of a single PDF attachment we'll accept. Mirrors the
@@ -177,6 +186,7 @@ export async function POST(request: NextRequest) {
         sizeBytes: attachment.ContentLength,
         blobUrl: blob.url,
         inboundId,
+        buffer,
       });
       console.log(
         `[inbound/email] Stored "${attachment.Name}" (${attachment.ContentLength} bytes) at ${blob.url}`
@@ -189,19 +199,92 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // K4 will pick up from here: for each saved PDF, run the parser,
-  // classify, and if it qualifies as a policy or quote with high or
-  // medium confidence, write a ParsedPolicy row + generate a report
-  // + send a reply email. For now, the webhook just returns success
-  // so we can validate end-to-end plumbing.
+  // Schedule the audit pipeline for each saved PDF in the background.
+  // We return 200 to Postmark within seconds (Postmark's webhook
+  // timeout is 30s and the audit pipeline can take 60-90s per PDF
+  // for the LLM extraction + report generation legs). Running inside
+  // waitUntil means the function keeps executing after the response
+  // is sent, up to maxDuration (300s above).
+  //
+  // Sequential, not parallel, across PDFs in the same forward —
+  // protects against LLM API rate limits and keeps the founder
+  // digest readable when multiple audits happen in one inbound.
+  waitUntil(
+    runAuditsForInboundForward({
+      pdfBuffers: saved.map((s) => ({
+        buffer: s.buffer,
+        name: s.name,
+        inboundId: s.inboundId,
+      })),
+      fromEmail,
+      subject,
+    })
+  );
 
   return NextResponse.json({
     ok: true,
     sender: fromEmail,
     pdfsReceived: pdfAttachments.length,
     pdfsStored: saved.length,
-    note: "K3 scaffold — parsing + reply pipeline lands in K4-K6",
+    note: "audit pipeline scheduled in background; reply email follows when K5/K6 ship",
   });
+}
+
+/**
+ * Background runner — sequences through each stored PDF, runs the
+ * audit pipeline, and logs the outcome. Errors per-PDF are swallowed
+ * so one bad PDF doesn't stop downstream PDFs in the same forward
+ * from being processed.
+ *
+ * K5 wires this to send a polite reply when zero PDFs qualify.
+ * K6 wires this to send the editorial success reply with audit
+ * summaries when one or more PDFs qualify.
+ */
+async function runAuditsForInboundForward(args: {
+  pdfBuffers: Array<{ buffer: Buffer; name: string; inboundId: string }>;
+  fromEmail: string;
+  subject: string;
+}): Promise<void> {
+  const outcomes: AuditPipelineResult[] = [];
+  for (const { buffer, name, inboundId } of args.pdfBuffers) {
+    console.log(
+      `[inbound/email] starting audit for ${name} (inbound=${inboundId}, sender=${args.fromEmail})`
+    );
+    try {
+      const result = await runAuditPipeline({
+        pdfBuffer: buffer,
+        ownerEmail: args.fromEmail,
+        fileName: name,
+        source: "email-forward",
+      });
+      outcomes.push(result);
+      if (result.kind === "audited") {
+        console.log(
+          `[inbound/email] ${name}: audited as ${result.documentType}, parsed=${result.parsedPolicyId}, report=${result.policyReportId ?? "(missing)"}`
+        );
+      } else {
+        console.log(
+          `[inbound/email] ${name}: ${result.kind} (${result.kind === "rejected" ? result.category : result.category})`
+        );
+      }
+    } catch (err) {
+      console.error(
+        `[inbound/email] audit pipeline crashed for ${name}:`,
+        err
+      );
+    }
+  }
+
+  // K5/K6 will inspect `outcomes` and decide which reply to send:
+  // - At least one "audited" → editorial success reply with each audit's
+  //   verdict + link, signed Aryan at the Review Desk
+  // - Zero audited → polite "couldn't find a policy or quote" reply
+  // - All "rejected" with a specific category → courteous category-
+  //   specific reply (eg "this looks like a two-wheeler policy...")
+  const auditedCount = outcomes.filter((o) => o.kind === "audited").length;
+  console.log(
+    `[inbound/email] forward processed: ${outcomes.length} attempt(s), ${auditedCount} audited. Reply pipeline lands in K5/K6.`
+  );
 }
 
 /**
