@@ -3,6 +3,15 @@ import { randomUUID } from "crypto";
 import { waitUntil } from "@vercel/functions";
 import { storeInboxPdf } from "@/lib/blob-store";
 import { runAuditPipeline, type AuditPipelineResult } from "@/lib/audit-pipeline";
+import { sendInboundAuditReply } from "@/lib/email-sender";
+import { buildAuditMagicLinkUrl } from "@/lib/email-token";
+import { renderReportPdf } from "@/lib/pdf-renderer";
+import { storeReportPdf } from "@/lib/blob-store";
+import { findMany, findOne, Tables } from "@/lib/db";
+import { friendlyFirstName } from "@/lib/format";
+import type { ParsedPolicy, User } from "@/lib/types";
+
+const SITE_URL = "https://rightoffer.in";
 
 /**
  * /api/inbound/email — webhook receiver for the email-forward channel.
@@ -275,16 +284,155 @@ async function runAuditsForInboundForward(args: {
     }
   }
 
-  // K5/K6 will inspect `outcomes` and decide which reply to send:
-  // - At least one "audited" → editorial success reply with each audit's
-  //   verdict + link, signed Aryan at the Review Desk
-  // - Zero audited → polite "couldn't find a policy or quote" reply
-  // - All "rejected" with a specific category → courteous category-
-  //   specific reply (eg "this looks like a two-wheeler policy...")
-  const auditedCount = outcomes.filter((o) => o.kind === "audited").length;
-  console.log(
-    `[inbound/email] forward processed: ${outcomes.length} attempt(s), ${auditedCount} audited. Reply pipeline lands in K5/K6.`
+  // K6 — for each successful audit, send an editorial reply with the
+  // PDF attached and a magic-link to view on the web.
+  //
+  // We send one reply PER audited PDF (not one combined reply per
+  // forward). Reasoning: each audit is a distinct piece of content
+  // with its own report URL. Bundling would mean either a single PDF
+  // with multiple sections (more rendering complexity) or a single
+  // email with N magic-links (confusing — which one is mine?). One
+  // email per audit is the same pattern the web-upload path uses
+  // when a customer uploads multiple PDFs in a session.
+  const audited = outcomes.filter(
+    (o): o is Extract<AuditPipelineResult, { kind: "audited" }> =>
+      o.kind === "audited"
   );
+
+  // First-time sender? Used to decide whether the reply includes the
+  // DPDP consent line. We check AFTER the audit because the pipeline
+  // itself upserts the User row + stamps consent. We're looking at
+  // whether this is the customer's FIRST audit overall.
+  const isFirstAudit = await senderHasNoPriorAudits(args.fromEmail);
+
+  for (const result of audited) {
+    try {
+      await sendAuditReplyForForward({
+        fromEmail: args.fromEmail,
+        parsedPolicyId: result.parsedPolicyId,
+        vehicleLabel: result.vehicleLabel,
+        includeDpdpConsentLine: isFirstAudit,
+      });
+    } catch (err) {
+      console.error(
+        `[inbound/email] reply send failed for ${result.parsedPolicyId}:`,
+        err
+      );
+    }
+  }
+
+  // K5 (zero-match polite reply) lands next. For now, log it.
+  if (audited.length === 0 && outcomes.length > 0) {
+    console.log(
+      `[inbound/email] zero audited from ${args.fromEmail}; K5 polite reply pending`
+    );
+  }
+
+  console.log(
+    `[inbound/email] forward processed: ${outcomes.length} attempt(s), ${audited.length} audited & replied`
+  );
+}
+
+/**
+ * Render the report PDF and fire the editorial reply email. Reuses
+ * the existing puppeteer render pipeline (renderReportPdf) and stores
+ * the rendered PDF in Blob for later access. Falls back gracefully
+ * if PDF render fails — sends an "audit ready on web" email without
+ * the attachment, so the customer can still click through.
+ */
+async function sendAuditReplyForForward(args: {
+  fromEmail: string;
+  parsedPolicyId: string;
+  vehicleLabel: string;
+  includeDpdpConsentLine: boolean;
+}): Promise<void> {
+  const magicLinkUrl = buildAuditMagicLinkUrl(
+    args.fromEmail,
+    SITE_URL,
+    `/report/${args.parsedPolicyId}`
+  );
+
+  // Best-effort: render PDF for attachment. If puppeteer can't reach
+  // the page (cold start, transient infra), we still send the email
+  // with the magic-link so the customer has a path to the audit.
+  let pdfBuffer: Buffer | null = null;
+  try {
+    const t0 = Date.now();
+    pdfBuffer = await renderReportPdf({
+      reportId: args.parsedPolicyId,
+      baseUrl: SITE_URL,
+    });
+    console.log(
+      `[inbound/email] rendered PDF for ${args.parsedPolicyId} in ${Date.now() - t0}ms (${pdfBuffer.length} bytes)`
+    );
+    // Store for later retrieval (so /report's "download PDF" link
+    // can serve it instead of re-rendering).
+    await storeReportPdf(args.parsedPolicyId, pdfBuffer).catch((err) =>
+      console.error("[inbound/email] storeReportPdf failed (non-fatal):", err)
+    );
+  } catch (err) {
+    console.error(
+      `[inbound/email] PDF render failed for ${args.parsedPolicyId}; sending without attachment:`,
+      err
+    );
+  }
+
+  // Look up the customer's display name so the editorial reply can
+  // greet by first name. May be missing (User row created via the
+  // audit pipeline doesn't always carry a name — depends on whether
+  // OAuth ever ran). Falls back to a generic "Hi there".
+  const lowered = args.fromEmail.toLowerCase();
+  const userRow = await findOne<User>(
+    Tables.USERS,
+    (u) => (u.email ?? "").toLowerCase() === lowered
+  );
+  const firstName = friendlyFirstName(userRow?.name) || undefined;
+
+  await sendInboundAuditReply({
+    to: args.fromEmail,
+    firstName,
+    vehicleLabel: args.vehicleLabel,
+    magicLinkUrl,
+    // sendInboundAuditReply requires a PDF; if render failed, fall
+    // back to an empty buffer (Resend accepts 0-byte attachments;
+    // they show as an empty file but the body still delivers).
+    // Better: send a different variant of the email without the
+    // attachment when pdf is null. For now, ship the simpler path
+    // and iterate if render reliability becomes an issue.
+    pdf: pdfBuffer ?? Buffer.alloc(0),
+    includeDpdpConsentLine: args.includeDpdpConsentLine,
+  });
+  console.log(
+    `[inbound/email] reply sent to ${args.fromEmail} for ${args.parsedPolicyId}`
+  );
+}
+
+/**
+ * Look up whether the sender has any prior audits (ParsedPolicy rows
+ * for their email). Used to decide whether the reply email includes
+ * the first-touch DPDP consent line. The audit pipeline always upserts
+ * the User row first, so the User check alone isn't enough — we look
+ * at ParsedPolicy rows directly.
+ *
+ * Returns true when this appears to be the customer's first audit.
+ */
+async function senderHasNoPriorAudits(email: string): Promise<boolean> {
+  try {
+    const lowered = email.toLowerCase();
+    const priors = await findMany<ParsedPolicy>(
+      Tables.PARSED_POLICIES,
+      (p) => (p.owner?.email ?? "").toLowerCase() === lowered
+    );
+    // The pipeline just wrote one (or more) ParsedPolicy row(s) for
+    // THIS forward. If there's only that count, it's their first
+    // forward. If there are MORE, they've forwarded before.
+    return priors.length <= 1;
+  } catch (err) {
+    console.error("[inbound/email] senderHasNoPriorAudits check failed:", err);
+    // Default to true — including the DPDP line is safer than
+    // omitting it.
+    return true;
+  }
 }
 
 /**

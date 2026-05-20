@@ -34,6 +34,15 @@ const REMINDER_FROM = "Aryan from RightOffer <hello@rightoffer.in>";
 // editorial, not marketing-y.
 const REPORT_FROM = "Aryan at RightOffer <hello@rightoffer.in>";
 
+// Inbound-forward replies — when a customer forwards a policy to
+// review@rightoffer.in, this is the From we use in the reply. The
+// sending domain stays rightoffer.in (already DKIM/SPF-verified at
+// Resend), but the local-part shifts to review@ so the stream
+// builds its own reputation independent of OTP/reminder/report-
+// delivery. Reply-To stays hello@ so any human reply lands in the
+// real mailbox (not the auto-processing webhook).
+const INBOUND_REPLY_FROM = "Aryan at the Review Desk <review@rightoffer.in>";
+
 let cached: Resend | null = null;
 function client(): Resend {
   if (cached) return cached;
@@ -756,5 +765,160 @@ function renderAnniversaryText({
     `PS · If this landed in Promotions or Spam, drag it to Primary or add hello@rightoffer.in to your contacts.`,
     ``,
     `PPS · Don't want these? Unsubscribe: ${unsubscribeUrl}`,
+  ].join("\n");
+}
+
+// ----------------------------------------------------------------------------
+// Inbound-forward reply (K6) — customer forwarded a policy to review@,
+// the audit pipeline ran in the background, this is the editorial reply
+// that closes the loop with the PDF attached and a magic-link to view.
+//
+// Key UX difference from sendReportEmail:
+//   - Subject acknowledges the forward they just did
+//   - Body opens with "Just read your <vehicle> policy" — Aryan-perspective
+//   - The "view on web" link is a magic-link that auto-signs them in
+//     (no OTP needed; the forward IS the verification)
+//   - DPDP consent line included since this is their first inbound contact
+//   - PDF attached
+// ----------------------------------------------------------------------------
+
+interface InboundReplyArgs {
+  to: string;
+  firstName?: string;
+  vehicleLabel: string;
+  /** Magic-link URL — auto-signs the customer in and lands them on
+   *  /report/[id]. From buildAuditMagicLinkUrl. */
+  magicLinkUrl: string;
+  /** Pre-rendered audit PDF — attached to the email. */
+  pdf: Buffer;
+  /** Whether this is the customer's first audit with us. When true,
+   *  the reply includes the DPDP consent line. Subsequent audits skip
+   *  the line to avoid every reply reading like a fresh-onboarding
+   *  email. */
+  includeDpdpConsentLine: boolean;
+}
+
+export async function sendInboundAuditReply({
+  to,
+  firstName,
+  vehicleLabel,
+  magicLinkUrl,
+  pdf,
+  includeDpdpConsentLine,
+}: InboundReplyArgs): Promise<void> {
+  const subject = `${vehicleLabel} audit ready`;
+
+  const html = renderInboundReplyHtml({
+    firstName,
+    vehicleLabel,
+    magicLinkUrl,
+    includeDpdpConsentLine,
+  });
+  const text = renderInboundReplyText({
+    firstName,
+    vehicleLabel,
+    magicLinkUrl,
+    includeDpdpConsentLine,
+  });
+
+  const { error } = await client().emails.send({
+    from: INBOUND_REPLY_FROM,
+    // Reply-To stays hello@ so a "thanks Aryan" reply lands in the
+    // human mailbox, NOT in the review@ webhook (which would try to
+    // audit the thank-you as if it were a policy).
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+    attachments: [
+      {
+        filename: "rightoffer-motor-insurance-review.pdf",
+        content: pdf,
+      },
+    ],
+  });
+
+  if (error) {
+    throw new Error(`Resend (inbound-reply) failed: ${error.message}`);
+  }
+}
+
+function renderInboundReplyHtml({
+  firstName,
+  vehicleLabel,
+  magicLinkUrl,
+  includeDpdpConsentLine,
+}: Omit<InboundReplyArgs, "to" | "pdf">): string {
+  const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
+  const dpdpLine = includeDpdpConsentLine
+    ? `<p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      &middot; By forwarding to RightOffer you&rsquo;ve consented to us processing this document. Reply with the word DELETE to remove your data.
+    </p>`
+    : "";
+  return `<!doctype html>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Your ${escape(vehicleLabel)} audit is attached, with a one-click link to view it on the web.
+  </div>
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Audit ready &middot;
+    </div>
+
+    <p style="margin:0 0 18px;">${greeting}</p>
+
+    <p style="margin:0 0 18px;">Thanks for forwarding your policy. I just read every line of your <em style="font-style:italic;color:#3a1e3d;">${escape(vehicleLabel)}</em> cover &mdash; the audit is attached as a PDF, and you can also view it on the web with one click below. No password needed; the link signs you in.</p>
+
+    <p style="margin:0 0 18px;"><a href="${escape(magicLinkUrl)}" style="color:#3a1e3d;">View your full audit &rarr;</a></p>
+
+    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">If you have a renewal quote, just forward it here next &mdash; I&rsquo;ll re-read it the same way.</p>
+
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+
+    <hr style="margin:36px 0 22px;border:none;border-top:1px solid #e6e4e8;" />
+
+    ${dpdpLine}
+    <p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PS &middot; If this landed in Promotions or Spam, drag it to Primary or add <strong style="color:#1a1218;">review@rightoffer.in</strong> to your contacts so future audits arrive cleanly.
+    </p>
+    <p style="margin:0;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PPS &middot; The link above is valid for seven days. If it expires, just forward your policy again and I&rsquo;ll send a fresh one.
+    </p>
+  </div>
+</body></html>`;
+}
+
+function renderInboundReplyText({
+  firstName,
+  vehicleLabel,
+  magicLinkUrl,
+  includeDpdpConsentLine,
+}: Omit<InboundReplyArgs, "to" | "pdf">): string {
+  const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
+  return [
+    `· RightOffer · Audit ready ·`,
+    ``,
+    greeting,
+    ``,
+    `Thanks for forwarding your policy. I just read every line of your ${vehicleLabel} cover — the audit is attached as a PDF, and you can also view it on the web with one click below. No password needed; the link signs you in.`,
+    ``,
+    `View your full audit: ${magicLinkUrl}`,
+    ``,
+    `If you have a renewal quote, just forward it here next — I'll re-read it the same way.`,
+    ``,
+    `— Aryan`,
+    ``,
+    `———`,
+    ``,
+    ...(includeDpdpConsentLine
+      ? [
+          `· By forwarding to RightOffer you've consented to us processing this document. Reply with the word DELETE to remove your data.`,
+          ``,
+        ]
+      : []),
+    `PS · If this landed in Promotions or Spam, drag it to Primary or add review@rightoffer.in to your contacts.`,
+    ``,
+    `PPS · The link above is valid for seven days. If it expires, just forward your policy again and I'll send a fresh one.`,
   ].join("\n");
 }

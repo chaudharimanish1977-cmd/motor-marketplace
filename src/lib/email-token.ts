@@ -145,6 +145,36 @@ export function buildMagicLinkUrl(email: string, origin: string): string {
   return `${base}/me/auth/${token}`;
 }
 
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Magic-link for email-forward audit replies. Different expiry from
+ * the standard buildMagicLinkUrl (15 min) — when a customer forwards
+ * their policy, they may not check the inbox for the reply email
+ * until hours or a day later. 7-day window is the sweet spot: long
+ * enough that the link works even when the customer comes back the
+ * next morning, short enough to limit blast radius if the inbox is
+ * compromised.
+ *
+ * The `nextPath` is appended as `?next=<encoded>` so the magic-link
+ * route deep-links to the specified page after setting the session.
+ * Caller is responsible for passing a same-origin path; the route
+ * does its own safety check.
+ */
+export function buildAuditMagicLinkUrl(
+  email: string,
+  origin: string,
+  nextPath: string
+): string {
+  const token = signToken({
+    t: "login",
+    s: email.toLowerCase().trim(),
+    e: Date.now() + SEVEN_DAYS_MS,
+  });
+  const base = origin.replace(/\/+$/, "");
+  return `${base}/me/auth/${token}?next=${encodeURIComponent(nextPath)}`;
+}
+
 /** Default session lifetime: 30 days. */
 export const SESSION_TTL_MS = THIRTY_DAYS_MS;
 
