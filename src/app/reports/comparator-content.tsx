@@ -38,8 +38,15 @@ interface Props {
   quoteScores: ComparisonQuoteScore[];
   verdict: ComparisonVerdict;
   docs: ParsedPolicy[];
-  rightOfferPick: RightOfferPick;
+  /** Synthetic insurer pitch — only present when marketplace is on.
+   *  When null, the RightOfferPickCard is hidden and the verdict
+   *  block reads in audit-only language. */
+  rightOfferPick: RightOfferPick | null;
   showGate: boolean;
+  /** Whether the marketplace pitch surfaces (RightOfferPickCard,
+   *  "Right Offer" branding in headers, "Right Offer pick"-aware
+   *  verdict copy). False in Phase 1 audit-only mode. */
+  marketplaceEnabled: boolean;
 }
 
 export function ComparatorContent({
@@ -50,35 +57,61 @@ export function ComparatorContent({
   docs,
   rightOfferPick,
   showGate,
+  marketplaceEnabled,
 }: Props) {
   const docById = new Map(docs.map((d) => [d.id, d]));
+
+  // Header/badge labels swap between the two modes:
+  //   marketplace ON  → "Right Offer comparator" + RCP card lists "Right
+  //                      Offer profile" + verdict reads "Right Offer verdict"
+  //   marketplace OFF → "Comparison" + RCP card lists "Recommended cover"
+  //                      + verdict reads "Verdict"
+  // Same engine, different framing — the audit value (cover deltas,
+  // gap analysis, ranking) is identical; only the marketplace-pitch
+  // language gets stripped.
+  const headerBadge = marketplaceEnabled
+    ? "Right Offer comparator"
+    : "Comparison";
+  const subtitleSuffix = marketplaceEnabled
+    ? "against the Right Offer profile for this car"
+    : "side by side";
 
   return (
     <div className="space-y-6">
       <header className="space-y-1.5">
         <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full">
           <Sparkles className="w-3.5 h-3.5" />
-          Right Offer comparator
+          {headerBadge}
         </div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-brand-charcoal flex items-center gap-2">
           {vehicleLabel}
         </h1>
         <p className="text-sm text-brand-slate">
           {quoteScores.length}{" "}
-          {quoteScores.length === 1 ? "document" : "documents"} compared
-          against the Right Offer profile for this car
+          {quoteScores.length === 1 ? "document" : "documents"} compared{" "}
+          {subtitleSuffix}
         </p>
       </header>
 
-      <RcpBlock rcp={rcp} vehicleLabel={vehicleLabel} />
+      <RcpBlock
+        rcp={rcp}
+        vehicleLabel={vehicleLabel}
+        marketplaceEnabled={marketplaceEnabled}
+      />
 
       {showGate && <ReportGate />}
 
       {!showGate && (
         <>
           <QuotesBlock quoteScores={quoteScores} docById={docById} />
-          <RightOfferPickCard pick={rightOfferPick} />
-          <VerdictBlock verdict={verdict} docs={docs} />
+          {marketplaceEnabled && rightOfferPick && (
+            <RightOfferPickCard pick={rightOfferPick} />
+          )}
+          <VerdictBlock
+            verdict={verdict}
+            docs={docs}
+            marketplaceEnabled={marketplaceEnabled}
+          />
         </>
       )}
     </div>
@@ -89,9 +122,11 @@ export function ComparatorContent({
 function RcpBlock({
   rcp,
   vehicleLabel,
+  marketplaceEnabled,
 }: {
   rcp: ComparisonRcpSnapshot;
   vehicleLabel: string;
+  marketplaceEnabled: boolean;
 }) {
   return (
     <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
@@ -101,7 +136,9 @@ function RcpBlock({
           What we recommend
         </div>
         <h2 className="mt-1.5 text-lg md:text-xl font-bold text-brand-charcoal tracking-tight">
-          The Right Offer profile for your {vehicleLabel}
+          {marketplaceEnabled
+            ? `The Right Offer profile for your ${vehicleLabel}`
+            : `Recommended cover for your ${vehicleLabel}`}
         </h2>
         <p className="mt-1.5 text-xs text-brand-slate leading-relaxed">
           The coverage we believe is right for your car &amp; profile.
@@ -441,9 +478,11 @@ function RightOfferPickCard({ pick }: { pick: RightOfferPick }) {
 function VerdictBlock({
   verdict,
   docs,
+  marketplaceEnabled,
 }: {
   verdict: ComparisonVerdict;
   docs: ParsedPolicy[];
+  marketplaceEnabled: boolean;
 }) {
   const tone =
     verdict.type === "take_existing"
@@ -486,7 +525,7 @@ function VerdictBlock({
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-slate">
-            Right Offer verdict
+            {marketplaceEnabled ? "Right Offer verdict" : "Verdict"}
           </div>
           <h3 className="mt-1 text-lg md:text-xl font-bold text-brand-charcoal leading-tight">
             {verdict.headline}

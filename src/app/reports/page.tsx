@@ -156,13 +156,13 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   // Build the tab list.
   const tabs: TabDef[] = [];
   // Comparator first (sortedDocs.length >= 2 always here — single-doc
-  // redirected above). Phase 1 segregation: the comparator scores
-  // uploaded quotes against the Right Offer profile, which is part of
-  // the marketplace flow. Hide it in production until V2 — customers
-  // can still view each individual doc via its per-doc tab.
-  if (isMarketplaceEnabled()) {
-    tabs.push({ id: "comparator", label: "Comparator" });
-  }
+  // redirected above). The comparator is shown whenever 2+ docs are
+  // present, independent of the marketplace flag. The marketplace-
+  // flavoured content (synthetic Right Offer pick) is hidden when the
+  // flag is off; the audit-only content (cover deltas across the
+  // customer's own docs) remains useful in either mode.
+  tabs.push({ id: "comparator", label: "Comparator" });
+  const marketplaceEnabled = isMarketplaceEnabled();
   for (const doc of sortedDocs) {
     const docType = doc.documentType ?? "policy";
     const insurerFirstWord = doc.insurerName?.split(" ")[0] ?? "";
@@ -213,25 +213,30 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         isExactlyRcp: result.isExactlyRcp,
       };
     });
-    // Generate our indicative Right Offer pick — the differentiated
-    // recommendation we pitch alongside the customer's quotes.
-    const rightOfferPick = generateRightOfferPick({
-      rcp: rcpFull,
-      customerQuotes: quoteScores.map((qs) => {
-        const doc = sortedDocs.find((d) => d.id === qs.quoteId);
-        return {
-          grandTotal: qs.grandTotal,
-          basicOd: doc?.premium?.basicOd,
-          basicTp: doc?.premium?.basicTp,
-          isRcpComplete: qs.isRcpComplete,
-          isExactlyRcp: qs.isExactlyRcp,
-          missingRequired: qs.missingRequired,
-          extraNonRcp: qs.extraNonRcp,
-          insurerName: qs.insurerName,
-        };
-      }),
-      anchor,
-    });
+    // The "Right Offer pick" (a synthetic insurer offer pitched alongside
+    // the customer's own quotes) is marketplace flavour. We only generate
+    // and surface it when the marketplace flag is on. With the flag off,
+    // the comparator stays purely audit-flavoured: customer's own docs
+    // compared against the recommended profile, no synthetic pitch.
+    const rightOfferPick = marketplaceEnabled
+      ? generateRightOfferPick({
+          rcp: rcpFull,
+          customerQuotes: quoteScores.map((qs) => {
+            const doc = sortedDocs.find((d) => d.id === qs.quoteId);
+            return {
+              grandTotal: qs.grandTotal,
+              basicOd: doc?.premium?.basicOd,
+              basicTp: doc?.premium?.basicTp,
+              isRcpComplete: qs.isRcpComplete,
+              isExactlyRcp: qs.isExactlyRcp,
+              missingRequired: qs.missingRequired,
+              extraNonRcp: qs.extraNonRcp,
+              insurerName: qs.insurerName,
+            };
+          }),
+          anchor,
+        })
+      : null;
 
     const verdict = computeVerdict(quoteScores, rightOfferPick);
     const vehicleLabel =
@@ -247,6 +252,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         docs={sortedDocs}
         rightOfferPick={rightOfferPick}
         showGate={showGate}
+        marketplaceEnabled={marketplaceEnabled}
       />
     );
   }
@@ -345,17 +351,78 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 // ----------------------------------------------------------------------------
 function computeVerdict(
   quoteScores: ComparisonQuoteScore[],
-  rightOfferPick: RightOfferPick
+  rightOfferPick: RightOfferPick | null
 ): ComparisonVerdict {
   if (quoteScores.length === 0) {
     return {
       type: "needs_attention",
       headline: "No quotes to compare yet.",
       body:
-        "Upload at least one renewal quote and we'll score it against the Right Offer profile for your car.",
+        "Upload at least one renewal quote and we'll score it against the recommended profile for your car.",
     };
   }
 
+  // ---- Audit-only path: no synthetic pitch, just rank the customer's
+  //      own docs by RCP-completeness + price. Used when the marketplace
+  //      flag is off (Phase 1 audit-only product).
+  if (!rightOfferPick) {
+    const exactlyRcp = quoteScores
+      .filter((q) => q.isExactlyRcp)
+      .sort((a, b) => a.grandTotal - b.grandTotal);
+    if (exactlyRcp.length > 0) {
+      const winner = exactlyRcp[0];
+      return {
+        type: "take_existing",
+        headline: `${winner.insurerName} comes out ahead.`,
+        body: `Covers every recommendation at ₹${winner.grandTotal.toLocaleString(
+          "en-IN"
+        )} — no missing essentials, no padding. The cleanest option among what you've forwarded.`,
+        recommendedQuoteId: winner.quoteId,
+      };
+    }
+
+    const rcpComplete = quoteScores
+      .filter((q) => q.isRcpComplete)
+      .sort((a, b) => a.grandTotal - b.grandTotal);
+    if (rcpComplete.length > 0) {
+      const winner = rcpComplete[0];
+      const extras = winner.extraNonRcp.length
+        ? ` (with ${winner.extraNonRcp.join(", ")} thrown in)`
+        : "";
+      return {
+        type: "take_existing",
+        headline: `${winner.insurerName} comes out ahead.`,
+        body: `Covers everything we recommend${extras} at ₹${winner.grandTotal.toLocaleString(
+          "en-IN"
+        )} — the most complete cover among what you've forwarded.`,
+        recommendedQuoteId: winner.quoteId,
+      };
+    }
+
+    // No quote is RCP-complete — surface the closest one and what's missing.
+    const sorted = quoteScores
+      .map((q) => ({
+        q,
+        missingCount: q.missingRequired.length,
+      }))
+      .sort(
+        (a, b) =>
+          a.missingCount - b.missingCount || a.q.grandTotal - b.q.grandTotal
+      );
+    const closest = sorted[0].q;
+    const missingList = closest.missingRequired.join(", ");
+    return {
+      type: "needs_attention",
+      headline: `Closest fit: ${closest.insurerName}, but with gaps.`,
+      body: `Missing ${missingList}. Worth asking the insurer to add ${
+        closest.missingRequired.length === 1 ? "this" : "these"
+      } before you bind — or shop around for a quote that already includes them.`,
+      recommendedQuoteId: closest.quoteId,
+    };
+  }
+
+  // ---- Marketplace path: synthetic pitch comparing customer quotes to
+  //      our Right Offer pick. Unchanged from prior behaviour.
   const ourPrice = rightOfferPick.grandTotal;
 
   // Cheapest customer quote that's exactly RCP-complete (no padding).
