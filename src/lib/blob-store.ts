@@ -47,3 +47,30 @@ export async function storePolicyPdf(
     downloadUrl: res.downloadUrl,
   };
 }
+
+/**
+ * Persist a PDF arriving via the email-forward inbound channel (Postmark).
+ * Stored under a separate prefix so it's clear by URL which channel
+ * brought the PDF in — useful for debugging and for any future analytics
+ * on inbound-channel performance.
+ *
+ * Once the PDF is classified + accepted as a policy/quote, the parse
+ * pipeline (api/inbound/email -> K4) will re-store it under policies/
+ * with a stable ID via storePolicyPdf. The inbox/ copy stays as the
+ * raw-arrival archive for traceability.
+ */
+export async function storeInboxPdf(
+  inboundId: string,
+  pdf: Buffer
+): Promise<{ url: string; downloadUrl: string }> {
+  const key = `inbox/${inboundId}.pdf`;
+  const res = await put(key, pdf, {
+    access: "public",
+    contentType: "application/pdf",
+    addRandomSuffix: true,
+  });
+  return {
+    url: res.url,
+    downloadUrl: res.downloadUrl,
+  };
+}
