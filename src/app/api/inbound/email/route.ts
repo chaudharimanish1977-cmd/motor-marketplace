@@ -82,14 +82,16 @@ const useKv = !!process.env.KV_REST_API_URL;
  */
 
 export const runtime = "nodejs";
-// 300s covers the inbound payload decode + Blob writes + per-PDF
-// audit pipeline (extractPdfText ~5s + classify ~3s + extract ~25s +
-// generateReport ~30s = ~63s per PDF, with headroom for outlier LLM
-// latency and the rare 2-PDF forward). Postmark's webhook timeout is
-// 30s — anything longer triggers a retry. We work around this by
-// firing the audit work inside waitUntil so the webhook handler
-// itself returns fast.
-export const maxDuration = 300;
+// 600s covers the worst-case 3-PDF forward end-to-end:
+//   · Audit pipeline (sequential): 3 docs × ~60s = ~180s
+//   · PDF rendering (now serial after the parallel-memory bug): 3 ×
+//     ~30s = ~90s
+//   · Resend send + logging: ~5s
+//   Total typical: ~275s. Worst-case outlier LLM latency: ~400s.
+// Postmark's webhook timeout is 30s — we work around it by firing
+// all the work inside waitUntil so the webhook returns 200 fast.
+// 600s gives breathing room without going to Vercel's 900s ceiling.
+export const maxDuration = 600;
 
 /**
  * Subset of the Postmark Inbound webhook payload we actually use.
@@ -606,72 +608,69 @@ async function sendConsolidatedReplyForForward(args: {
     "/reports"
   );
 
-  // Render each audit PDF in parallel + look up ParsedPolicy for
-  // insurer/year metadata. Skip any audit whose PDF render fails or
-  // whose ParsedPolicy lookup fails — they still appear in the body
-  // line list but not as attachments.
-  const enrichedAudits = await Promise.all(
-    args.audits.map(async (audit) => {
+  // Render each audit PDF SEQUENTIALLY. Earlier attempts at parallel
+  // rendering with Promise.all blew the Vercel function's memory
+  // budget — each puppeteer/chromium instance uses ~150-200MB and 3
+  // in parallel hit the 1024MB limit, causing the function to time
+  // out at 300s with no reply ever sent.
+  //
+  // Serial rendering trades ~30-60s of wall-clock time (negligible
+  // inside waitUntil) for predictable memory + reliable delivery.
+  // Each render also gets its own try/catch — if one PDF can't render
+  // (cold start hiccup, page errored), the others still go through
+  // and the email ships with whatever rendered successfully.
+  const validAttachments: InboundMultiAuditAttachment[] = [];
+  for (const audit of args.audits) {
+    try {
+      const parsed = await findById<ParsedPolicy>(
+        Tables.PARSED_POLICIES,
+        audit.parsedPolicyId
+      );
+      if (!parsed) continue;
+
+      const t0 = Date.now();
+      let pdf: Buffer;
       try {
-        const parsed = await findById<ParsedPolicy>(
-          Tables.PARSED_POLICIES,
-          audit.parsedPolicyId
+        pdf = await renderReportPdf({
+          reportId: audit.parsedPolicyId,
+          baseUrl: SITE_URL,
+        });
+        console.log(
+          `[inbound/email] rendered PDF for ${audit.parsedPolicyId} in ${Date.now() - t0}ms`
         );
-        if (!parsed) return null;
-
-        // Render PDF (best-effort, ~15-30s per render)
-        let pdf: Buffer;
-        try {
-          const t0 = Date.now();
-          pdf = await renderReportPdf({
-            reportId: audit.parsedPolicyId,
-            baseUrl: SITE_URL,
-          });
-          console.log(
-            `[inbound/email] rendered PDF for ${audit.parsedPolicyId} in ${Date.now() - t0}ms`
-          );
-          // Cache the rendered PDF so subsequent visits don't re-render.
-          await storeReportPdf(audit.parsedPolicyId, pdf).catch((err) =>
-            console.error(
-              `[inbound/email] storeReportPdf failed for ${audit.parsedPolicyId} (non-fatal):`,
-              err
-            )
-          );
-        } catch (err) {
+        // Cache the rendered PDF so subsequent visits don't re-render.
+        await storeReportPdf(audit.parsedPolicyId, pdf).catch((err) =>
           console.error(
-            `[inbound/email] PDF render failed for ${audit.parsedPolicyId}:`,
+            `[inbound/email] storeReportPdf failed for ${audit.parsedPolicyId} (non-fatal):`,
             err
-          );
-          // Skip this attachment — but the audit still appears in the
-          // body list since enrichedAudits will be filtered separately.
-          return null;
-        }
-
-        const yearLabel = parsed.odPeriodEnd
-          ? new Date(parsed.odPeriodEnd).getFullYear().toString()
-          : "";
-
-        const attachment: InboundMultiAuditAttachment = {
-          vehicleLabel: audit.vehicleLabel,
-          documentType: audit.documentType,
-          insurerName: parsed.insurerName || "audit",
-          yearLabel,
-          pdf,
-        };
-        return attachment;
+          )
+        );
       } catch (err) {
         console.error(
-          `[inbound/email] enrichment failed for ${audit.parsedPolicyId}:`,
+          `[inbound/email] PDF render failed for ${audit.parsedPolicyId} (skipping attachment):`,
           err
         );
-        return null;
+        continue;
       }
-    })
-  );
 
-  const validAttachments = enrichedAudits.filter(
-    (a): a is InboundMultiAuditAttachment => a !== null
-  );
+      const yearLabel = parsed.odPeriodEnd
+        ? new Date(parsed.odPeriodEnd).getFullYear().toString()
+        : "";
+
+      validAttachments.push({
+        vehicleLabel: audit.vehicleLabel,
+        documentType: audit.documentType,
+        insurerName: parsed.insurerName || "audit",
+        yearLabel,
+        pdf,
+      });
+    } catch (err) {
+      console.error(
+        `[inbound/email] enrichment failed for ${audit.parsedPolicyId}:`,
+        err
+      );
+    }
+  }
 
   if (validAttachments.length === 0) {
     console.error(
