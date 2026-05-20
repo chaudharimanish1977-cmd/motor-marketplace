@@ -889,6 +889,149 @@ function renderInboundReplyHtml({
 </body></html>`;
 }
 
+// ----------------------------------------------------------------------------
+// Inbound-forward NO-MATCH reply (K5) — sent when a customer forwarded
+// something to review@ but none of the attachments qualify as a motor
+// policy or quote. Same editorial voice as the success reply; different
+// content: courteously explains what we couldn't do and what to try next.
+// No PDF attachment.
+// ----------------------------------------------------------------------------
+
+/** Why the forward didn't yield an audit. Drives the opening line of
+ *  the polite reply so it can be specific where possible. */
+export type InboundNoMatchReason =
+  | { kind: "no-pdf" }
+  | { kind: "not-a-policy" }
+  | { kind: "wrong-vehicle-class"; vehicleClass: string }
+  | { kind: "scanned-image" };
+
+interface InboundNoMatchArgs {
+  to: string;
+  firstName?: string;
+  reason: InboundNoMatchReason;
+  includeDpdpConsentLine: boolean;
+}
+
+export async function sendInboundNoMatchReply({
+  to,
+  firstName,
+  reason,
+  includeDpdpConsentLine,
+}: InboundNoMatchArgs): Promise<void> {
+  // Subject deliberately non-alarming and non-spammy. No exclamation,
+  // no "OOPS", no "ERROR". The customer did nothing wrong — we just
+  // couldn't help with what they sent.
+  const subject = "About what you forwarded";
+
+  const html = renderInboundNoMatchHtml({
+    firstName,
+    reason,
+    includeDpdpConsentLine,
+  });
+  const text = renderInboundNoMatchText({
+    firstName,
+    reason,
+    includeDpdpConsentLine,
+  });
+
+  const { error } = await client().emails.send({
+    from: INBOUND_REPLY_FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+  });
+
+  if (error) {
+    throw new Error(`Resend (inbound-no-match) failed: ${error.message}`);
+  }
+}
+
+/** Editorial copy for each non-match reason. Single source of truth so
+ *  HTML + text renderers stay in sync. */
+function noMatchOpener(reason: InboundNoMatchReason): string {
+  switch (reason.kind) {
+    case "no-pdf":
+      return "Thanks for sending that across — but I couldn't find any PDF attachment in what you forwarded. If you have your policy or renewal quote as a file, try forwarding the email it arrived in (the one from your insurer with the PDF attached).";
+    case "not-a-policy":
+      return "Thanks for forwarding that. I had a careful look, but what you sent doesn't seem to be a motor insurance policy or renewal quote. If you intended to send one and it's still in your inbox, try forwarding the original insurer email.";
+    case "wrong-vehicle-class":
+      return `Thanks for forwarding that. What you sent looks like a ${reason.vehicleClass} policy — we only review private four-wheeler insurance right now. If you have a car policy, send that across and I'll read it the same way.`;
+    case "scanned-image":
+      return "Thanks for forwarding that. The PDF looks like a scanned image, which I can't read yet — I need a text-PDF that your insurer typically issues by email or via their app. Try pulling the original digital copy rather than a scan and forward it again.";
+  }
+}
+
+function renderInboundNoMatchHtml({
+  firstName,
+  reason,
+  includeDpdpConsentLine,
+}: Omit<InboundNoMatchArgs, "to">): string {
+  const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
+  const opener = escape(noMatchOpener(reason));
+  const dpdpLine = includeDpdpConsentLine
+    ? `<p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      &middot; By forwarding to RightOffer you&rsquo;ve consented to us processing this document. Reply with the word DELETE to remove your data.
+    </p>`
+    : "";
+  return `<!doctype html>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Couldn't find a motor policy or quote in your forward. Try forwarding the original insurer email.
+  </div>
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Review desk &middot;
+    </div>
+
+    <p style="margin:0 0 18px;">${greeting}</p>
+
+    <p style="margin:0 0 18px;">${opener}</p>
+
+    <p style="margin:0 0 18px;">You can also drop the policy directly at <a href="https://rightoffer.in/upload" style="color:#3a1e3d;">rightoffer.in/upload</a> if forwarding is awkward &mdash; same audit, same Aryan.</p>
+
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+
+    <hr style="margin:36px 0 22px;border:none;border-top:1px solid #e6e4e8;" />
+
+    ${dpdpLine}
+    <p style="margin:0;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      PS &middot; If this landed in Promotions or Spam, drag it to Primary or add <strong style="color:#1a1218;">review@rightoffer.in</strong> to your contacts so future replies arrive cleanly.
+    </p>
+  </div>
+</body></html>`;
+}
+
+function renderInboundNoMatchText({
+  firstName,
+  reason,
+  includeDpdpConsentLine,
+}: Omit<InboundNoMatchArgs, "to">): string {
+  const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
+  return [
+    `· RightOffer · Review desk ·`,
+    ``,
+    greeting,
+    ``,
+    noMatchOpener(reason),
+    ``,
+    `You can also drop the policy directly at https://rightoffer.in/upload if forwarding is awkward — same audit, same Aryan.`,
+    ``,
+    `— Aryan`,
+    ``,
+    `———`,
+    ``,
+    ...(includeDpdpConsentLine
+      ? [
+          `· By forwarding to RightOffer you've consented to us processing this document. Reply with the word DELETE to remove your data.`,
+          ``,
+        ]
+      : []),
+    `PS · If this landed in Promotions or Spam, drag it to Primary or add review@rightoffer.in to your contacts.`,
+  ].join("\n");
+}
+
 function renderInboundReplyText({
   firstName,
   vehicleLabel,

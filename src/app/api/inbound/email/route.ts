@@ -3,7 +3,11 @@ import { randomUUID } from "crypto";
 import { waitUntil } from "@vercel/functions";
 import { storeInboxPdf } from "@/lib/blob-store";
 import { runAuditPipeline, type AuditPipelineResult } from "@/lib/audit-pipeline";
-import { sendInboundAuditReply } from "@/lib/email-sender";
+import {
+  sendInboundAuditReply,
+  sendInboundNoMatchReply,
+  type InboundNoMatchReason,
+} from "@/lib/email-sender";
 import { buildAuditMagicLinkUrl } from "@/lib/email-token";
 import { renderReportPdf } from "@/lib/pdf-renderer";
 import { storeReportPdf } from "@/lib/blob-store";
@@ -150,15 +154,23 @@ export async function POST(request: NextRequest) {
   }
 
   if (pdfAttachments.length === 0) {
-    // K5 will replace this log with a polite "no policy found" reply.
+    // No PDFs in the forward at all (customer might've forwarded a
+    // confirmation email without attachment, or just plain text).
+    // Send a polite no-match reply and return 200 to Postmark.
     console.log(
-      `[inbound/email] No PDFs found in forward from ${fromEmail}; K5 reply pending`
+      `[inbound/email] No PDFs found in forward from ${fromEmail}; sending no-pdf reply`
+    );
+    waitUntil(
+      sendNoMatchReplyForForward({
+        fromEmail,
+        reason: { kind: "no-pdf" },
+      })
     );
     return NextResponse.json({
       ok: true,
       sender: fromEmail,
       pdfsReceived: 0,
-      note: "no PDFs — K5 polite reply will trigger here once wired",
+      reply: "no-pdf",
     });
   }
 
@@ -321,16 +333,101 @@ async function runAuditsForInboundForward(args: {
     }
   }
 
-  // K5 (zero-match polite reply) lands next. For now, log it.
+  // Zero successful audits → fire the polite no-match reply. Context-
+  // aware: if the classifier rejected a specific vehicle class, surface
+  // that in the reply opener. Otherwise the reply is generic.
   if (audited.length === 0 && outcomes.length > 0) {
+    const reason = inferNoMatchReason(outcomes);
     console.log(
-      `[inbound/email] zero audited from ${args.fromEmail}; K5 polite reply pending`
+      `[inbound/email] zero audited from ${args.fromEmail}; sending no-match reply (kind=${reason.kind})`
     );
+    try {
+      await sendNoMatchReplyForForward({
+        fromEmail: args.fromEmail,
+        reason,
+      });
+    } catch (err) {
+      console.error(
+        `[inbound/email] no-match reply send failed:`,
+        err
+      );
+    }
   }
 
   console.log(
     `[inbound/email] forward processed: ${outcomes.length} attempt(s), ${audited.length} audited & replied`
   );
+}
+
+/**
+ * Pick the most-informative no-match reason from a set of failed
+ * audit outcomes. Priority (informative → generic):
+ *   1. wrong-vehicle-class — best signal we can give the customer
+ *   2. scanned-image — same: they can fix this by sending the digital PDF
+ *   3. generic not-a-policy — fall-through when we don't know more
+ *
+ * When multiple PDFs were forwarded with different rejection reasons,
+ * we pick the most specific one for the reply. Reasoning: the customer
+ * almost always meant to send their main policy; if even one PDF
+ * rejected for a specific reason, that's likely the one they meant.
+ */
+function inferNoMatchReason(
+  outcomes: AuditPipelineResult[]
+): InboundNoMatchReason {
+  // Look for wrong-vehicle-class first
+  const wrongClass = outcomes.find(
+    (o): o is Extract<AuditPipelineResult, { kind: "rejected" }> =>
+      o.kind === "rejected" &&
+      (o.category === "two-wheeler" || o.category === "commercial-vehicle")
+  );
+  if (wrongClass) {
+    const label =
+      wrongClass.category === "two-wheeler"
+        ? "two-wheeler"
+        : "commercial vehicle";
+    return { kind: "wrong-vehicle-class", vehicleClass: label };
+  }
+
+  // Then scanned-image
+  if (outcomes.some((o) => o.kind === "unreadable")) {
+    return { kind: "scanned-image" };
+  }
+
+  // Then generic non-policy (eg "non-motor", "other", "unknown")
+  return { kind: "not-a-policy" };
+}
+
+/**
+ * Render-free no-match reply runner. Looks up the customer's first
+ * name (best-effort) + DPDP-first-touch state, then sends the polite
+ * reply. Wraps sendInboundNoMatchReply so the route's logic stays
+ * focused on flow control.
+ */
+async function sendNoMatchReplyForForward(args: {
+  fromEmail: string;
+  reason: InboundNoMatchReason;
+}): Promise<void> {
+  try {
+    const lowered = args.fromEmail.toLowerCase();
+    const userRow = await findOne<User>(
+      Tables.USERS,
+      (u) => (u.email ?? "").toLowerCase() === lowered
+    );
+    const firstName = friendlyFirstName(userRow?.name) || undefined;
+    const includeDpdpConsentLine = !userRow;
+
+    await sendInboundNoMatchReply({
+      to: args.fromEmail,
+      firstName,
+      reason: args.reason,
+      includeDpdpConsentLine,
+    });
+    console.log(
+      `[inbound/email] no-match reply sent to ${args.fromEmail} (reason=${args.reason.kind})`
+    );
+  } catch (err) {
+    console.error("[inbound/email] no-match reply failed:", err);
+  }
 }
 
 /**
