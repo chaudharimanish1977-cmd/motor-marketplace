@@ -1233,9 +1233,11 @@ function renderInboundMultiReplyHtml({
 >): string {
   const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
   const totalSent = audits.length + (excludedDocs?.length ?? 0);
+  // Opener pivots straight to the button — the comparator is the
+  // proof below it, not a wall the customer has to scroll past first.
   const opener = `Thanks for forwarding ${
     totalSent === 2 ? "both documents" : `all ${totalSent} documents`
-  }. I read ${audits.length === 1 ? "one of them" : `${audits.length} of them`} and put together a side-by-side comparison — the full audit is attached as a single PDF. You can also view it on the web with one click below; no password needed, the link signs you in.`;
+  }. I read ${audits.length === 1 ? "one of them" : `${audits.length} of them`} and put together a side-by-side comparison. The full audit is attached as a PDF — and you can open the interactive web version with the button below (no password needed, the link signs you in).`;
 
   const excludedSection = renderExcludedDocsHtml(excludedDocs);
 
@@ -1257,8 +1259,29 @@ function renderInboundMultiReplyHtml({
     })
     .join("");
 
+  // Real button — bulletproof table-cell pattern with bg colour on
+  // the <td> (works in Outlook/Gmail/Apple Mail). The plain-text link
+  // version was getting absorbed into the surrounding prose and
+  // collapsed under Gmail's "..." trimmer.
+  const ctaButton = `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:6px 0 8px;">
+      <tr>
+        <td style="background-color:#3a1e3d;border-radius:8px;padding:14px 26px;text-align:center;">
+          <a href="${escape(magicLinkUrl)}" style="color:#ffffff;text-decoration:none;font-family:Georgia,'Times New Roman',serif;font-size:16px;font-weight:600;display:inline-block;line-height:1;">
+            Open all audits side-by-side &rarr;
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:0 0 24px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      Link valid 7 days. If it expires, forward your documents again and I&rsquo;ll send a fresh one.
+    </p>`;
+
+  // Small-print footer — all sits ABOVE the signature so Gmail has
+  // nothing to trim under "— Aryan" (which is the last line of the
+  // message). No <hr/>, no PS/PPS — those patterns are exactly what
+  // trigger the "..." trimmer in Gmail.
   const dpdpLine = includeDpdpConsentLine
-    ? `<p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+    ? `<p style="margin:0 0 8px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
       &middot; By forwarding to RightOffer you&rsquo;ve consented to us processing these documents. Reply with the word DELETE to remove your data.
     </p>`
     : "";
@@ -1282,23 +1305,16 @@ function renderInboundMultiReplyHtml({
 
     ${excludedSection}
 
+    ${ctaButton}
+
     ${renderComparatorSectionHtml(comparator)}
 
-    <p style="margin:0 0 18px;"><a href="${escape(magicLinkUrl)}" style="color:#3a1e3d;">Open all audits side-by-side &rarr;</a></p>
-
-    <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">The web view lets you switch between each audit and the side-by-side comparison.</p>
-
-    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
-
-    <hr style="margin:36px 0 22px;border:none;border-top:1px solid #e6e4e8;" />
-
     ${dpdpLine}
-    <p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
-      PS &middot; If this landed in Promotions or Spam, drag it to Primary or add <strong style="color:#1a1218;">review@rightoffer.in</strong> to your contacts so future audits arrive cleanly.
+    <p style="margin:0 0 22px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      If this landed in Promotions or Spam, drag it to Primary or add <strong style="color:#1a1218;">review@rightoffer.in</strong> to your contacts so future audits arrive cleanly.
     </p>
-    <p style="margin:0;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
-      PPS &middot; The link above is valid for seven days. If it expires, forward your documents again and I&rsquo;ll send a fresh one.
-    </p>
+
+    <p style="margin:0;font-style:italic;">&mdash; Aryan</p>
   </div>
 </body></html>`;
 }
@@ -1323,7 +1339,7 @@ function renderInboundMultiReplyText({
     ``,
     `Thanks for forwarding ${
       totalSent === 2 ? "both documents" : `all ${totalSent} documents`
-    }. I read ${audits.length === 1 ? "one of them" : `${audits.length} of them`} and put together a side-by-side comparison — the full audit is attached as a single PDF. You can also view it on the web with one click below; no password needed, the link signs you in.`,
+    }. I read ${audits.length === 1 ? "one of them" : `${audits.length} of them`} and put together a side-by-side comparison. The full audit is attached as a PDF — and you can open the interactive web version at the link below (no password needed, the link signs you in).`,
     ``,
     `What you forwarded:`,
   ];
@@ -1336,27 +1352,27 @@ function renderInboundMultiReplyText({
   }
   // Excluded docs, if any.
   lines.push(...renderExcludedDocsText(excludedDocs));
-  // Comparator summary, if provided.
-  lines.push(...renderComparatorSectionText(comparator));
+  // CTA + validity note — moved ABOVE the comparator so the action is
+  // immediately visible and not buried under the inline summary.
   lines.push(
     ``,
-    `Open all audits side-by-side: ${magicLinkUrl}`,
+    `→ Open all audits side-by-side: ${magicLinkUrl}`,
+    `  Link valid 7 days. If it expires, forward your documents again and I'll send a fresh one.`
+  );
+  // Comparator summary, if provided.
+  lines.push(...renderComparatorSectionText(comparator));
+  // Footer small-print — sits ABOVE the signature so "— Aryan" is the
+  // last line of the message and Gmail has nothing to clip below it.
+  lines.push(``);
+  if (includeDpdpConsentLine) {
+    lines.push(
+      `· By forwarding to RightOffer you've consented to us processing these documents. Reply with the word DELETE to remove your data.`
+    );
+  }
+  lines.push(
+    `If this landed in Promotions or Spam, drag it to Primary or add review@rightoffer.in to your contacts so future audits arrive cleanly.`,
     ``,
-    `The web view lets you switch between each audit and the side-by-side comparison.`,
-    ``,
-    `— Aryan`,
-    ``,
-    `———`,
-    ``,
-    ...(includeDpdpConsentLine
-      ? [
-          `· By forwarding to RightOffer you've consented to us processing these documents. Reply with the word DELETE to remove your data.`,
-          ``,
-        ]
-      : []),
-    `PS · If this landed in Promotions or Spam, drag it to Primary or add review@rightoffer.in to your contacts.`,
-    ``,
-    `PPS · The link above is valid for seven days. If it expires, forward your documents again and I'll send a fresh one.`
+    `— Aryan`
   );
   return lines.join("\n");
 }

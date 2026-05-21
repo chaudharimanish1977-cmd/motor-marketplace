@@ -110,7 +110,16 @@ export function buildMultiDocComparison(
   // 5. Glossary blob — concatenated user-visible content across all docs.
   const glossaryBlob = ordered
     .flatMap((d) => [
-      d.report.bottomLine ?? "",
+      // bottomLine is string | { verdict, action } | undefined.
+      // Flatten the structured shape into a search blob.
+      typeof d.report.bottomLine === "string"
+        ? d.report.bottomLine
+        : [
+            d.report.bottomLine?.verdict ?? "",
+            d.report.bottomLine?.action ?? "",
+          ]
+            .filter(Boolean)
+            .join(" "),
       d.parsed.policyType,
       d.parsed.insurerName,
       ...(d.report.coverageSnapshot ?? []).flatMap((r) => [
@@ -192,16 +201,29 @@ function joinSnapshots(ordered: DocPair[]): MultiDocRow[] {
     return map;
   });
 
-  // Build the joined rows.
-  return featureOrder.map(({ feature, category }) => ({
-    feature,
-    category,
-    cells: indexes.map((map) => {
-      const row = map.get(feature);
-      if (!row) {
-        return { value: "—", status: "neutral" as const };
+  // Build the joined rows. Recommendation is a property of the FEATURE
+  // (not the doc), so we take whichever doc's row first declares one —
+  // the anchor wins, falling back to the next doc that has it.
+  return featureOrder.map(({ feature, category }) => {
+    let recommendation: CoverageSnapshotRow["recommendation"];
+    for (const map of indexes) {
+      const r = map.get(feature)?.recommendation;
+      if (r) {
+        recommendation = r;
+        break;
       }
-      return { value: row.value, status: row.status };
-    }),
-  }));
+    }
+    return {
+      feature,
+      category,
+      recommendation,
+      cells: indexes.map((map) => {
+        const row = map.get(feature);
+        if (!row) {
+          return { value: "—", status: "neutral" as const };
+        }
+        return { value: row.value, status: row.status };
+      }),
+    };
+  });
 }

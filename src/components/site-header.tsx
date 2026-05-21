@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 /**
  * Site-wide header — editorial RightOffer surface.
@@ -31,6 +31,13 @@ interface Props {
 
 export function SiteHeader({ signedIn = false }: Props) {
   const pathname = usePathname() ?? "";
+  const searchParams = useSearchParams();
+  // Hide the header in print mode (?print=1) — puppeteer PDF render
+  // shouldn't carry the wordmark + sign-in chrome. Customer-facing
+  // PDF is a clean document, not a screenshot of the site.
+  if (searchParams?.get("print") === "1") {
+    return null;
+  }
   if (
     SKIP_PREFIXES.some(
       (p) => pathname === p || pathname.startsWith(p + "/")

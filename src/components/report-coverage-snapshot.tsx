@@ -39,6 +39,10 @@ interface SingleDocProps {
 interface MultiDocRow {
   feature: string;
   category: CoverageSnapshotRow["category"];
+  /** Feature-level recommendation; mirrors the same field on
+   *  CoverageSnapshotRow. Drives the "Recommended" column so the
+   *  customer sees what to prioritise across docs at a glance. */
+  recommendation?: CoverageSnapshotRow["recommendation"];
   cells: Array<{
     value: string;
     status: Status;
@@ -94,10 +98,13 @@ function SingleDocTable({ rows, vehicleLabel, printMode }: SingleDocProps) {
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-brand-charcoal/15">
-              <th className="text-left py-2.5 pr-4 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate w-[34%]">
+              <th className="text-left py-2.5 pr-4 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate w-[30%]">
                 Feature
               </th>
-              <th className="text-center py-2.5 px-3 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate w-[18%]">
+              <th className="text-center py-2.5 px-3 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate w-[16%]">
+                Recommended
+              </th>
+              <th className="text-center py-2.5 px-3 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate w-[14%]">
                 Status
               </th>
               <th className="text-left py-2.5 pl-3 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate">
@@ -117,6 +124,9 @@ function SingleDocTable({ rows, vehicleLabel, printMode }: SingleDocProps) {
               >
                 <td className="py-3 pr-4 font-serif font-medium text-[14.5px] text-brand-charcoal">
                   {row.feature}
+                </td>
+                <td className="py-3 px-3 text-center">
+                  <RecommendationChip recommendation={row.recommendation} />
                 </td>
                 <td className="py-3 px-3 text-center">
                   <StatusCell value={row.value} status={row.status} />
@@ -143,7 +153,10 @@ function SingleDocTable({ rows, vehicleLabel, printMode }: SingleDocProps) {
               <span className="font-serif font-medium text-[15px] text-brand-charcoal">
                 {row.feature}
               </span>
-              <StatusCell value={row.value} status={row.status} />
+              <div className="flex items-center gap-2 shrink-0">
+                <RecommendationChip recommendation={row.recommendation} />
+                <StatusCell value={row.value} status={row.status} />
+              </div>
             </div>
             {row.whatThisMeans && (
               <p className="mt-1 font-serif text-[13.5px] text-brand-slate leading-[1.5]">
@@ -153,6 +166,8 @@ function SingleDocTable({ rows, vehicleLabel, printMode }: SingleDocProps) {
           </div>
         ))}
       </div>
+
+      <LegendBar />
     </section>
   );
 }
@@ -191,8 +206,11 @@ function MultiDocTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-brand-charcoal/15">
-              <th className="text-left py-2.5 pr-4 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate w-[28%]">
+              <th className="text-left py-2.5 pr-4 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate w-[24%]">
                 Feature
+              </th>
+              <th className="text-center py-2.5 px-3 font-mono text-[10.5px] uppercase tracking-[0.14em] font-bold text-brand-slate w-[14%]">
+                Recommended
               </th>
               {documents.map((doc, i) => (
                 <th
@@ -222,6 +240,9 @@ function MultiDocTable({
                 <td className="py-3 pr-4 font-serif font-medium text-[14.5px] text-brand-charcoal">
                   {row.feature}
                 </td>
+                <td className="py-3 px-3 text-center">
+                  <RecommendationChip recommendation={row.recommendation} />
+                </td>
                 {row.cells.map((cell, c) => (
                   <td key={`c-${idx}-${c}`} className="py-3 px-3 text-center">
                     <StatusCell value={cell.value} status={cell.status} />
@@ -245,8 +266,11 @@ function MultiDocTable({
               idx < rows.length - 1 ? "border-b border-brand-charcoal/10" : ""
             }`}
           >
-            <div className="font-serif font-medium text-[15px] text-brand-charcoal">
-              {row.feature}
+            <div className="flex items-start justify-between gap-3">
+              <span className="font-serif font-medium text-[15px] text-brand-charcoal">
+                {row.feature}
+              </span>
+              <RecommendationChip recommendation={row.recommendation} />
             </div>
             <div className="mt-2 grid grid-cols-1 gap-1.5">
               {row.cells.map((cell, c) => {
@@ -269,6 +293,8 @@ function MultiDocTable({
           </div>
         ))}
       </div>
+
+      <LegendBar />
     </section>
   );
 }
@@ -330,6 +356,104 @@ function StatusCell({ value, status }: { value: string; status: Status }) {
     >
       {value}
     </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Recommendation chip — "Must have / Good to have / May have" pill
+// ---------------------------------------------------------------------------
+
+/**
+ * Tells the customer what to scout for, not just what's present. This is
+ * RightOffer's editorial pick per feature, distinct from the per-doc
+ * status (which describes the current document). For anchor rows like
+ * IDV / NCB / Policy type the recommendation is implicit — those are
+ * always relevant — so we render an em-dash placeholder.
+ */
+function RecommendationChip({
+  recommendation,
+}: {
+  recommendation?: CoverageSnapshotRow["recommendation"];
+}) {
+  if (!recommendation) {
+    return (
+      <span className="font-mono text-[11px] text-brand-slate/60">—</span>
+    );
+  }
+  const config = {
+    "must-have": {
+      label: "Must have",
+      classes: "bg-brand-alert/12 text-brand-alert border-brand-alert/30",
+    },
+    "good-to-have": {
+      label: "Good to have",
+      classes: "bg-amber-100 text-amber-800 border-amber-300/50",
+    },
+    "may-have": {
+      label: "May have",
+      classes: "bg-brand-slate/10 text-brand-slate border-brand-slate/25",
+    },
+  }[recommendation];
+  return (
+    <span
+      className={`inline-block px-2 py-0.5 rounded-full border font-mono text-[10.5px] font-bold uppercase tracking-[0.06em] whitespace-nowrap ${config.classes}`}
+    >
+      {config.label}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Colour legend — explains what the ticks, crosses and chip colours mean
+// ---------------------------------------------------------------------------
+
+/**
+ * Without this legend, the customer sees red/amber/green ticks and
+ * crosses but has no anchor for what they signify. The legend sits
+ * directly below the table so the eye picks it up on the same scan.
+ */
+function LegendBar() {
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11.5px] font-mono text-brand-slate">
+      <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-brand-sage/15 text-brand-sage">
+          <Check className="w-2.5 h-2.5" strokeWidth={3} />
+        </span>
+        Covered
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-brand-alert/15 text-brand-alert">
+          <X className="w-2.5 h-2.5" strokeWidth={3} />
+        </span>
+        Missing &amp; matters
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-700">
+          <X className="w-2.5 h-2.5" strokeWidth={3} />
+        </span>
+        Worth considering
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-brand-slate/10 text-brand-slate">
+          <X className="w-2.5 h-2.5" strokeWidth={3} />
+        </span>
+        Skippable
+      </span>
+      <span className="inline-flex items-center gap-1.5 ml-1">
+        <span className="inline-block px-1.5 py-0.5 rounded-full border bg-brand-alert/12 text-brand-alert border-brand-alert/30 text-[9.5px] font-bold uppercase tracking-[0.06em]">
+          Must
+        </span>
+        /
+        <span className="inline-block px-1.5 py-0.5 rounded-full border bg-amber-100 text-amber-800 border-amber-300/50 text-[9.5px] font-bold uppercase tracking-[0.06em]">
+          Good
+        </span>
+        /
+        <span className="inline-block px-1.5 py-0.5 rounded-full border bg-brand-slate/10 text-brand-slate border-brand-slate/25 text-[9.5px] font-bold uppercase tracking-[0.06em]">
+          May
+        </span>
+        <span>= RightOffer&rsquo;s advice for this profile</span>
+      </span>
+    </div>
   );
 }
 

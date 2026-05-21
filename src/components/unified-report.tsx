@@ -62,8 +62,8 @@ export function UnifiedReport({
 
   return (
     <article className="relative z-10 max-w-3xl mx-auto px-6 md:px-8 py-10 md:py-14 font-serif text-brand-charcoal">
-      {/* ── 1. Owner + Vehicle anchor ─────────────────────────────── */}
-      <header className="mb-8 pb-6 border-b border-brand-charcoal/15">
+      {/* ── 1. Owner + Vehicle anchor (centred) ─────────────────── */}
+      <header className="mb-8 pb-6 border-b border-brand-charcoal/15 text-center">
         <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
           · Policy review ·
         </div>
@@ -143,7 +143,16 @@ function buildGlossaryBlob(
   report: PolicyReport
 ): string {
   const parts: string[] = [];
-  if (report.bottomLine) parts.push(report.bottomLine);
+  if (report.bottomLine) {
+    // bottomLine may be a string (legacy) or { verdict, action } (new).
+    // Flatten both into a single search-blob entry.
+    if (typeof report.bottomLine === "string") {
+      parts.push(report.bottomLine);
+    } else {
+      if (report.bottomLine.verdict) parts.push(report.bottomLine.verdict);
+      if (report.bottomLine.action) parts.push(report.bottomLine.action);
+    }
+  }
   if (report.coverageSnapshot) {
     for (const row of report.coverageSnapshot) {
       parts.push(row.feature, row.whatThisMeans);

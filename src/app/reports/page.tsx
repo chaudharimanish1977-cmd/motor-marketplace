@@ -61,6 +61,23 @@ interface PageProps {
  * MultiDocReport passes it through to the first annexure so the
  * customer is prompted to verify before the deep content reveals.
  */
+/**
+ * Flatten the structured `{ verdict, action }` bottomLine (or legacy
+ * string) into a single-line string suitable for the cross-doc LLM
+ * prompt input. The cross-doc generator only needs to read the existing
+ * per-doc verdict to triangulate the master verdict — it doesn't need
+ * the structured action separately.
+ */
+function flattenBottomLine(
+  bl: PolicyReport["bottomLine"]
+): string | undefined {
+  if (!bl) return undefined;
+  if (typeof bl === "string") return bl;
+  const v = bl.verdict?.trim() ?? "";
+  const a = bl.action?.trim();
+  return [v, a].filter(Boolean).join(" ") || undefined;
+}
+
 export default async function ReportsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const printMode = sp.print === "1";
@@ -230,7 +247,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   //
   // Failure is non-fatal — the report still renders with the anchor
   // doc's per-doc bottomLine as fallback.
-  let crossDocBottomLine = "";
+  let crossDocBottomLine: { verdict: string; action?: string } | null = null;
   try {
     crossDocBottomLine = await generateCrossDocBottomLine({
       docs: comparison.ordered.map((d, i) => ({
@@ -244,7 +261,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         grandTotalPremium: d.parsed.premium?.grandTotal ?? 0,
         addOnsPresent: (d.parsed.addOns ?? []).map((a) => a.name),
         keyGaps: d.report.keyGaps?.items?.map((g) => g.title),
-        perDocBottomLine: d.report.bottomLine,
+        perDocBottomLine: flattenBottomLine(d.report.bottomLine),
       })),
     });
   } catch (err) {

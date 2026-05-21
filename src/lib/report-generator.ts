@@ -74,7 +74,10 @@ Return ONLY a single valid JSON object matching this exact schema. No prose, no 
       "estimatedAnnualPremium": number (rough INR estimate)
     }
   ],
-  "bottomLine": string (1-2 sentences — the Big-4-style executive summary. See §bottomLine guidance below.)
+  "bottomLine": {
+    "verdict": string (one sentence — the read on the situation),
+    "action": string (one sentence — what the customer should DO next; visually highlighted in the rendered banner)
+  }
 }
 
 GLOBAL GUIDELINES:
@@ -170,15 +173,23 @@ SECTION-SPECIFIC GUIDANCE:
   • If isInCurrentPolicy=true but recommendation="drop": explicitly mention the savings opportunity in reasoning.
 
 §bottomLine — THE EXECUTIVE SUMMARY (top of the new report layout):
-  • 1-2 short sentences. NO greetings, NO "Hi", NO "—Aryan" signoff.
-  • The customer reads this in 5 seconds and knows what to do.
-  • Lead with the verdict, follow with the most important specific.
-  • Examples (calibrate tone + length):
-    - "Solid policy. Adding Engine Protector closes a ₹2L exposure for ₹800/yr — worth it."
-    - "Cover is thin for an 8-year-old CNG. NCB Protection + Zero Dep would cost ₹1,200/yr and protect the 50% NCB you've built up."
-    - "Your renewal pricing is fair. Skip Loss of Personal Belongings; keep everything else as-is."
-  • DO NOT mention insurer-switching as the headline action (we don't do that yet).
-  • DO NOT use vague phrases like "consider reviewing" — be decisive.`;
+  STRUCTURE — two sentences, split across two fields:
+    "verdict": one sentence stating the read on the customer's situation.
+               NO action verb; just the diagnosis.
+               Examples: "Solid policy with one meaningful gap."
+                         "Cover is thin for an 8-year-old CNG."
+                         "Your renewal pricing is fair and the cover is balanced."
+    "action":  one sentence stating the SPECIFIC next step. Imperative
+               voice. The customer can act on this immediately.
+               Examples: "Add Engine Protector for ₹800/yr to close a ₹2L exposure."
+                         "Add NCB Protection + Zero Dep — together they cost ₹1,200/yr."
+                         "Skip Loss of Personal Belongings; keep everything else as-is."
+
+  RULES (apply to both fields):
+  • Tight. No greetings, no "Hi", no "—Aryan" signoff.
+  • DO NOT mention insurer-switching as an action (we don't do that yet).
+  • DO NOT use vague phrases like "consider reviewing" — be decisive.
+  • Customer reads verdict + action in 5 seconds and knows what to do.`;
 
 type ReportSections = Omit<
   PolicyReport,
@@ -368,12 +379,25 @@ function deriveCoverageSnapshot(
           ? `Not included. ${reasoning || "Consider whether you need it."}`
           : `Not included. Not strictly needed for your profile.`;
 
+    // Map the LLM's add-on recommendation onto the customer-facing
+    // recommendation column.
+    //   essential → must-have    (red attention; missing matters)
+    //   optional  → good-to-have (amber consider)
+    //   drop      → may-have     (slate / can skip)
+    const recommendationLabel: CoverageSnapshotRow["recommendation"] =
+      recommendation === "essential"
+        ? "must-have"
+        : recommendation === "drop"
+          ? "may-have"
+          : "good-to-have";
+
     rows.push({
       feature: canonical,
       category: "addon",
       value: isPresent ? "✓" : "✗",
       status,
       whatThisMeans,
+      recommendation: recommendationLabel,
     });
   }
 
@@ -490,26 +514,39 @@ Be tight. The customer will paste these directly.`;
 // Cross-doc bottom line — LLM call, used by /reports multi-doc comparator
 // ---------------------------------------------------------------------------
 
-const CROSS_DOC_BOTTOM_LINE_PROMPT = `You are an expert motor insurance advisor for Indian private car owners. The customer has forwarded multiple documents — some combination of an old policy, a renewal quote, and a new policy. Write a 1-2 sentence verdict that:
-
-  - Names the BEST option among what they forwarded
-  - Says what to do (take it / negotiate / hold)
-  - Mentions ONE specific point if room allows (an add-on to ask about, a IDV gap, etc.)
+const CROSS_DOC_BOTTOM_LINE_PROMPT = `You are an expert motor insurance advisor for Indian private car owners. The customer has forwarded multiple documents — some combination of an old policy, a renewal quote, and a new policy. Write a structured executive summary.
 
 OUTPUT FORMAT:
-Return ONLY a single JSON object: { "bottomLine": "..." }.
+Return ONLY a single JSON object:
+  {
+    "bottomLine": {
+      "verdict": "...",
+      "action": "..."
+    }
+  }
 No prose, no markdown, no surrounding text.
+
+verdict — one sentence stating the situation:
+  - Names the BEST option among what they forwarded (e.g. "Your new HDFC policy is the strongest of the three")
+  - States the overall read (e.g. "but it's missing two add-ons your previous cover had")
+  - Diagnostic only — no action verbs here
+
+action — one sentence stating what to do RIGHT NOW:
+  - Imperative voice ("Add", "Take", "Ask", "Switch")
+  - Specific (name the add-on, the amount, or the insurer)
+  - Actionable within the week
 
 GUIDELINES:
   - Be DECISIVE. No "consider reviewing" or "you may want to". Take a stance.
-  - 1-2 sentences, tight. Customer reads this in 5 seconds.
   - Refer to docs by short labels like "your Acko renewal" or "your Tata AIG policy", not by date.
   - Don't restate the data — synthesise the verdict.
 
 EXAMPLES (calibrate tone + length):
-  - "Acko's renewal is a clear upgrade — take it. Just ask them to match the Engine Protector your old Tata AIG cover had."
-  - "Your new HDFC policy is the right pick. The cheaper Bajaj quote misses NCB Protection, which would cost you ₹4,000+ on a single claim."
-  - "The new policy you bought is slightly thinner than what you had — but acceptable given the price drop. Worth asking about adding Zero Depreciation at renewal."`;
+  verdict: "Acko's renewal is a clear upgrade — the cheapest option that covers everything we recommend."
+  action: "Take the Acko renewal, but ask them to match the Engine Protector your old Tata AIG cover had."
+
+  verdict: "Your new HDFC policy is the strongest pick, though missing NCB Protection."
+  action: "Add NCB Protection (~₹500/yr) before binding — losing your 35% NCB on a single claim would cost ₹4,000+."`;
 
 export interface CrossDocBottomLineInput {
   docs: Array<{
@@ -528,14 +565,22 @@ export interface CrossDocBottomLineInput {
   }>;
 }
 
+export interface CrossDocBottomLineOutput {
+  verdict: string;
+  action?: string;
+}
+
 /**
  * Generate the cross-doc bottom line for the multi-doc /reports view.
  * Called when 2+ docs are forwarded; the output replaces the per-doc
  * bottomLine at the top of the master report.
+ *
+ * Returns a structured { verdict, action } pair so the renderer can
+ * visually emphasise the action callout. Returns null on failure.
  */
 export async function generateCrossDocBottomLine(
   input: CrossDocBottomLineInput
-): Promise<string> {
+): Promise<CrossDocBottomLineOutput | null> {
   const userMessage = `Generate the cross-doc bottom-line verdict for this customer's documents:
 
 <docs>
@@ -548,17 +593,29 @@ Return only the JSON object, no prose.`;
     const response = await callClaude({
       system: CROSS_DOC_BOTTOM_LINE_PROMPT,
       userMessage,
-      maxTokens: 400,
+      maxTokens: 600,
       temperature: 0.3,
     });
-    const parsed = extractJSON<{ bottomLine?: string }>(response);
-    return parsed?.bottomLine?.trim() || "";
+    const parsed = extractJSON<{
+      bottomLine?: { verdict?: string; action?: string } | string;
+    }>(response);
+    const bl = parsed?.bottomLine;
+    if (!bl) return null;
+    // Tolerate the LLM returning a plain string (older prompt shape).
+    if (typeof bl === "string") {
+      const v = bl.trim();
+      return v ? { verdict: v } : null;
+    }
+    const verdict = bl.verdict?.trim() ?? "";
+    const action = bl.action?.trim();
+    if (!verdict && !action) return null;
+    return { verdict: verdict || "", action: action || undefined };
   } catch (err) {
     console.error(
       "[report-generator] cross-doc bottom line generation failed:",
       err
     );
-    return "";
+    return null;
   }
 }
 

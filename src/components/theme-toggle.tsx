@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 /**
  * Fixed top-right sun/moon button. Toggles `dark` class on <html> and
@@ -10,6 +11,11 @@ import { useEffect, useState } from "react";
  */
 export function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark" | null>(null);
+  const searchParams = useSearchParams();
+  // Hide the toggle entirely when ?print=1 is in the URL — used by
+  // the puppeteer PDF render. The toggle has no business in a static
+  // PDF and was leaking onto every printed page as "LIGHT · TAP".
+  const isPrintMode = searchParams?.get("print") === "1";
 
   useEffect(() => {
     const initial = document.documentElement.classList.contains("dark")
@@ -35,6 +41,8 @@ export function ThemeToggle() {
 
   // Avoid hydration mismatch by rendering nothing until we know the theme.
   if (theme === null) return null;
+  // Hide in print mode — puppeteer PDF render shouldn't carry chrome.
+  if (isPrintMode) return null;
 
   const isDark = theme === "dark";
 
