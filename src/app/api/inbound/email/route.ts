@@ -34,10 +34,15 @@ const SITE_URL = "https://rightoffer.in";
 const RATE_LIMIT_HOURLY = 20;
 const RATE_LIMIT_DAILY = 100;
 
-/** Founder email — bypassed from rate limiting entirely so testing
- *  scenarios never get blocked. Anyone else with this email shouldn't
- *  be hitting the inbound webhook unless they're literally me. */
-const FOUNDER_EMAIL = "chaudharimanish1977@gmail.com";
+/** Internal test addresses bypassed from rate limiting entirely so
+ *  testing scenarios (founder + trusted testers) never get blocked.
+ *  Add new addresses here when onboarding new internal testers.
+ *  Compared case-insensitively; entries here MUST be lowercased. */
+const RATE_LIMIT_BYPASS_EMAILS = new Set([
+  "chaudharimanish1977@gmail.com",
+  "vikram2lead@gmail.com",
+  "expertmanchau@gmail.com",
+]);
 
 /** Throwaway/disposable email providers — silent drop these senders.
  *  A real customer's policy email will never be on a throwaway domain.
@@ -197,13 +202,14 @@ export async function POST(request: NextRequest) {
 
   // ---- Per-sender rate limit ----
   // Sliding-window-ish: two counters (hourly + daily) keyed by sender
-  // email, both TTL'd. Founder email bypasses entirely so testing
+  // email, both TTL'd. Internal test addresses (founder + trusted
+  // testers, see RATE_LIMIT_BYPASS_EMAILS) bypass entirely so testing
   // scenarios are never blocked.
   //
   // Customers who exceed the limit get a polite reply explaining the
   // window, not a silent drop. Returns 200 to Postmark either way so
   // no webhook retry loop.
-  if (fromEmail !== FOUNDER_EMAIL.toLowerCase()) {
+  if (!RATE_LIMIT_BYPASS_EMAILS.has(fromEmail)) {
     const limit = await checkRateLimit(fromEmail);
     if (!limit.ok) {
       console.warn(
