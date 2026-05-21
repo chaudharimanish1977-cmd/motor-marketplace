@@ -486,6 +486,82 @@ QUESTION SHAPES (calibrate tone + brevity):
 
 Be tight. The customer will paste these directly.`;
 
+// ---------------------------------------------------------------------------
+// Cross-doc bottom line — LLM call, used by /reports multi-doc comparator
+// ---------------------------------------------------------------------------
+
+const CROSS_DOC_BOTTOM_LINE_PROMPT = `You are an expert motor insurance advisor for Indian private car owners. The customer has forwarded multiple documents — some combination of an old policy, a renewal quote, and a new policy. Write a 1-2 sentence verdict that:
+
+  - Names the BEST option among what they forwarded
+  - Says what to do (take it / negotiate / hold)
+  - Mentions ONE specific point if room allows (an add-on to ask about, a IDV gap, etc.)
+
+OUTPUT FORMAT:
+Return ONLY a single JSON object: { "bottomLine": "..." }.
+No prose, no markdown, no surrounding text.
+
+GUIDELINES:
+  - Be DECISIVE. No "consider reviewing" or "you may want to". Take a stance.
+  - 1-2 sentences, tight. Customer reads this in 5 seconds.
+  - Refer to docs by short labels like "your Acko renewal" or "your Tata AIG policy", not by date.
+  - Don't restate the data — synthesise the verdict.
+
+EXAMPLES (calibrate tone + length):
+  - "Acko's renewal is a clear upgrade — take it. Just ask them to match the Engine Protector your old Tata AIG cover had."
+  - "Your new HDFC policy is the right pick. The cheaper Bajaj quote misses NCB Protection, which would cost you ₹4,000+ on a single claim."
+  - "The new policy you bought is slightly thinner than what you had — but acceptable given the price drop. Worth asking about adding Zero Depreciation at renewal."`;
+
+export interface CrossDocBottomLineInput {
+  docs: Array<{
+    /** "Tata AIG Policy", "Acko Quote", "Acko Policy" */
+    label: string;
+    /** "Apr '23 — Mar '24" */
+    period: string;
+    documentType: "policy" | "quote";
+    insurer: string;
+    idv: number;
+    ncbPercent: number;
+    grandTotalPremium: number;
+    addOnsPresent: string[];
+    keyGaps?: string[];
+    perDocBottomLine?: string;
+  }>;
+}
+
+/**
+ * Generate the cross-doc bottom line for the multi-doc /reports view.
+ * Called when 2+ docs are forwarded; the output replaces the per-doc
+ * bottomLine at the top of the master report.
+ */
+export async function generateCrossDocBottomLine(
+  input: CrossDocBottomLineInput
+): Promise<string> {
+  const userMessage = `Generate the cross-doc bottom-line verdict for this customer's documents:
+
+<docs>
+${JSON.stringify(input.docs, null, 2)}
+</docs>
+
+Return only the JSON object, no prose.`;
+
+  try {
+    const response = await callClaude({
+      system: CROSS_DOC_BOTTOM_LINE_PROMPT,
+      userMessage,
+      maxTokens: 400,
+      temperature: 0.3,
+    });
+    const parsed = extractJSON<{ bottomLine?: string }>(response);
+    return parsed?.bottomLine?.trim() || "";
+  } catch (err) {
+    console.error(
+      "[report-generator] cross-doc bottom line generation failed:",
+      err
+    );
+    return "";
+  }
+}
+
 async function generateThingsToAsk(
   parsedPolicy: ParsedPolicy,
   sections: ReportSections

@@ -1,34 +1,21 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Upload, Lock, ArrowRight } from "lucide-react";
+import { Upload } from "lucide-react";
 import { findById, findMany, findOne, appendRow, Tables } from "@/lib/db";
-import { generateReport } from "@/lib/report-generator";
 import {
-  computeRCP,
-  scoreAgainstRcp,
-} from "@/lib/recommended-coverage-profile";
-import {
-  generateRightOfferPick,
-  type RightOfferPick,
-} from "@/lib/rightoffer-pick";
+  generateCrossDocBottomLine,
+  generateReport,
+} from "@/lib/report-generator";
 import { policyGroupKey } from "@/lib/policy-group";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 import { getAnonymousSession } from "@/lib/anonymous-session";
-import type {
-  ComparisonQuoteScore,
-  ComparisonRcpSnapshot,
-  ComparisonVerdict,
-  ParsedPolicy,
-  PolicyReport,
-} from "@/lib/types";
+import { buildMultiDocComparison } from "@/lib/multi-doc-comparison";
+import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
-import { ReportDisplay } from "@/components/report-display";
-import { TabStrip, type TabDef } from "./tab-strip";
-import { ComparatorContent } from "./comparator-content";
+import { MultiDocReport } from "@/components/multi-doc-report";
 import { ResetButton } from "./reset-button";
-import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 export const dynamic = "force-dynamic";
 // 120s for the inline-fallback report-gen path (the parse-time gen
@@ -40,33 +27,35 @@ export const metadata = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ tab?: string }>;
+  /** Reserved — was used by the now-removed tab system. Kept on the
+   *  type so any stale link with ?tab=... doesn't 500. */
+  searchParams: Promise<Record<string, string | undefined>>;
 }
 
 /**
- * Tabbed landing page after upload — fully server-rendered.
+ * Multi-doc comparison landing page — server-rendered.
  *
- * Tab navigation is URL-driven (`?tab=comparator` etc.). Each tab
- * change is a fresh server render — no client-side state, no large
- * data passed across the server/client boundary. This was a deliberate
- * pivot away from a client-component tab switcher: passing the full
- * ParsedPolicy + PolicyReport set as props was bloating the RSC
- * payload and triggering "Connection closed" streaming errors.
+ * Replaces the prior tab-based UI. Now renders a single master report
+ * (the MultiDocReport composer) with:
+ *   1. Owner + Vehicle anchor
+ *   2. Cross-doc bottom line (LLM call per render)
+ *   3. Multi-column Coverage Snapshot table
+ *   4. Per-feature insights (from anchor doc)
+ *   5. Things to ask (aggregated across all quotes)
+ *   6. Annexures — collapsible per-doc full editorial reports
+ *   7. Glossary + How we read this
  *
- * Tab order (locked with user):
- *   1. Comparator — only when 2+ docs
- *   2. Policy — sorted alphabetically by insurer (one expected)
- *   3. Quotes — alphabetical by insurer name
+ * Single-doc case redirects to /report/[id] (handled upstream).
+ * Multi-doc case (2+ docs) renders the comparison.
  *
- * Gate behaviour (Option C — locked-with-summary):
- *   - First tab shows full content with the inline ReportGate after
- *     the "what's missing" section.
- *   - Other tabs show a locked panel pointing the customer to the
- *     first tab to verify their email.
- *   - Once verified (full session or upload session), all tabs unlock.
+ * Gate behaviour: showGate is set when the visitor is unverified;
+ * MultiDocReport passes it through to the first annexure so the
+ * customer is prompted to verify before the deep content reveals.
  */
 export default async function ReportsPage({ searchParams }: PageProps) {
-  const { tab: requestedTab } = await searchParams;
+  // searchParams accepted but currently unused — the tab system that
+  // consumed ?tab= was removed in Phase 2b. Await keeps the contract.
+  await searchParams;
 
   const [fullSessionEmail, uploadSession, anonSession] = await Promise.all([
     getSession(),
@@ -175,130 +164,61 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     redirect(`/report/${visibleDocs[0].id}`);
   }
 
-  // Sort docs: policies (alpha by insurer) then quotes (alpha by insurer).
-  const sortedDocs = [...visibleDocs].sort((a, b) => {
-    const aIsPolicy = (a.documentType ?? "policy") === "policy";
-    const bIsPolicy = (b.documentType ?? "policy") === "policy";
-    if (aIsPolicy !== bIsPolicy) return aIsPolicy ? -1 : 1;
-    return (a.insurerName ?? "").localeCompare(b.insurerName ?? "");
-  });
+  // Build the DocPair[] (parsed + report) in the order we want them
+  // to appear left-to-right in the comparator. Doc ordering inside
+  // buildMultiDocComparison() will then refine this (anchor first,
+  // then chronological).
+  const docPairs = visibleDocs
+    .map((parsed) => {
+      const report = reports.get(parsed.id);
+      if (!report) return null;
+      return { parsed, report };
+    })
+    .filter((p): p is { parsed: ParsedPolicy; report: PolicyReport } => p !== null);
 
-  // Build the tab list.
-  const tabs: TabDef[] = [];
-  // Comparator first (sortedDocs.length >= 2 always here — single-doc
-  // redirected above). The comparator is shown whenever 2+ docs are
-  // present, independent of the marketplace flag. The marketplace-
-  // flavoured content (synthetic Right Offer pick) is hidden when the
-  // flag is off; the audit-only content (cover deltas across the
-  // customer's own docs) remains useful in either mode.
-  tabs.push({ id: "comparator", label: "Comparator" });
-  const marketplaceEnabled = isMarketplaceEnabled();
-  for (const doc of sortedDocs) {
-    const docType = doc.documentType ?? "policy";
-    const insurerFirstWord = doc.insurerName?.split(" ")[0] ?? "";
-    tabs.push({
-      id: `doc-${doc.id}`,
-      label:
-        docType === "quote"
-          ? `${insurerFirstWord || "Quote"} Quote`
-          : insurerFirstWord
-            ? `${insurerFirstWord} Policy`
-            : "Policy",
-    });
+  if (docPairs.length === 0) {
+    return <EmptyState hasFullSession={!!fullSessionEmail} />;
   }
 
-  const firstTabId = tabs[0].id;
-  const activeTabId = requestedTab ?? firstTabId;
-  const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
-  const isActiveFirst = activeTab.id === firstTabId;
-  const showGate = !isVerified && isActiveFirst;
-  const showLocked = !isVerified && !isActiveFirst;
+  // Note: visibleDocs.length === 1 case is already handled above via
+  // redirect to /report/[id]. So docPairs.length >= 2 here.
 
-  // Compute the comparator content if needed (active tab is comparator
-  // OR — for the locked panel on other tabs — we don't need it).
-  let comparatorContent: React.ReactNode = null;
-  if (activeTab.id === "comparator") {
-    const anchor =
-      sortedDocs.find(
-        (d) => (d.documentType ?? "policy") === "policy"
-      ) ?? sortedDocs[0];
-    const anchorReport = reports.get(anchor.id)!;
-    const rcpFull = computeRCP(anchor, anchorReport);
-    const rcpSnapshot: ComparisonRcpSnapshot = {
-      requiredAddOns: rcpFull.requiredAddOns,
-      optionalAddOns: rcpFull.optionalAddOns,
-      idv: rcpFull.idv,
-      requiredAddOnsPremiumTotal: rcpFull.requiredAddOnsPremiumTotal,
-    };
-    const quoteScores: ComparisonQuoteScore[] = sortedDocs.map((d) => {
-      const addOnNames = (d.addOns ?? []).map((a) => a.name);
-      const result = scoreAgainstRcp(addOnNames, rcpFull);
-      return {
-        quoteId: d.id,
-        insurerName: d.insurerName,
-        grandTotal: d.premium?.grandTotal ?? 0,
-        missingRequired: result.missingRequired,
-        extraNonRcp: result.extraNonRcp,
-        isRcpComplete: result.isRcpComplete,
-        isExactlyRcp: result.isExactlyRcp,
-      };
+  const comparison = buildMultiDocComparison(docPairs);
+
+  // Cross-doc bottom line — synthesised verdict across all forwarded
+  // docs. We compute on each render for now (no caching). Cost is
+  // ~2-3s of LLM latency. Cache via KV in a future optimisation if
+  // /reports traffic grows.
+  //
+  // Failure is non-fatal — the report still renders with the anchor
+  // doc's per-doc bottomLine as fallback.
+  let crossDocBottomLine = "";
+  try {
+    crossDocBottomLine = await generateCrossDocBottomLine({
+      docs: comparison.ordered.map((d, i) => ({
+        label: comparison.labels[i].label,
+        period: comparison.labels[i].sublabel,
+        documentType:
+          (d.parsed.documentType ?? "policy") === "quote" ? "quote" : "policy",
+        insurer: d.parsed.insurerName,
+        idv: d.parsed.idv,
+        ncbPercent: d.parsed.ncbPercent,
+        grandTotalPremium: d.parsed.premium?.grandTotal ?? 0,
+        addOnsPresent: (d.parsed.addOns ?? []).map((a) => a.name),
+        keyGaps: d.report.keyGaps?.items?.map((g) => g.title),
+        perDocBottomLine: d.report.bottomLine,
+      })),
     });
-    // The "Right Offer pick" (a synthetic insurer offer pitched alongside
-    // the customer's own quotes) is marketplace flavour. We only generate
-    // and surface it when the marketplace flag is on. With the flag off,
-    // the comparator stays purely audit-flavoured: customer's own docs
-    // compared against the recommended profile, no synthetic pitch.
-    const rightOfferPick = marketplaceEnabled
-      ? generateRightOfferPick({
-          rcp: rcpFull,
-          customerQuotes: quoteScores.map((qs) => {
-            const doc = sortedDocs.find((d) => d.id === qs.quoteId);
-            return {
-              grandTotal: qs.grandTotal,
-              basicOd: doc?.premium?.basicOd,
-              basicTp: doc?.premium?.basicTp,
-              isRcpComplete: qs.isRcpComplete,
-              isExactlyRcp: qs.isExactlyRcp,
-              missingRequired: qs.missingRequired,
-              extraNonRcp: qs.extraNonRcp,
-              insurerName: qs.insurerName,
-            };
-          }),
-          anchor,
-        })
-      : null;
-
-    const verdict = computeVerdict(quoteScores, rightOfferPick);
-    const vehicleLabel =
-      `${anchor.vehicle.make} ${anchor.vehicle.model}`.trim() ||
-      "your car";
-
-    comparatorContent = (
-      <ComparatorContent
-        vehicleLabel={vehicleLabel}
-        rcp={rcpSnapshot}
-        quoteScores={quoteScores}
-        verdict={verdict}
-        docs={sortedDocs}
-        rightOfferPick={rightOfferPick}
-        showGate={showGate}
-        marketplaceEnabled={marketplaceEnabled}
-      />
-    );
+  } catch (err) {
+    console.error("[reports] cross-doc bottom line failed (non-fatal):", err);
   }
 
-  // For doc tabs, find the doc/report.
-  const activeDocId =
-    activeTab.id.startsWith("doc-") ? activeTab.id.slice(4) : null;
-  const activeDoc = activeDocId
-    ? sortedDocs.find((d) => d.id === activeDocId)
-    : null;
-  const activeReport = activeDocId ? reports.get(activeDocId) : null;
+  const showGate = !isVerified;
 
   // Count of discovered docs BEFORE the policyGroupKey dedup pass.
-  // Used in the header for the "N docs in session · M unique" diagnostic.
+  // Used in the header for the "N docs · M unique" diagnostic.
   const rawDocCount = docs.length;
-  const dedupedCount = sortedDocs.length;
+  const dedupedCount = comparison.ordered.length;
   const wasDeduped = rawDocCount > dedupedCount;
 
   return (
@@ -306,12 +226,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       <BrandBlobs />
       <main className="relative z-10 min-h-screen px-4 py-8 md:py-10">
         <div className="max-w-4xl mx-auto">
-          {/* Header row — diagnostic count + reset action.
-              Shows "5 docs in session · 2 unique" when dedup
-              collapsed parses, so the customer can see what's
-              happening. The "Start a new comparison" button
-              wipes the anonymous/upload session and routes to
-              /upload for a clean slate. */}
+          {/* Diagnostic header — count + reset. Sits ABOVE the report
+              as small chrome so the report itself has a clean opening. */}
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap text-[11px] text-brand-slate">
             <div>
               {wasDeduped ? (
@@ -329,214 +245,22 @@ export default async function ReportsPage({ searchParams }: PageProps) {
                   <span className="font-semibold text-brand-charcoal">
                     {dedupedCount}
                   </span>{" "}
-                  document{dedupedCount === 1 ? "" : "s"} in your comparison
+                  document{dedupedCount === 1 ? "" : "s"} compared
                 </>
               )}
             </div>
             <ResetButton />
           </div>
 
-          <TabStrip
-            tabs={tabs}
-            firstTabId={firstTabId}
-            isVerified={isVerified}
+          <MultiDocReport
+            comparison={comparison}
+            crossDocBottomLine={crossDocBottomLine}
+            view="customer"
+            showGate={showGate}
           />
-
-          {showLocked ? (
-            <LockedTabPanel
-              firstTabLabel={tabs[0].label}
-              firstTabId={firstTabId}
-            />
-          ) : (
-            <>
-              {activeTab.id === "comparator" && comparatorContent}
-              {activeDoc && activeReport && (
-                <ReportDisplay
-                  parsedPolicy={activeDoc}
-                  report={activeReport}
-                  view="customer"
-                  showGate={showGate}
-                />
-              )}
-            </>
-          )}
         </div>
       </main>
     </>
-  );
-}
-
-// ----------------------------------------------------------------------------
-// Verdict — now factors in the RightOffer pick as a competing option.
-//
-// The "Right Offer rule" decision tree:
-//   1. If a customer quote is isExactlyRcp AND <= our pick's price
-//      → "take_existing" (your quote is the Right Offer)
-//   2. Else if a customer quote is isRcpComplete (with extras) AND
-//      cheaper than our pick → "take_existing" with over-coverage note
-//   3. Else our pick wins → "rightoffer_pitch"
-//
-// The pick is always RCP-complete by construction (lib/rightoffer-pick),
-// so we never end up in a "needs_attention" verdict unless the customer
-// has uploaded zero quotes (handled upstream — comparator tab itself
-// only renders for 2+ docs).
-// ----------------------------------------------------------------------------
-function computeVerdict(
-  quoteScores: ComparisonQuoteScore[],
-  rightOfferPick: RightOfferPick | null
-): ComparisonVerdict {
-  if (quoteScores.length === 0) {
-    return {
-      type: "needs_attention",
-      headline: "No quotes to compare yet.",
-      body:
-        "Upload at least one renewal quote and we'll score it against the recommended profile for your car.",
-    };
-  }
-
-  // ---- Audit-only path: no synthetic pitch, just rank the customer's
-  //      own docs by RCP-completeness + price. Used when the marketplace
-  //      flag is off (Phase 1 audit-only product).
-  if (!rightOfferPick) {
-    const exactlyRcp = quoteScores
-      .filter((q) => q.isExactlyRcp)
-      .sort((a, b) => a.grandTotal - b.grandTotal);
-    if (exactlyRcp.length > 0) {
-      const winner = exactlyRcp[0];
-      return {
-        type: "take_existing",
-        headline: `${winner.insurerName} comes out ahead.`,
-        body: `Covers every recommendation at ₹${winner.grandTotal.toLocaleString(
-          "en-IN"
-        )} — no missing essentials, no padding. The cleanest option among what you've forwarded.`,
-        recommendedQuoteId: winner.quoteId,
-      };
-    }
-
-    const rcpComplete = quoteScores
-      .filter((q) => q.isRcpComplete)
-      .sort((a, b) => a.grandTotal - b.grandTotal);
-    if (rcpComplete.length > 0) {
-      const winner = rcpComplete[0];
-      const extras = winner.extraNonRcp.length
-        ? ` (with ${winner.extraNonRcp.join(", ")} thrown in)`
-        : "";
-      return {
-        type: "take_existing",
-        headline: `${winner.insurerName} comes out ahead.`,
-        body: `Covers everything we recommend${extras} at ₹${winner.grandTotal.toLocaleString(
-          "en-IN"
-        )} — the most complete cover among what you've forwarded.`,
-        recommendedQuoteId: winner.quoteId,
-      };
-    }
-
-    // No quote is RCP-complete — surface the closest one and what's missing.
-    const sorted = quoteScores
-      .map((q) => ({
-        q,
-        missingCount: q.missingRequired.length,
-      }))
-      .sort(
-        (a, b) =>
-          a.missingCount - b.missingCount || a.q.grandTotal - b.q.grandTotal
-      );
-    const closest = sorted[0].q;
-    const missingList = closest.missingRequired.join(", ");
-    return {
-      type: "needs_attention",
-      headline: `Closest fit: ${closest.insurerName}, but with gaps.`,
-      body: `Missing ${missingList}. Worth asking the insurer to add ${
-        closest.missingRequired.length === 1 ? "this" : "these"
-      } before you bind — or shop around for a quote that already includes them.`,
-      recommendedQuoteId: closest.quoteId,
-    };
-  }
-
-  // ---- Marketplace path: synthetic pitch comparing customer quotes to
-  //      our Right Offer pick. Unchanged from prior behaviour.
-  const ourPrice = rightOfferPick.grandTotal;
-
-  // Cheapest customer quote that's exactly RCP-complete (no padding).
-  const exactlyRcp = quoteScores
-    .filter((q) => q.isExactlyRcp)
-    .sort((a, b) => a.grandTotal - b.grandTotal);
-  if (exactlyRcp.length > 0 && exactlyRcp[0].grandTotal <= ourPrice) {
-    const winner = exactlyRcp[0];
-    return {
-      type: "take_existing",
-      headline: `${winner.insurerName} is the Right Offer for you.`,
-      body: `Covers every recommendation at ₹${winner.grandTotal.toLocaleString(
-        "en-IN"
-      )} — no missing essentials, no padding, and cheaper than our pick. Take it directly from ${winner.insurerName}.`,
-      recommendedQuoteId: winner.quoteId,
-    };
-  }
-
-  // Cheapest customer quote that's RCP-complete (with extras allowed).
-  const rcpComplete = quoteScores
-    .filter((q) => q.isRcpComplete)
-    .sort((a, b) => a.grandTotal - b.grandTotal);
-  if (rcpComplete.length > 0 && rcpComplete[0].grandTotal < ourPrice) {
-    const winner = rcpComplete[0];
-    const extras = winner.extraNonRcp.length
-      ? ` plus ${winner.extraNonRcp.join(", ")} you didn't strictly need`
-      : "";
-    return {
-      type: "take_existing",
-      headline: `${winner.insurerName} is the Right Offer for you.`,
-      body: `Covers everything we recommend${extras}, and ₹${(
-        ourPrice - winner.grandTotal
-      ).toLocaleString(
-        "en-IN"
-      )} cheaper than our pick. Take it directly from ${winner.insurerName}.`,
-      recommendedQuoteId: winner.quoteId,
-    };
-  }
-
-  // Our pick wins — either no customer quote is RCP-complete, or
-  // all RCP-complete customer quotes are more expensive than our pick.
-  return {
-    type: "rightoffer_pitch",
-    headline: `Our pick: ${rightOfferPick.insurerName} — the Right Offer for you.`,
-    body: rightOfferPick.beatSummary,
-  };
-}
-
-// ----------------------------------------------------------------------------
-// Locked panel — server component, no client-state needed
-// ----------------------------------------------------------------------------
-function LockedTabPanel({
-  firstTabLabel,
-  firstTabId,
-}: {
-  firstTabLabel: string;
-  firstTabId: string;
-}) {
-  return (
-    <div className="rounded-2xl border-2 border-dashed border-brand-light-gray bg-brand-offwhite/40 p-8 md:p-10 text-center">
-      <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-navy/10 border border-brand-navy/20 text-brand-navy flex items-center justify-center">
-        <Lock className="w-6 h-6" />
-      </div>
-      <h3 className="mt-4 text-lg md:text-xl font-bold text-brand-charcoal tracking-tight">
-        Verify your email to unlock this tab
-      </h3>
-      <p className="mt-2 text-sm text-brand-slate max-w-md mx-auto leading-relaxed">
-        Head to the{" "}
-        <span className="font-semibold text-brand-charcoal">
-          {firstTabLabel}
-        </span>{" "}
-        tab and enter the code we&rsquo;ll email you. Once verified,
-        every tab unlocks &mdash; no need to verify again.
-      </p>
-      <Link
-        href={`/reports?tab=${encodeURIComponent(firstTabId)}`}
-        className="mt-5 inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand-olive hover:brightness-110 text-white font-semibold text-sm rounded-xl shadow-glow transition-all"
-      >
-        Go to {firstTabLabel}
-        <ArrowRight className="w-3.5 h-3.5" />
-      </Link>
-    </div>
   );
 }
 
