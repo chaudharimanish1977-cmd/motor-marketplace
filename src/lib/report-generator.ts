@@ -9,7 +9,15 @@
 
 import { randomUUID } from "crypto";
 import { callClaude, extractJSON } from "@/lib/anthropic";
-import type { ParsedPolicy, PolicyReport } from "@/lib/types";
+import type {
+  AddOnRecommendation,
+  CoverageSnapshotRow,
+  FeatureInsight,
+  ParsedPolicy,
+  PolicyReport,
+  ThingsToAskItem,
+} from "@/lib/types";
+import { formatINR } from "@/lib/format";
 
 const SYSTEM_PROMPT = `You are an expert motor insurance advisor for Indian private car owners. Generate a personalised, vehicle-specific policy review based on a parsed policy.
 
@@ -65,7 +73,8 @@ Return ONLY a single valid JSON object matching this exact schema. No prose, no 
       "reasoning": string (one sentence, vehicle/profile-specific),
       "estimatedAnnualPremium": number (rough INR estimate)
     }
-  ]
+  ],
+  "bottomLine": string (1-2 sentences — the Big-4-style executive summary. See §bottomLine guidance below.)
 }
 
 GLOBAL GUIDELINES:
@@ -158,7 +167,18 @@ SECTION-SPECIFIC GUIDANCE:
   • Consumables: "essential" for vehicles 5+ years (more wear-and-tear claims); "optional" for newer
   • Key Replacement: "optional" for vehicles with smart keys (newer high-end models); "drop" for basic mechanical-key vehicles
   • Loss of Personal Belongings: "optional" for premium vehicles where owners carry valuables; "drop" for basic/family vehicles
-  • If isInCurrentPolicy=true but recommendation="drop": explicitly mention the savings opportunity in reasoning.`;
+  • If isInCurrentPolicy=true but recommendation="drop": explicitly mention the savings opportunity in reasoning.
+
+§bottomLine — THE EXECUTIVE SUMMARY (top of the new report layout):
+  • 1-2 short sentences. NO greetings, NO "Hi", NO "—Aryan" signoff.
+  • The customer reads this in 5 seconds and knows what to do.
+  • Lead with the verdict, follow with the most important specific.
+  • Examples (calibrate tone + length):
+    - "Solid policy. Adding Engine Protector closes a ₹2L exposure for ₹800/yr — worth it."
+    - "Cover is thin for an 8-year-old CNG. NCB Protection + Zero Dep would cost ₹1,200/yr and protect the 50% NCB you've built up."
+    - "Your renewal pricing is fair. Skip Loss of Personal Belongings; keep everything else as-is."
+  • DO NOT mention insurer-switching as the headline action (we don't do that yet).
+  • DO NOT use vague phrases like "consider reviewing" — be decisive.`;
 
 type ReportSections = Omit<
   PolicyReport,
@@ -191,10 +211,331 @@ Return only the JSON report object, no prose.`;
 
   const sections = extractJSON<ReportSections>(response);
 
+  // Phase 1 unified-template fields. Derived from the LLM output + the
+  // parsed policy. Two of these (bottomLine) come straight from the
+  // primary LLM call; coverageSnapshot + featureInsights are
+  // deterministically derived from the structured fields (no extra
+  // LLM cost); thingsToAsk fires a separate LLM call only for
+  // quote-type documents (where negotiation makes sense).
+  const coverageSnapshot = deriveCoverageSnapshot(
+    parsedPolicy,
+    sections
+  );
+  const featureInsights = deriveFeatureInsights(parsedPolicy, sections);
+
+  let thingsToAsk: ThingsToAskItem[] = [];
+  if ((parsedPolicy.documentType ?? "policy") === "quote") {
+    try {
+      thingsToAsk = await generateThingsToAsk(parsedPolicy, sections);
+    } catch (err) {
+      console.error(
+        "[report-generator] thingsToAsk generation failed (non-fatal):",
+        err
+      );
+    }
+  }
+
   return {
     id: randomUUID(),
     parsedPolicyId: parsedPolicy.id,
     generatedAt: new Date().toISOString(),
     ...sections,
+    coverageSnapshot,
+    featureInsights,
+    thingsToAsk,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Coverage Snapshot derivation — deterministic, no LLM
+// ---------------------------------------------------------------------------
+
+/** Canonical add-on list, kept in sync with §addOnRecommendations above.
+ *  This is the order in which rows render in the Coverage Snapshot table. */
+const CANONICAL_ADDONS = [
+  "Zero Depreciation",
+  "Engine Protector",
+  "Return to Invoice",
+  "Roadside Assistance",
+  "NCB Protection",
+  "Consumables",
+  "Key Replacement",
+  "Loss of Personal Belongings",
+] as const;
+
+/**
+ * Build the structured table rows from the parsed policy + LLM-generated
+ * report sections. No LLM cost — pure derivation.
+ *
+ * Row order:
+ *   1. Anchor rows (always 3): IDV, NCB, Policy type
+ *   2. Add-on rows (always 8): each canonical add-on with ✓ / ✗
+ *
+ * Status colour-coding logic per add-on:
+ *   essential + present     → "good"     (covered what's recommended)
+ *   essential + absent      → "missing"  (red — biggest exposure)
+ *   optional + absent       → "warn"     (amber — consider adding)
+ *   optional + present      → "good"     (still good — they have it)
+ *   drop + present          → "warn"     (paying for unneeded cover)
+ *   drop + absent           → "neutral"  (correctly not paying for it)
+ */
+function deriveCoverageSnapshot(
+  parsedPolicy: ParsedPolicy,
+  sections: ReportSections
+): CoverageSnapshotRow[] {
+  const rows: CoverageSnapshotRow[] = [];
+  const isQuote = (parsedPolicy.documentType ?? "policy") === "quote";
+
+  // ---- Anchor rows ----
+  // IDV — use the LLM's assessment to colour-code
+  const idvAssessment = sections.idvCheck?.assessment ?? "appropriate";
+  const idvStatus: CoverageSnapshotRow["status"] =
+    idvAssessment === "appropriate"
+      ? "good"
+      : idvAssessment === "low"
+        ? "missing"
+        : "warn";
+  rows.push({
+    feature: "Insured Declared Value (IDV)",
+    category: "anchor",
+    value: formatINR(parsedPolicy.idv),
+    status: idvStatus,
+    whatThisMeans:
+      sections.idvCheck?.tip ?? "Drives what an insurer pays on a total loss.",
+  });
+
+  // NCB
+  rows.push({
+    feature: "No-Claim Bonus (NCB)",
+    category: "anchor",
+    value: `${parsedPolicy.ncbPercent}%`,
+    status: parsedPolicy.ncbPercent >= 35 ? "good" : "neutral",
+    whatThisMeans:
+      parsedPolicy.ncbPercent >= 35
+        ? "Hard-earned discount. Worth protecting with NCB Protection."
+        : "Standard discount level for your renewal cycle.",
+  });
+
+  // Policy type
+  rows.push({
+    feature: "Policy type",
+    category: "anchor",
+    value: parsedPolicy.policyType,
+    status:
+      parsedPolicy.policyType === "Comprehensive Package" ? "good" : "warn",
+    whatThisMeans:
+      parsedPolicy.policyType === "Comprehensive Package"
+        ? "Own-damage + third-party — what most owners need."
+        : "Limited cover. Comprehensive is usually the right level.",
+  });
+
+  // ---- Add-on rows ----
+  // Build a lookup of add-on recommendations from the LLM.
+  const recsByName = new Map<string, AddOnRecommendation>();
+  for (const r of sections.addOnRecommendations ?? []) {
+    recsByName.set(r.name, r);
+  }
+  // Also detect what's actually in the parsed policy (regardless of LLM's view).
+  const presentAddons = new Set(
+    (parsedPolicy.addOns ?? []).map((a) => normalizeAddOnName(a.name))
+  );
+
+  for (const canonical of CANONICAL_ADDONS) {
+    const rec = recsByName.get(canonical);
+    const isPresent =
+      rec?.isInCurrentPolicy ?? presentAddons.has(canonical.toLowerCase());
+    const recommendation = rec?.recommendation ?? "optional";
+
+    let status: CoverageSnapshotRow["status"] = "neutral";
+    if (recommendation === "essential" && isPresent) status = "good";
+    else if (recommendation === "essential" && !isPresent) status = "missing";
+    else if (recommendation === "optional" && isPresent) status = "good";
+    else if (recommendation === "optional" && !isPresent) status = "warn";
+    else if (recommendation === "drop" && isPresent) status = "warn";
+    else if (recommendation === "drop" && !isPresent) status = "neutral";
+
+    // "What this means" copy. For a quote, frame as "should you accept this".
+    // For a policy, frame as "what to do about it".
+    const reasoning = rec?.reasoning ?? "";
+    const whatThisMeans = isPresent
+      ? recommendation === "drop"
+        ? `Paying for cover you don't strictly need. ${reasoning}`
+        : reasoning ||
+          (isQuote ? "Included in this quote." : "Already in your policy.")
+      : recommendation === "essential"
+        ? `Missing. ${reasoning || "Worth adding."}`
+        : recommendation === "optional"
+          ? `Not included. ${reasoning || "Consider whether you need it."}`
+          : `Not included. Not strictly needed for your profile.`;
+
+    rows.push({
+      feature: canonical,
+      category: "addon",
+      value: isPresent ? "✓" : "✗",
+      status,
+      whatThisMeans,
+    });
+  }
+
+  return rows;
+}
+
+/** Loose match for "Zero Dep" / "Zero Depreciation Cover" / "0-Dep". */
+function normalizeAddOnName(raw: string): string {
+  return (raw ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .replace(/^zero?dep.*/, "zero depreciation")
+    .replace(/^engineprotect.*/, "engine protector")
+    .replace(/^returntoinvoice.*/, "return to invoice")
+    .replace(/^rti$/, "return to invoice")
+    .replace(/^roadsideassist.*/, "roadside assistance")
+    .replace(/^rsa$/, "roadside assistance")
+    .replace(/^ncb(?!protect).*/, "ncb protection")
+    .replace(/^consumable.*/, "consumables")
+    .replace(/^keyreplace.*/, "key replacement")
+    .replace(/^lossofpersonalbelong.*/, "loss of personal belongings");
+}
+
+// ---------------------------------------------------------------------------
+// Feature Insights derivation — anchored to table rows
+// ---------------------------------------------------------------------------
+
+/**
+ * Derive per-feature insights from existing LLM output. Each insight maps to
+ * a row in the Coverage Snapshot table (by `feature` string match), giving
+ * the customer a clear "this row → this paragraph" connection.
+ *
+ * Sources:
+ *   - idvCheck → IDV insight
+ *   - addOnRecommendations[*].reasoning → per-add-on insight
+ *   - whatCoversWell + keyGaps → optional supplements when they reference
+ *     a specific add-on name
+ */
+function deriveFeatureInsights(
+  parsedPolicy: ParsedPolicy,
+  sections: ReportSections
+): FeatureInsight[] {
+  const insights: FeatureInsight[] = [];
+
+  // IDV insight (from idvCheck section)
+  if (sections.idvCheck) {
+    const idv = sections.idvCheck;
+    const idvBody =
+      idv.whatToDo && idv.whatToDo.length > 0
+        ? `${idv.tip ?? ""} ${idv.whatToDo.join(" ")}`.trim()
+        : idv.tip ?? "";
+    if (idvBody) {
+      insights.push({
+        feature: "Insured Declared Value (IDV)",
+        body: idvBody,
+      });
+    }
+  }
+
+  // Add-on insights (one per canonical add-on with a non-empty reasoning)
+  const recsByName = new Map<string, AddOnRecommendation>();
+  for (const r of sections.addOnRecommendations ?? []) {
+    recsByName.set(r.name, r);
+  }
+  for (const canonical of CANONICAL_ADDONS) {
+    const rec = recsByName.get(canonical);
+    if (!rec || !rec.reasoning) continue;
+    // Skip rows where the reasoning is too generic / no-signal.
+    if (rec.reasoning.length < 20) continue;
+    insights.push({
+      feature: canonical,
+      body: rec.reasoning,
+    });
+  }
+
+  return insights;
+}
+
+// ---------------------------------------------------------------------------
+// Things to Ask — LLM call (quotes only)
+// ---------------------------------------------------------------------------
+
+const THINGS_TO_ASK_PROMPT = `You are an expert motor insurance advisor for Indian private car owners. The customer has received a RENEWAL QUOTE from an insurer and is deciding whether to accept it. Generate 3-5 specific, customer-friendly questions they should ask the insurer (or their agent) before binding the quote.
+
+OUTPUT FORMAT:
+Return ONLY a single valid JSON array. No prose, no markdown fences.
+
+[
+  {
+    "insurer": string (the insurer name from the quote),
+    "ask": string (a short, direct question or request — 1 sentence — that the customer can copy-paste into a chat / email / phone call),
+    "reasoning": string (1 short sentence the customer can use as context if pressed)
+  }
+]
+
+GUIDELINES:
+- Questions must be CUSTOMER-FRIENDLY language — no jargon. The customer sends these to a sales agent.
+- Be specific. Reference exact add-on names, exact rupee amounts, exact policy terms.
+- Lead with what's MISSING from this quote vs. what's recommended (from the addOnRecommendations).
+- Include 1 question about something IDV-related if IDV is low or high.
+- If the customer's CURRENT policy had something the quote drops, ask about it explicitly.
+- Avoid passive-aggressive or pushy phrasing. The customer is paying; they're asking for fair terms.
+- Use ₹ with Indian numbering: "₹1,400/yr" not "₹1,400 per year".
+
+QUESTION SHAPES (calibrate tone + brevity):
+- "Can you add Engine Protector? My current cover has it and our area sees flooding in monsoon."
+- "What's the engine sub-limit on this policy if water enters the engine? I want to know before I bind."
+- "The IDV is ₹X — can you adjust to ₹Y? Resale data for my model+year supports a higher value."
+- "Can you match the Zero Depreciation that's in my current Tata AIG cover? ~₹1,500/yr."
+
+Be tight. The customer will paste these directly.`;
+
+async function generateThingsToAsk(
+  parsedPolicy: ParsedPolicy,
+  sections: ReportSections
+): Promise<ThingsToAskItem[]> {
+  const policyForPrompt = { ...parsedPolicy };
+  delete (policyForPrompt as Partial<ParsedPolicy>).rawText;
+
+  // Send just enough context for the model to write useful questions.
+  // We deliberately omit the full editorial sections — they'd inflate the
+  // prompt without changing the structural output.
+  const contextForPrompt = {
+    insurer: parsedPolicy.insurerName,
+    vehicle: parsedPolicy.vehicle,
+    idv: parsedPolicy.idv,
+    ncbPercent: parsedPolicy.ncbPercent,
+    addOnsInQuote: (parsedPolicy.addOns ?? []).map((a) => a.name),
+    premium: parsedPolicy.premium,
+    previousPolicy: parsedPolicy.previousPolicy,
+    keyGaps: sections.keyGaps,
+    idvCheck: sections.idvCheck,
+    addOnRecommendations: sections.addOnRecommendations,
+  };
+
+  const userMessage = `Generate "things to ask" questions for this RENEWAL QUOTE:
+
+<context>
+${JSON.stringify(contextForPrompt, null, 2)}
+</context>
+
+Today's date is ${new Date().toISOString().slice(0, 10)}.
+
+Return only the JSON array, no prose.`;
+
+  const response = await callClaude({
+    system: THINGS_TO_ASK_PROMPT,
+    userMessage,
+    maxTokens: 1500,
+    temperature: 0.3,
+  });
+
+  const items = extractJSON<ThingsToAskItem[]>(response);
+
+  // Guard against the LLM returning the wrong shape — drop invalid rows.
+  return (Array.isArray(items) ? items : [])
+    .filter(
+      (item): item is ThingsToAskItem =>
+        !!item &&
+        typeof item.insurer === "string" &&
+        typeof item.ask === "string" &&
+        item.ask.length > 0
+    )
+    .slice(0, 5);
 }
