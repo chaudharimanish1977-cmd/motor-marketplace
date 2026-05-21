@@ -96,6 +96,7 @@ export function UnifiedReport({
         mode="single"
         rows={report.coverageSnapshot ?? []}
         vehicleLabel={vehicleLabel}
+        printMode={printMode}
       />
 
       {/* ── 4. Feature Insights ────────────────────────────────────── */}

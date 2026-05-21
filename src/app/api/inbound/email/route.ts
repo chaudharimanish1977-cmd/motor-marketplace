@@ -703,11 +703,6 @@ async function sendConsolidatedReplyForForward(args: {
         documentType: audit.documentType,
         insurerName: parsed.insurerName || "audit",
         yearLabel,
-        individualReportUrl: buildAuditMagicLinkUrl(
-          args.fromEmail,
-          SITE_URL,
-          `/report/${audit.parsedPolicyId}`
-        ),
       });
     } catch (err) {
       console.error(

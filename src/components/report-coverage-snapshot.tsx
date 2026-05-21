@@ -29,6 +29,11 @@ interface SingleDocProps {
   rows: CoverageSnapshotRow[];
   /** Vehicle label, displayed in the table caption. */
   vehicleLabel: string;
+  /** When true, render the desktop grid layout REGARDLESS of viewport
+   *  width. Used by puppeteer PDF render where Tailwind's responsive
+   *  breakpoints don't behave the way they do in a normal browser
+   *  (the print viewport is narrower, so md:hidden kicks in). */
+  printMode?: boolean;
 }
 
 interface MultiDocRow {
@@ -46,6 +51,10 @@ interface MultiDocProps {
   /** Column headers — one per document. */
   documents: Array<{ label: string; sublabel?: string }>;
   vehicleLabel: string;
+  /** When true, render the desktop grid layout REGARDLESS of viewport
+   *  width. Required for the PDF render to show docs as columns
+   *  instead of the mobile-card stacked layout. */
+  printMode?: boolean;
 }
 
 type Props = SingleDocProps | MultiDocProps;
@@ -61,8 +70,13 @@ export function CoverageSnapshotTable(props: Props) {
 // Single-doc rendering
 // ---------------------------------------------------------------------------
 
-function SingleDocTable({ rows, vehicleLabel }: SingleDocProps) {
+function SingleDocTable({ rows, vehicleLabel, printMode }: SingleDocProps) {
   if (!rows || rows.length === 0) return null;
+  // Print mode forces the desktop grid (puppeteer's print viewport
+  // narrower than the md: breakpoint, so without this it falls into
+  // the mobile-card layout).
+  const desktopClass = printMode ? "block" : "hidden md:block";
+  const mobileClass = printMode ? "hidden" : "md:hidden";
 
   return (
     <section className="mb-10">
@@ -76,7 +90,7 @@ function SingleDocTable({ rows, vehicleLabel }: SingleDocProps) {
       </h2>
 
       {/* Desktop: full table grid */}
-      <div className="hidden md:block border-y border-brand-charcoal/15">
+      <div className={`${desktopClass} border-y border-brand-charcoal/15`}>
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-brand-charcoal/15">
@@ -117,7 +131,7 @@ function SingleDocTable({ rows, vehicleLabel }: SingleDocProps) {
       </div>
 
       {/* Mobile: stack each row as a card */}
-      <div className="md:hidden space-y-3 border-t border-brand-charcoal/15 pt-3">
+      <div className={`${mobileClass} space-y-3 border-t border-brand-charcoal/15 pt-3`}>
         {rows.map((row, idx) => (
           <div
             key={`m-${row.feature}-${idx}`}
@@ -147,9 +161,19 @@ function SingleDocTable({ rows, vehicleLabel }: SingleDocProps) {
 // Multi-doc rendering — used by /reports (Phase 2b)
 // ---------------------------------------------------------------------------
 
-function MultiDocTable({ rows, documents, vehicleLabel }: MultiDocProps) {
+function MultiDocTable({
+  rows,
+  documents,
+  vehicleLabel,
+  printMode,
+}: MultiDocProps) {
   if (!rows || rows.length === 0) return null;
   if (documents.length === 0) return null;
+  // Print mode forces the desktop columnar layout — the only one that
+  // shows docs as columns. Mobile layout stacks docs vertically per
+  // feature, which destroys the whole point of a comparison.
+  const desktopClass = printMode ? "block" : "hidden md:block";
+  const mobileClass = printMode ? "hidden" : "md:hidden";
 
   return (
     <section className="mb-10">
@@ -163,7 +187,7 @@ function MultiDocTable({ rows, documents, vehicleLabel }: MultiDocProps) {
       </h2>
 
       {/* Desktop: comparison grid */}
-      <div className="hidden md:block border-y border-brand-charcoal/15 overflow-x-auto">
+      <div className={`${desktopClass} border-y border-brand-charcoal/15 overflow-x-auto`}>
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-brand-charcoal/15">
@@ -209,8 +233,11 @@ function MultiDocTable({ rows, documents, vehicleLabel }: MultiDocProps) {
         </table>
       </div>
 
-      {/* Mobile: per-row card, with each doc's value shown inline */}
-      <div className="md:hidden space-y-3 border-t border-brand-charcoal/15 pt-3">
+      {/* Mobile: per-row card, with each doc's value shown inline.
+       *  Labels include the coverage period (sublabel) so the customer
+       *  can tell two policies apart even when they're from the same
+       *  insurer. */}
+      <div className={`${mobileClass} space-y-3 border-t border-brand-charcoal/15 pt-3`}>
         {rows.map((row, idx) => (
           <div
             key={`mm-${row.feature}-${idx}`}
@@ -222,17 +249,22 @@ function MultiDocTable({ rows, documents, vehicleLabel }: MultiDocProps) {
               {row.feature}
             </div>
             <div className="mt-2 grid grid-cols-1 gap-1.5">
-              {row.cells.map((cell, c) => (
-                <div
-                  key={`mc-${idx}-${c}`}
-                  className="flex items-center justify-between gap-3"
-                >
-                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-brand-slate">
-                    {documents[c]?.label ?? `Doc ${c + 1}`}
-                  </span>
-                  <StatusCell value={cell.value} status={cell.status} />
-                </div>
-              ))}
+              {row.cells.map((cell, c) => {
+                const docLabel = documents[c]?.label ?? `Doc ${c + 1}`;
+                const docSub = documents[c]?.sublabel ?? "";
+                return (
+                  <div
+                    key={`mc-${idx}-${c}`}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-brand-slate">
+                      {docLabel}
+                      {docSub ? ` · ${docSub}` : ""}
+                    </span>
+                    <StatusCell value={cell.value} status={cell.status} />
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}

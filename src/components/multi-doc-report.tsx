@@ -36,6 +36,11 @@ interface Props {
   view: "investor" | "customer";
   showGate: boolean;
   printMode?: boolean;
+  /** Which tab is active. "comparator" (default) shows the master
+   *  comparison + inline collapsible annexures. "doc-<id>" shows
+   *  that single annexure's full editorial only. In print mode,
+   *  activeTab is ignored — everything renders sequentially. */
+  activeTab?: string;
 }
 
 export function MultiDocReport({
@@ -44,8 +49,21 @@ export function MultiDocReport({
   view,
   showGate,
   printMode,
+  activeTab = "comparator",
 }: Props) {
   const { anchor, ordered, labels, table, glossaryBlob } = comparison;
+  // In print mode we always render the full master view (everything
+  // sequentially, annexures expanded). On web, the activeTab decides
+  // which content panel renders.
+  const showAnnexureOnly =
+    !printMode && activeTab.startsWith("doc-");
+  const activeAnnexId = showAnnexureOnly ? activeTab.slice(4) : null;
+  const activeAnnex = activeAnnexId
+    ? ordered.find((d) => d.parsed.id === activeAnnexId)
+    : null;
+  const activeAnnexIndex = activeAnnex
+    ? ordered.findIndex((d) => d.parsed.id === activeAnnex.parsed.id)
+    : -1;
   const vehicleLabel =
     `${anchor.parsed.vehicle.make} ${anchor.parsed.vehicle.model}`.trim() ||
     "your car";
@@ -72,10 +90,12 @@ export function MultiDocReport({
 
   return (
     <article className="relative z-10 max-w-4xl mx-auto px-6 md:px-8 py-10 md:py-14 font-serif text-brand-charcoal">
-      {/* ── 1. Owner + Vehicle anchor ─────────────────────────────── */}
+      {/* ── 1. Owner + Vehicle anchor (always renders) ─────────────── */}
       <header className="mb-8 pb-6 border-b border-brand-charcoal/15">
         <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
-          · Policy comparison ·
+          {showAnnexureOnly && activeAnnex
+            ? `· Annexure ${String.fromCharCode(65 + activeAnnexIndex)} · ${labels[activeAnnexIndex].label} · ${labels[activeAnnexIndex].sublabel} ·`
+            : "· Policy comparison ·"}
         </div>
         <h1 className="font-serif font-medium text-3xl md:text-[40px] leading-[1.08] tracking-[-0.02em] text-brand-charcoal m-0">
           {vehicleLabel}
@@ -85,61 +105,90 @@ export function MultiDocReport({
           {anchor.parsed.owner?.name && (
             <div>Owner · {anchor.parsed.owner.name}</div>
           )}
-          <div>
-            {ordered.length} {ordered.length === 1 ? "document" : "documents"}{" "}
-            compared
-          </div>
+          {!showAnnexureOnly && (
+            <div>
+              {ordered.length} {ordered.length === 1 ? "document" : "documents"}{" "}
+              compared
+            </div>
+          )}
         </div>
       </header>
 
-      {/* ── 2. Cross-doc bottom line ───────────────────────────────── */}
-      <BottomLineBanner report={bannerReport} />
+      {/* ─────────────────────────────────────────────────────────────
+       *  WHICH TAB:
+       *    showAnnexureOnly=true (web, ?tab=doc-X) → render that
+       *      annexure's full editorial only. Tab strip at the top
+       *      lets the customer jump back to Comparator.
+       *    Else → render the full master comparator view, with
+       *      annexures as inline collapsibles further down.
+       *  In print mode, showAnnexureOnly is forced to false so the
+       *  PDF carries everything sequentially.
+       *  ───────────────────────────────────────────────────────── */}
 
-      {/* ── 3. Coverage Snapshot table (multi-column) ──────────────── */}
-      <CoverageSnapshotTable
-        mode="multi"
-        rows={table}
-        documents={labels}
-        vehicleLabel={vehicleLabel}
-      />
-
-      {/* ── 4. Feature Insights (from anchor doc as the current reference) */}
-      <FeatureInsightList insights={anchor.report.featureInsights} />
-
-      {/* ── 5. Things to ask (aggregated across all quotes) ────────── */}
-      <ThingsToAskBlock items={allThingsToAsk} />
-
-      {/* ── 6. Annexures — full editorial per document ─────────────── */}
-      <section className="mt-12 pt-8 border-t border-brand-charcoal/15">
-        <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
-          · Annexures · Detailed reports per document ·
-        </div>
-        <p className="font-serif italic text-[14.5px] text-brand-slate max-w-xl mb-8">
-          Everything above synthesised into the comparison table. Each
-          annexure below is the full audit for a single document — read
-          if you want the deep version.
-        </p>
-        {ordered.map((doc, i) => (
-          <AnnexureSection
-            key={doc.parsed.id}
-            label={`Annexure ${String.fromCharCode(65 + i)} — ${labels[i].label} · ${labels[i].sublabel}`}
-            parsedPolicy={doc.parsed}
-            report={doc.report}
+      {showAnnexureOnly && activeAnnex ? (
+        <section>
+          <ReportDisplay
+            parsedPolicy={activeAnnex.parsed}
+            report={activeAnnex.report}
             view={view}
-            showGate={showGate && i === 0}
+            showGate={showGate}
             printMode={printMode}
           />
-        ))}
-      </section>
+        </section>
+      ) : (
+        <>
+          {/* ── 2. Cross-doc bottom line ─────────────────────────── */}
+          <BottomLineBanner report={bannerReport} />
 
-      {/* ── 7. Glossary ────────────────────────────────────────────── */}
-      <GlossarySection contentBlob={glossaryBlob} />
+          {/* ── 3. Coverage Snapshot table (multi-column) ────────── */}
+          <CoverageSnapshotTable
+            mode="multi"
+            rows={table}
+            documents={labels}
+            vehicleLabel={vehicleLabel}
+            printMode={printMode}
+          />
 
-      {/* ── 8. How we read this ────────────────────────────────────── */}
-      <HowWeReadThisFooter
-        parsedPolicy={anchor.parsed}
-        report={anchor.report}
-      />
+          {/* ── 4. Feature Insights (anchor doc as current reference) */}
+          <FeatureInsightList insights={anchor.report.featureInsights} />
+
+          {/* ── 5. Things to ask (aggregated across all quotes) ──── */}
+          <ThingsToAskBlock items={allThingsToAsk} />
+
+          {/* ── 6. Annexures — collapsible per-doc editorials ────── */}
+          <section className="mt-12 pt-8 border-t border-brand-charcoal/15">
+            <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
+              · Annexures · Detailed reports per document ·
+            </div>
+            <p className="font-serif italic text-[14.5px] text-brand-slate max-w-xl mb-8">
+              Everything above synthesised into the comparison table.
+              Each annexure below is the full audit for a single
+              document — expand inline, or jump direct via the tabs
+              above.
+            </p>
+            {ordered.map((doc, i) => (
+              <AnnexureSection
+                key={doc.parsed.id}
+                label={`Annexure ${String.fromCharCode(65 + i)} — ${labels[i].label} · ${labels[i].sublabel}`}
+                parsedPolicy={doc.parsed}
+                report={doc.report}
+                view={view}
+                showGate={showGate && i === 0}
+                printMode={printMode}
+              />
+            ))}
+          </section>
+
+          {/* ── 7. Glossary ──────────────────────────────────────── */}
+          <GlossarySection contentBlob={glossaryBlob} />
+
+          {/* ── 8. How we read this ──────────────────────────────── */}
+          <HowWeReadThisFooter
+            parsedPolicy={anchor.parsed}
+            report={anchor.report}
+          />
+        </>
+      )}
     </article>
   );
 }
@@ -159,15 +208,22 @@ function AnnexureSection({
   showGate: boolean;
   printMode?: boolean;
 }) {
+  // In PRINT MODE the <details> must be open (PDFs can't be clicked,
+  // and we want the full annexure content visible in the export).
+  // In WEB MODE we default to CLOSED so the page opens with the
+  // comparator above the fold; the customer expands inline if they
+  // want, OR jumps direct via the tab strip at the top.
   return (
-    <details className="mb-6 group" open={!printMode}>
+    <details className="mb-6 group" open={printMode === true}>
       <summary className="cursor-pointer list-none border-l-2 border-brand-plum pl-4 py-2 hover:bg-brand-surface/40 transition-colors">
         <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-plum font-bold">
           {label}
         </div>
-        <div className="font-serif italic text-[12.5px] text-brand-slate mt-0.5 group-open:hidden">
-          Click to expand the detailed audit for this document.
-        </div>
+        {!printMode && (
+          <div className="font-serif italic text-[12.5px] text-brand-slate mt-0.5 group-open:hidden">
+            Click to expand the detailed audit for this document.
+          </div>
+        )}
       </summary>
       <div className="mt-6 pl-4 border-l border-brand-charcoal/10">
         <ReportDisplay

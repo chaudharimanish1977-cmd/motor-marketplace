@@ -907,9 +907,6 @@ export interface InboundMultiAuditAttachment {
   /** OD period end year (e.g. 2024) — used for filename disambiguation
    *  when multiple docs share the same insurer + documentType. */
   yearLabel: string;
-  /** Magic-link to the individual /report/[id] page. Included in the
-   *  email body as "View detailed report →" link per doc. */
-  individualReportUrl: string;
 }
 
 /** Audit-flavoured comparator summary for inline rendering in the
@@ -1242,7 +1239,10 @@ function renderInboundMultiReplyHtml({
 
   const excludedSection = renderExcludedDocsHtml(excludedDocs);
 
-  // List items — one per audit, with a link to the individual report.
+  // List items — one per audit, metadata only.
+  // No per-doc magic-links: the customer follows the SINGLE master
+  // link below, which lands on /reports with a tab per document. One
+  // entry point keeps the email clean and the journey simple.
   const items = audits
     .map((a) => {
       const role =
@@ -1253,7 +1253,6 @@ function renderInboundMultiReplyHtml({
       return `<li style="margin:0 0 8px;">
         <strong style="color:#1a1218;">${escape(role)}</strong> &middot;
         ${escape(a.vehicleLabel)} &middot; ${escape(a.insurerName)}${yearBit}
-        &middot; <a href="${escape(a.individualReportUrl)}" style="color:#3a1e3d;">view detailed report &rarr;</a>
       </li>`;
     })
     .join("");
@@ -1334,7 +1333,6 @@ function renderInboundMultiReplyText({
     lines.push(
       `  · ${role} · ${a.vehicleLabel} · ${a.insurerName}${yearBit}`
     );
-    lines.push(`      View detailed report: ${a.individualReportUrl}`);
   }
   // Excluded docs, if any.
   lines.push(...renderExcludedDocsText(excludedDocs));

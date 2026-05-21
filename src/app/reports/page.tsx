@@ -16,6 +16,7 @@ import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 import { MultiDocReport } from "@/components/multi-doc-report";
 import { ResetButton } from "./reset-button";
+import { TabStrip, type TabDef } from "./tab-strip";
 
 export const dynamic = "force-dynamic";
 // 120s for the inline-fallback report-gen path (the parse-time gen
@@ -63,6 +64,14 @@ interface PageProps {
 export default async function ReportsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const printMode = sp.print === "1";
+  /** Active tab in the /reports view. Default "comparator". Tabs
+   *  the customer can switch between:
+   *    "comparator"       — the master comparison (default)
+   *    "doc-<parsedId>"   — per-doc annexure full editorial
+   *  In print mode, tab is ignored — the PDF renders everything
+   *  sequentially (comparator + all annexures inline). */
+  const requestedTab = sp.tab ?? "comparator";
+
   /** When docs=id,id,id is passed, we trust the explicit list instead
    *  of session discovery. Used by puppeteer rendering the master PDF
    *  (no session cookie inside the headless browser). */
@@ -244,6 +253,24 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   const showGate = !isVerified;
 
+  // Build the tab definitions — "Comparator" + one per doc.
+  // The TabStrip client component reads ?tab= from the URL; we just
+  // hand it the list of options. Default tab is comparator.
+  const tabs: TabDef[] = [
+    { id: "comparator", label: "Comparator" },
+  ];
+  for (let i = 0; i < comparison.ordered.length; i++) {
+    const doc = comparison.ordered[i];
+    const docLabel = comparison.labels[i];
+    tabs.push({
+      id: `doc-${doc.parsed.id}`,
+      label: `${docLabel.label}${docLabel.sublabel ? ` · ${docLabel.sublabel}` : ""}`,
+    });
+  }
+  const activeTabId = tabs.find((t) => t.id === requestedTab)
+    ? requestedTab
+    : "comparator";
+
   // Count of discovered docs BEFORE the policyGroupKey dedup pass.
   // Used in the header for the "N docs · M unique" diagnostic.
   const rawDocCount = docs.length;
@@ -285,12 +312,22 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             </div>
           )}
 
+          {/* Tab strip — only on web. PDF render skips it. */}
+          {!printMode && (
+            <TabStrip
+              tabs={tabs}
+              firstTabId="comparator"
+              isVerified={isVerified}
+            />
+          )}
+
           <MultiDocReport
             comparison={comparison}
             crossDocBottomLine={crossDocBottomLine}
             view="customer"
             showGate={!printMode && showGate}
             printMode={printMode}
+            activeTab={activeTabId}
           />
         </div>
       </main>
