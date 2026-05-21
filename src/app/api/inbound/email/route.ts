@@ -9,6 +9,7 @@ import {
   sendInboundAuditReply,
   sendInboundMultiAuditReply,
   sendInboundNoMatchReply,
+  sendRateLimitReplyEmail,
   type InboundComparatorSummary,
   type InboundMultiAuditAttachment,
   type InboundNoMatchReason,
@@ -27,10 +28,16 @@ import type { ParsedPolicy, PolicyReport, User } from "@/lib/types";
 const SITE_URL = "https://rightoffer.in";
 
 /** Per-sender rate limits. Defensive against spam, accidental
- *  re-forward loops, and abusive automation. Real customers will
- *  never hit these. */
-const RATE_LIMIT_HOURLY = 5;
-const RATE_LIMIT_DAILY = 20;
+ *  re-forward loops, and abusive automation. Generous enough that
+ *  realistic renewal-shopping behaviour (forwarding multiple quotes
+ *  + policy versions over a day) never hits them. */
+const RATE_LIMIT_HOURLY = 20;
+const RATE_LIMIT_DAILY = 100;
+
+/** Founder email — bypassed from rate limiting entirely so testing
+ *  scenarios never get blocked. Anyone else with this email shouldn't
+ *  be hitting the inbound webhook unless they're literally me. */
+const FOUNDER_EMAIL = "chaudharimanish1977@gmail.com";
 
 /** Throwaway/disposable email providers — silent drop these senders.
  *  A real customer's policy email will never be on a throwaway domain.
@@ -190,19 +197,29 @@ export async function POST(request: NextRequest) {
 
   // ---- Per-sender rate limit ----
   // Sliding-window-ish: two counters (hourly + daily) keyed by sender
-  // email, both TTL'd. Throttled senders return 200 to Postmark (no
-  // webhook retry loop) but skip all downstream work.
-  const limit = await checkRateLimit(fromEmail);
-  if (!limit.ok) {
-    console.warn(
-      `[inbound/email] rate limit exceeded for ${fromEmail} (hourly=${limit.hourly}, daily=${limit.daily})`
-    );
-    return NextResponse.json({
-      ok: true,
-      dropped: "rate-limit",
-      hourly: limit.hourly,
-      daily: limit.daily,
-    });
+  // email, both TTL'd. Founder email bypasses entirely so testing
+  // scenarios are never blocked.
+  //
+  // Customers who exceed the limit get a polite reply explaining the
+  // window, not a silent drop. Returns 200 to Postmark either way so
+  // no webhook retry loop.
+  if (fromEmail !== FOUNDER_EMAIL.toLowerCase()) {
+    const limit = await checkRateLimit(fromEmail);
+    if (!limit.ok) {
+      console.warn(
+        `[inbound/email] rate limit exceeded for ${fromEmail} (hourly=${limit.hourly}, daily=${limit.daily})`
+      );
+      // Fire a polite "you're sending too fast" reply in the background.
+      // Best-effort; if Resend errors, the customer just doesn't hear
+      // back from this forward.
+      waitUntil(sendRateLimitReply(fromEmail, limit));
+      return NextResponse.json({
+        ok: true,
+        dropped: "rate-limit",
+        hourly: limit.hourly,
+        daily: limit.daily,
+      });
+    }
   }
 
   // ---- Filter PDF attachments ----
@@ -336,7 +353,13 @@ async function runAuditsForInboundForward(args: {
   // the first-touch consent line in the reply.
   const wasFirstTouch = await senderHasNoPriorAudits(args.fromEmail);
 
-  const outcomes: AuditPipelineResult[] = [];
+  // Track filename per outcome so we can surface excluded docs by
+  // name in the email body ("Couldn't process Tata-AIG-bill.pdf —
+  // looks like a two-wheeler policy").
+  const outcomesWithFile: Array<{
+    filename: string;
+    result: AuditPipelineResult;
+  }> = [];
   for (const { buffer, name, inboundId } of args.pdfBuffers) {
     console.log(
       `[inbound/email] starting audit for ${name} (inbound=${inboundId}, sender=${args.fromEmail})`
@@ -348,7 +371,7 @@ async function runAuditsForInboundForward(args: {
         fileName: name,
         source: "email-forward",
       });
-      outcomes.push(result);
+      outcomesWithFile.push({ filename: name, result });
       if (result.kind === "audited") {
         console.log(
           `[inbound/email] ${name}: audited as ${result.documentType}, parsed=${result.parsedPolicyId}, report=${result.policyReportId ?? "(missing)"}`
@@ -369,31 +392,36 @@ async function runAuditsForInboundForward(args: {
   // K6/K11 — send editorial reply with the audit PDF(s) attached.
   //
   // Dispatch: ONE reply per forward, regardless of doc count.
-  //   · 1 audited PDF  → single-doc reply via sendInboundAuditReply,
-  //                       magic-link to /report/[id]
-  //   · 2+ audited PDFs → consolidated multi-doc reply via
-  //                       sendInboundMultiAuditReply, magic-link to
-  //                       /reports (tabbed view with comparator)
+  //   · 1 audited PDF  → single-doc reply via sendInboundAuditReply
+  //   · 2+ audited PDFs → consolidated multi-doc reply
+  //   · 0 audited      → polite no-match reply
   //
-  // Single-email-per-forward is the K11 design: customer sends us one
-  // thing, receives one reply. No more "two emails for two PDFs" UX.
-  const audited = outcomes.filter(
-    (o): o is Extract<AuditPipelineResult, { kind: "audited" }> =>
-      o.kind === "audited"
+  // Excluded docs (rejected / unreadable) get surfaced in the multi-
+  // doc reply body so the customer knows what we couldn't process.
+  const audited = outcomesWithFile.filter(
+    (o): o is { filename: string; result: Extract<AuditPipelineResult, { kind: "audited" }> } =>
+      o.result.kind === "audited"
   );
+  const excluded = outcomesWithFile.filter(
+    (o) => o.result.kind !== "audited"
+  );
+  const excludedDocs: ExcludedDoc[] = excluded.map((o) => ({
+    filename: o.filename,
+    reason: humaniseExclusionReason(o.result),
+  }));
 
   // Use the wasFirstTouch state captured BEFORE the audit pipeline.
   if (audited.length === 1) {
     try {
       await sendAuditReplyForForward({
         fromEmail: args.fromEmail,
-        parsedPolicyId: audited[0].parsedPolicyId,
-        vehicleLabel: audited[0].vehicleLabel,
+        parsedPolicyId: audited[0].result.parsedPolicyId,
+        vehicleLabel: audited[0].result.vehicleLabel,
         includeDpdpConsentLine: wasFirstTouch,
       });
     } catch (err) {
       console.error(
-        `[inbound/email] single-reply send failed for ${audited[0].parsedPolicyId}:`,
+        `[inbound/email] single-reply send failed for ${audited[0].result.parsedPolicyId}:`,
         err
       );
     }
@@ -401,7 +429,8 @@ async function runAuditsForInboundForward(args: {
     try {
       await sendConsolidatedReplyForForward({
         fromEmail: args.fromEmail,
-        audits: audited,
+        audits: audited.map((a) => a.result),
+        excludedDocs,
         includeDpdpConsentLine: wasFirstTouch,
       });
     } catch (err) {
@@ -415,8 +444,10 @@ async function runAuditsForInboundForward(args: {
   // Zero successful audits → fire the polite no-match reply. Context-
   // aware: if the classifier rejected a specific vehicle class, surface
   // that in the reply opener. Otherwise the reply is generic.
-  if (audited.length === 0 && outcomes.length > 0) {
-    const reason = inferNoMatchReason(outcomes);
+  if (audited.length === 0 && outcomesWithFile.length > 0) {
+    const reason = inferNoMatchReason(
+      outcomesWithFile.map((o) => o.result)
+    );
     console.log(
       `[inbound/email] zero audited from ${args.fromEmail}; sending no-match reply (kind=${reason.kind})`
     );
@@ -434,8 +465,40 @@ async function runAuditsForInboundForward(args: {
   }
 
   console.log(
-    `[inbound/email] forward processed: ${outcomes.length} attempt(s), ${audited.length} audited & replied`
+    `[inbound/email] forward processed: ${outcomesWithFile.length} attempt(s), ${audited.length} audited & replied, ${excluded.length} excluded`
   );
+}
+
+/** Customer-visible exclusion entry for the email body. */
+interface ExcludedDoc {
+  filename: string;
+  /** Short, plain-English reason — e.g. "looks like a two-wheeler policy". */
+  reason: string;
+}
+
+/**
+ * Convert an audit-pipeline rejection into a one-line, customer-
+ * friendly reason. The pipeline returns structured rejection data
+ * (category + headline + body); we want a tight line ready for a
+ * bullet list in the email.
+ */
+function humaniseExclusionReason(result: AuditPipelineResult): string {
+  if (result.kind === "audited") return ""; // shouldn't happen
+  if (result.kind === "unreadable") {
+    return "looks like a scanned image, not a text PDF";
+  }
+  // rejected branch — use category for a tight line
+  switch (result.category) {
+    case "two-wheeler":
+      return "looks like a two-wheeler policy (we review private four-wheelers only)";
+    case "commercial-vehicle":
+      return "looks like a commercial vehicle policy (we review private four-wheelers only)";
+    case "non-motor":
+      return "doesn't look like a motor insurance document";
+    case "unknown":
+    default:
+      return "couldn't confirm this is a private-car policy or quote";
+  }
 }
 
 /**
@@ -599,6 +662,10 @@ async function sendAuditReplyForForward(args: {
 async function sendConsolidatedReplyForForward(args: {
   fromEmail: string;
   audits: Array<Extract<AuditPipelineResult, { kind: "audited" }>>;
+  /** Docs from the same forward that we couldn't process (rejected /
+   *  unreadable). Surfaced in the reply body so the customer knows
+   *  exactly what landed and what didn't. */
+  excludedDocs: ExcludedDoc[];
   includeDpdpConsentLine: boolean;
 }): Promise<void> {
   // Phase 3 architecture: ONE master PDF carries the comparator +
@@ -754,6 +821,7 @@ async function sendConsolidatedReplyForForward(args: {
     masterPdfFilename: masterFilename,
     includeDpdpConsentLine: args.includeDpdpConsentLine,
     comparator,
+    excludedDocs: args.excludedDocs,
   });
   console.log(
     `[inbound/email] consolidated reply sent to ${args.fromEmail} — ${audits.length} audits, 1 master PDF${comparator ? " + comparator summary" : ""}`
@@ -961,6 +1029,30 @@ export async function GET() {
     },
     { status: 405 }
   );
+}
+
+/**
+ * Wrapper around sendRateLimitReplyEmail — picks the right "wait an
+ * X" window based on which limit was hit. If the daily limit is
+ * exceeded, suggest waiting a day; otherwise suggest waiting an hour.
+ * Errors swallowed; this runs inside waitUntil so it's best-effort.
+ */
+async function sendRateLimitReply(
+  fromEmail: string,
+  limit: { hourly: number; daily: number }
+): Promise<void> {
+  try {
+    await sendRateLimitReplyEmail({
+      to: fromEmail,
+      window: limit.daily > RATE_LIMIT_DAILY ? "day" : "hour",
+    });
+    console.log(`[inbound/email] rate-limit reply sent to ${fromEmail}`);
+  } catch (err) {
+    console.error(
+      `[inbound/email] rate-limit reply failed for ${fromEmail}:`,
+      err
+    );
+  }
 }
 
 /**

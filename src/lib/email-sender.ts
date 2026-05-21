@@ -946,6 +946,15 @@ export interface InboundComparatorSummary {
   verdictBody: string;
 }
 
+/** A document from the customer's forward that we couldn't process
+ *  (rejected by the classifier, or unreadable scan). Surfaced in the
+ *  reply body as a "couldn't process" bullet list so the customer
+ *  isn't left guessing why fewer docs came back than they sent. */
+export interface ExcludedDocSummary {
+  filename: string;
+  reason: string;
+}
+
 interface InboundMultiReplyArgs {
   to: string;
   firstName?: string;
@@ -966,6 +975,10 @@ interface InboundMultiReplyArgs {
    *  with the comparator data. Omitted when comparator computation
    *  failed; the email still ships with the master PDF + magic-link. */
   comparator?: InboundComparatorSummary;
+  /** Per-doc exclusion info — docs from the same forward we couldn't
+   *  audit. Rendered as a "Couldn't process" bullet list. Empty
+   *  array (or omitted) when every doc made it through. */
+  excludedDocs?: ExcludedDocSummary[];
 }
 
 export async function sendInboundMultiAuditReply({
@@ -977,6 +990,7 @@ export async function sendInboundMultiAuditReply({
   masterPdfFilename,
   includeDpdpConsentLine,
   comparator,
+  excludedDocs,
 }: InboundMultiReplyArgs): Promise<void> {
   if (audits.length < 2) {
     throw new Error(
@@ -993,6 +1007,7 @@ export async function sendInboundMultiAuditReply({
     magicLinkUrl,
     includeDpdpConsentLine,
     comparator,
+    excludedDocs,
   });
   const text = renderInboundMultiReplyText({
     firstName,
@@ -1000,6 +1015,7 @@ export async function sendInboundMultiAuditReply({
     magicLinkUrl,
     includeDpdpConsentLine,
     comparator,
+    excludedDocs,
   });
 
   const { error } = await client().emails.send({
@@ -1074,6 +1090,62 @@ function sanitizeForFilename(s: string): string {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 60);
+}
+
+/** "Couldn't process" section — surfaces docs the customer forwarded
+ *  but we couldn't audit (wrong vehicle class, scanned image, non-
+ *  motor PDF). Lists each by filename with a short, plain reason so
+ *  the customer isn't left wondering why fewer audits came back than
+ *  docs they sent.
+ *
+ *  Returns empty string when there's nothing to surface. */
+function renderExcludedDocsHtml(
+  excluded: ExcludedDocSummary[] | undefined
+): string {
+  if (!excluded || excluded.length === 0) return "";
+  const items = excluded
+    .map(
+      (d) =>
+        `<li style="margin:0 0 4px;">
+          <strong style="color:#1a1218;">${escape(d.filename)}</strong> &mdash;
+          <span style="color:#6b6571;">${escape(d.reason)}</span>
+        </li>`
+    )
+    .join("");
+  return `<div style="margin:0 0 22px;padding:14px 16px;border-left:3px solid #b78611;background:#fffaf0;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:#b78611;font-weight:700;margin:0 0 8px;">
+      &middot; Couldn&rsquo;t process &middot;
+    </div>
+    <p style="margin:0 0 8px;font-size:14.5px;">
+      ${
+        excluded.length === 1
+          ? "One of the attachments didn't make it through the audit:"
+          : `${excluded.length} of the attachments didn't make it through the audit:`
+      }
+    </p>
+    <ul style="margin:0 0 6px 22px;padding:0;color:#1a1218;font-size:14px;">${items}</ul>
+    <p style="margin:6px 0 0;font-size:13px;font-style:italic;color:#6b6571;">If any of these should have been included, try forwarding again or upload directly at <a href="https://rightoffer.in/upload" style="color:#3a1e3d;">rightoffer.in/upload</a>.</p>
+  </div>`;
+}
+
+function renderExcludedDocsText(
+  excluded: ExcludedDocSummary[] | undefined
+): string[] {
+  if (!excluded || excluded.length === 0) return [];
+  const lines: string[] = [
+    ``,
+    `· Couldn't process ·`,
+    excluded.length === 1
+      ? `One of the attachments didn't make it through the audit:`
+      : `${excluded.length} of the attachments didn't make it through the audit:`,
+  ];
+  for (const d of excluded) {
+    lines.push(`  · ${d.filename} — ${d.reason}`);
+  }
+  lines.push(
+    `If any of these should have been included, try forwarding again or upload directly at https://rightoffer.in/upload.`
+  );
+  return lines;
 }
 
 /** Comparator section, inline in the multi-audit reply. Mono kicker
@@ -1157,14 +1229,18 @@ function renderInboundMultiReplyHtml({
   magicLinkUrl,
   includeDpdpConsentLine,
   comparator,
+  excludedDocs,
 }: Omit<
   InboundMultiReplyArgs,
   "to" | "masterPdf" | "masterPdfFilename"
 >): string {
   const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
+  const totalSent = audits.length + (excludedDocs?.length ?? 0);
   const opener = `Thanks for forwarding ${
-    audits.length === 2 ? "both documents" : `all ${audits.length} documents`
-  }. I read each one and put together a side-by-side comparison — the full audit is attached as a single PDF. You can also view it on the web with one click below; no password needed, the link signs you in.`;
+    totalSent === 2 ? "both documents" : `all ${totalSent} documents`
+  }. I read ${audits.length === 1 ? "one of them" : `${audits.length} of them`} and put together a side-by-side comparison — the full audit is attached as a single PDF. You can also view it on the web with one click below; no password needed, the link signs you in.`;
+
+  const excludedSection = renderExcludedDocsHtml(excludedDocs);
 
   // List items — one per audit, with a link to the individual report.
   const items = audits
@@ -1202,8 +1278,10 @@ function renderInboundMultiReplyHtml({
 
     <p style="margin:0 0 18px;">${escape(opener)}</p>
 
-    <p style="margin:0 0 6px;">What&rsquo;s attached:</p>
+    <p style="margin:0 0 6px;">What you forwarded:</p>
     <ul style="margin:0 0 18px 22px;padding:0;color:#1a1218;">${items}</ul>
+
+    ${excludedSection}
 
     ${renderComparatorSectionHtml(comparator)}
 
@@ -1232,19 +1310,21 @@ function renderInboundMultiReplyText({
   magicLinkUrl,
   includeDpdpConsentLine,
   comparator,
+  excludedDocs,
 }: Omit<
   InboundMultiReplyArgs,
   "to" | "masterPdf" | "masterPdfFilename"
 >): string {
   const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
+  const totalSent = audits.length + (excludedDocs?.length ?? 0);
   const lines = [
     `· RightOffer · Audits ready ·`,
     ``,
     greeting,
     ``,
     `Thanks for forwarding ${
-      audits.length === 2 ? "both documents" : `all ${audits.length} documents`
-    }. I read each one and put together a side-by-side comparison — the full audit is attached as a single PDF. You can also view it on the web with one click below; no password needed, the link signs you in.`,
+      totalSent === 2 ? "both documents" : `all ${totalSent} documents`
+    }. I read ${audits.length === 1 ? "one of them" : `${audits.length} of them`} and put together a side-by-side comparison — the full audit is attached as a single PDF. You can also view it on the web with one click below; no password needed, the link signs you in.`,
     ``,
     `What you forwarded:`,
   ];
@@ -1256,6 +1336,8 @@ function renderInboundMultiReplyText({
     );
     lines.push(`      View detailed report: ${a.individualReportUrl}`);
   }
+  // Excluded docs, if any.
+  lines.push(...renderExcludedDocsText(excludedDocs));
   // Comparator summary, if provided.
   lines.push(...renderComparatorSectionText(comparator));
   lines.push(
@@ -1279,6 +1361,63 @@ function renderInboundMultiReplyText({
     `PPS · The link above is valid for seven days. If it expires, forward your documents again and I'll send a fresh one.`
   );
   return lines.join("\n");
+}
+
+// ----------------------------------------------------------------------------
+// Rate-limit reply — sent when a customer exceeds the per-sender
+// forward limit. Editorial, non-punitive — explains the window and
+// invites them to try again later or use the web upload.
+// ----------------------------------------------------------------------------
+
+interface RateLimitReplyArgs {
+  to: string;
+  /** Pre-formatted summary the email body can reference. */
+  window: "hour" | "day";
+}
+
+export async function sendRateLimitReplyEmail({
+  to,
+  window,
+}: RateLimitReplyArgs): Promise<void> {
+  const subject = "About what you forwarded — try again shortly";
+  const windowLabel = window === "hour" ? "hour" : "day";
+
+  const html = `<!doctype html>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Review desk &middot;
+    </div>
+    <p style="margin:0 0 18px;">Hi,</p>
+    <p style="margin:0 0 18px;">Thanks for forwarding &mdash; you&rsquo;ve sent us a few documents in a short window and we&rsquo;ve hit a small rate limit. Just a guardrail against accidental forward-loops; nothing to worry about.</p>
+    <p style="margin:0 0 18px;">Wait an ${escape(windowLabel)} and forward again, and I&rsquo;ll read it then. Or skip the queue entirely by uploading directly at <a href="https://rightoffer.in/upload" style="color:#3a1e3d;">rightoffer.in/upload</a>.</p>
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+  </div>
+</body></html>`;
+
+  const text = [
+    `· RightOffer · Review desk ·`,
+    ``,
+    `Hi,`,
+    ``,
+    `Thanks for forwarding — you've sent us a few documents in a short window and we've hit a small rate limit. Just a guardrail against accidental forward-loops; nothing to worry about.`,
+    ``,
+    `Wait an ${windowLabel} and forward again, and I'll read it then. Or skip the queue entirely by uploading directly at https://rightoffer.in/upload.`,
+    ``,
+    `— Aryan`,
+  ].join("\n");
+
+  const { error } = await client().emails.send({
+    from: INBOUND_REPLY_FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+  });
+  if (error) {
+    throw new Error(`Resend (rate-limit) failed: ${error.message}`);
+  }
 }
 
 // ----------------------------------------------------------------------------
