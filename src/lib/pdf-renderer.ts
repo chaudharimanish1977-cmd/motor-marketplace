@@ -32,7 +32,43 @@ export async function renderReportPdf({
     if (v) params.set(k, v);
   }
   const url = `${baseUrl.replace(/\/$/, "")}/report/${reportId}?${params}`;
+  return renderUrlToPdf(url, 45_000);
+}
 
+interface RenderReportsOptions {
+  /** Explicit doc-ID list, joined into the `?docs=` query param. */
+  docIds: string[];
+  baseUrl: string;
+}
+
+/**
+ * Render the MULTI-doc /reports page to PDF. Used by the email-forward
+ * reply when 2+ docs are forwarded — one master PDF carries the
+ * comparator table + per-feature insights + annexures, replacing the
+ * per-doc N-attachment pattern.
+ *
+ * Doc list is passed via `?docs=id,id,id` since the headless browser
+ * has no session cookie to discover docs through.
+ *
+ * Longer timeout than single-doc render — /reports has more content
+ * (annexures expand all per-doc reports inline).
+ */
+export async function renderReportsPdf({
+  docIds,
+  baseUrl,
+}: RenderReportsOptions): Promise<Buffer> {
+  const params = new URLSearchParams({
+    print: "1",
+    docs: docIds.join(","),
+  });
+  const url = `${baseUrl.replace(/\/$/, "")}/reports?${params}`;
+  return renderUrlToPdf(url, 90_000);
+}
+
+async function renderUrlToPdf(
+  url: string,
+  navigationTimeoutMs: number
+): Promise<Buffer> {
   const browser = await puppeteer.launch({
     args: chromium.args,
     defaultViewport: { width: 1280, height: 1800, deviceScaleFactor: 1 },
@@ -47,7 +83,7 @@ export async function renderReportPdf({
     // a user's manual Ctrl+P attempt produce a "get the report by email"
     // splash instead of leaking the report.
     await page.emulateMediaType("screen");
-    await page.goto(url, { waitUntil: "networkidle0", timeout: 45_000 });
+    await page.goto(url, { waitUntil: "networkidle0", timeout: navigationTimeoutMs });
 
     // Render-time safety: wait a tick so client components (CoverageScore
     // animation, etc.) settle before the snapshot.

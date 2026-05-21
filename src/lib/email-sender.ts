@@ -907,8 +907,9 @@ export interface InboundMultiAuditAttachment {
   /** OD period end year (e.g. 2024) — used for filename disambiguation
    *  when multiple docs share the same insurer + documentType. */
   yearLabel: string;
-  /** Pre-rendered audit PDF for this doc. */
-  pdf: Buffer;
+  /** Magic-link to the individual /report/[id] page. Included in the
+   *  email body as "View detailed report →" link per doc. */
+  individualReportUrl: string;
 }
 
 /** Audit-flavoured comparator summary for inline rendering in the
@@ -948,14 +949,22 @@ export interface InboundComparatorSummary {
 interface InboundMultiReplyArgs {
   to: string;
   firstName?: string;
-  /** All audited docs from this forward, in arrival order. */
+  /** All audited docs from this forward, in arrival order. Metadata
+   *  + individual-report magic-links. No PDF buffers — one master
+   *  PDF replaces N per-doc attachments. */
   audits: InboundMultiAuditAttachment[];
-  /** Magic-link to /reports tabbed multi-doc view. */
+  /** Magic-link to the master /reports comparison view. */
   magicLinkUrl: string;
+  /** The single master PDF — comparator + annexures inline. Replaces
+   *  the previous "N per-doc PDFs" pattern. */
+  masterPdf: Buffer;
+  /** Filename for the master PDF, descriptively built from the
+   *  vehicle label. e.g. "Audi A6 — comparison.pdf". */
+  masterPdfFilename: string;
   includeDpdpConsentLine: boolean;
   /** When present, the email body renders a "Side-by-side" section
    *  with the comparator data. Omitted when comparator computation
-   *  failed; the email still ships with attachments + magic-link. */
+   *  failed; the email still ships with the master PDF + magic-link. */
   comparator?: InboundComparatorSummary;
 }
 
@@ -964,6 +973,8 @@ export async function sendInboundMultiAuditReply({
   firstName,
   audits,
   magicLinkUrl,
+  masterPdf,
+  masterPdfFilename,
   includeDpdpConsentLine,
   comparator,
 }: InboundMultiReplyArgs): Promise<void> {
@@ -991,13 +1002,6 @@ export async function sendInboundMultiAuditReply({
     comparator,
   });
 
-  // Build attachments with descriptive, unique filenames.
-  const filenames = buildAttachmentFilenames(audits);
-  const attachments = audits.map((a, i) => ({
-    filename: filenames[i],
-    content: a.pdf,
-  }));
-
   const { error } = await client().emails.send({
     from: INBOUND_REPLY_FROM,
     replyTo: REPLY_TO,
@@ -1005,7 +1009,12 @@ export async function sendInboundMultiAuditReply({
     subject,
     html,
     text,
-    attachments,
+    attachments: [
+      {
+        filename: masterPdfFilename,
+        content: masterPdf,
+      },
+    ],
   });
 
   if (error) {
@@ -1050,29 +1059,13 @@ function buildMultiAuditSubject(
   return `${sample.vehicleLabel} audits ready (${audits.length} docs)`;
 }
 
-/** Descriptive, unique filenames per attachment.
- *  Pattern: "{Vehicle} - {policy|quote} - {Insurer or Year}.pdf"
- *  Disambiguation: if multiple share Vehicle+Type+Insurer, append year.
- *  All filenames sanitised — letters, digits, spaces, hyphens only. */
-function buildAttachmentFilenames(
-  audits: InboundMultiAuditAttachment[]
-): string[] {
-  const filenames: string[] = [];
-  const seen = new Map<string, number>();
-  for (const a of audits) {
-    const vehicle = sanitizeForFilename(a.vehicleLabel) || "Vehicle";
-    const type = a.documentType === "quote" ? "quote" : "policy";
-    const insurer = sanitizeForFilename(a.insurerName) || "audit";
-    const base = `${vehicle} - ${type} - ${insurer}`;
-    const count = (seen.get(base) ?? 0) + 1;
-    seen.set(base, count);
-    const withYear =
-      count > 1
-        ? `${base} ${a.yearLabel || count}`
-        : base;
-    filenames.push(`${withYear}.pdf`);
-  }
-  return filenames;
+/** Descriptive master-PDF filename built from the vehicle label.
+ *  e.g. "Audi A6 - comparison.pdf". Sanitised to letters/digits/spaces/
+ *  hyphens only. Used by the inbound webhook when building the
+ *  master-PDF attachment. */
+export function buildMasterPdfFilename(vehicleLabel: string): string {
+  const vehicle = sanitizeForFilename(vehicleLabel) || "Vehicle";
+  return `${vehicle} - comparison.pdf`;
 }
 
 function sanitizeForFilename(s: string): string {
@@ -1164,24 +1157,27 @@ function renderInboundMultiReplyHtml({
   magicLinkUrl,
   includeDpdpConsentLine,
   comparator,
-}: Omit<InboundMultiReplyArgs, "to">): string {
+}: Omit<
+  InboundMultiReplyArgs,
+  "to" | "masterPdf" | "masterPdfFilename"
+>): string {
   const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
   const opener = `Thanks for forwarding ${
     audits.length === 2 ? "both documents" : `all ${audits.length} documents`
-  }. I just finished reading each one — the audits are attached as PDFs, and you can also view them side-by-side on the web with one click below. No password needed; the link signs you in.`;
+  }. I read each one and put together a side-by-side comparison — the full audit is attached as a single PDF. You can also view it on the web with one click below; no password needed, the link signs you in.`;
 
-  // List items — one per audit, briefly describing what it is.
+  // List items — one per audit, with a link to the individual report.
   const items = audits
     .map((a) => {
       const role =
         a.documentType === "quote"
           ? "Renewal quote"
           : "Policy";
+      const yearBit = a.yearLabel ? ` &middot; ${escape(a.yearLabel)}` : "";
       return `<li style="margin:0 0 8px;">
         <strong style="color:#1a1218;">${escape(role)}</strong> &middot;
-        ${escape(a.vehicleLabel)} &middot; ${escape(a.insurerName)}${
-          a.yearLabel ? ` &middot; ${escape(a.yearLabel)}` : ""
-        }
+        ${escape(a.vehicleLabel)} &middot; ${escape(a.insurerName)}${yearBit}
+        &middot; <a href="${escape(a.individualReportUrl)}" style="color:#3a1e3d;">view detailed report &rarr;</a>
       </li>`;
     })
     .join("");
@@ -1236,7 +1232,10 @@ function renderInboundMultiReplyText({
   magicLinkUrl,
   includeDpdpConsentLine,
   comparator,
-}: Omit<InboundMultiReplyArgs, "to">): string {
+}: Omit<
+  InboundMultiReplyArgs,
+  "to" | "masterPdf" | "masterPdfFilename"
+>): string {
   const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
   const lines = [
     `· RightOffer · Audits ready ·`,
@@ -1245,9 +1244,9 @@ function renderInboundMultiReplyText({
     ``,
     `Thanks for forwarding ${
       audits.length === 2 ? "both documents" : `all ${audits.length} documents`
-    }. I just finished reading each one — the audits are attached as PDFs, and you can also view them side-by-side on the web with one click below. No password needed; the link signs you in.`,
+    }. I read each one and put together a side-by-side comparison — the full audit is attached as a single PDF. You can also view it on the web with one click below; no password needed, the link signs you in.`,
     ``,
-    `What's attached:`,
+    `What you forwarded:`,
   ];
   for (const a of audits) {
     const role = a.documentType === "quote" ? "Renewal quote" : "Policy";
@@ -1255,6 +1254,7 @@ function renderInboundMultiReplyText({
     lines.push(
       `  · ${role} · ${a.vehicleLabel} · ${a.insurerName}${yearBit}`
     );
+    lines.push(`      View detailed report: ${a.individualReportUrl}`);
   }
   // Comparator summary, if provided.
   lines.push(...renderComparatorSectionText(comparator));

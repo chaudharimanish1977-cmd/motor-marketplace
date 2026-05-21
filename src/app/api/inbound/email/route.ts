@@ -5,6 +5,7 @@ import { kv } from "@vercel/kv";
 import { storeInboxPdf } from "@/lib/blob-store";
 import { runAuditPipeline, type AuditPipelineResult } from "@/lib/audit-pipeline";
 import {
+  buildMasterPdfFilename,
   sendInboundAuditReply,
   sendInboundMultiAuditReply,
   sendInboundNoMatchReply,
@@ -13,7 +14,7 @@ import {
   type InboundNoMatchReason,
 } from "@/lib/email-sender";
 import { buildAuditMagicLinkUrl } from "@/lib/email-token";
-import { renderReportPdf } from "@/lib/pdf-renderer";
+import { renderReportPdf, renderReportsPdf } from "@/lib/pdf-renderer";
 import { storeReportPdf } from "@/lib/blob-store";
 import { findById, findMany, findOne, Tables } from "@/lib/db";
 import { friendlyFirstName, formatINR } from "@/lib/format";
@@ -600,26 +601,20 @@ async function sendConsolidatedReplyForForward(args: {
   audits: Array<Extract<AuditPipelineResult, { kind: "audited" }>>;
   includeDpdpConsentLine: boolean;
 }): Promise<void> {
-  // Multi-doc magic-link lands on the tabbed /reports view so the
-  // customer can switch between docs (+ see the comparator).
+  // Phase 3 architecture: ONE master PDF carries the comparator +
+  // annexures instead of N per-doc PDFs. Magic-link still lands on
+  // the master /reports view; each doc gets an individual magic-link
+  // in the email body for those who want to click into a specific
+  // report.
   const magicLinkUrl = buildAuditMagicLinkUrl(
     args.fromEmail,
     SITE_URL,
     "/reports"
   );
 
-  // Render each audit PDF SEQUENTIALLY. Earlier attempts at parallel
-  // rendering with Promise.all blew the Vercel function's memory
-  // budget — each puppeteer/chromium instance uses ~150-200MB and 3
-  // in parallel hit the 1024MB limit, causing the function to time
-  // out at 300s with no reply ever sent.
-  //
-  // Serial rendering trades ~30-60s of wall-clock time (negligible
-  // inside waitUntil) for predictable memory + reliable delivery.
-  // Each render also gets its own try/catch — if one PDF can't render
-  // (cold start hiccup, page errored), the others still go through
-  // and the email ships with whatever rendered successfully.
-  const validAttachments: InboundMultiAuditAttachment[] = [];
+  // Look up each audit's ParsedPolicy for the per-doc metadata
+  // (insurer, year, individual report magic-link).
+  const audits: InboundMultiAuditAttachment[] = [];
   for (const audit of args.audits) {
     try {
       const parsed = await findById<ParsedPolicy>(
@@ -627,56 +622,53 @@ async function sendConsolidatedReplyForForward(args: {
         audit.parsedPolicyId
       );
       if (!parsed) continue;
-
-      const t0 = Date.now();
-      let pdf: Buffer;
-      try {
-        pdf = await renderReportPdf({
-          reportId: audit.parsedPolicyId,
-          baseUrl: SITE_URL,
-        });
-        console.log(
-          `[inbound/email] rendered PDF for ${audit.parsedPolicyId} in ${Date.now() - t0}ms`
-        );
-        // Cache the rendered PDF so subsequent visits don't re-render.
-        await storeReportPdf(audit.parsedPolicyId, pdf).catch((err) =>
-          console.error(
-            `[inbound/email] storeReportPdf failed for ${audit.parsedPolicyId} (non-fatal):`,
-            err
-          )
-        );
-      } catch (err) {
-        console.error(
-          `[inbound/email] PDF render failed for ${audit.parsedPolicyId} (skipping attachment):`,
-          err
-        );
-        continue;
-      }
-
       const yearLabel = parsed.odPeriodEnd
         ? new Date(parsed.odPeriodEnd).getFullYear().toString()
         : "";
-
-      validAttachments.push({
+      audits.push({
         vehicleLabel: audit.vehicleLabel,
         documentType: audit.documentType,
         insurerName: parsed.insurerName || "audit",
         yearLabel,
-        pdf,
+        individualReportUrl: buildAuditMagicLinkUrl(
+          args.fromEmail,
+          SITE_URL,
+          `/report/${audit.parsedPolicyId}`
+        ),
       });
     } catch (err) {
       console.error(
-        `[inbound/email] enrichment failed for ${audit.parsedPolicyId}:`,
+        `[inbound/email] metadata lookup failed for ${audit.parsedPolicyId}:`,
         err
       );
     }
   }
 
-  if (validAttachments.length === 0) {
-    console.error(
-      `[inbound/email] all PDFs failed to render for ${args.fromEmail}; multi-reply not sent`
+  if (audits.length < 2) {
+    console.log(
+      `[inbound/email] only ${audits.length} valid audits after metadata lookup for ${args.fromEmail}; falling back to single-doc path`
     );
-    return;
+    // Fall through to single-doc fallback below.
+  }
+
+  // Render the master PDF — the /reports view scoped to this
+  // forward's doc IDs. Replaces the per-doc render loop. One
+  // puppeteer instance instead of N.
+  let masterPdf: Buffer | null = null;
+  try {
+    const t0 = Date.now();
+    masterPdf = await renderReportsPdf({
+      docIds: args.audits.map((a) => a.parsedPolicyId),
+      baseUrl: SITE_URL,
+    });
+    console.log(
+      `[inbound/email] rendered master PDF in ${Date.now() - t0}ms (${masterPdf.length} bytes)`
+    );
+  } catch (err) {
+    console.error(
+      `[inbound/email] master PDF render failed for ${args.fromEmail}; sending without attachment:`,
+      err
+    );
   }
 
   // Resolve first name (best-effort) for the greeting.
@@ -687,39 +679,52 @@ async function sendConsolidatedReplyForForward(args: {
   );
   const firstName = friendlyFirstName(userRow?.name) || undefined;
 
-  // If only 1 PDF rendered successfully (other renders failed but
-  // the audits succeeded), fall back to the single-doc reply path
-  // so the customer still gets a good email. We pick the first
-  // successful attachment as the one to send.
-  if (validAttachments.length === 1) {
-    console.log(
-      `[inbound/email] only 1 of ${args.audits.length} PDFs rendered; falling back to single-doc reply for ${args.fromEmail}`
-    );
-    // Find the original audit for this attachment to get parsedPolicyId
-    const matchedAudit = args.audits.find(
-      (a) => a.vehicleLabel === validAttachments[0].vehicleLabel
-    );
-    if (matchedAudit) {
+  // If only one valid audit survived metadata lookup, fall back to the
+  // single-doc reply path. Need to render an individual report PDF in
+  // that case (master PDF would only contain one annexure, which is
+  // weird).
+  if (audits.length < 2) {
+    if (args.audits.length === 1) {
+      const onlyAudit = args.audits[0];
+      let singlePdf: Buffer | null = null;
+      try {
+        singlePdf = await renderReportPdf({
+          reportId: onlyAudit.parsedPolicyId,
+          baseUrl: SITE_URL,
+        });
+        await storeReportPdf(onlyAudit.parsedPolicyId, singlePdf).catch(
+          () => undefined
+        );
+      } catch (err) {
+        console.error(
+          `[inbound/email] single-doc fallback PDF render failed:`,
+          err
+        );
+      }
       await sendInboundAuditReply({
         to: args.fromEmail,
         firstName,
-        vehicleLabel: matchedAudit.vehicleLabel,
+        vehicleLabel: onlyAudit.vehicleLabel,
         magicLinkUrl: buildAuditMagicLinkUrl(
           args.fromEmail,
           SITE_URL,
-          `/report/${matchedAudit.parsedPolicyId}`
+          `/report/${onlyAudit.parsedPolicyId}`
         ),
-        pdf: validAttachments[0].pdf,
+        pdf: singlePdf ?? Buffer.alloc(0),
         includeDpdpConsentLine: args.includeDpdpConsentLine,
       });
       return;
     }
+    console.warn(
+      `[inbound/email] no valid audits to send for ${args.fromEmail}; skipping reply`
+    );
+    return;
   }
 
   // Compute the side-by-side comparator data inline for the reply
   // body. Best-effort — if computation fails (e.g. missing reports),
-  // the email still ships with attachments + magic-link, just without
-  // the inline comparison summary.
+  // the email still ships with the master PDF + magic-link, just
+  // without the inline comparison summary.
   const comparator = await computeComparatorForReply(args.audits).catch(
     (err) => {
       console.error(
@@ -730,17 +735,28 @@ async function sendConsolidatedReplyForForward(args: {
     }
   );
 
-  // Normal multi-reply path.
+  // Build the master PDF filename from the most-common vehicle label.
+  // Default to the first audit's vehicle if all are the same; otherwise
+  // a generic "Comparison.pdf".
+  const vehicleLabels = new Set(audits.map((a) => a.vehicleLabel));
+  const masterFilename =
+    vehicleLabels.size === 1
+      ? buildMasterPdfFilename(audits[0].vehicleLabel)
+      : "Comparison.pdf";
+
+  // Multi-reply path. Sends ONE email with the master PDF attached.
   await sendInboundMultiAuditReply({
     to: args.fromEmail,
     firstName,
-    audits: validAttachments,
+    audits,
     magicLinkUrl,
+    masterPdf: masterPdf ?? Buffer.alloc(0),
+    masterPdfFilename: masterFilename,
     includeDpdpConsentLine: args.includeDpdpConsentLine,
     comparator,
   });
   console.log(
-    `[inbound/email] consolidated reply sent to ${args.fromEmail} with ${validAttachments.length} audits attached${comparator ? " + comparator" : ""}`
+    `[inbound/email] consolidated reply sent to ${args.fromEmail} — ${audits.length} audits, 1 master PDF${comparator ? " + comparator summary" : ""}`
   );
 }
 

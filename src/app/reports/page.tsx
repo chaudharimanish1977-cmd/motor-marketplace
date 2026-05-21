@@ -27,8 +27,16 @@ export const metadata = {
 };
 
 interface PageProps {
-  /** Reserved — was used by the now-removed tab system. Kept on the
-   *  type so any stale link with ?tab=... doesn't 500. */
+  /** Query params:
+   *    docs={id,id,id} — explicit doc list. When set, bypasses session
+   *                       discovery. Used by the puppeteer PDF render so
+   *                       the function can target a specific customer's
+   *                       docs without a session cookie.
+   *    print=1         — print mode. Drops the diagnostic header chrome,
+   *                       opens all annexures so the PDF carries the
+   *                       full content. Also signals downstream render
+   *                       to suppress interactive bits.
+   *    tab=...         — reserved for back-compat; ignored. */
   searchParams: Promise<Record<string, string | undefined>>;
 }
 
@@ -53,9 +61,15 @@ interface PageProps {
  * customer is prompted to verify before the deep content reveals.
  */
 export default async function ReportsPage({ searchParams }: PageProps) {
-  // searchParams accepted but currently unused — the tab system that
-  // consumed ?tab= was removed in Phase 2b. Await keeps the contract.
-  await searchParams;
+  const sp = await searchParams;
+  const printMode = sp.print === "1";
+  /** When docs=id,id,id is passed, we trust the explicit list instead
+   *  of session discovery. Used by puppeteer rendering the master PDF
+   *  (no session cookie inside the headless browser). */
+  const explicitDocIds = (sp.docs ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   const [fullSessionEmail, uploadSession, anonSession] = await Promise.all([
     getSession(),
@@ -65,7 +79,14 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   const isVerified = !!(fullSessionEmail || uploadSession);
 
-  // Doc discovery — two paths, merged:
+  // Doc discovery — three paths, merged in priority order:
+  //
+  //   0. Explicit ?docs= list (highest priority). Used by the puppeteer
+  //      PDF render: no session cookie reaches headless Chrome, so we
+  //      pass the doc IDs in the URL. When this is set, we IGNORE the
+  //      session-based lookups entirely and only render the specified
+  //      docs — the master PDF should match exactly what the customer
+  //      forwarded, not include other policies on their account.
   //
   //   1. Browser-session cookies (upload-session / anonymous-session)
   //      give us the IDs of docs uploaded in THIS browser session.
@@ -78,13 +99,21 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   //      Without this fallback, /reports shows "Nothing to show yet"
   //      even when the customer has multiple forwarded audits on file.
   //
-  // Both paths feed into a single deduped doc list.
+  // All paths feed into a single deduped doc list.
   const docIdSet = new Set<string>();
-  for (const id of uploadSession?.docs ?? []) docIdSet.add(id);
-  for (const id of anonSession?.docs ?? []) docIdSet.add(id);
+  // Path 0 — explicit docs param (PDF render path)
+  for (const id of explicitDocIds) docIdSet.add(id);
+  // When explicit docs are present, skip the session-based discovery
+  // (we trust the URL list explicitly).
+  if (explicitDocIds.length === 0) {
+    for (const id of uploadSession?.docs ?? []) docIdSet.add(id);
+    for (const id of anonSession?.docs ?? []) docIdSet.add(id);
+  }
 
   const docs: ParsedPolicy[] = [];
-  if (fullSessionEmail) {
+  // Skip owner.email lookup when explicit docs are set — the URL list
+  // is canonical for the render.
+  if (fullSessionEmail && explicitDocIds.length === 0) {
     // Pull every ParsedPolicy owned by the signed-in email. This is the
     // same lookup /me uses, so the two surfaces stay consistent.
     const ownerLower = fullSessionEmail.toLowerCase();
@@ -223,40 +252,45 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <BrandBlobs />
+      {!printMode && <BrandBlobs />}
       <main className="relative z-10 min-h-screen px-4 py-8 md:py-10">
         <div className="max-w-4xl mx-auto">
           {/* Diagnostic header — count + reset. Sits ABOVE the report
-              as small chrome so the report itself has a clean opening. */}
-          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap text-[11px] text-brand-slate">
-            <div>
-              {wasDeduped ? (
-                <>
-                  <span className="font-semibold text-brand-charcoal">
-                    {dedupedCount}
-                  </span>{" "}
-                  unique document{dedupedCount === 1 ? "" : "s"}{" "}
-                  <span className="text-brand-slate/70">
-                    ({rawDocCount} parses deduped)
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="font-semibold text-brand-charcoal">
-                    {dedupedCount}
-                  </span>{" "}
-                  document{dedupedCount === 1 ? "" : "s"} compared
-                </>
-              )}
+              as small chrome so the report itself has a clean opening.
+              Hidden in print mode so the PDF starts cleanly with the
+              master report header. */}
+          {!printMode && (
+            <div className="flex items-center justify-between gap-2 mb-3 flex-wrap text-[11px] text-brand-slate">
+              <div>
+                {wasDeduped ? (
+                  <>
+                    <span className="font-semibold text-brand-charcoal">
+                      {dedupedCount}
+                    </span>{" "}
+                    unique document{dedupedCount === 1 ? "" : "s"}{" "}
+                    <span className="text-brand-slate/70">
+                      ({rawDocCount} parses deduped)
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold text-brand-charcoal">
+                      {dedupedCount}
+                    </span>{" "}
+                    document{dedupedCount === 1 ? "" : "s"} compared
+                  </>
+                )}
+              </div>
+              <ResetButton />
             </div>
-            <ResetButton />
-          </div>
+          )}
 
           <MultiDocReport
             comparison={comparison}
             crossDocBottomLine={crossDocBottomLine}
             view="customer"
-            showGate={showGate}
+            showGate={!printMode && showGate}
+            printMode={printMode}
           />
         </div>
       </main>
