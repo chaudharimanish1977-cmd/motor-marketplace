@@ -5,7 +5,7 @@ import { findById, findOne, appendRow, updateById, Tables } from "@/lib/db";
 import { generateReport } from "@/lib/report-generator";
 import { sendReportPdfEmail } from "@/lib/email-pdf-pipeline";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
-import { ReportDisplay } from "@/components/report-display";
+import { UnifiedReport } from "@/components/unified-report";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 
@@ -163,7 +163,7 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
   }
 
   return (
-    <ReportDisplay
+    <UnifiedReport
       parsedPolicy={parsedPolicy}
       report={report}
       view={view}
