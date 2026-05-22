@@ -7,7 +7,8 @@
  * bundle builder defaults and the tiered bid composition.
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID, createHash } from "crypto";
+import { kv } from "@vercel/kv";
 import { callClaude, extractJSON } from "@/lib/anthropic";
 import type {
   AddOnRecommendation,
@@ -578,9 +579,43 @@ export interface CrossDocBottomLineOutput {
  * Returns a structured { verdict, action } pair so the renderer can
  * visually emphasise the action callout. Returns null on failure.
  */
+// 12-hour TTL — long enough that re-renders within a normal customer
+// session hit the cache, short enough that any input change (e.g. a
+// report regeneration) gets picked up on the next interaction. Key is
+// a sha256 of the full input JSON, so any change to verdict / action
+// input automatically invalidates without us having to enumerate.
+const CROSS_DOC_BL_TTL_SECONDS = 60 * 60 * 12;
+
+function crossDocBottomLineCacheKey(input: CrossDocBottomLineInput): string {
+  const canonical = JSON.stringify(input.docs);
+  const hash = createHash("sha256").update(canonical).digest("hex").slice(0, 24);
+  return `xdocbl:v1:${hash}`;
+}
+
 export async function generateCrossDocBottomLine(
   input: CrossDocBottomLineInput
 ): Promise<CrossDocBottomLineOutput | null> {
+  // ---- 0. KV cache lookup ----
+  // /reports re-renders fire this on every page load (puppeteer PDF
+  // + every magic-link web view). Without caching that's a ~2-3s
+  // Claude call per render. Keyed on the hash of input.docs so any
+  // change to the input (different doc set, regenerated report
+  // copy, etc.) gets a fresh call automatically.
+  const cacheKey = crossDocBottomLineCacheKey(input);
+  try {
+    const cached = await kv.get<CrossDocBottomLineOutput>(cacheKey);
+    if (cached && (cached.verdict || cached.action)) {
+      console.log(`[report-generator] cross-doc bottom line cache HIT (${cacheKey})`);
+      return cached;
+    }
+  } catch (err) {
+    // KV failure is non-fatal — fall through to the LLM call below.
+    console.warn(
+      `[report-generator] cross-doc bottom line cache lookup failed (non-fatal):`,
+      err
+    );
+  }
+
   const userMessage = `Generate the cross-doc bottom-line verdict for this customer's documents:
 
 <docs>
@@ -602,14 +637,34 @@ Return only the JSON object, no prose.`;
     const bl = parsed?.bottomLine;
     if (!bl) return null;
     // Tolerate the LLM returning a plain string (older prompt shape).
+    let result: CrossDocBottomLineOutput | null = null;
     if (typeof bl === "string") {
       const v = bl.trim();
-      return v ? { verdict: v } : null;
+      result = v ? { verdict: v } : null;
+    } else {
+      const verdict = bl.verdict?.trim() ?? "";
+      const action = bl.action?.trim();
+      if (!verdict && !action) {
+        result = null;
+      } else {
+        result = { verdict: verdict || "", action: action || undefined };
+      }
     }
-    const verdict = bl.verdict?.trim() ?? "";
-    const action = bl.action?.trim();
-    if (!verdict && !action) return null;
-    return { verdict: verdict || "", action: action || undefined };
+    // ---- Cache writeback (best-effort) ----
+    if (result) {
+      try {
+        await kv.set(cacheKey, result, { ex: CROSS_DOC_BL_TTL_SECONDS });
+        console.log(
+          `[report-generator] cross-doc bottom line cached as ${cacheKey} (ttl=${CROSS_DOC_BL_TTL_SECONDS}s)`
+        );
+      } catch (err) {
+        console.warn(
+          `[report-generator] cross-doc bottom line cache write failed (non-fatal):`,
+          err
+        );
+      }
+    }
+    return result;
   } catch (err) {
     console.error(
       "[report-generator] cross-doc bottom line generation failed:",
