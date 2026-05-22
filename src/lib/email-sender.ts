@@ -1435,6 +1435,115 @@ export async function sendRateLimitReplyEmail({
 }
 
 // ----------------------------------------------------------------------------
+// Holding reply — sent when the audit pipeline goes into retry territory
+// (transient LLM / infra failure on the first attempt). Tells the
+// customer their forward landed, the audit is taking a bit longer than
+// usual, and the real audit will arrive when it's ready. Never asks them
+// to do anything — the system retries on their behalf.
+// ----------------------------------------------------------------------------
+
+interface HoldingReplyArgs {
+  to: string;
+}
+
+export async function sendHoldingReplyEmail({
+  to,
+}: HoldingReplyArgs): Promise<void> {
+  const subject = "We've received your documents — audit on its way";
+
+  const html = `<!doctype html>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Review desk &middot;
+    </div>
+    <p style="margin:0 0 18px;">Hi,</p>
+    <p style="margin:0 0 18px;">Thanks for forwarding your documents &mdash; they&rsquo;ve landed safely and the audit is being put together.</p>
+    <p style="margin:0 0 18px;">Usually this lands in your inbox within a couple of minutes. We&rsquo;re taking a bit longer on this one &mdash; nothing to worry about, just a busy moment on our side. You don&rsquo;t need to do anything; the audit will arrive when it&rsquo;s ready.</p>
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+  </div>
+</body></html>`;
+
+  const text = [
+    `· RightOffer · Review desk ·`,
+    ``,
+    `Hi,`,
+    ``,
+    `Thanks for forwarding your documents — they've landed safely and the audit is being put together.`,
+    ``,
+    `Usually this lands in your inbox within a couple of minutes. We're taking a bit longer on this one — nothing to worry about, just a busy moment on our side. You don't need to do anything; the audit will arrive when it's ready.`,
+    ``,
+    `— Aryan`,
+  ].join("\n");
+
+  const { error } = await client().emails.send({
+    from: INBOUND_REPLY_FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+  });
+  if (error) {
+    throw new Error(`Resend (holding-reply) failed: ${error.message}`);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Permanent-failure reply — sent when the audit pipeline has exhausted
+// all queue retries (rare, but real for hard infra issues). The customer
+// gets a calm, human-toned message saying our team's on it; the founder
+// gets paged separately via Sentry / log alert so the follow-up is real.
+// ----------------------------------------------------------------------------
+
+interface PermanentFailureReplyArgs {
+  to: string;
+}
+
+export async function sendPermanentFailureReplyEmail({
+  to,
+}: PermanentFailureReplyArgs): Promise<void> {
+  const subject = "About your forward — we're looking into it";
+
+  const html = `<!doctype html>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Review desk &middot;
+    </div>
+    <p style="margin:0 0 18px;">Hi,</p>
+    <p style="margin:0 0 18px;">We received the documents you forwarded but ran into a snag we couldn&rsquo;t recover from on our side. Nothing to do with what you sent &mdash; this is on us.</p>
+    <p style="margin:0 0 18px;">Our team has been notified and we&rsquo;ll follow up with you directly within 24 hours, either with the audit or with a clear next step. You don&rsquo;t need to forward anything again.</p>
+    <p style="margin:28px 0 0;font-style:italic;">&mdash; Aryan</p>
+  </div>
+</body></html>`;
+
+  const text = [
+    `· RightOffer · Review desk ·`,
+    ``,
+    `Hi,`,
+    ``,
+    `We received the documents you forwarded but ran into a snag we couldn't recover from on our side. Nothing to do with what you sent — this is on us.`,
+    ``,
+    `Our team has been notified and we'll follow up with you directly within 24 hours, either with the audit or with a clear next step. You don't need to forward anything again.`,
+    ``,
+    `— Aryan`,
+  ].join("\n");
+
+  const { error } = await client().emails.send({
+    from: INBOUND_REPLY_FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+  });
+  if (error) {
+    throw new Error(`Resend (permanent-failure-reply) failed: ${error.message}`);
+  }
+}
+
+// ----------------------------------------------------------------------------
 // Inbound-forward NO-MATCH reply (K5) — sent when a customer forwarded
 // something to review@ but none of the attachments qualify as a motor
 // policy or quote. Same editorial voice as the success reply; different

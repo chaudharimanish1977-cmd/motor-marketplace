@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
+    "@sentry/nextjs": "^10.53.1",
     "@sparticuz/chromium": "^148.0.0",
+    "@upstash/qstash": "^2.11.0",
     "@vercel/blob": "^2.3.3",
     "@vercel/functions": "^3.5.1",
     "@vercel/kv": "^3.0.0",

@@ -17,6 +17,10 @@ Remove an entry when it's actually done **and** verified — not when the code l
 
 | Added | Item | Validation criteria |
 |---|---|---|
+| 2026-05-22 | **Durable QStash queue + holding/permanent-failure replies + Sentry** (this session) | (1) `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY`, `SENTRY_DSN` set in Vercel. (2) Forward 3 docs → inbound webhook returns 200 within ~2s (mode=queued in response). (3) Worker `/api/jobs/audit-forward` processes the audit; reply email lands as normal. (4) Force a transient failure (set a bad ANTHROPIC_API_KEY briefly, then revert) → confirm holding email lands after first retry + final audit lands on a later retry. (5) Force 5 consecutive failures → confirm `/api/jobs/audit-forward-failed` fires + permanent-failure email lands + Sentry captures the alert. (6) When `QSTASH_TOKEN` absent, inbound still works via sync fallback (mode=sync). |
+| 2026-05-22 | **Silent-doc-loss safety net + 5xx retry coverage** (`dc5b0ba`) | (1) Forward 3 good PDFs from a bypass-list sender → comparator shows 3 docs, no "Couldn't process" block. (2) Forward 2 good PDFs + 1 two-wheeler policy → comparator shows 2, "Couldn't process" lists the two-wheeler with its reason. (3) Vercel logs show retries on transient 5xx if they occur (look for `[anthropic] received 5xx on attempt`). |
+| 2026-05-22 | **Per-doc Recommendation column + colour legend** (in earlier session) | Already on the validation list under PDF fixes — confirm next forward shows the Recommended Must/Good/May chips + colour legend block under the snapshot table. |
+| 2026-05-22 | **Cross-doc bottom-line cache + excluded-docs in master PDF** (`03a5d95`, `cbe9689`) | (1) Two consecutive page loads of `/reports?print=1&docs=...` show "cache HIT" log on the second. (2) A forward with a two-wheeler doc + a good doc shows "Couldn't process" block in the master PDF (not just email). |
 | 2026-05-18 | **`/me` portal editorial redesign** (`8602b20`) | (1) Masthead reads "Reading Room · Your portal" with serif italic-plum headline. (2) Policy cards now hairline-separated rows; status appears as mono uppercase kicker ("· Active ·", "· Renewal · 47d to go ·", "· Lapsed · 12d ago ·"). (3) Comparison launcher + renewal CTA + empty state all use editorial pull-quote vocab — no gradients, no shadowed cards. (4) Delete account confirm + delete policy confirm use coral left-rule + mono kicker + serif body. (5) Reminder schedule editor reads editorial in both summary + edit modes. (6) Mobile reads cleanly. (7) Account section sits below a hairline rule with mono "· Account ·" kicker. |
 | 2026-05-18 | **Insights v1 — feed + inline rendering** (`810f6b3`) | (1) Open `/me/insights` on a verified session — feed shows the 3 sample insights filtered by your car profile. (2) Open `/report/[id]` for a CNG car in Mumbai with no Engine Protect — monsoon-engine-protect insight appears inline above the simulator. (3) Discovery line "N updates tied to gaps below" appears at top of §02. (4) Print mode (`?print=1`) hides all engagement-layer content. (5) Mobile: editorial spacing reads cleanly. |
 | 2026-05-17 | **Save / Share buttons mobile fixes** (`723dc06`) | PDF downloads reliably on iOS Safari with the simplified single-file flow. Share-on-WhatsApp opens WhatsApp with pre-filled message. Both buttons match editorial plum styling. |
@@ -50,9 +54,8 @@ Remove an entry when it's actually done **and** verified — not when the code l
 - **Event taxonomy** — define the canonical events before instrumenting: `upload_started`, `policy_parsed`, `report_rendered`, `gate_otp_sent`, `gate_verified`, `report_saved`, `share_minted`, `whatsapp_share_opened`, `insight_viewed`, etc. Otherwise the data is unreadable.
 
 ### Observability (production-grade)
-- **Error monitoring** — Sentry or equivalent. Currently console.error only; we lose stack traces from real users.
-- **Performance / APM** — slow-route detection, LLM latency tracking, cron job health. Datadog / Vercel Observability / etc.
-- **Note**: V1 build plan explicitly flagged this as "can wait", but a single LLM hiccup in front of an investor is fixable only if we have telemetry.
+- **Error monitoring** — ✅ shipped 2026-05-22. Sentry wired via `@sentry/nextjs`; activates when `SENTRY_DSN` is set in Vercel. Auto-captures route handler exceptions; `/api/jobs/audit-forward-failed` explicitly calls `Sentry.captureMessage` so terminal queue failures page the team.
+- **Performance / APM** — still on the list. LLM latency logged via `console.log`; cron job health by Vercel built-in. Datadog / Vercel Observability when forward volume grows.
 
 ### Renewal reminder email — editorial polish
 - Cron + reminder rows work. Email template hasn't had editorial treatment.
@@ -123,6 +126,8 @@ Remove an entry when it's actually done **and** verified — not when the code l
 | 2026-05-18 | **IRDAI composite broker licence** | V1 spec requires the licence before the marketplace flows go from mock to live. Web-aggregator licence is explicitly not enough. |
 | 2026-05-18 | **Payment gateway accounts** | Razorpay + PayU sandbox accounts (both for redundancy + best-conversion routing per spec). |
 | 2026-05-18 | **MSG91 + Telegram bot accounts** | For SMS + Telegram channels in the cadence engine. |
+| 2026-05-22 | **Provision Upstash QStash + add env vars to Vercel** | Create a QStash account at console.upstash.com, copy the token + current/next signing keys. Add to Vercel project env: `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY`. Free tier covers 500 messages/day, plenty for Phase 1. Without these env vars the inbound webhook stays on the sync fallback path (still works, no queue benefit). |
+| 2026-05-22 | **Provision Sentry project + add `SENTRY_DSN` to Vercel** | Create a Sentry project for the `rightoffer.in` Node runtime; copy DSN. Add `SENTRY_DSN` to Vercel env. Optional: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` for source-map upload (improves stack traces). Without DSN, Sentry SDK is a no-op. |
 | 2026-05-18 | **Authoring cadence commitment** | Insights system only feels alive with ≥ 1 new insight per month. Pipeline + protected calendar block needed before v1.5 ships. |
 
 ---
@@ -141,4 +146,4 @@ Remove an entry when it's actually done **and** verified — not when the code l
 
 ---
 
-*Last updated: 2026-05-18 (post `/me` editorial redesign)*
+*Last updated: 2026-05-22 (post durable-queue + Sentry + customer-facing exception handling)*
