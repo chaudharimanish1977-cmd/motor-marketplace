@@ -25,38 +25,75 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 
 export async function GET(request: NextRequest) {
+  // Verbose diagnostic logging — Sentry-wiring problems are notoriously
+  // silent (no DSN = no error, wrong DSN = events ingest into a project
+  // you can't see). Print enough to Vercel logs that we can diagnose
+  // from there without needing to attach a debugger.
+  console.log("[sentry-test] endpoint hit");
+
   const expected = process.env.SENTRY_TEST_TOKEN;
+  const dsnPresent = !!process.env.SENTRY_DSN;
+  const dsnSuffix = process.env.SENTRY_DSN
+    ? process.env.SENTRY_DSN.slice(-20)
+    : "<not set>";
+  const nodeEnv = process.env.NODE_ENV;
+  const vercelEnv = process.env.VERCEL_ENV;
+  const vercelCommit = process.env.VERCEL_GIT_COMMIT_SHA;
+  console.log(
+    `[sentry-test] env: SENTRY_DSN.suffix=${dsnSuffix} TOKEN_SET=${!!expected} NODE_ENV=${nodeEnv} VERCEL_ENV=${vercelEnv} COMMIT=${vercelCommit?.slice(0, 7)}`
+  );
+
   if (!expected) {
-    // Endpoint deactivated. Return a 404-shaped response so it doesn't
-    // advertise its presence to scanners.
+    console.warn(
+      "[sentry-test] SENTRY_TEST_TOKEN not set — returning 404 (endpoint dormant)"
+    );
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
   if (!token || token !== expected) {
+    console.warn(
+      `[sentry-test] token mismatch — got "${token}" (length ${token?.length ?? 0}), expected length ${expected.length}`
+    );
     return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+
+  if (!dsnPresent) {
+    console.error(
+      "[sentry-test] SENTRY_DSN not set — Sentry init was a no-op, captureMessage / throw will silently disappear"
+    );
   }
 
   // Path 1: explicit captureMessage — covers the path the
   // /api/jobs/audit-forward-failed callback uses to alert on
   // exhausted queue retries.
-  Sentry.captureMessage("Sentry test message (manual probe)", {
-    level: "warning",
-    tags: { test: "manual-probe", endpoint: "/api/admin/sentry-test" },
-    extra: {
-      timestamp: new Date().toISOString(),
-      note: "If you can see this in Sentry, the SDK is wired correctly.",
-    },
-  });
+  console.log("[sentry-test] calling Sentry.captureMessage...");
+  const messageEventId = Sentry.captureMessage(
+    "Sentry test message (manual probe)",
+    {
+      level: "warning",
+      tags: { test: "manual-probe", endpoint: "/api/admin/sentry-test" },
+      extra: {
+        timestamp: new Date().toISOString(),
+        note: "If you can see this in Sentry, the SDK is wired correctly.",
+      },
+    }
+  );
+  console.log(
+    `[sentry-test] captureMessage returned eventId=${messageEventId ?? "<none>"}`
+  );
 
   // Force Sentry to flush before throw, otherwise the throw could
   // tear down the process before the message reaches Sentry's
   // ingest. 2s ceiling keeps the request from hanging if Sentry's
   // network is slow.
-  await Sentry.flush(2000);
+  console.log("[sentry-test] calling Sentry.flush(2000)...");
+  const flushed = await Sentry.flush(2000);
+  console.log(`[sentry-test] flush returned ${flushed} (true=delivered)`);
 
   // Path 2: thrown error — covers automatic capture via Next.js
   // instrumentation hooks (the route handler's onRequestError).
+  console.log("[sentry-test] throwing test exception now...");
   throw new Error("Sentry test exception (manual probe)");
 }
