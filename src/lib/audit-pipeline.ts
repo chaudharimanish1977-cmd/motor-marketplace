@@ -131,40 +131,19 @@ export async function runAuditPipeline(
     `${tag} extraction completed in ${Date.now() - extractStart}ms. Confidence: ${parsed.parseConfidence}`
   );
 
-  // ---- 4. Stamp owner email + DPDP consent ----
+  // ---- 4. Stamp owner email on the ParsedPolicy row ----
+  // NB: the User-row upsert + DPDP consent stamp lives in
+  // recordDpdpConsent() now, called ONCE by the caller before any
+  // parallel pipeline fan-out. Doing it per-pipeline-run was a race
+  // hazard when a single sender forwards N docs concurrently — N
+  // findOne() calls all see no row, then N appendRow() calls each
+  // create a duplicate User row with its own UUID. See the
+  // /api/inbound/email path for the hoisted upsert.
   if (args.ownerEmail) {
-    const ownerLower = args.ownerEmail.toLowerCase();
     parsed.owner = {
       ...parsed.owner,
-      email: ownerLower,
+      email: args.ownerEmail.toLowerCase(),
     };
-
-    // Upsert User row + record DPDP consent. By submitting a PDF
-    // (via web upload OR by forwarding to review@), the customer has
-    // taken an affirmative consent action. Non-fatal if it fails.
-    try {
-      const nowIso = new Date().toISOString();
-      const existing = await findOne<User>(
-        Tables.USERS,
-        (u) => (u.email ?? "").toLowerCase() === ownerLower
-      );
-      if (existing) {
-        await updateById<User>(Tables.USERS, existing.id, {
-          dpdpConsentGivenAt: nowIso,
-          email: ownerLower,
-        });
-      } else {
-        await appendRow<User>(Tables.USERS, {
-          id: randomUUID(),
-          email: ownerLower,
-          mobile: "",
-          createdAt: nowIso,
-          dpdpConsentGivenAt: nowIso,
-        });
-      }
-    } catch (err) {
-      console.error(`${tag} DPDP stamp failed (non-fatal):`, err);
-    }
   }
 
   // ---- 5. Stamp documentType from the classifier ----
@@ -233,4 +212,47 @@ export async function runAuditPipeline(
     documentType: classification.documentType,
     vehicleLabel,
   };
+}
+
+/**
+ * Upsert the User row for this sender and stamp DPDP consent.
+ *
+ * Hoisted out of runAuditPipeline so callers that process MULTIPLE
+ * PDFs in parallel (e.g. /api/inbound/email forwarding 3 docs at once)
+ * can do this ONCE — instead of N concurrent findOne() calls each
+ * racing to appendRow() a fresh User with a new UUID.
+ *
+ * Non-fatal: failures are logged but don't throw. The audit pipeline
+ * still runs without a User row; renewal cadence wiring catches up
+ * lazily on the next interaction.
+ */
+export async function recordDpdpConsent(ownerEmail: string): Promise<void> {
+  if (!ownerEmail) return;
+  const ownerLower = ownerEmail.toLowerCase();
+  try {
+    const nowIso = new Date().toISOString();
+    const existing = await findOne<User>(
+      Tables.USERS,
+      (u) => (u.email ?? "").toLowerCase() === ownerLower
+    );
+    if (existing) {
+      await updateById<User>(Tables.USERS, existing.id, {
+        dpdpConsentGivenAt: nowIso,
+        email: ownerLower,
+      });
+    } else {
+      await appendRow<User>(Tables.USERS, {
+        id: randomUUID(),
+        email: ownerLower,
+        mobile: "",
+        createdAt: nowIso,
+        dpdpConsentGivenAt: nowIso,
+      });
+    }
+  } catch (err) {
+    console.error(
+      `[audit-pipeline] DPDP consent stamp failed for ${ownerLower} (non-fatal):`,
+      err
+    );
+  }
 }

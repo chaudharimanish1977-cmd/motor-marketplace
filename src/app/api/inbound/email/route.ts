@@ -3,7 +3,11 @@ import { randomUUID } from "crypto";
 import { waitUntil } from "@vercel/functions";
 import { kv } from "@vercel/kv";
 import { storeInboxPdf } from "@/lib/blob-store";
-import { runAuditPipeline, type AuditPipelineResult } from "@/lib/audit-pipeline";
+import {
+  runAuditPipeline,
+  recordDpdpConsent,
+  type AuditPipelineResult,
+} from "@/lib/audit-pipeline";
 import {
   buildMasterPdfFilename,
   sendInboundAuditReply,
@@ -359,41 +363,70 @@ async function runAuditsForInboundForward(args: {
   // the first-touch consent line in the reply.
   const wasFirstTouch = await senderHasNoPriorAudits(args.fromEmail);
 
+  // Record DPDP consent ONCE for this sender before fanning out the
+  // per-doc pipeline. Doing this here (instead of inside each pipeline
+  // run) eliminates the race where N concurrent pipelines all see an
+  // absent User row and each call appendRow() — leaving N duplicate
+  // User rows behind. See recordDpdpConsent() in audit-pipeline.ts.
+  await recordDpdpConsent(args.fromEmail);
+
   // Track filename per outcome so we can surface excluded docs by
   // name in the email body ("Couldn't process Tata-AIG-bill.pdf —
   // looks like a two-wheeler policy").
+  //
+  // Per-doc pipelines run IN PARALLEL — each doc is independent (own
+  // text extract, classify, parse, report-gen). For a 3-doc forward,
+  // total wall-clock drops from sum-of-three (~3-4 min) to max-of-three
+  // (~70-90 s), bringing the multi-doc reply inside the same ~2-min
+  // promise we make for single-doc forwards.
+  //
+  // Each task wraps its own try/catch so one bad PDF doesn't reject the
+  // Promise.all and lose the audits for the others.
+  console.log(
+    `[inbound/email] fanning out ${args.pdfBuffers.length} doc(s) in parallel for ${args.fromEmail}`
+  );
+  const t0 = Date.now();
   const outcomesWithFile: Array<{
     filename: string;
     result: AuditPipelineResult;
-  }> = [];
-  for (const { buffer, name, inboundId } of args.pdfBuffers) {
-    console.log(
-      `[inbound/email] starting audit for ${name} (inbound=${inboundId}, sender=${args.fromEmail})`
-    );
-    try {
-      const result = await runAuditPipeline({
-        pdfBuffer: buffer,
-        ownerEmail: args.fromEmail,
-        fileName: name,
-        source: "email-forward",
-      });
-      outcomesWithFile.push({ filename: name, result });
-      if (result.kind === "audited") {
+  }> = (
+    await Promise.all(
+      args.pdfBuffers.map(async ({ buffer, name, inboundId }) => {
         console.log(
-          `[inbound/email] ${name}: audited as ${result.documentType}, parsed=${result.parsedPolicyId}, report=${result.policyReportId ?? "(missing)"}`
+          `[inbound/email] starting audit for ${name} (inbound=${inboundId}, sender=${args.fromEmail})`
         );
-      } else {
-        console.log(
-          `[inbound/email] ${name}: ${result.kind} (${result.kind === "rejected" ? result.category : result.category})`
-        );
-      }
-    } catch (err) {
-      console.error(
-        `[inbound/email] audit pipeline crashed for ${name}:`,
-        err
-      );
-    }
-  }
+        try {
+          const result = await runAuditPipeline({
+            pdfBuffer: buffer,
+            ownerEmail: args.fromEmail,
+            fileName: name,
+            source: "email-forward",
+          });
+          if (result.kind === "audited") {
+            console.log(
+              `[inbound/email] ${name}: audited as ${result.documentType}, parsed=${result.parsedPolicyId}, report=${result.policyReportId ?? "(missing)"}`
+            );
+          } else {
+            console.log(
+              `[inbound/email] ${name}: ${result.kind} (${result.category})`
+            );
+          }
+          return { filename: name, result };
+        } catch (err) {
+          console.error(
+            `[inbound/email] audit pipeline crashed for ${name}:`,
+            err
+          );
+          return null;
+        }
+      })
+    )
+  ).filter(
+    (o): o is { filename: string; result: AuditPipelineResult } => o !== null
+  );
+  console.log(
+    `[inbound/email] parallel fan-out done in ${Date.now() - t0}ms for ${args.fromEmail} (${outcomesWithFile.length}/${args.pdfBuffers.length} returned an outcome)`
+  );
 
   // K6/K11 — send editorial reply with the audit PDF(s) attached.
   //
