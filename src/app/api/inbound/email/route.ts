@@ -755,12 +755,20 @@ async function sendConsolidatedReplyForForward(args: {
   // Render the master PDF — the /reports view scoped to this
   // forward's doc IDs. Replaces the per-doc render loop. One
   // puppeteer instance instead of N.
+  //
+  // Excluded docs are threaded through to /reports via the URL so
+  // the master PDF carries a "Couldn't process" section for the
+  // docs that didn't qualify (two-wheeler policy, scanned image,
+  // etc.). The customer gets a complete record of what was
+  // received and what made it through in one self-contained
+  // document.
   let masterPdf: Buffer | null = null;
   try {
     const t0 = Date.now();
     masterPdf = await renderReportsPdf({
       docIds: args.audits.map((a) => a.parsedPolicyId),
       baseUrl: SITE_URL,
+      excludedDocs: args.excludedDocs,
     });
     console.log(
       `[inbound/email] rendered master PDF in ${Date.now() - t0}ms (${masterPdf.length} bytes)`

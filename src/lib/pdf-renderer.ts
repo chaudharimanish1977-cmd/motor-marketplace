@@ -39,7 +39,16 @@ interface RenderReportsOptions {
   /** Explicit doc-ID list, joined into the `?docs=` query param. */
   docIds: string[];
   baseUrl: string;
+  /** Docs the inbound webhook couldn't process (wrong vehicle type,
+   *  unreadable scan, etc.). When present, /reports surfaces them in a
+   *  "Couldn't process" section in the master PDF so the customer has
+   *  a complete record of what we received vs what made it through.
+   *  Capped at 10 entries to keep the URL bounded — anything beyond
+   *  that is logged but not surfaced. */
+  excludedDocs?: Array<{ filename: string; reason: string }>;
 }
+
+const MAX_EXCLUDED_DOCS_IN_URL = 10;
 
 /**
  * Render the MULTI-doc /reports page to PDF. Used by the email-forward
@@ -50,17 +59,30 @@ interface RenderReportsOptions {
  * Doc list is passed via `?docs=id,id,id` since the headless browser
  * has no session cookie to discover docs through.
  *
+ * Excluded-doc metadata is passed via `?excluded=<base64 JSON>` so the
+ * master PDF can show a "Couldn't process" section. We base64-encode
+ * the JSON to keep the URL parseable even when filenames contain
+ * spaces / punctuation.
+ *
  * Longer timeout than single-doc render — /reports has more content
  * (annexures expand all per-doc reports inline).
  */
 export async function renderReportsPdf({
   docIds,
   baseUrl,
+  excludedDocs,
 }: RenderReportsOptions): Promise<Buffer> {
   const params = new URLSearchParams({
     print: "1",
     docs: docIds.join(","),
   });
+  if (excludedDocs && excludedDocs.length > 0) {
+    const capped = excludedDocs.slice(0, MAX_EXCLUDED_DOCS_IN_URL);
+    const encoded = Buffer.from(JSON.stringify(capped), "utf8").toString(
+      "base64url"
+    );
+    params.set("excluded", encoded);
+  }
   const url = `${baseUrl.replace(/\/$/, "")}/reports?${params}`;
   return renderUrlToPdf(url, 90_000);
 }

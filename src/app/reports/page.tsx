@@ -78,6 +78,39 @@ function flattenBottomLine(
   return [v, a].filter(Boolean).join(" ") || undefined;
 }
 
+/**
+ * Decode the `?excluded=` query param into a list of excluded-doc
+ * entries. The value is base64url-encoded JSON of `{ filename,
+ * reason }[]`, written by the inbound webhook when it kicks off the
+ * master PDF render. Any decode / parse error returns [] — the rest
+ * of /reports renders fine without it.
+ */
+function decodeExcludedDocsParam(
+  raw: string | undefined
+): Array<{ filename: string; reason: string }> {
+  if (!raw) return [];
+  try {
+    const json = Buffer.from(raw, "base64url").toString("utf8");
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (e): e is { filename: string; reason: string } =>
+          e &&
+          typeof e === "object" &&
+          typeof e.filename === "string" &&
+          typeof e.reason === "string"
+      )
+      .slice(0, 10);
+  } catch (err) {
+    console.warn(
+      "[reports] failed to decode ?excluded= query param (non-fatal):",
+      err
+    );
+    return [];
+  }
+}
+
 export default async function ReportsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const printMode = sp.print === "1";
@@ -96,6 +129,14 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+
+  /** excluded=<base64url JSON> — populated by the inbound webhook when
+   *  it kicks off the master PDF render. Lets the PDF carry a
+   *  "Couldn't process" section for docs the customer forwarded but
+   *  that the audit pipeline rejected (two-wheeler, scanned image,
+   *  commercial vehicle, etc.). Falls back to [] on any decode error
+   *  — the rest of /reports still renders fine without it. */
+  const excludedDocs = decodeExcludedDocsParam(sp.excluded);
 
   const [fullSessionEmail, uploadSession, anonSession] = await Promise.all([
     getSession(),
@@ -341,6 +382,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           <MultiDocReport
             comparison={comparison}
             crossDocBottomLine={crossDocBottomLine}
+            excludedDocs={excludedDocs}
             view="customer"
             showGate={!printMode && showGate}
             printMode={printMode}

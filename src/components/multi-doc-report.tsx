@@ -34,6 +34,12 @@ interface Props {
    *  can visually emphasise the action callout. Falls back to the
    *  anchor doc's bottomLine when null. */
   crossDocBottomLine?: { verdict: string; action?: string } | null;
+  /** Docs the inbound webhook couldn't process (wrong vehicle type,
+   *  unreadable scan, commercial vehicle, etc.). Surfaced as a
+   *  "Couldn't process" section in the master view so the customer
+   *  has a complete record of what was forwarded and what made it
+   *  through. Empty in single-doc / web-upload contexts. */
+  excludedDocs?: Array<{ filename: string; reason: string }>;
   view: "investor" | "customer";
   showGate: boolean;
   printMode?: boolean;
@@ -47,6 +53,7 @@ interface Props {
 export function MultiDocReport({
   comparison,
   crossDocBottomLine,
+  excludedDocs,
   view,
   showGate,
   printMode,
@@ -141,6 +148,16 @@ export function MultiDocReport({
           {/* ── 2. Cross-doc bottom line ─────────────────────────── */}
           <BottomLineBanner report={bannerReport} />
 
+          {/* ── 2b. Excluded docs (if any) ──────────────────────────
+           *  Surfaces the docs the inbound webhook couldn't process —
+           *  same content as the "Couldn't process" block in the email
+           *  body, repeated here so the master PDF is a complete
+           *  self-contained record. Only renders when excludedDocs has
+           *  entries (web-upload sessions and clean forwards skip it). */}
+          {excludedDocs && excludedDocs.length > 0 && (
+            <ExcludedDocsBlock items={excludedDocs} />
+          )}
+
           {/* ── 3. Coverage Snapshot table (multi-column) ────────── */}
           <CoverageSnapshotTable
             mode="multi"
@@ -191,6 +208,43 @@ export function MultiDocReport({
         </>
       )}
     </article>
+  );
+}
+
+/**
+ * "Couldn't process" block — surfaces docs the inbound pipeline
+ * rejected (two-wheeler policy, scanned image, commercial vehicle,
+ * etc.) so the master PDF carries the complete forward record. Amber
+ * left rule + filename + plain-English reason. Matches the editorial
+ * treatment of the same block in the inbound email body.
+ */
+function ExcludedDocsBlock({
+  items,
+}: {
+  items: Array<{ filename: string; reason: string }>;
+}) {
+  return (
+    <section className="mb-10 pl-5 border-l-2 border-amber-500/60">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-amber-700 font-bold mb-2">
+        · Couldn&rsquo;t process ·
+      </div>
+      <p className="font-serif italic text-[14.5px] text-brand-slate mb-3 max-w-xl">
+        We received the following but couldn&rsquo;t include them in the
+        comparison. Forward a different copy or upload directly if any of
+        these should have been read.
+      </p>
+      <ul className="space-y-1.5 list-none m-0 p-0">
+        {items.map((item, i) => (
+          <li
+            key={`excluded-${i}-${item.filename}`}
+            className="font-serif text-[14px] text-brand-charcoal leading-[1.5]"
+          >
+            <span className="font-medium">{item.filename}</span>
+            <span className="text-brand-slate"> — {item.reason}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
