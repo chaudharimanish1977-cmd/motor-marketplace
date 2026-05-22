@@ -41,7 +41,18 @@ export interface CallClaudeOptions {
 
 /**
  * Single-shot Claude call. Returns the assistant's text response.
+ *
+ * Retries on 429 (rate limit) and 529 (overloaded) with exponential
+ * backoff capped at 3 attempts total. Every retry is logged so we can
+ * spot the trend if inbound forward concurrency starts colliding with
+ * our tier limit. The Anthropic SDK already handles some transient
+ * errors internally; the explicit handling here is for the burst
+ * pattern from parallelised multi-doc forwards (3 docs × ~2 LLM calls
+ * each in one wall-clock window).
  */
+const RETRY_STATUSES = new Set([429, 529]);
+const MAX_ATTEMPTS = 3;
+
 export async function callClaude({
   system,
   userMessage,
@@ -49,24 +60,75 @@ export async function callClaude({
   temperature = 0.3,
 }: CallClaudeOptions): Promise<string> {
   const client = getClient();
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: maxTokens,
-    temperature,
-    system,
-    messages: [
-      {
-        role: "user",
-        content: userMessage,
-      },
-    ],
-  });
-
-  const textBlock = response.content.find((b) => b.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("Claude returned no text content");
+  let attempt = 0;
+  let lastErr: unknown;
+  while (attempt < MAX_ATTEMPTS) {
+    try {
+      const response = await client.messages.create({
+        model: MODEL,
+        max_tokens: maxTokens,
+        temperature,
+        system,
+        messages: [
+          {
+            role: "user",
+            content: userMessage,
+          },
+        ],
+      });
+      const textBlock = response.content.find((b) => b.type === "text");
+      if (!textBlock || textBlock.type !== "text") {
+        throw new Error("Claude returned no text content");
+      }
+      if (attempt > 0) {
+        console.log(
+          `[anthropic] call succeeded after ${attempt + 1} attempts (retry recovered from rate limit / overload)`
+        );
+      }
+      return textBlock.text;
+    } catch (err) {
+      lastErr = err;
+      const status = extractStatusCode(err);
+      if (status && RETRY_STATUSES.has(status) && attempt < MAX_ATTEMPTS - 1) {
+        // Exponential backoff: 0.5s, 1.5s. Caps the worst-case added
+        // latency at ~2s per call, which keeps the parallel fan-out
+        // still inside the 2-min promise even when the first try hits
+        // a rate limit.
+        const delayMs = 500 * Math.pow(3, attempt);
+        console.warn(
+          `[anthropic] received ${status} on attempt ${attempt + 1}/${MAX_ATTEMPTS}; backing off ${delayMs}ms before retry`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        attempt += 1;
+        continue;
+      }
+      // Non-retryable or out of retries — log and rethrow.
+      if (status) {
+        console.error(
+          `[anthropic] call failed with status ${status} (no retry); rethrowing`,
+          err
+        );
+      }
+      throw err;
+    }
   }
-  return textBlock.text;
+  // Shouldn't reach here, but TypeScript needs a terminal throw.
+  throw lastErr ?? new Error("callClaude exhausted retries");
+}
+
+/** Best-effort HTTP status extraction from an SDK error. The Anthropic
+ *  SDK errors expose `.status` directly; fetch-style errors expose
+ *  `.response.status`. Returns undefined if neither shape matches — in
+ *  which case we treat the error as non-retryable. */
+function extractStatusCode(err: unknown): number | undefined {
+  if (err && typeof err === "object") {
+    const e = err as { status?: unknown; response?: { status?: unknown } };
+    if (typeof e.status === "number") return e.status;
+    if (e.response && typeof e.response.status === "number") {
+      return e.response.status;
+    }
+  }
+  return undefined;
 }
 
 /**
