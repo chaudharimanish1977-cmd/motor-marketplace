@@ -50,7 +50,13 @@ export interface CallClaudeOptions {
  * pattern from parallelised multi-doc forwards (3 docs × ~2 LLM calls
  * each in one wall-clock window).
  */
-const RETRY_STATUSES = new Set([429, 529]);
+// Retry on rate-limit (429), overloaded (529), and transient server /
+// gateway errors (500/502/503/504). These show up most often during
+// the parallel multi-doc fan-out, where 3 docs * 2 LLM calls each in
+// the same 60-90s window can briefly stress the upstream. Auth (401),
+// permission (403), and bad-request (400) errors are NOT retried —
+// retrying them would just delay the inevitable failure.
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504, 529]);
 const MAX_ATTEMPTS = 3;
 
 export async function callClaude({

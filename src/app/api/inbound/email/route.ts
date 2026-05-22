@@ -381,51 +381,59 @@ async function runAuditsForInboundForward(args: {
   // promise we make for single-doc forwards.
   //
   // Each task wraps its own try/catch so one bad PDF doesn't reject the
-  // Promise.all and lose the audits for the others.
+  // Promise.all AND so a transient failure doesn't silently disappear:
+  // every input PDF MUST surface as an outcome (audited, rejected,
+  // unreadable, or errored). The customer should always see N entries
+  // for N forwarded files — never N inputs ↔ N-1 outputs.
   console.log(
     `[inbound/email] fanning out ${args.pdfBuffers.length} doc(s) in parallel for ${args.fromEmail}`
   );
   const t0 = Date.now();
   const outcomesWithFile: Array<{
     filename: string;
-    result: AuditPipelineResult;
-  }> = (
-    await Promise.all(
-      args.pdfBuffers.map(async ({ buffer, name, inboundId }) => {
-        console.log(
-          `[inbound/email] starting audit for ${name} (inbound=${inboundId}, sender=${args.fromEmail})`
-        );
-        try {
-          const result = await runAuditPipeline({
-            pdfBuffer: buffer,
-            ownerEmail: args.fromEmail,
-            fileName: name,
-            source: "email-forward",
-          });
-          if (result.kind === "audited") {
-            console.log(
-              `[inbound/email] ${name}: audited as ${result.documentType}, parsed=${result.parsedPolicyId}, report=${result.policyReportId ?? "(missing)"}`
-            );
-          } else {
-            console.log(
-              `[inbound/email] ${name}: ${result.kind} (${result.category})`
-            );
-          }
-          return { filename: name, result };
-        } catch (err) {
-          console.error(
-            `[inbound/email] audit pipeline crashed for ${name}:`,
-            err
+    result: LocalOutcome;
+  }> = await Promise.all(
+    args.pdfBuffers.map(async ({ buffer, name, inboundId }) => {
+      console.log(
+        `[inbound/email] starting audit for ${name} (inbound=${inboundId}, sender=${args.fromEmail})`
+      );
+      try {
+        const result = await runAuditPipeline({
+          pdfBuffer: buffer,
+          ownerEmail: args.fromEmail,
+          fileName: name,
+          source: "email-forward",
+        });
+        if (result.kind === "audited") {
+          console.log(
+            `[inbound/email] ${name}: audited as ${result.documentType}, parsed=${result.parsedPolicyId}, report=${result.policyReportId ?? "(missing)"}`
           );
-          return null;
+        } else {
+          console.log(
+            `[inbound/email] ${name}: ${result.kind} (${result.category})`
+          );
         }
-      })
-    )
-  ).filter(
-    (o): o is { filename: string; result: AuditPipelineResult } => o !== null
+        return { filename: name, result };
+      } catch (err) {
+        // Synthesise an "errored" outcome instead of dropping. Even
+        // after callClaude's retry/backoff, a hard failure here used to
+        // silently disappear — the customer received an audit for 2 of
+        // 3 PDFs with no trace of the third. Now the third surfaces in
+        // the "Couldn't process" block with a useful reason.
+        const reason = describePipelineError(err);
+        console.error(
+          `[inbound/email] audit pipeline crashed for ${name} (surfacing as errored: "${reason}"):`,
+          err
+        );
+        return {
+          filename: name,
+          result: { kind: "errored" as const, reason },
+        };
+      }
+    })
   );
   console.log(
-    `[inbound/email] parallel fan-out done in ${Date.now() - t0}ms for ${args.fromEmail} (${outcomesWithFile.length}/${args.pdfBuffers.length} returned an outcome)`
+    `[inbound/email] parallel fan-out done in ${Date.now() - t0}ms for ${args.fromEmail} (${outcomesWithFile.length} outcomes for ${args.pdfBuffers.length} inputs)`
   );
 
   // K6/K11 — send editorial reply with the audit PDF(s) attached.
@@ -441,6 +449,9 @@ async function runAuditsForInboundForward(args: {
     (o): o is { filename: string; result: Extract<AuditPipelineResult, { kind: "audited" }> } =>
       o.result.kind === "audited"
   );
+  // Non-audited outcomes (rejected / unreadable / errored) all flow
+  // into the "Couldn't process" block in the email + master PDF. The
+  // customer sees a complete N-in / N-out record either way.
   const excluded = outcomesWithFile.filter(
     (o) => o.result.kind !== "audited"
   );
@@ -516,13 +527,61 @@ interface ExcludedDoc {
 }
 
 /**
+ * Local outcome type for the multi-doc fan-out. Extends the pipeline's
+ * own AuditPipelineResult with an "errored" kind we synthesise when
+ * the pipeline crashes (after all retries) so the doc never silently
+ * disappears from the customer's reply. Kept local to this route —
+ * the pipeline contract itself only produces audited/rejected/unreadable.
+ */
+type LocalOutcome =
+  | AuditPipelineResult
+  | { kind: "errored"; reason: string };
+
+/**
+ * Extract a short, customer-friendly reason from a pipeline crash.
+ * Most failures we'd surface to the customer fall into a handful of
+ * shapes: Anthropic API failure after retries, PDF parse failure, or
+ * a generic timeout. We map status codes / well-known error messages
+ * to readable copy; the long technical detail still goes to logs.
+ */
+function describePipelineError(err: unknown): string {
+  const status =
+    err && typeof err === "object" && "status" in err
+      ? (err as { status?: unknown }).status
+      : undefined;
+  if (typeof status === "number") {
+    if (status === 429 || status === 529) {
+      return "we hit a rate limit reading this one — forward it again in a minute";
+    }
+    if (status >= 500) {
+      return "our parser had a hiccup reading this one — please try forwarding it again";
+    }
+  }
+  const message =
+    err && typeof err === "object" && "message" in err
+      ? String((err as { message?: unknown }).message ?? "")
+      : "";
+  if (/timeout|timed out|ETIMEDOUT/i.test(message)) {
+    return "this one timed out while we were reading it — please try forwarding again";
+  }
+  if (/network|ECONNRESET|ECONNREFUSED/i.test(message)) {
+    return "we lost the connection reading this one — please try forwarding again";
+  }
+  return "we couldn't finish reading this one — please try forwarding it again";
+}
+
+/**
  * Convert an audit-pipeline rejection into a one-line, customer-
  * friendly reason. The pipeline returns structured rejection data
  * (category + headline + body); we want a tight line ready for a
- * bullet list in the email.
+ * bullet list in the email. Also handles the synthetic "errored"
+ * outcome we attach when the pipeline crashes — see describePipelineError.
  */
-function humaniseExclusionReason(result: AuditPipelineResult): string {
+function humaniseExclusionReason(result: LocalOutcome): string {
   if (result.kind === "audited") return ""; // shouldn't happen
+  if (result.kind === "errored") {
+    return result.reason;
+  }
   if (result.kind === "unreadable") {
     return "looks like a scanned image, not a text PDF";
   }
@@ -553,7 +612,7 @@ function humaniseExclusionReason(result: AuditPipelineResult): string {
  * rejected for a specific reason, that's likely the one they meant.
  */
 function inferNoMatchReason(
-  outcomes: AuditPipelineResult[]
+  outcomes: LocalOutcome[]
 ): InboundNoMatchReason {
   // Look for wrong-vehicle-class first
   const wrongClass = outcomes.find(
@@ -574,7 +633,12 @@ function inferNoMatchReason(
     return { kind: "scanned-image" };
   }
 
-  // Then generic non-policy (eg "non-motor", "other", "unknown")
+  // If ALL outcomes errored (no rejection / no scanned-image), it's an
+  // infrastructure problem — surface as the generic not-a-policy reply
+  // for now, since we don't have a dedicated "try again later" reply
+  // template. The errored entries themselves still surface in the
+  // "Couldn't process" block.
+  // Then generic non-policy (eg "non-motor", "other", "unknown", "errored")
   return { kind: "not-a-policy" };
 }
 
