@@ -307,39 +307,51 @@ export async function POST(request: NextRequest) {
   // further code change.
   const forwardId = randomUUID();
   if (isQStashConfigured()) {
-    // Store sender + PDF references in KV under forwardId. The worker
-    // reloads this and fetches the PDFs back from Blob.
-    await storeForwardJob({
-      forwardId,
-      fromEmail,
-      subject,
-      pdfRefs: saved.map((s) => ({
-        name: s.name,
-        inboundId: s.inboundId,
-        blobUrl: s.blobUrl,
-        sizeBytes: s.sizeBytes,
-      })),
-      receivedAt: new Date().toISOString(),
-    });
-    const enqueued = await enqueueAuditForward({ forwardId });
-    if (enqueued) {
-      console.log(
-        `[inbound/email] enqueued forwardId=${forwardId} (messageId=${enqueued.messageId}) for ${fromEmail}`
-      );
-      return NextResponse.json({
-        ok: true,
-        sender: fromEmail,
-        pdfsReceived: pdfAttachments.length,
-        pdfsStored: saved.length,
+    // Try the queue path. ANY failure inside this branch (KV write
+    // throws, QStash enqueue throws, etc.) falls through to the sync
+    // fallback below — never lose the forward because a piece of
+    // queue infrastructure hiccups.
+    try {
+      // Store sender + PDF references in KV under forwardId. The worker
+      // reloads this and fetches the PDFs back from Blob.
+      await storeForwardJob({
         forwardId,
-        mode: "queued",
+        fromEmail,
+        subject,
+        pdfRefs: saved.map((s) => ({
+          name: s.name,
+          inboundId: s.inboundId,
+          blobUrl: s.blobUrl,
+          sizeBytes: s.sizeBytes,
+        })),
+        receivedAt: new Date().toISOString(),
       });
+      const enqueued = await enqueueAuditForward({ forwardId });
+      if (enqueued) {
+        console.log(
+          `[inbound/email] enqueued forwardId=${forwardId} (messageId=${enqueued.messageId}) for ${fromEmail}`
+        );
+        return NextResponse.json({
+          ok: true,
+          sender: fromEmail,
+          pdfsReceived: pdfAttachments.length,
+          pdfsStored: saved.length,
+          forwardId,
+          mode: "queued",
+        });
+      }
+      // Enqueue returned null — log and fall through.
+      console.warn(
+        `[inbound/email] QStash enqueue returned null for forwardId=${forwardId}; falling back to sync path`
+      );
+    } catch (err) {
+      // KV write OR enqueue threw. Don't lose the forward — fall
+      // through to the sync path so the customer still gets an audit.
+      console.error(
+        `[inbound/email] queue branch threw for forwardId=${forwardId}; falling back to sync path:`,
+        err
+      );
     }
-    // Enqueue failed — log and fall through to the sync path so the
-    // customer doesn't lose the forward entirely.
-    console.warn(
-      `[inbound/email] QStash enqueue failed for forwardId=${forwardId}; falling back to sync path`
-    );
   }
 
   // Synchronous fallback path. waitUntil keeps the function alive
