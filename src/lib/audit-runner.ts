@@ -477,31 +477,47 @@ async function sendConsolidatedReplyForForward(args: {
     "/reports"
   );
 
-  // Look up each audit's ParsedPolicy for the per-doc metadata
-  // (insurer, year).
+  // Look up each audit's ParsedPolicy for per-doc metadata (insurer,
+  // year). If the lookup fails we STILL push a degraded entry — the
+  // pipeline already produced a successful audited outcome, so the
+  // customer should see the doc even when enrichment hiccups.
+  // Silently dropping here was a real production bug that lost
+  // legitimate audits.
   const audits: InboundMultiAuditAttachment[] = [];
   for (const audit of args.audits) {
+    let parsed: ParsedPolicy | null = null;
     try {
-      const parsed = await findById<ParsedPolicy>(
+      parsed = await findById<ParsedPolicy>(
         Tables.PARSED_POLICIES,
         audit.parsedPolicyId
       );
-      if (!parsed) continue;
-      const yearLabel = parsed.odPeriodEnd
-        ? new Date(parsed.odPeriodEnd).getFullYear().toString()
-        : "";
-      audits.push({
-        vehicleLabel: audit.vehicleLabel,
-        documentType: audit.documentType,
-        insurerName: parsed.insurerName || "audit",
-        yearLabel,
-      });
     } catch (err) {
       console.error(
-        `[audit-runner] metadata lookup failed for ${audit.parsedPolicyId}:`,
+        `[audit-runner] metadata lookup THREW for ${audit.parsedPolicyId} (continuing with degraded entry):`,
         err
       );
     }
+    if (!parsed) {
+      console.warn(
+        `[audit-runner] metadata lookup returned null for ${audit.parsedPolicyId} (likely a KV-write race or replication lag) — surfacing audit with what we have from the pipeline outcome`
+      );
+      audits.push({
+        vehicleLabel: audit.vehicleLabel,
+        documentType: audit.documentType,
+        insurerName: "audit",
+        yearLabel: "",
+      });
+      continue;
+    }
+    const yearLabel = parsed.odPeriodEnd
+      ? new Date(parsed.odPeriodEnd).getFullYear().toString()
+      : "";
+    audits.push({
+      vehicleLabel: audit.vehicleLabel,
+      documentType: audit.documentType,
+      insurerName: parsed.insurerName || "audit",
+      yearLabel,
+    });
   }
 
   if (audits.length < 2) {

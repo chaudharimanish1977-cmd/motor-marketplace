@@ -25,6 +25,49 @@ async function ensureDbDir() {
 }
 
 // ============================================================================
+// Per-table mutex — serializes read-modify-write critical sections
+//
+// Why this exists: appendRow / updateById / deleteById all do a
+// readTable() → mutate locally → writeTable() sequence. Without
+// serialization, parallel callers race: each reads the same snapshot,
+// each writes back, and only the last writer's mutation survives.
+//
+// This bit production once the multi-doc audit pipeline started
+// running 3+ pipelines in parallel for a single forward — concurrent
+// appendRow() calls on PARSED_POLICIES clobbered each other's rows,
+// causing one doc per forward to silently disappear from the
+// consolidated reply's metadata lookup.
+//
+// In-memory lock is sufficient for our case: all parallel work in a
+// single forward runs inside ONE Vercel function invocation (the
+// QStash worker for that forwardId), so a single Node process holds
+// all the writes. Cross-instance races (two unrelated forwards
+// writing to the same table simultaneously) are still theoretically
+// possible but vanishingly rare at current volume; if we hit that we
+// move to a Redis-side distributed lock or per-row atomic keys.
+// ============================================================================
+
+const _tableLocks: Map<string, Promise<unknown>> = new Map();
+
+async function withTableLock<T>(
+  table: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  const prev = _tableLocks.get(table) ?? Promise.resolve();
+  const next = prev.then(fn, fn);
+  // Store next under the same key so the chain serializes; clean up
+  // after THIS task finishes so stale promises don't accumulate.
+  _tableLocks.set(table, next);
+  try {
+    return (await next) as T;
+  } finally {
+    if (_tableLocks.get(table) === next) {
+      _tableLocks.delete(table);
+    }
+  }
+}
+
+// ============================================================================
 // Generic CRUD helpers
 // ============================================================================
 
@@ -65,11 +108,16 @@ export async function appendRow<T extends { id: string }>(
   table: string,
   row: Omit<T, "id"> & { id?: string }
 ): Promise<T> {
-  const newRow = { ...row, id: row.id || randomUUID() } as unknown as T;
-  const existing = await readTable<T>(table);
-  existing.push(newRow);
-  await writeTable(table, existing);
-  return newRow;
+  // Serialize via per-table mutex — concurrent appendRow calls on the
+  // same table used to clobber each other's rows (read-modify-write
+  // race). See withTableLock comment above.
+  return withTableLock(table, async () => {
+    const newRow = { ...row, id: row.id || randomUUID() } as unknown as T;
+    const existing = await readTable<T>(table);
+    existing.push(newRow);
+    await writeTable(table, existing);
+    return newRow;
+  });
 }
 
 export async function findById<T extends { id: string }>(
@@ -101,24 +149,30 @@ export async function updateById<T extends { id: string }>(
   id: string,
   patch: Partial<T>
 ): Promise<T | null> {
-  const all = await readTable<T>(table);
-  const idx = all.findIndex((r) => r.id === id);
-  if (idx === -1) return null;
-  all[idx] = { ...all[idx], ...patch };
-  await writeTable(table, all);
-  return all[idx];
+  // Same race-window as appendRow — serialize via per-table mutex.
+  return withTableLock(table, async () => {
+    const all = await readTable<T>(table);
+    const idx = all.findIndex((r) => r.id === id);
+    if (idx === -1) return null;
+    all[idx] = { ...all[idx], ...patch };
+    await writeTable(table, all);
+    return all[idx];
+  });
 }
 
 export async function deleteById<T extends { id: string }>(
   table: string,
   id: string
 ): Promise<boolean> {
-  const all = await readTable<T>(table);
-  const idx = all.findIndex((r) => r.id === id);
-  if (idx === -1) return false;
-  all.splice(idx, 1);
-  await writeTable(table, all);
-  return true;
+  // Same race-window as appendRow / updateById — serialize.
+  return withTableLock(table, async () => {
+    const all = await readTable<T>(table);
+    const idx = all.findIndex((r) => r.id === id);
+    if (idx === -1) return false;
+    all.splice(idx, 1);
+    await writeTable(table, all);
+    return true;
+  });
 }
 
 // ============================================================================
