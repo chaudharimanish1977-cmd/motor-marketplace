@@ -48,7 +48,34 @@ import {
 } from "@/lib/recommended-coverage-profile";
 import type { ParsedPolicy, PolicyReport, User } from "@/lib/types";
 
-const SITE_URL = "https://rightoffer.in";
+/**
+ * Public origin for customer-facing URLs we generate during the
+ * inbound-reply flow — magic links, PDF render targets, the URLs
+ * the customer clicks from their inbox.
+ *
+ * Override via `INBOUND_DEMO_HOST` (hostname only, no scheme): when
+ * set, every customer-facing URL routes through that hostname
+ * instead of the production canonical. Used for live investor demos
+ * where we want forward → reply → magic-link → marketplace flow to
+ * land on `demo.rightoffer.in` (marketplace gate open) instead of
+ * `rightoffer.in` (marketplace hidden).
+ *
+ * IMPORTANT: this override is for CUSTOMER-FACING URLs only.
+ * Infrastructure URLs (the QStash worker callback at
+ * /api/jobs/audit-forward, the failure callback, etc.) continue to
+ * use the production canonical regardless — the queue side never
+ * routes through demo. Only what reaches the customer's inbox.
+ *
+ * Remove the env var after the demo to restore the production
+ * canonical. No code change needed.
+ */
+const SITE_URL = process.env.INBOUND_DEMO_HOST
+  ? `https://${process.env.INBOUND_DEMO_HOST}`
+  : "https://rightoffer.in";
+
+console.log(
+  `[audit-runner] customer-facing SITE_URL=${SITE_URL}${process.env.INBOUND_DEMO_HOST ? " (INBOUND_DEMO_HOST override active)" : ""}`
+);
 
 /** Customer-visible exclusion entry for the email body. */
 export interface ExcludedDoc {

@@ -11,7 +11,10 @@ import {
   sendNoMatchReplyForForward,
 } from "@/lib/audit-runner";
 
-const SITE_URL = "https://rightoffer.in";
+// Customer-facing SITE_URL lives in audit-runner.ts now (it owns the
+// magic-link + PDF-render URLs that reach customer inboxes). This
+// file no longer references the constant directly; the inbound webhook
+// only writes to KV + enqueues jobs.
 
 /** Per-sender rate limits. Defensive against spam, accidental
  *  re-forward loops, and abusive automation. Generous enough that
