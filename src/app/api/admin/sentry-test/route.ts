@@ -66,6 +66,30 @@ export async function GET(request: NextRequest) {
   const isDryRun = url.searchParams.get("dryRun") === "1";
 
   if (isDryRun) {
+    // ---- Sentry client introspection ----
+    // The most reliable way to know if Sentry.init actually ran is to
+    // check whether there's a real client attached to the global hub.
+    // A no-op client would still let captureMessage return a UUID
+    // (generated locally) but flush would return instantly false.
+    const client = Sentry.getClient();
+    const clientInfo = client
+      ? {
+          hasClient: true,
+          // SDK identifier — e.g. "sentry.javascript.nextjs"
+          sdkName: client.getSdkMetadata()?.sdk?.name,
+          sdkVersion: client.getSdkMetadata()?.sdk?.version,
+          // Sanity: client's own view of the DSN it was init'd with
+          clientDsnSuffix: client.getOptions().dsn?.slice(-20),
+          enabled: client.getOptions().enabled,
+          environment: client.getOptions().environment,
+          release: client.getOptions().release,
+          // Does the client have a real transport? Some SDK
+          // configurations install a noopTransport when init fails
+          // silently.
+          hasTransport: !!client.getTransport(),
+        }
+      : { hasClient: false };
+
     const dryStart = Date.now();
     const eventId = Sentry.captureMessage(
       "Sentry dry-run probe (no throw)",
@@ -75,9 +99,46 @@ export async function GET(request: NextRequest) {
       }
     );
     // 8s flush ceiling — Sentry EU region from Vercel US-East needs
-    // room for DNS + TLS handshake on cold start (the first event
-    // from a fresh function instance can take 3-5s end-to-end).
+    // room for DNS + TLS handshake on cold start.
     const flushed = await Sentry.flush(8000);
+    const flushDurationMs = Date.now() - dryStart;
+
+    // ---- Network-layer sanity check ----
+    // Bypass the SDK entirely: do a raw HEAD request to Sentry's
+    // ingest origin to confirm Vercel CAN reach Sentry's network at
+    // all. If this fails, no SDK setting will help — there's a
+    // firewall / DNS issue. If this succeeds but flush fails, the
+    // problem is inside the SDK config.
+    let directIngestReachable: boolean | null = null;
+    let directIngestStatus: number | null = null;
+    let directIngestError: string | null = null;
+    try {
+      const dsn = process.env.SENTRY_DSN ?? "";
+      // Extract the host from the DSN: https://<key>@<host>/<project>
+      const dsnUrl = new URL(dsn);
+      // Build a probe URL we can reach without auth — Sentry's ingest
+      // accepts a HEAD on /api/<project>/store/ but auth is needed
+      // for actual sends. We just want network reachability, so HEAD
+      // to the bare host should return SOMETHING (401, 405, etc.) if
+      // the network path is open.
+      const probeUrl = `${dsnUrl.protocol}//${dsnUrl.host}/`;
+      const t0 = Date.now();
+      const resp = await fetch(probeUrl, {
+        method: "HEAD",
+        signal: AbortSignal.timeout(5000),
+      });
+      directIngestReachable = true;
+      directIngestStatus = resp.status;
+      console.log(
+        `[sentry-test] direct ingest HEAD ${probeUrl} returned ${resp.status} in ${Date.now() - t0}ms`
+      );
+    } catch (err) {
+      directIngestReachable = false;
+      directIngestError =
+        err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+      console.error(`[sentry-test] direct ingest fetch failed:`, err);
+    }
+
     return NextResponse.json({
       mode: "dry-run",
       diagnostics: {
@@ -88,13 +149,21 @@ export async function GET(request: NextRequest) {
         commit: vercelCommit?.slice(0, 7),
         captureMessageEventId: eventId ?? null,
         flushReturned: flushed,
-        flushDurationMs: Date.now() - dryStart,
+        flushDurationMs,
+        clientInfo,
+        directIngestReachable,
+        directIngestStatus,
+        directIngestError,
       },
-      hint: flushed
-        ? eventId
-          ? "SDK is wired. Look for 'Sentry dry-run probe (no throw)' in Sentry Issues. If absent there, the DSN points to a different project."
-          : "SDK returned no eventId — Sentry.init was likely a no-op (DSN unset, or enabled:false at init time)."
-        : "Sentry.flush() timed out even at 8s — SDK couldn't reach Sentry's ingest. Likely a network issue between Vercel and Sentry's EU region, OR the DSN itself is unreachable.",
+      interpretation: !client
+        ? "NO CLIENT — Sentry.init never ran. Check that instrumentation.ts is at the project root and sentry.server.config.ts imports correctly."
+        : !client.getTransport()
+          ? "Client exists but no transport — Sentry.init ran with bad config (likely DSN parse failure or transport plugin missing)."
+          : !flushed && flushDurationMs < 100
+            ? "Transport exists but flush() returned false instantly — possible enabled:false at init time, OR an internal SDK bug. Check clientInfo.enabled."
+            : !flushed
+              ? "Flush timed out genuinely — slow network to Sentry. Compare directIngestReachable: if true, SDK transport config issue; if false, firewall/network issue."
+              : "SDK delivered the event to Sentry. Look in Sentry Issues for 'Sentry dry-run probe (no throw)'.",
     });
   }
 

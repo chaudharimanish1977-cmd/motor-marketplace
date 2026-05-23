@@ -12,7 +12,12 @@ import * as Sentry from "@sentry/nextjs";
 
 const dsn = process.env.SENTRY_DSN;
 
+console.log(
+  `[sentry.server.config] module loaded — DSN ${dsn ? `set (suffix=${dsn.slice(-20)})` : "NOT SET — Sentry will be a no-op"}, NODE_ENV=${process.env.NODE_ENV}, VERCEL_ENV=${process.env.VERCEL_ENV}`
+);
+
 if (dsn) {
+  console.log("[sentry.server.config] calling Sentry.init...");
   Sentry.init({
     dsn,
     // Sample everything in early days; tune down once volume grows.
@@ -35,4 +40,5 @@ if (dsn) {
       return breadcrumb;
     },
   });
+  console.log("[sentry.server.config] Sentry.init completed");
 }
