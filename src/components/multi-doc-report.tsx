@@ -24,6 +24,8 @@ import { FeatureInsightList } from "@/components/report-feature-insights";
 import { ThingsToAskBlock } from "@/components/report-things-to-ask";
 import { GlossarySection } from "@/components/report-glossary-section";
 import { HowWeReadThisFooter } from "@/components/report-how-we-read";
+import { MarketplaceCta } from "@/components/marketplace-cta";
+import { MarketplaceAdminReveal } from "@/components/marketplace-admin-reveal";
 import { ReportDisplay } from "@/components/report-display";
 
 interface Props {
@@ -48,6 +50,11 @@ interface Props {
    *  that single annexure's full editorial only. In print mode,
    *  activeTab is ignored — everything renders sequentially. */
   activeTab?: string;
+  /** When true (and marketplace enabled + not printMode), the
+   *  "Behind the curtain" admin reveal renders below the report,
+   *  exposing the anchor doc's Section 6 (Ideal Insurer Profile).
+   *  Activated by ?admin=1 on the URL. */
+  showAdminReveal?: boolean;
 }
 
 export function MultiDocReport({
@@ -58,6 +65,7 @@ export function MultiDocReport({
   showGate,
   printMode,
   activeTab = "comparator",
+  showAdminReveal,
 }: Props) {
   const { anchor, ordered, labels, table, glossaryBlob } = comparison;
   // In print mode we always render the full master view (everything
@@ -148,6 +156,17 @@ export function MultiDocReport({
           {/* ── 2. Cross-doc bottom line ─────────────────────────── */}
           <BottomLineBanner report={bannerReport} />
 
+          {/* ── 2a. Marketplace CTA — bid entry point from /reports ──
+           *  Mirrors the single-doc /report CTA. Gated by
+           *  isMarketplaceEnabled (host-based) + not printMode.
+           *  Targets the ANCHOR doc — the customer's "current"
+           *  reference — so the bid replaces what they're paying
+           *  today, not a sibling quote they're shopping. */}
+          <MarketplaceCta
+            parsedPolicyId={anchor.parsed.id}
+            printMode={printMode}
+          />
+
           {/* ── 2b. Excluded docs (if any) ──────────────────────────
            *  Surfaces the docs the inbound webhook couldn't process —
            *  same content as the "Couldn't process" block in the email
@@ -204,6 +223,17 @@ export function MultiDocReport({
           <HowWeReadThisFooter
             parsedPolicy={anchor.parsed}
             report={anchor.report}
+          />
+
+          {/* ── 9. Behind-the-curtain admin reveal (demo-only, ?admin=1)
+           *  Uses the anchor doc's Section 6 (Ideal Insurer Profile).
+           *  The anchor is the customer's "current" cover — its
+           *  matching rationale is the most representative for
+           *  showing investors the auction's intelligence. */}
+          <MarketplaceAdminReveal
+            report={anchor.report}
+            showAdmin={!!showAdminReveal}
+            printMode={printMode}
           />
         </>
       )}
