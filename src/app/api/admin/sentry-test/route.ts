@@ -59,6 +59,42 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
+  // Dry-run mode: return all diagnostic info as JSON in the response
+  // body so the user doesn't need to dig through Vercel logs. Calls
+  // captureMessage + flush to test the Sentry side-channel, but does
+  // NOT throw — so the response actually delivers to the browser.
+  const isDryRun = url.searchParams.get("dryRun") === "1";
+
+  if (isDryRun) {
+    const dryStart = Date.now();
+    const eventId = Sentry.captureMessage(
+      "Sentry dry-run probe (no throw)",
+      {
+        level: "warning",
+        tags: { test: "dry-run", endpoint: "/api/admin/sentry-test" },
+      }
+    );
+    const flushed = await Sentry.flush(2000);
+    return NextResponse.json({
+      mode: "dry-run",
+      diagnostics: {
+        sentryDsnSet: dsnPresent,
+        sentryDsnSuffix: dsnSuffix,
+        nodeEnv,
+        vercelEnv,
+        commit: vercelCommit?.slice(0, 7),
+        captureMessageEventId: eventId ?? null,
+        flushReturned: flushed,
+        flushDurationMs: Date.now() - dryStart,
+      },
+      hint: flushed
+        ? eventId
+          ? "SDK is wired. Look for 'Sentry dry-run probe (no throw)' in Sentry Issues. If absent there, the DSN points to a different project."
+          : "SDK returned no eventId — Sentry.init was likely a no-op (DSN unset, or enabled:false at init time)."
+        : "Sentry.flush() timed out — SDK couldn't reach Sentry's ingest. Network / DSN reachability issue.",
+    });
+  }
+
   if (!dsnPresent) {
     console.error(
       "[sentry-test] SENTRY_DSN not set — Sentry init was a no-op, captureMessage / throw will silently disappear"
