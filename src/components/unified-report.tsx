@@ -25,6 +25,7 @@ import { ThingsToAskBlock } from "@/components/report-things-to-ask";
 import { GlossarySection } from "@/components/report-glossary-section";
 import { HowWeReadThisFooter } from "@/components/report-how-we-read";
 import { MarketplaceCta } from "@/components/marketplace-cta";
+import { MarketplaceAdminReveal } from "@/components/marketplace-admin-reveal";
 import { ReportDisplay } from "@/components/report-display";
 
 interface Props {
@@ -40,6 +41,12 @@ interface Props {
     pastClaims?: string;
   };
   printMode?: boolean;
+  /** When true (and marketplace enabled + not printMode), the
+   *  "Behind the curtain" admin reveal renders below the report,
+   *  exposing Section 6 (Ideal Insurer Profile). Activated by
+   *  ?admin=1 on the URL; used during live investor demos to show
+   *  the matching intelligence that's hidden from customers. */
+  showAdminReveal?: boolean;
 }
 
 export function UnifiedReport({
@@ -49,6 +56,7 @@ export function UnifiedReport({
   showGate,
   drivingProfile,
   printMode,
+  showAdminReveal,
 }: Props) {
   const vehicleLabel =
     `${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`.trim() ||
@@ -142,6 +150,17 @@ export function UnifiedReport({
 
       {/* ── 8. How we read this ────────────────────────────────────── */}
       <HowWeReadThisFooter parsedPolicy={parsedPolicy} report={report} />
+
+      {/* ── 9. Behind-the-curtain admin reveal (demo-only, ?admin=1) ─
+       *  Investor demo entry point — when the operator appends
+       *  ?admin=1 to the URL on demo.rightoffer.in, Section 6 (Ideal
+       *  Insurer Profile) renders here. Hidden by default; never on
+       *  rightoffer.in; never in PDFs. See MarketplaceAdminReveal. */}
+      <MarketplaceAdminReveal
+        report={report}
+        showAdmin={!!showAdminReveal}
+        printMode={printMode}
+      />
     </article>
   );
 }

@@ -24,6 +24,11 @@ interface PageProps {
     pri?: string;
     /** pastClaims — captured by MidLoadQuestions during parsing. */
     pc?: string;
+    /** Behind-the-curtain admin reveal toggle. When `admin=1` and
+     *  marketplace is enabled (host-based gate; demo subdomain), the
+     *  hidden Section 6 (Ideal Insurer Profile) renders below the
+     *  report. Used during live investor demos. */
+    admin?: string;
   }>;
 }
 
@@ -44,9 +49,13 @@ async function resolveBaseUrl(): Promise<string> {
 
 export default async function ReportPage({ params, searchParams }: PageProps) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
-  const { from, demo, print, km, drv, oc, pri, pc } = sp;
+  const { from, demo, print, km, drv, oc, pri, pc, admin } = sp;
   const view: "investor" | "customer" = demo === "1" ? "investor" : "customer";
   const printMode = print === "1";
+  // Admin reveal toggle — the MarketplaceAdminReveal component checks
+  // marketplace-enabled status + printMode itself, so we just need to
+  // pass the operator's intent (the ?admin=1 query param) through.
+  const showAdminReveal = admin === "1";
 
   const drivingProfile =
     km || drv || oc || pri || pc
@@ -170,6 +179,7 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
       showGate={showGate}
       drivingProfile={drivingProfile}
       printMode={printMode}
+      showAdminReveal={showAdminReveal}
     />
   );
 }
