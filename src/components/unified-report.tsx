@@ -24,6 +24,7 @@ import { FeatureInsightList } from "@/components/report-feature-insights";
 import { ThingsToAskBlock } from "@/components/report-things-to-ask";
 import { GlossarySection } from "@/components/report-glossary-section";
 import { HowWeReadThisFooter } from "@/components/report-how-we-read";
+import { MarketplaceCta } from "@/components/marketplace-cta";
 import { ReportDisplay } from "@/components/report-display";
 
 interface Props {
@@ -90,6 +91,17 @@ export function UnifiedReport({
 
       {/* ── 2. Aryan's bottom line ─────────────────────────────────── */}
       <BottomLineBanner report={report} />
+
+      {/* ── 2b. Marketplace CTA — bid entry point ──────────────────────
+       *  Renders ONLY when marketplace is enabled (host-based gate; see
+       *  feature-flags.ts). Hidden on rightoffer.in (Phase 1 promise)
+       *  + in PDF render (printMode). Placement: directly under the
+       *  bottom line so it answers the customer's "where do I do that?"
+       *  question that the verdict's "what to do" callout creates. */}
+      <MarketplaceCta
+        parsedPolicyId={parsedPolicy.id}
+        printMode={printMode}
+      />
 
       {/* ── 3. Coverage Snapshot table ─────────────────────────────── */}
       <CoverageSnapshotTable
