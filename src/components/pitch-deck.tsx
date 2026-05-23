@@ -5,9 +5,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 
 /**
- * RightOffer investor pitch deck. 17 slides, 16:9, designed for the
- * 2-minute spoken script. Pure black background, Inter typography, orange
- * accents only on the lines that matter.
+ * RightOffer investor pitch deck. 20 slides, 16:9, designed to read like
+ * the product itself — editorial typography, plum + sage accents, serif
+ * body, mono small-caps kickers. Same aesthetic an investor sees when we
+ * walk them through a customer audit, so the deck and the demo rhyme.
  *
  * Controls:
  *   → / Space / J     next slide
@@ -18,7 +19,7 @@ import clsx from "clsx";
  *   P                 toggle print preview (all slides in flow)
  *
  * The print mode shows every slide stacked so Ctrl+P → "Save as PDF"
- * exports a clean 17-page document.
+ * exports a clean 20-page document.
  */
 export function PitchDeck() {
   const slides = SLIDES;
@@ -35,13 +36,10 @@ export function PitchDeck() {
     if (sp.get("print") === "1") setPrintMode(true);
   }, []);
 
-  // The deck is intentionally dark-themed (deep-blue bg + white text +
-  // white-alpha overlays). The site-wide dark-mode CSS rules in globals.css
-  // would otherwise flip the deck's `bg-white/10`-style overlays to the
-  // generic dark surface, breaking active pagination dots, hover states,
-  // nav arrows, etc. Drop the `dark` class on <html> for the lifetime of
-  // the deck, then restore it on unmount so the user's theme preference
-  // resumes on the rest of the site.
+  // Suppress the global site-wide dark-mode CSS rules while the deck is
+  // mounted. The deck has its own committed light-editorial theme; we
+  // don't want dark-mode toggling the brand-* tokens out from under it.
+  // Restore on unmount so the rest of the site honours the user's pref.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const html = document.documentElement;
@@ -105,13 +103,17 @@ export function PitchDeck() {
     return () => document.removeEventListener("keydown", onKey);
   }, [go, idx, slides.length]);
 
+  // Background tokens — light editorial, matches the product. Off-white
+  // page with a hint of warmth; serif body throughout; charcoal text.
+  const BG = "bg-[#fdf8f0] text-brand-charcoal font-serif";
+
   if (printMode) {
     return (
-      <div className="bg-[#1a3470] text-white font-sans">
+      <div className={BG}>
         {slides.map((slide, i) => (
           <div
             key={i}
-            className="aspect-[16/9] w-full max-w-screen-2xl mx-auto border-b border-white/10 print:border-0 print:break-after-page"
+            className="aspect-[16/9] w-full max-w-screen-2xl mx-auto border-b border-brand-charcoal/10 print:border-0 print:break-after-page"
           >
             <SlideShell idx={i} total={slides.length}>
               {slide.render()}
@@ -120,7 +122,7 @@ export function PitchDeck() {
         ))}
         <button
           onClick={() => setPrintMode(false)}
-          className="fixed top-4 right-4 z-50 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold tracking-wider uppercase print:hidden"
+          className="fixed top-4 right-4 z-50 px-4 py-2 rounded-full bg-brand-plum/10 hover:bg-brand-plum/20 text-xs font-mono font-semibold tracking-wider uppercase text-brand-plum print:hidden"
         >
           Exit print mode (P)
         </button>
@@ -131,8 +133,7 @@ export function PitchDeck() {
   const slide = slides[idx];
 
   return (
-    <div className="fixed inset-0 bg-[#1a3470] text-white font-sans overflow-hidden">
-      {/* Single slide, vertically + horizontally centered */}
+    <div className={clsx("fixed inset-0 overflow-hidden", BG)}>
       <SlideShell idx={idx} total={slides.length}>
         {slide.render()}
       </SlideShell>
@@ -147,34 +148,33 @@ export function PitchDeck() {
             className={clsx(
               "h-1.5 rounded-full transition-all",
               i === idx
-                ? "w-8 bg-white"
+                ? "w-8 bg-brand-plum"
                 : i < idx
-                  ? "w-2 bg-white/40 hover:bg-white/60"
-                  : "w-2 bg-white/15 hover:bg-white/30"
+                  ? "w-2 bg-brand-plum/40 hover:bg-brand-plum/60"
+                  : "w-2 bg-brand-charcoal/15 hover:bg-brand-charcoal/30"
             )}
           />
         ))}
       </div>
 
-      {/* Visible nav buttons — chevron pills, vertically centred. Keyboard
-       *  nav still works for power users; mouse users get a clear cue. */}
+      {/* Nav arrows — editorial-quiet, plum tint on hover */}
       <button
         onClick={() => go(idx - 1)}
         aria-label="Previous slide"
-        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 flex items-center justify-center text-white/50 hover:text-white transition-all z-40"
+        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-brand-plum/5 hover:bg-brand-plum/15 border border-brand-plum/15 hover:border-brand-plum/40 flex items-center justify-center text-brand-plum/60 hover:text-brand-plum transition-all z-40"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
       <button
         onClick={() => go(idx + 1)}
         aria-label="Next slide"
-        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 flex items-center justify-center text-white/50 hover:text-white transition-all z-40"
+        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-brand-plum/5 hover:bg-brand-plum/15 border border-brand-plum/15 hover:border-brand-plum/40 flex items-center justify-center text-brand-plum/60 hover:text-brand-plum transition-all z-40"
       >
         <ChevronRight className="w-5 h-5" />
       </button>
 
-      {/* Hint, fades after a few seconds via CSS */}
-      <div className="absolute bottom-6 right-8 text-[10px] text-white/30 font-medium tracking-wider uppercase z-40 animate-fade-out-slow">
+      {/* Hint */}
+      <div className="absolute bottom-6 right-8 text-[10px] text-brand-charcoal/30 font-mono font-medium tracking-wider uppercase z-40 animate-fade-out-slow">
         ← → · space · F · P
       </div>
     </div>
@@ -182,7 +182,7 @@ export function PitchDeck() {
 }
 
 // ============================================================================
-// Slide shell — common chrome (footer brand + page number)
+// Slide shell — common chrome (wordmark + page number + footer brand)
 // ============================================================================
 
 function SlideShell({
@@ -197,15 +197,16 @@ function SlideShell({
   return (
     <div className="relative w-full h-full min-h-screen flex items-center justify-center p-12 md:p-20">
       {idx > 0 && (
-        <div className="absolute top-8 left-12 w-[120px] opacity-70">
-          <DeckLogo variant="wordmark" />
+        <div className="absolute top-8 left-12">
+          <Wordmark />
         </div>
       )}
-      <div className="absolute bottom-8 left-12 text-[11px] tracking-[0.15em] uppercase text-white/30 font-semibold">
-        rightoffer.in
+      <div className="absolute bottom-8 left-12 font-mono text-[10.5px] tracking-[0.18em] uppercase text-brand-charcoal/40 font-semibold">
+        · rightoffer.in ·
       </div>
-      <div className="absolute bottom-8 right-12 text-[11px] tracking-[0.15em] uppercase text-white/30 font-semibold tabular-nums">
-        {String(idx + 1).padStart(2, "0")} <span className="text-white/15">/ {String(total).padStart(2, "0")}</span>
+      <div className="absolute bottom-8 right-12 font-mono text-[10.5px] tracking-[0.18em] uppercase text-brand-charcoal/40 font-semibold tabular-nums">
+        {String(idx + 1).padStart(2, "0")}{" "}
+        <span className="text-brand-charcoal/20">/ {String(total).padStart(2, "0")}</span>
       </div>
       <div className="w-full max-w-6xl">{children}</div>
     </div>
@@ -213,94 +214,59 @@ function SlideShell({
 }
 
 /**
- * Deck-only logo renderer. Always uses the white-on-transparent dark
- * variant (`/logo/v*-dark.svg`) because the deck background is always
- * the deep-blue brand colour, regardless of the site's theme toggle.
- * Crops the section caption baked into the source SVG via overflow:hidden
- * + a percentage `top` shift on the inner <img> (same pattern as the
- * site-wide RightOfferLogo, but without the theme-swap stacking).
+ * Text wordmark matching the site header — italic plum "r" + small-caps
+ * RightOffer + sage CAR pill. Inline (no SVG), so the deck has no asset
+ * dependency that could fail to load.
  */
-function DeckLogo({
-  variant,
-  className,
-}: {
-  variant: "full" | "wordmark";
-  className?: string;
-}) {
-  const src = variant === "full" ? "/logo/v1-dark.svg" : "/logo/v4-dark.svg";
-  const headingPct = variant === "full" ? 0.19 : 0.28;
-  const width = variant === "full" ? 752 : 752;
-  const height = variant === "full" ? 368 : 185;
-  const cropH = height * (1 - headingPct);
-  const overflowPct = headingPct / (1 - headingPct);
+function Wordmark({ size = "default" }: { size?: "default" | "large" }) {
+  const isLarge = size === "large";
   return (
-    <span
-      className={clsx("relative block overflow-hidden w-full", className)}
-      style={{ aspectRatio: `${width} / ${cropH}` }}
-    >
-      <img
-        src={src}
-        alt="RightOffer"
-        loading="eager"
-        decoding="async"
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          width: "100%",
-          height: "auto",
-          top: `-${(overflowPct * 100).toFixed(3)}%`,
-        }}
-      />
+    <span className="inline-flex items-center gap-2.5">
+      <span
+        className={clsx(
+          "font-serif italic font-semibold leading-none text-brand-plum",
+          isLarge ? "text-5xl" : "text-xl"
+        )}
+        aria-hidden
+      >
+        r
+      </span>
+      <span
+        className={clsx(
+          "font-serif font-medium leading-none text-brand-charcoal tracking-tight",
+          isLarge ? "text-4xl" : "text-base"
+        )}
+        style={{ fontVariant: "small-caps" }}
+      >
+        RightOffer
+      </span>
+      <span
+        className={clsx(
+          "font-mono font-bold tracking-[0.12em] bg-brand-sage text-brand-offwhite rounded-sm",
+          isLarge ? "px-2 py-1 text-[12px]" : "px-1.5 py-0.5 text-[9px]"
+        )}
+      >
+        CAR
+      </span>
+      <span className="sr-only">RightOffer Car</span>
     </span>
   );
 }
 
 // ============================================================================
-// Helper components — keep slide markup readable
+// Editorial helpers — match the audit-report typography
 // ============================================================================
 
-function Eyebrow({ children }: { children: ReactNode }) {
+/** Mono small-caps kicker. The deck's structural anchor — every slide has one. */
+function Kicker({ children }: { children: ReactNode }) {
   return (
-    <div className="text-[11px] md:text-xs font-bold tracking-[0.18em] uppercase text-white/40 mb-6">
-      {children}
+    <div className="font-mono text-[11px] md:text-[12px] font-bold tracking-[0.18em] uppercase text-brand-sage mb-8">
+      · {children} ·
     </div>
   );
 }
 
-function HugeNumber({
-  children,
-  accent = false,
-}: {
-  children: ReactNode;
-  accent?: boolean;
-}) {
-  return (
-    <div
-      className={clsx(
-        "font-extrabold leading-[0.9] text-[120px] md:text-[180px] lg:text-[220px] tracking-tight",
-        accent ? "text-[#ff5a30]" : "text-white"
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Body({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <p className={clsx("text-white/60 text-lg md:text-xl leading-relaxed font-normal", className)}>
-      {children}
-    </p>
-  );
-}
-
+/** Serif headline — medium weight, generous line-height, plum italic accents inline. */
 function Headline({
   children,
   className,
@@ -309,22 +275,80 @@ function Headline({
   className?: string;
 }) {
   return (
-    <h1 className={clsx("text-4xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight", className)}>
+    <h1
+      className={clsx(
+        "font-serif font-medium text-4xl md:text-6xl lg:text-7xl leading-[1.06] tracking-[-0.018em] text-brand-charcoal",
+        className
+      )}
+    >
       {children}
     </h1>
   );
 }
 
-function Accent({ children }: { children: ReactNode }) {
-  return <span className="text-[#ff5a30]">{children}</span>;
+/** Inline italic plum accent — replaces the old bold-orange Accent. */
+function Em({ children }: { children: ReactNode }) {
+  return <span className="italic text-brand-plum">{children}</span>;
 }
 
-function Gold({ children }: { children: ReactNode }) {
-  return <span className="text-[#FFD54F]">{children}</span>;
+/** Sage accent — for positive callouts (savings, traction wins). */
+function Sage({ children }: { children: ReactNode }) {
+  return <span className="text-brand-sage font-semibold">{children}</span>;
+}
+
+/** Body copy — slate serif. */
+function Body({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <p
+      className={clsx(
+        "font-serif text-brand-slate text-lg md:text-xl leading-[1.55]",
+        className
+      )}
+    >
+      {children}
+    </p>
+  );
+}
+
+/** Huge editorial number — serif italic plum, used for hero stats. */
+function HugeNumber({
+  children,
+  tone = "charcoal",
+}: {
+  children: ReactNode;
+  tone?: "plum" | "charcoal";
+}) {
+  return (
+    <div
+      className={clsx(
+        "font-serif font-medium leading-[0.95] text-[110px] md:text-[170px] lg:text-[200px] tracking-[-0.03em]",
+        tone === "plum" ? "italic text-brand-plum" : "text-brand-charcoal"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Pull quote — italic serif, plum left rule. */
+function PullQuote({ children }: { children: ReactNode }) {
+  return (
+    <blockquote className="border-l-2 border-brand-plum pl-5 max-w-3xl">
+      <p className="font-serif italic text-[20px] md:text-[24px] leading-[1.45] text-brand-charcoal m-0">
+        {children}
+      </p>
+    </blockquote>
+  );
 }
 
 // ============================================================================
-// THE SLIDES
+// THE SLIDES — 20, editorial, 16:9
 // ============================================================================
 
 interface Slide {
@@ -336,39 +360,51 @@ const SLIDES: Slide[] = [
   {
     render: () => (
       <div className="text-center">
-        <div className="mx-auto mb-8 w-full max-w-xl">
-          <DeckLogo variant="full" />
+        <div className="mb-10 inline-block">
+          <Wordmark size="large" />
         </div>
-        <div className="text-xl md:text-2xl text-white/70 font-normal max-w-2xl mx-auto">
-          A simpler way to{" "}
-          <span className="text-white font-semibold">choose</span> insurance.
+        <div className="font-serif italic font-medium text-2xl md:text-3xl text-brand-charcoal max-w-2xl mx-auto leading-[1.35]">
+          Right Cover. Right Price.
+          <br />
+          <Em>The Right Offer.</Em>
         </div>
-        <div className="mt-32 inline-flex flex-col items-center gap-1 text-[11px] tracking-[0.15em] uppercase text-white/40 font-semibold">
-          <div>Pre-seed + Seed · $7 — 10M</div>
-          <div>Manish Chaudhari · Founder &amp; CEO</div>
-          <div>2026</div>
+        <div className="mt-6 font-serif text-base md:text-lg text-brand-slate max-w-xl mx-auto">
+          An honest second opinion on motor insurance — and the marketplace
+          built around it.
+        </div>
+        <div className="mt-24 inline-flex flex-col items-center gap-1 font-mono text-[10.5px] tracking-[0.18em] uppercase text-brand-charcoal/45 font-semibold">
+          <div>· Pre-seed + Seed · $7M — $10M ·</div>
+          <div>· Manish Chaudhari · Founder &amp; CEO ·</div>
+          <div>· 2026 ·</div>
         </div>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 02 The hook
+  // ─────────────────────────────────────────────────── 02 The problem
   {
     render: () => (
       <div>
-        <HugeNumber accent>35 million</HugeNumber>
-        <div className="mt-8 text-2xl md:text-3xl font-medium text-white">
+        <Kicker>The renewal moment</Kicker>
+        <HugeNumber tone="plum">35 million</HugeNumber>
+        <div className="mt-6 font-serif font-medium text-2xl md:text-3xl text-brand-charcoal leading-[1.3] max-w-3xl">
           Indians renew their car insurance every year.
         </div>
-        <div className="mt-8 space-y-1.5 text-white/60 text-base md:text-lg max-w-2xl">
-          <div>80% don&apos;t read their policy.</div>
-          <div>60% are missing protection.</div>
+        <div className="mt-8 space-y-2 font-serif text-base md:text-lg text-brand-slate max-w-2xl">
           <div>
-            <Accent>₹85,000</Accent> average claim-time shortfall.
+            <Sage>80%</Sage> don&rsquo;t read the policy.
+          </div>
+          <div>
+            <Sage>60%</Sage> are missing protection they&rsquo;d need at claim
+            time.
+          </div>
+          <div>
+            <Em>₹85,000</Em> average claim-time shortfall per gap.
           </div>
         </div>
-        <div className="mt-12 text-[10px] md:text-[11px] tracking-[0.1em] uppercase text-white/30 font-medium">
-          Sources: IRDAI Annual Report FY24 · MoRTH Vahan Sewa · General Insurance Council · RightOffer internal analysis
+        <div className="mt-12 font-mono text-[9.5px] md:text-[10.5px] tracking-[0.14em] uppercase text-brand-charcoal/35 font-medium max-w-3xl">
+          · Sources · IRDAI Annual Report FY24 · MoRTH Vahan Sewa · General
+          Insurance Council · RightOffer internal analysis ·
         </div>
       </div>
     ),
@@ -378,14 +414,14 @@ const SLIDES: Slide[] = [
   {
     render: () => (
       <div className="text-center">
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight">
+        <Headline className="text-center">
           The most expensive
           <br />
           financial decision Indians
           <br />
-          make in <Accent>5 minutes</Accent>.
-        </h1>
-        <div className="mt-10 text-xl md:text-2xl text-white/50 font-medium">
+          make in <Em>five minutes</Em>.
+        </Headline>
+        <div className="mt-10 font-serif italic text-xl md:text-2xl text-brand-slate">
           And then live with it.
         </div>
       </div>
@@ -396,33 +432,34 @@ const SLIDES: Slide[] = [
   {
     render: () => (
       <div>
-        <Eyebrow>Why this product exists</Eyebrow>
+        <Kicker>Why the category is broken</Kicker>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-14">
           {[
             {
-              title: "Customer",
-              body: "Doesn't read the 15-page policy. Discovers the gap at claim time.",
+              title: "The customer",
+              body: "Doesn't read the 15-page policy. Discovers the gap at claim time. By then it's too late.",
             },
             {
-              title: "Insurer",
-              body: "Competes only on premium. Race to bottom → claim disputes → brand damage.",
+              title: "The insurer",
+              body: "Competes only on premium. Race to bottom → claim disputes → brand damage. No way out.",
             },
             {
-              title: "Aggregator",
-              body: "Sorts only on price. Commodifies the category.",
+              title: "The aggregator",
+              body: "Sorts on price. Sells the lead. Commodifies the category. Then the call-spam begins.",
             },
           ].map((col) => (
             <div key={col.title}>
-              <div className="text-2xl md:text-3xl font-extrabold mb-3">{col.title}</div>
-              <Body className="!text-base !leading-relaxed">{col.body}</Body>
+              <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-plum font-bold mb-3">
+                · {col.title} ·
+              </div>
+              <Body className="!text-base !leading-[1.55]">{col.body}</Body>
             </div>
           ))}
         </div>
         <div className="mt-16 text-center">
-          <div className="text-2xl md:text-3xl font-extrabold text-white leading-tight max-w-3xl mx-auto">
-            Most people sell insurance.{" "}
-            <Accent>We help you decide.</Accent>
-          </div>
+          <PullQuote>
+            Most people sell insurance. <Em>We help you decide.</Em>
+          </PullQuote>
         </div>
       </div>
     ),
@@ -432,73 +469,260 @@ const SLIDES: Slide[] = [
   {
     render: () => (
       <div>
-        <Eyebrow>Three layers, one product</Eyebrow>
-        <div className="space-y-10">
-          {[
-            {
-              h: "AI Parser",
-              b: "Reads any Indian motor policy in 90 seconds.",
-            },
-            {
-              h: "Coverage Score + Money-at-Risk",
-              b: "Translates every gap into rupees. “₹85,000 out of pocket if claim happens today” — the emotional trigger that converts.",
-            },
-            {
-              h: "Multi-tier Reverse Auction",
-              b: "Insurers compete in tiers anchored to the customer's selection, not the cheapest header.",
-            },
-          ].map((row) => (
-            <div key={row.h}>
-              <div className="text-3xl md:text-4xl font-extrabold mb-2">{row.h}</div>
-              <Body>{row.b}</Body>
+        <Kicker>One product · two phases</Kicker>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-14">
+          <div className="border-l-2 border-brand-sage pl-6">
+            <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold mb-2">
+              · Phase 1 · Live today ·
             </div>
-          ))}
+            <Headline className="!text-3xl md:!text-4xl mb-4">
+              The <Em>audit</Em>.
+            </Headline>
+            <Body className="!text-base">
+              Forward your policy. AI-powered editorial review of coverage gaps,
+              IDV, add-on relevance, claim-time math. Free. Two minutes. No
+              sign-up.
+            </Body>
+          </div>
+          <div className="border-l-2 border-brand-plum pl-6">
+            <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-plum font-bold mb-2">
+              · V1 · In build ·
+            </div>
+            <Headline className="!text-3xl md:!text-4xl mb-4">
+              The <Em>marketplace</Em>.
+            </Headline>
+            <Body className="!text-base">
+              Same audit + reverse-bid auction. Insurers compete for the
+              customer&rsquo;s curated bundle. Customer picks. End-to-end
+              issuance.
+            </Body>
+          </div>
+        </div>
+        <div className="font-serif text-base md:text-lg text-brand-slate max-w-3xl">
+          Built on an <Em>IRDAI composite broker licence</Em> — same commission
+          from every insurer on the platform, so the recommendation stays
+          honest. No commercial conflict in the ranking.
         </div>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 06 WhatsApp moment
+  // ─────────────────────────────────────────────────── 06 The channel
   {
     render: () => (
       <div>
-        <Headline>
-          Insurance, made <Accent>effortless</Accent>.
-        </Headline>
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Kicker>Forward an email. Get an audit.</Kicker>
+        <div className="font-serif italic font-medium text-4xl md:text-6xl lg:text-7xl text-brand-plum tracking-tight mb-10 leading-[1.05]">
+          review@rightoffer.in
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-12">
           {[
-            { n: "01", t: "Send", s: "policy PDF on WhatsApp." },
-            { n: "02", t: "AI reads", s: "in 90 seconds." },
-            { n: "03", t: "Pick", s: "from 2–4 offers." },
-            { n: "04", t: "Buy", s: "policy PDF back on chat." },
+            { n: "01", t: "Send", s: "Forward your policy PDF — from any inbox, on any device." },
+            { n: "02", t: "AI reads", s: "OCR, classify, parse, generate audit. Inside 90 seconds." },
+            { n: "03", t: "Audit arrives", s: "Editorial PDF + web view + magic-link, in your reply." },
           ].map((step) => (
-            <div
-              key={step.n}
-              className="border border-white/15 rounded-2xl p-6"
-            >
-              <div className="text-xs font-bold tracking-[0.15em] uppercase text-[#ff5a30] mb-2">
-                {step.n}
+            <div key={step.n}>
+              <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold mb-2">
+                · {step.n} ·
               </div>
-              <div className="text-2xl font-extrabold mb-1">{step.t}</div>
-              <div className="text-sm text-white/50 leading-relaxed">{step.s}</div>
+              <div className="font-serif font-medium text-2xl md:text-3xl text-brand-charcoal mb-2">
+                {step.t}
+              </div>
+              <Body className="!text-base">{step.s}</Body>
             </div>
           ))}
         </div>
-        <div className="mt-12 text-lg md:text-xl text-white/70 max-w-3xl">
-          No app. No login. No agent. No 15-screen funnel.{" "}
-          <span className="text-white font-semibold">
-            The simplest insurance product India has seen.
-          </span>
+        <Body className="!text-lg max-w-3xl">
+          No app. No login. No call-spam. No 15-screen funnel.{" "}
+          <Em>Email is universal.</Em> Customers come back the only way they
+          remember — forwarding the next year&rsquo;s renewal.
+        </Body>
+        <div className="mt-6 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-charcoal/40 font-medium">
+          · WhatsApp channel · Phase 2 ·
         </div>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 07 Why now
+  // ─────────────────────────────────────────────────── 07 The audit artefact
   {
     render: () => (
       <div>
-        <Eyebrow>Why now</Eyebrow>
+        <Kicker>What the customer gets</Kicker>
+        <Headline className="mb-10">
+          Two minutes. One PDF.
+          <br />
+          <Em>Zero call-spam.</Em>
+        </Headline>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+          {/* Mock audit card — editorial preview of what the customer sees */}
+          <div className="border border-brand-charcoal/15 rounded-lg p-6 bg-white">
+            <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-2">
+              · Policy review ·
+            </div>
+            <div className="font-serif font-medium text-2xl text-brand-charcoal mb-1">
+              Audi A6<span className="italic text-brand-plum"> (2015)</span>
+            </div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-brand-slate mb-5">
+              Owner · Anju C. · HDFC ERGO · Cover 18 May 25–17 May 26
+            </div>
+            <div className="border-l-2 border-brand-plum pl-4 mb-4">
+              <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-brand-plum font-bold mb-1">
+                · Aryan&rsquo;s bottom line ·
+              </div>
+              <p className="font-serif text-[13px] text-brand-charcoal m-0 leading-[1.45]">
+                Solid foundation but four critical gaps leave you exposed to
+                ₹50,000+ out-of-pocket on common claims.
+              </p>
+              <div className="mt-3 inline-block bg-brand-plum/10 border border-brand-plum/25 rounded px-3 py-2">
+                <div className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-brand-plum font-bold mb-0.5">
+                  What to do
+                </div>
+                <p className="font-serif font-semibold text-[12px] text-brand-charcoal m-0">
+                  Add Engine Protector + Consumables + NCB Protection + RSA —
+                  ₹4,800/yr. Closes all major exposures.
+                </p>
+              </div>
+            </div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-brand-slate">
+              · Coverage snapshot · 8 add-ons audited ·
+            </div>
+          </div>
+          <div className="space-y-4">
+            {[
+              "Coverage snapshot table — every add-on, status, recommendation",
+              "Claim-time math — ₹ exposure per gap, plain English",
+              "Things to ask before binding — copy-paste lines",
+              "IDV check — verified against current market resale",
+              "Glossary — every term in the report, plain English",
+              "PDF attached + magic-link web view + ?admin reveal",
+            ].map((b) => (
+              <div key={b} className="flex gap-3">
+                <span className="text-brand-plum font-bold mt-1">·</span>
+                <Body className="!text-base">{b}</Body>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ),
+  },
+
+  // ─────────────────────────────────────────────────── 08 Multi-doc comparator
+  {
+    render: () => (
+      <div>
+        <Kicker>One forward · many documents</Kicker>
+        <Headline className="mb-10">
+          Forward your policy + every renewal quote.
+          <br />
+          We compare them <Em>side by side</Em>.
+        </Headline>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {[
+            { role: "Policy", insurer: "HDFC ERGO", period: "May 25 – May 26" },
+            { role: "Quote", insurer: "Acko", period: "May 26 – May 27" },
+            { role: "Quote", insurer: "Tata AIG", period: "May 26 – May 27" },
+          ].map((d, i) => (
+            <div
+              key={i}
+              className="border border-brand-charcoal/15 rounded-lg p-5 bg-white"
+            >
+              <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-brand-plum font-bold mb-1">
+                · {d.role} ·
+              </div>
+              <div className="font-serif font-semibold text-base text-brand-charcoal mb-1">
+                {d.insurer}
+              </div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-brand-slate">
+                {d.period}
+              </div>
+            </div>
+          ))}
+        </div>
+        <PullQuote>
+          <span className="text-brand-plum">→</span> One verdict across all
+          three. Recommended bundle, missing add-ons by quote, closest fit.
+          One email, one PDF, one decision.
+        </PullQuote>
+        <div className="mt-10 max-w-3xl">
+          <Body>
+            <Em>Unique behaviour.</Em> No aggregator does this — they sell
+            single quotes, one at a time. Customers who shop renewal across 3
+            insurers spend two evenings comparing tabs. We do it in two
+            minutes.
+          </Body>
+        </div>
+      </div>
+    ),
+  },
+
+  // ─────────────────────────────────────────────────── 09 Aryan
+  {
+    render: () => (
+      <div>
+        <Kicker>The editorial voice</Kicker>
+        <div className="font-serif italic font-medium text-7xl md:text-9xl text-brand-plum tracking-tight mb-8 leading-[0.95]">
+          Aryan.
+        </div>
+        <div className="font-serif text-xl md:text-2xl text-brand-charcoal max-w-3xl leading-[1.4] mb-10">
+          Every audit is signed by Aryan — our editorial advisor. Plain
+          English. Specific. Calmly opinionated. <Em>Never a sales pitch.</Em>
+        </div>
+        <PullQuote>
+          Your 11-year-old Audi A6 needs targeted protection, not bare-bones
+          cover. Engine Protector + Consumables for ₹3,200 — critical for
+          monsoon waterlogging.
+        </PullQuote>
+        <div className="mt-10 max-w-3xl">
+          <Body>
+            Not a chatbot. No avatar. No &ldquo;Hi I&rsquo;m Aryan!&rdquo;{" "}
+            <Em>A stable byline</Em> — like a column the customer reads every
+            renewal. Trust compounds across years.
+          </Body>
+        </div>
+      </div>
+    ),
+  },
+
+  // ─────────────────────────────────────────────────── 10 Behind the curtain
+  {
+    render: () => (
+      <div>
+        <Kicker>The matching intelligence customers never see</Kicker>
+        <div className="font-serif italic font-medium text-6xl md:text-8xl text-brand-plum tracking-tight mb-6 leading-[0.95]">
+          Section 6.
+        </div>
+        <div className="font-serif text-xl md:text-2xl text-brand-charcoal max-w-3xl leading-[1.4] mb-10">
+          Every audit generates an <Em>Ideal Insurer Profile</Em> — selection
+          criteria + ranked recommended insurers. Hidden from the customer.
+          Read by the auction.
+        </div>
+        <div className="border border-brand-plum/30 rounded-lg p-6 bg-brand-plum/5 max-w-4xl mb-10">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold mb-3">
+            · Selection criteria · sample ·
+          </div>
+          <ul className="font-serif text-[15px] text-brand-charcoal leading-[1.55] space-y-1 list-disc pl-5">
+            <li>Premium-vehicle workshop network in Delhi-NCR</li>
+            <li>Cashless claim turnaround under 48 hours</li>
+            <li>Engine Protection + Consumables available as add-ons</li>
+            <li>Customer-rating CSAT &gt; 4.0 on motor renewals</li>
+          </ul>
+        </div>
+        <Body className="max-w-3xl">
+          Customer sees a clean verdict. The auction reads more. That gap is{" "}
+          <Em>the moat</Em> — we route RFQs to insurers who actually fit,
+          without giving the customer (or the insurer) a script to game.
+        </Body>
+      </div>
+    ),
+  },
+
+  // ─────────────────────────────────────────────────── 11 Why now
+  {
+    render: () => (
+      <div>
+        <Kicker>Why now</Kicker>
         <div className="space-y-7">
           {[
             {
@@ -511,11 +735,11 @@ const SLIDES: Slide[] = [
             },
             {
               t: "AI parsing cost collapsed.",
-              b: "$5 → $0.05 per policy in 36 months. Free, instant policy review is finally viable.",
+              b: "$5 → $0.05 per policy in 36 months. Free, instant policy review finally viable.",
             },
             {
               t: "Digital readiness is universal.",
-              b: "87% of car buyers research insurance online. UPI, Aadhaar, DigiLocker, WhatsApp Business — all production-ready.",
+              b: "87% of car buyers research insurance online. UPI / Aadhaar / DigiLocker / WhatsApp Business — all production-ready.",
             },
             {
               t: "New-licence digital-first insurers.",
@@ -523,11 +747,13 @@ const SLIDES: Slide[] = [
             },
           ].map((row, i) => (
             <div key={i} className="flex gap-5">
-              <div className="text-xl md:text-2xl font-extrabold text-[#ff5a30] tabular-nums w-8 shrink-0">
+              <div className="font-serif italic font-medium text-xl md:text-2xl text-brand-plum tabular-nums w-10 shrink-0">
                 {String(i + 1).padStart(2, "0")}
               </div>
               <div>
-                <div className="text-xl md:text-2xl font-extrabold mb-1">{row.t}</div>
+                <div className="font-serif font-medium text-xl md:text-2xl text-brand-charcoal mb-1">
+                  {row.t}
+                </div>
                 <Body className="!text-base">{row.b}</Body>
               </div>
             </div>
@@ -537,57 +763,82 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 08 Market
+  // ─────────────────────────────────────────────────── 12 Market
   {
     render: () => (
       <div>
-        <Eyebrow>The market</Eyebrow>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <Kicker>The market</Kicker>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-14">
           {[
-            { n: "$13B", l: "TAM", s: "Motor + Retail Health GWP in India", accent: false },
-            { n: "$3.5B", l: "SAM", s: "Private car + health renewals", accent: false },
-            { n: "$180M", l: "SOM · Year 5", s: "5% capture × 10% take rate", accent: true },
+            {
+              n: "$13B",
+              l: "TAM",
+              s: "Motor + Retail Health GWP in India",
+              accent: false,
+            },
+            {
+              n: "$3.5B",
+              l: "SAM",
+              s: "Private car + health renewals",
+              accent: false,
+            },
+            {
+              n: "$180M",
+              l: "SOM · Year 5",
+              s: "5% capture × 10% take rate",
+              accent: true,
+            },
           ].map((b) => (
             <div key={b.l}>
               <div
                 className={clsx(
-                  "font-extrabold text-7xl md:text-8xl tracking-tight leading-none",
-                  b.accent ? "text-[#ff5a30]" : "text-white"
+                  "font-serif font-medium text-6xl md:text-7xl lg:text-8xl tracking-[-0.025em] leading-none",
+                  b.accent ? "italic text-brand-plum" : "text-brand-charcoal"
                 )}
               >
                 {b.n}
               </div>
-              <div className="mt-3 text-xs font-bold tracking-[0.15em] uppercase text-white/40">
-                {b.l}
+              <div className="mt-3 font-mono text-[11px] tracking-[0.18em] uppercase text-brand-plum font-bold">
+                · {b.l} ·
               </div>
-              <div className="mt-2 text-sm text-white/60 leading-relaxed">{b.s}</div>
+              <div className="mt-2 font-serif text-sm md:text-base text-brand-slate leading-[1.5]">
+                {b.s}
+              </div>
             </div>
           ))}
         </div>
-        <div className="mt-16 text-sm md:text-base text-white/50 max-w-3xl">
-          Motor growing 13% CAGR. Retail health growing 20%+. Combined ARR opportunity at scale:{" "}
-          <span className="text-white font-semibold">$25M+</span>.
-        </div>
+        <Body className="max-w-3xl">
+          Motor growing <Sage>13% CAGR</Sage>. Retail health growing{" "}
+          <Sage>20%+</Sage>. Combined ARR opportunity at scale:{" "}
+          <Em>$25M+</Em>.
+        </Body>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 09 Economics
+  // ─────────────────────────────────────────────────── 13 Economics
   {
     render: () => (
       <div>
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
-          10% commission. <Accent>96%</Accent> gross margin.
+        <Kicker>The unit economics</Kicker>
+        <Headline className="mb-10">
+          10% commission. <Em>96%</Em> gross margin.
           <br />
           One revenue line.
-        </h1>
-        <div className="mt-8 md:mt-10 border border-white/15 rounded-2xl overflow-hidden">
-          <table className="w-full text-xs md:text-sm">
+        </Headline>
+        <div className="border border-brand-charcoal/15 rounded-xl overflow-hidden">
+          <table className="w-full text-sm md:text-base">
             <thead>
-              <tr className="bg-white/5">
-                <th className="text-left p-3 md:p-4 font-semibold text-white/40 text-[10px] md:text-xs tracking-wider uppercase">&nbsp;</th>
-                <th className="text-left p-3 md:p-4 font-bold text-white text-sm md:text-base">RightOffer</th>
-                <th className="text-left p-3 md:p-4 font-semibold text-white/50 text-sm md:text-base">PB Fintech / industry</th>
+              <tr className="bg-brand-plum/5">
+                <th className="text-left p-4 font-mono text-[10.5px] tracking-[0.14em] uppercase font-semibold text-brand-charcoal/50">
+                  &nbsp;
+                </th>
+                <th className="text-left p-4 font-serif font-semibold text-brand-charcoal">
+                  RightOffer
+                </th>
+                <th className="text-left p-4 font-serif text-brand-slate">
+                  PB Fintech / industry
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -598,10 +849,14 @@ const SLIDES: Slide[] = [
                 ["LTV (3 renewals)", "₹4,200", "₹2,800"],
                 ["Payback", "< 3 months", "9–12 months"],
               ].map((row, i) => (
-                <tr key={i} className="border-t border-white/10">
-                  <td className="p-3 md:p-4 text-white/60">{row[0]}</td>
-                  <td className="p-3 md:p-4 font-bold text-white">{row[1]}</td>
-                  <td className="p-3 md:p-4 text-white/40">{row[2]}</td>
+                <tr key={i} className="border-t border-brand-charcoal/10">
+                  <td className="p-4 font-serif text-brand-slate">{row[0]}</td>
+                  <td className="p-4 font-serif font-semibold text-brand-charcoal">
+                    {row[1]}
+                  </td>
+                  <td className="p-4 font-serif text-brand-slate/70">
+                    {row[2]}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -611,120 +866,129 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 10 Competitive map
+  // ─────────────────────────────────────────────────── 14 Competitive map
   {
     render: () => (
       <div>
-        <Eyebrow>Competitive landscape</Eyebrow>
-        <div className="grid grid-cols-[auto_1fr_1fr] gap-x-8 gap-y-6 items-center max-w-4xl">
+        <Kicker>The category, mapped</Kicker>
+        <div className="grid grid-cols-[auto_1fr_1fr] gap-x-8 gap-y-6 items-center max-w-4xl mb-12">
           <div></div>
-          <div className="text-center text-xs font-bold tracking-[0.15em] uppercase text-white/40">
-            Price-first
+          <div className="text-center font-mono text-[10.5px] tracking-[0.16em] uppercase text-brand-charcoal/40 font-semibold">
+            · Price-first ·
           </div>
-          <div className="text-center text-xs font-bold tracking-[0.15em] uppercase text-white/40">
-            Advice-first
-          </div>
-
-          <div className="text-xs font-bold tracking-[0.15em] uppercase text-white/40 -rotate-90 md:rotate-0 whitespace-nowrap">
-            Agent-led
-          </div>
-          <div className="border border-white/15 rounded-xl p-6 md:p-8 text-center">
-            <div className="text-lg md:text-xl font-bold">GIBL · Renewbuy</div>
-          </div>
-          <div className="border border-white/15 rounded-xl p-6 md:p-8 text-center">
-            <div className="text-lg md:text-xl font-bold">Local agents</div>
-            <div className="text-sm text-white/40 mt-1">Family CA</div>
+          <div className="text-center font-mono text-[10.5px] tracking-[0.16em] uppercase text-brand-charcoal/40 font-semibold">
+            · Advice-first ·
           </div>
 
-          <div className="text-xs font-bold tracking-[0.15em] uppercase text-white/40 -rotate-90 md:rotate-0 whitespace-nowrap">
-            Digital-first
+          <div className="font-mono text-[10.5px] tracking-[0.16em] uppercase text-brand-charcoal/40 font-semibold whitespace-nowrap">
+            · Agent-led ·
           </div>
-          <div className="border border-white/15 rounded-xl p-6 md:p-8 text-center">
-            <div className="text-lg md:text-xl font-bold">Policy Bazaar</div>
-            <div className="text-sm text-white/40 mt-1">Acko</div>
+          <div className="border border-brand-charcoal/15 rounded-xl p-6 md:p-8 text-center">
+            <div className="font-serif font-semibold text-lg md:text-xl text-brand-charcoal">
+              GIBL · Renewbuy
+            </div>
           </div>
-          <div className="rounded-xl p-6 md:p-8 text-center bg-[#ff5a30] text-black">
-            <div className="text-xl md:text-2xl font-extrabold">RightOffer</div>
-            <div className="text-sm font-semibold mt-1">Independent AI advisor</div>
+          <div className="border border-brand-charcoal/15 rounded-xl p-6 md:p-8 text-center">
+            <div className="font-serif font-semibold text-lg md:text-xl text-brand-charcoal">
+              Local agents
+            </div>
+            <div className="font-serif italic text-sm text-brand-slate mt-1">
+              Family CA
+            </div>
+          </div>
+
+          <div className="font-mono text-[10.5px] tracking-[0.16em] uppercase text-brand-charcoal/40 font-semibold whitespace-nowrap">
+            · Digital-first ·
+          </div>
+          <div className="border border-brand-charcoal/15 rounded-xl p-6 md:p-8 text-center">
+            <div className="font-serif font-semibold text-lg md:text-xl text-brand-charcoal">
+              PolicyBazaar
+            </div>
+            <div className="font-serif italic text-sm text-brand-slate mt-1">
+              Acko
+            </div>
+          </div>
+          <div className="rounded-xl p-6 md:p-8 text-center bg-brand-plum text-brand-offwhite">
+            <Wordmark />
+            <div className="font-serif italic font-medium text-base mt-2 text-brand-offwhite">
+              Independent AI advisor + auction
+            </div>
           </div>
         </div>
-        <div className="mt-12 text-lg md:text-xl text-white/70 max-w-3xl">
-          <span className="text-white font-semibold">
-            Empty quadrant. We are alone in the only quadrant that scales.
-          </span>
-        </div>
+        <PullQuote>
+          Empty quadrant. <Em>We are alone</Em> in the only quadrant that
+          scales.
+        </PullQuote>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 11 Distribution wedge
+  // ─────────────────────────────────────────────────── 15 Distribution wedge
   {
     render: () => (
       <div>
-        <Headline>
-          We launch with the insurers
-          <br />
-          who <Accent>need us most</Accent>.
+        <Kicker>Launch with insurers who need us</Kicker>
+        <Headline className="mb-10">
+          IRDAI&rsquo;s last 24 months produced a fresh wave of{" "}
+          <Em>digital-first insurer licences</Em>.
         </Headline>
-        <div className="mt-12 text-lg md:text-xl text-white/60 max-w-3xl leading-relaxed">
-          IRDAI&apos;s last 24 months have produced a fresh wave of{" "}
-          <span className="text-white font-semibold">digital-first insurer licences</span>. These insurers:
-        </div>
-        <ul className="mt-8 space-y-3 text-base md:text-lg text-white/80 max-w-3xl">
+        <ul className="space-y-4 font-serif text-lg md:text-xl text-brand-charcoal max-w-3xl">
           {[
-            "Have zero legacy agent network to defend.",
+            "Zero legacy agent network to defend.",
             "Need D2C distribution urgently.",
             "Will integrate via API on Day 1.",
             "Will share data and co-design product.",
-            "Have younger underwriting teams who view us as an ally.",
+            "Younger underwriting teams who see us as an ally, not a threat.",
           ].map((b) => (
             <li key={b} className="flex gap-3">
-              <span className="text-[#ff5a30] mt-0.5">·</span>
+              <span className="text-brand-plum mt-1.5">·</span>
               <span>{b}</span>
             </li>
           ))}
         </ul>
-        <div className="mt-12 text-sm md:text-base text-white/40 max-w-3xl">
-          Three launch partners targeted from this cohort.
+        <div className="mt-10 font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-charcoal/45 font-semibold max-w-3xl">
+          · Three launch partners targeted from this cohort · BD in progress ·
         </div>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 12 Defensibility
+  // ─────────────────────────────────────────────────── 16 Defensibility
   {
     render: () => (
       <div>
-        <Eyebrow>Five moats</Eyebrow>
+        <Kicker>Five moats</Kicker>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
           {[
             {
               t: "Data network effects",
-              b: "Every parsed policy improves our gap-detection model.",
+              b: "Every parsed policy improves gap-detection. Every claim outcome retunes the recommendations.",
             },
             {
-              t: "IRDAI Direct Broker licence",
-              b: "₹75L net worth + 6-9 month process. First-mover advantage on activation date.",
+              t: "IRDAI composite broker licence",
+              b: "₹75L net worth + 6–9 month process. Web-aggregator regs forbid our ranking logic. First-mover on activation date.",
             },
             {
               t: "Insurer API integrations",
-              b: "Multi-month BD per partner. Once locked, switching cost is prohibitive.",
+              b: "Multi-month BD per partner. Once locked, switching cost is prohibitive. We own the spec.",
             },
             {
-              t: "AI advisor IP",
-              b: "Tier-composition logic, claim-cost simulator, gap-detection. Proprietary.",
+              t: "Editorial brand + Aryan voice",
+              b: "Customers don't switch from a column they trust. The audit signature compounds across renewal cycles.",
             },
             {
-              t: "WhatsApp channel ownership",
-              b: "Once a customer has 2 years of renewal-cadence conversation history with our number, no competitor rebuilds that trust quickly.",
+              t: "Section 6 matching IP",
+              b: "Hidden-from-customer routing intelligence. Insurers can't game what they can't see.",
             },
           ].map((m, i) => (
             <div key={m.t}>
-              <div className="text-xs font-bold tracking-[0.15em] uppercase text-[#ff5a30] mb-2">
-                Moat {String(i + 1).padStart(2, "0")}
+              <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold mb-2">
+                · Moat {String(i + 1).padStart(2, "0")} ·
               </div>
-              <div className="text-xl md:text-2xl font-extrabold mb-1">{m.t}</div>
-              <Body className="!text-base">{m.b}</Body>
+              <div className="font-serif font-medium text-xl md:text-2xl text-brand-charcoal mb-1">
+                {m.t}
+              </div>
+              <Body className="!text-base !leading-[1.55]">{m.b}</Body>
             </div>
           ))}
         </div>
@@ -732,182 +996,214 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 13 Traction
+  // ─────────────────────────────────────────────────── 17 Traction
   {
     render: () => (
       <div>
-        <Eyebrow>
-          <Gold>We&apos;re not pre-product</Gold>
-        </Eyebrow>
-        <div className="font-extrabold text-6xl md:text-8xl tracking-tight">
+        <Kicker>Built. Live.</Kicker>
+        <div className="font-serif font-medium text-5xl md:text-7xl text-brand-charcoal tracking-tight mb-2">
           rightoffer.in
         </div>
-        <div className="mt-1 text-3xl md:text-5xl font-extrabold tracking-tight">
-          <Accent>Live.</Accent>
+        <div className="font-serif italic font-medium text-3xl md:text-5xl text-brand-plum mb-12">
+          Audit live today. Marketplace ready, gated for V1.
         </div>
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-10">
           {[
-            { t: "V1 product", s: "Full customer flow end-to-end: parser → report → auction → checkout" },
-            { t: "25+", s: "Real Indian motor policies parsed across 10+ insurer formats" },
-            { t: "3", s: "New-licence insurer conversations in active BD" },
-            { t: "D2C", s: "Pure software, 96% gross margin, self-serve, zero agents" },
+            {
+              t: "Phase 1",
+              s: "AI audit · multi-doc comparator · editorial PDF · all live on rightoffer.in",
+            },
+            {
+              t: "End-to-end",
+              s: "Parser → audit → bid → checkout → policy issuance — every step coded, gated by feature flag",
+            },
+            {
+              t: "Durable infra",
+              s: "QStash queue · Sentry monitoring · DPDP-compliant · 100% India residency on roadmap",
+            },
+            {
+              t: "Founder-built",
+              s: "Solo build, 8 weeks to live. ~₹4,000/month infra cost. Demo at demo.rightoffer.in.",
+            },
           ].map((s) => (
-            <div key={s.t} className="border border-white/15 rounded-xl p-5">
-              <div className="text-xl md:text-2xl font-extrabold mb-2">{s.t}</div>
-              <div className="text-xs md:text-sm text-white/50 leading-relaxed">{s.s}</div>
+            <div
+              key={s.t}
+              className="border border-brand-charcoal/15 rounded-xl p-5 bg-white"
+            >
+              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-brand-plum font-bold mb-2">
+                · {s.t} ·
+              </div>
+              <Body className="!text-sm !leading-[1.5]">{s.s}</Body>
             </div>
           ))}
         </div>
-        <div className="mt-10 text-sm md:text-base text-white/40">
-          Built in 8 weeks. ₹4,000/month total infra cost. Demo at rightoffer.in/investor.
-        </div>
+        <Body className="max-w-3xl">
+          Email-forward channel processed test forwards from{" "}
+          <Sage>multiple senders</Sage> across <Sage>five+ insurer formats</Sage>{" "}
+          including Audi, Honda, Hyundai, Maruti. Three new-licence insurer
+          conversations in active BD.
+        </Body>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 14 Team
+  // ─────────────────────────────────────────────────── 18 Team
   {
     render: () => (
       <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr] gap-12">
         <div>
-          <div className="text-4xl md:text-5xl font-extrabold leading-tight">
+          <Kicker>The founder</Kicker>
+          <div className="font-serif font-medium text-4xl md:text-5xl text-brand-charcoal leading-tight">
             Manish Chaudhari
           </div>
-          <div className="mt-1 text-lg md:text-xl text-white/50 font-medium">
+          <div className="mt-2 font-serif italic text-lg md:text-xl text-brand-plum">
             Founder &amp; CEO
           </div>
-          <Body className="mt-6 !text-base max-w-xl">
+          <Body className="mt-6 max-w-xl !text-base">
             23 years across Indian financial services. Operating depth across{" "}
-            <span className="text-white font-semibold">
-              risk, underwriting, process, product, and technology
-            </span>.
+            <Em>risk, underwriting, process, product, and technology</Em>.
           </Body>
-          <ul className="mt-6 space-y-3 text-sm md:text-base text-white/70 max-w-xl">
+          <ul className="mt-6 space-y-3 font-serif text-sm md:text-base text-brand-charcoal max-w-xl">
             {[
               "President & Head of Retail Assets, Poonawalla Fincorp (2021-2024) — ₹30,000+ cr book, 1,000+ team",
               "Co-founded CoinTribe Technologies (2015-2020) — digital lending, full 5-year founder cycle",
               "VP & National Credit Head, Magma Fincorp (2012-2015) — direct adjacency to Magma HDI motor",
               "Earlier: Reliance Capital, GE Money, Standard Chartered, ICICI Bank, PNB Housing",
-              "15K+ LinkedIn followers, deep insurer network across India",
+              "15K+ LinkedIn followers · deep insurer network across India",
             ].map((b) => (
               <li key={b} className="flex gap-3">
-                <span className="text-[#ff5a30] mt-1">·</span>
+                <span className="text-brand-plum mt-1.5">·</span>
                 <span>{b}</span>
               </li>
             ))}
           </ul>
         </div>
-        <div className="border-l border-white/10 pl-8">
-          <Eyebrow>Hiring next</Eyebrow>
-          <div className="space-y-2.5 text-sm md:text-base font-semibold text-white">
+        <div className="border-l border-brand-charcoal/15 pl-8">
+          <Kicker>Hiring next</Kicker>
+          <div className="space-y-2.5 font-serif text-base font-medium text-brand-charcoal">
             <div>Founding CTO (AI/ML)</div>
             <div>Chief Experience Officer</div>
             <div>Chief Product Officer</div>
             <div>Head of Insurer Relationships</div>
             <div>Head of Growth</div>
           </div>
-          <div className="mt-8 text-xs md:text-sm text-white/40 max-w-xs">
-            Series-A bench by month 9.
+          <div className="mt-8 font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-charcoal/45 font-medium max-w-xs">
+            · Series-A bench by month 9 ·
           </div>
         </div>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 15 Roadmap
+  // ─────────────────────────────────────────────────── 19 Roadmap
   {
     render: () => (
       <div>
-        <Eyebrow>24 months</Eyebrow>
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
+        <Kicker>24 months</Kicker>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-14">
           {[
-            { w: "Now", e: "V1 live · investor demo runs" },
-            { w: "Month 6", e: "Direct Broker licence active · revenue ON", accent: true },
-            { w: "Month 9", e: "Retail health launches (90 days after motor)" },
-            { w: "Month 12", e: "5,000 paid policies / mo across motor + health" },
+            { w: "Now", e: "Phase 1 audit live · investor demos running" },
+            {
+              w: "Month 6",
+              e: "IRDAI broker licence active · V1 marketplace switches on",
+              accent: true,
+            },
+            { w: "Month 9", e: "Retail health launches" },
+            { w: "Month 12", e: "5,000 paid policies/mo · motor + health" },
             { w: "Month 18", e: "Mobile app GA · WhatsApp live everywhere" },
-            { w: "Month 24", e: "20,000 policies / mo · ₹200 cr GWP · Series A ready", accent: true },
+            {
+              w: "Month 24",
+              e: "20,000 policies/mo · ₹200 cr GWP · Series A ready",
+              accent: true,
+            },
           ].map((m, i) => (
-            <div key={i} className="relative">
+            <div key={i}>
               <div
                 className={clsx(
                   "w-3 h-3 rounded-full mb-3",
-                  m.accent ? "bg-[#ff5a30]" : "bg-white/40"
+                  m.accent ? "bg-brand-plum" : "bg-brand-charcoal/30"
                 )}
               />
-              <div className="text-xs font-bold tracking-[0.15em] uppercase text-white/40 mb-1">
-                {m.w}
+              <div className="font-mono text-[10.5px] tracking-[0.18em] uppercase font-bold text-brand-plum mb-1">
+                · {m.w} ·
               </div>
-              <div className="text-sm md:text-base text-white/80 leading-snug">{m.e}</div>
+              <div className="font-serif text-sm md:text-base text-brand-charcoal leading-[1.5]">
+                {m.e}
+              </div>
             </div>
           ))}
         </div>
-        <div className="mt-16 text-sm md:text-base text-white/50 max-w-3xl">
-          <span className="text-white font-semibold">Phase 1 (months 1-6) — unregulated advisor mode.</span> Build product, perfect AI, embed with insurers. Revenue switches on at month 6.
-        </div>
+        <Body className="max-w-3xl">
+          <Em>Phase 1 (now → month 6)</Em> — unregulated advisor mode. Build
+          product, perfect AI, embed with insurers. Revenue switches ON when
+          the broker licence activates at month 6.
+        </Body>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 16 The ask
+  // ─────────────────────────────────────────────────── 20 The ask
   {
     render: () => (
       <div>
-        <div className="font-extrabold text-[72px] md:text-[120px] tracking-tight leading-none">
-          $7M <Accent>—</Accent> $10M
+        <Kicker>The ask</Kicker>
+        <div className="font-serif font-medium text-[80px] md:text-[140px] tracking-[-0.025em] leading-[0.95] text-brand-charcoal">
+          $7M <Em>—</Em> $10M
         </div>
-        <div className="mt-4 text-base md:text-xl text-white/60 font-medium max-w-2xl">
+        <Body className="mt-4 !text-lg max-w-2xl">
           Pre-seed + Seed, combined. Structurable as tranched commitment.
-        </div>
-        <div className="mt-8 md:mt-10">
-          <div className="text-[10px] md:text-xs font-bold tracking-[0.18em] uppercase text-white/40 mb-3">
-            Use of funds
+        </Body>
+        <div className="mt-10">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold mb-4">
+            · Use of funds ·
           </div>
-          <div className="space-y-2 max-w-3xl">
+          <div className="space-y-3 max-w-3xl">
             {[
               { l: "Tech + product (AI, mobile, WhatsApp)", p: 40 },
               { l: "Compliance + licence + insurer integrations", p: 20 },
-              { l: "D2C acquisition (SEO, WhatsApp, content, PR)", p: 20 },
+              { l: "D2C acquisition (SEO, content, WhatsApp, PR)", p: 20 },
               { l: "Team (12-15 hires, no field sales)", p: 15 },
               { l: "Buffer", p: 5 },
             ].map((row) => (
               <div key={row.l} className="flex items-center gap-4">
-                <div className="flex-1 text-xs md:text-sm text-white/70">{row.l}</div>
-                <div className="w-32 md:w-44 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="flex-1 font-serif text-sm md:text-base text-brand-charcoal">
+                  {row.l}
+                </div>
+                <div className="w-32 md:w-44 h-1.5 bg-brand-charcoal/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#ff5a30]"
+                    className="h-full bg-brand-plum"
                     style={{ width: `${row.p * 2.5}%` }}
                   />
                 </div>
-                <div className="text-xs md:text-sm font-bold tabular-nums w-10 text-right">
+                <div className="font-mono font-bold text-sm tabular-nums w-10 text-right text-brand-charcoal">
                   {row.p}%
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="mt-6 md:mt-8 text-xs md:text-sm text-white/40 max-w-3xl">
-          Series A target: $25-35M at $120-180M post (Q2 2027).
+        <div className="mt-8 font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-charcoal/45 font-medium max-w-3xl">
+          · Series A target · $25–35M at $120–180M post · Q2 2027 ·
         </div>
       </div>
     ),
   },
 
-  // ─────────────────────────────────────────────────── 17 Vision
+  // ─────────────────────────────────────────────────── 21 Vision
   {
     render: () => (
       <div className="text-center">
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[1.05] tracking-tight">
+        <Headline className="!text-5xl md:!text-7xl lg:!text-8xl !leading-[1.05]">
           Motor today.
           <br />
-          Health in 90 days.
+          Health <Em>in 90 days</Em>.
           <br />
-          <Accent>Every Indian household&apos;s</Accent>
+          Every Indian household&rsquo;s
           <br />
-          <Accent>insurance, made simple.</Accent>
-        </h1>
-        <div className="mt-20 text-sm md:text-base text-white/40 font-medium tracking-wider">
-          Manish Chaudhari · hello@rightoffer.in
+          insurance, <Em>made simple</Em>.
+        </Headline>
+        <div className="mt-20 font-mono text-[10.5px] md:text-[11px] tracking-[0.18em] uppercase text-brand-charcoal/45 font-semibold">
+          · Manish Chaudhari · hello@rightoffer.in ·
         </div>
       </div>
     ),
