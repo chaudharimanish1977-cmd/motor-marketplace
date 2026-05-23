@@ -116,6 +116,22 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Flush Sentry before the function instance shuts down — otherwise
+  // queued events get dropped when the serverless process is killed
+  // post-return. 8s ceiling covers Sentry EU-region cold-start
+  // latency from Vercel US (sufficient for ~2 events with TLS).
+  // Without this, captureMessage / captureException above are
+  // best-effort fire-and-forget — and the page-the-team promise
+  // becomes empty.
+  try {
+    await Sentry.flush(8000);
+  } catch (err) {
+    console.error(
+      "[jobs/audit-forward-failed] Sentry.flush failed (non-fatal):",
+      err
+    );
+  }
+
   // ALWAYS 2xx. See file header for why.
   return NextResponse.json({ ok: true, forwardId });
 }

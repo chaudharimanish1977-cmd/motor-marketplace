@@ -74,7 +74,10 @@ export async function GET(request: NextRequest) {
         tags: { test: "dry-run", endpoint: "/api/admin/sentry-test" },
       }
     );
-    const flushed = await Sentry.flush(2000);
+    // 8s flush ceiling — Sentry EU region from Vercel US-East needs
+    // room for DNS + TLS handshake on cold start (the first event
+    // from a fresh function instance can take 3-5s end-to-end).
+    const flushed = await Sentry.flush(8000);
     return NextResponse.json({
       mode: "dry-run",
       diagnostics: {
@@ -91,7 +94,7 @@ export async function GET(request: NextRequest) {
         ? eventId
           ? "SDK is wired. Look for 'Sentry dry-run probe (no throw)' in Sentry Issues. If absent there, the DSN points to a different project."
           : "SDK returned no eventId — Sentry.init was likely a no-op (DSN unset, or enabled:false at init time)."
-        : "Sentry.flush() timed out — SDK couldn't reach Sentry's ingest. Network / DSN reachability issue.",
+        : "Sentry.flush() timed out even at 8s — SDK couldn't reach Sentry's ingest. Likely a network issue between Vercel and Sentry's EU region, OR the DSN itself is unreachable.",
     });
   }
 
@@ -122,10 +125,10 @@ export async function GET(request: NextRequest) {
 
   // Force Sentry to flush before throw, otherwise the throw could
   // tear down the process before the message reaches Sentry's
-  // ingest. 2s ceiling keeps the request from hanging if Sentry's
-  // network is slow.
-  console.log("[sentry-test] calling Sentry.flush(2000)...");
-  const flushed = await Sentry.flush(2000);
+  // ingest. 8s ceiling — Sentry EU region from Vercel US-East needs
+  // room for DNS + TLS handshake on cold start.
+  console.log("[sentry-test] calling Sentry.flush(8000)...");
+  const flushed = await Sentry.flush(8000);
   console.log(`[sentry-test] flush returned ${flushed} (true=delivered)`);
 
   // Path 2: thrown error — covers automatic capture via Next.js
