@@ -130,6 +130,10 @@ export default async function PortalHome() {
     active.find((p) => p.subscription?.status === "active")
       ?.subscription?.id;
 
+  // Evaluate the marketplace feature flag once at the top, before
+  // JSX evaluation — the function is async and must be awaited.
+  const showMarketplaceCta = await isMarketplaceEnabled();
+
   return (
     <main className="relative z-10 min-h-screen px-5 md:px-6 py-10 md:py-14">
         <article className="max-w-3xl mx-auto font-serif text-brand-charcoal">
@@ -245,7 +249,7 @@ export default async function PortalHome() {
                   marketplace flow ships in V2. The whole pull-quote
                   block goes (kicker + copy + button) so customers don't
                   see "Compare your quotes" promises we don't fulfil yet. */}
-              {quotes.length > 0 && isMarketplaceEnabled() && (
+              {quotes.length > 0 && showMarketplaceCta && (
                 <ComparisonLauncher
                   quoteIds={quotes.map((q) => q.parsed.id)}
                   policyId={active[0]?.parsed.id}

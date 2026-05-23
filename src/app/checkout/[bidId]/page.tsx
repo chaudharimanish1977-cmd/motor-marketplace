@@ -19,7 +19,7 @@ interface PageProps {
 
 export default async function CheckoutPage({ params }: PageProps) {
   // Phase 1 segregation: marketplace UI hidden in production until V2.
-  if (!isMarketplaceEnabled()) notFound();
+  if (!(await isMarketplaceEnabled())) notFound();
 
   const { bidId } = await params;
 

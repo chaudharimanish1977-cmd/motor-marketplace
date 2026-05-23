@@ -23,10 +23,31 @@
  * Both server components and `"use client"` files can call this.
  */
 
-export function isMarketplaceEnabled(): boolean {
+export async function isMarketplaceEnabled(): Promise<boolean> {
+  // Override 1: explicit env var (highest priority). Tests + scripted
+  // demos can force a deterministic answer regardless of host or
+  // environment.
   const explicit = process.env.MARKETPLACE_ENABLED;
   if (explicit === "true") return true;
   if (explicit === "false") return false;
+
+  // Override 2: demo subdomain. Investor-facing previews are served on
+  // demo.rightoffer.in — marketplace UI MUST be visible there even
+  // though the underlying deploy is the same production build serving
+  // rightoffer.in (where marketplace stays hidden). Host-based gate
+  // lets us share one deploy across both audiences.
+  try {
+    // Dynamic import keeps this file usable from contexts where
+    // next/headers isn't available (e.g. unit tests).
+    const { headers } = await import("next/headers");
+    const hdrs = await headers();
+    const host = hdrs.get("host") ?? "";
+    if (host.startsWith("demo.")) return true;
+  } catch {
+    // headers() throws outside a request scope (build-time prerender,
+    // unit test, etc.). Fall through to env-based default.
+  }
+
   // Unset → default-by-environment.
   // VERCEL_ENV is "production" only on the production deployment;
   // "preview" on preview deploys; undefined locally.
@@ -47,6 +68,14 @@ export function isMarketplaceEnabledClient(): boolean {
   const explicit = process.env.NEXT_PUBLIC_MARKETPLACE_ENABLED;
   if (explicit === "true") return true;
   if (explicit === "false") return false;
+
+  // Demo subdomain override — mirrors the server-side host check.
+  // SSR-safe: typeof window check protects against running on the
+  // server pass of an isomorphic component.
+  if (typeof window !== "undefined") {
+    if (window.location.hostname.startsWith("demo.")) return true;
+  }
+
   return process.env.NEXT_PUBLIC_VERCEL_ENV !== "production";
 }
 

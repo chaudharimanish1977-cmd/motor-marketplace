@@ -116,7 +116,7 @@ export default async function UploadPage({ searchParams }: PageProps) {
       // promises. Customers in the renewal window still get the
       // returning-visitor framing; they just don't see offers we
       // cannot fulfil yet.
-      if (!isMarketplaceEnabled()) {
+      if (!(await isMarketplaceEnabled())) {
         return (
           <ShellWelcomeBack
             policy={routing.primaryPolicy}

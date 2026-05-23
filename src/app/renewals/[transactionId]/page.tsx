@@ -52,7 +52,7 @@ const PHASE_META: Record<
 
 export default async function RenewalsPage({ params }: PageProps) {
   // Phase 1 segregation: marketplace transaction history hidden in production until V2.
-  if (!isMarketplaceEnabled()) notFound();
+  if (!(await isMarketplaceEnabled())) notFound();
 
   const { transactionId } = await params;
 

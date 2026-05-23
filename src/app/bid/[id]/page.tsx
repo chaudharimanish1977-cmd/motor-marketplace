@@ -13,7 +13,7 @@ interface PageProps {
 export default async function BidPage({ params }: PageProps) {
   // Phase 1 segregation: marketplace UI is hidden in production until V2.
   // In preview/dev/demo the flag defaults to enabled so this page renders.
-  if (!isMarketplaceEnabled()) notFound();
+  if (!(await isMarketplaceEnabled())) notFound();
 
   const { id } = await params;
 
