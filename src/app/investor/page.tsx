@@ -6,9 +6,10 @@ import {
   ArrowRight,
   Zap,
 } from "lucide-react";
-import { readTable, findOne, Tables } from "@/lib/db";
+import { readTable, Tables } from "@/lib/db";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { formatINR } from "@/lib/format";
+import { policyGroupKey } from "@/lib/policy-group";
 import { RenewalPreview } from "@/components/renewal-preview";
 import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
@@ -26,21 +27,72 @@ interface DemoPersona {
   report: PolicyReport;
 }
 
+/**
+ * Load demo personas for the investor walkthrough.
+ *
+ * Performance: reads BOTH tables once in parallel + joins in memory.
+ * The prior N+1 implementation (one findOne per parsed policy)
+ * triggered ~N full table reads against Upstash KV — at ~30 parsed
+ * policies after extensive testing, that hit ~3-4s and frequently
+ * timed out the page entirely.
+ *
+ * Dedup: collapses repeat parses of the same logical document
+ * (same registration + period + documentType) into one canonical
+ * persona, keeping the most recent. Without this, an investor sees
+ * "14 docs" when the customer really has 3 unique policies.
+ *
+ * Cap: limit to the most recent 12 unique personas. Anything beyond
+ * is noise for an investor pitch — varied profiles matter more than
+ * a long list.
+ */
+const MAX_PERSONAS_SHOWN = 12;
+
 async function loadDemoPersonas(): Promise<DemoPersona[]> {
-  const all = await readTable<ParsedPolicy>(Tables.PARSED_POLICIES);
-  const withReports: DemoPersona[] = [];
-  for (const parsed of all) {
-    const report = await findOne<PolicyReport>(
-      Tables.REPORTS,
-      (r) => r.parsedPolicyId === parsed.id
-    );
-    if (report) withReports.push({ parsed, report });
+  // Two parallel reads instead of 1 + N.
+  const [allParsed, allReports] = await Promise.all([
+    readTable<ParsedPolicy>(Tables.PARSED_POLICIES),
+    readTable<PolicyReport>(Tables.REPORTS),
+  ]);
+
+  // Index reports by parsedPolicyId for O(1) lookup.
+  const reportsByPolicyId = new Map<string, PolicyReport>();
+  for (const r of allReports) {
+    reportsByPolicyId.set(r.parsedPolicyId, r);
   }
-  return withReports.sort(
-    (a, b) =>
-      b.parsed.vehicle.yearOfManufacture -
-      a.parsed.vehicle.yearOfManufacture
-  );
+
+  // Build candidates: every parsed policy that has a generated report.
+  const candidates: DemoPersona[] = [];
+  for (const parsed of allParsed) {
+    const report = reportsByPolicyId.get(parsed.id);
+    if (report) candidates.push({ parsed, report });
+  }
+
+  // Dedup by policyGroupKey — collapse repeated forwards of the
+  // same logical document. Within each group, keep the most recently
+  // uploaded parse.
+  const groups = new Map<string, DemoPersona>();
+  for (const candidate of candidates) {
+    const key = policyGroupKey(candidate.parsed);
+    const existing = groups.get(key);
+    if (
+      !existing ||
+      new Date(candidate.parsed.uploadedAt).getTime() >
+        new Date(existing.parsed.uploadedAt).getTime()
+    ) {
+      groups.set(key, candidate);
+    }
+  }
+
+  // Sort by recency of upload (most recent first), then cap to 12.
+  // Sorting by uploadedAt instead of yearOfManufacture so freshly-added
+  // demo personas pop to the top of the investor view.
+  return Array.from(groups.values())
+    .sort(
+      (a, b) =>
+        new Date(b.parsed.uploadedAt).getTime() -
+        new Date(a.parsed.uploadedAt).getTime()
+    )
+    .slice(0, MAX_PERSONAS_SHOWN);
 }
 
 export default async function InvestorHome() {
