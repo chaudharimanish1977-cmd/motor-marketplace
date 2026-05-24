@@ -31,7 +31,7 @@ interface PageProps {
     /** Behind-the-curtain admin reveal toggle. When `admin=1` and
      *  marketplace is enabled (host-based gate; demo subdomain), the
      *  hidden Section 6 (Ideal Insurer Profile) renders below the
-     *  report. Used during live investor demos. */
+     *  report. Used during live demos. */
     admin?: string;
   }>;
 }

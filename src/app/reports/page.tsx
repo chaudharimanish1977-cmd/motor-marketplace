@@ -118,7 +118,7 @@ function decodeExcludedDocsParam(
 export default async function ReportsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const printMode = sp.print === "1";
-  // Admin reveal toggle — investor-demo behind-the-curtain. The
+  // Admin reveal toggle — demo behind-the-curtain. The
   // MarketplaceAdminReveal component checks marketplace-enabled +
   // printMode itself, so we just pass the operator's intent through.
   const showAdminReveal = sp.admin === "1";

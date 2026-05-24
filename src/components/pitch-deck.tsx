@@ -1102,7 +1102,7 @@ const SLIDES: Slide[] = [
         <Kicker>24 months</Kicker>
         <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-14">
           {[
-            { w: "Now", e: "Phase 1 audit live · investor demos running" },
+            { w: "Now", e: "Phase 1 audit live · demos running" },
             {
               w: "Month 6",
               e: "IRDAI broker licence active · V1 marketplace switches on",

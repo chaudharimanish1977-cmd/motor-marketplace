@@ -3,7 +3,7 @@
 AI-powered private car insurance marketplace for India. **V1 prototype** demonstrating: AI policy parser, curated report generator, reverse-bidding marketplace, end-to-end checkout, and renewal cadence preview.
 
 ## Build mode
-This is the **investor-demo prototype** (3-day build). Some components are real, some are mocked — see the build plan at `memory/project_v1_build_plan.md`.
+This is the **demo prototype** (3-day build). Some components are real, some are mocked — see the build plan at `memory/project_v1_build_plan.md`.
 
 | Component | Mode |
 |---|---|

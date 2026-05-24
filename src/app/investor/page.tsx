@@ -19,7 +19,7 @@ import { LoadingLink } from "@/components/loading-link";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "RightOffer — Investor Demo",
+  title: "RightOffer — Demo",
 };
 
 interface DemoPersona {

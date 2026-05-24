@@ -45,7 +45,7 @@ interface Props {
   /** When true (and marketplace enabled + not printMode), the
    *  "Behind the curtain" admin reveal renders below the report,
    *  exposing Section 6 (Ideal Insurer Profile). Activated by
-   *  ?admin=1 on the URL; used during live investor demos to show
+   *  ?admin=1 on the URL; used during live demos to show
    *  the matching intelligence that's hidden from customers. */
   showAdminReveal?: boolean;
   /** Renewal-reminder context, threaded from /report/[id] page.
@@ -185,7 +185,7 @@ export function UnifiedReport({
       <HowWeReadThisFooter parsedPolicy={parsedPolicy} report={report} />
 
       {/* ── 9. Behind-the-curtain admin reveal (demo-only, ?admin=1) ─
-       *  Investor demo entry point — when the operator appends
+       *  Demo entry point — when the operator appends
        *  ?admin=1 to the URL on demo.rightoffer.in, Section 6 (Ideal
        *  Insurer Profile) renders here. Hidden by default; never on
        *  rightoffer.in; never in PDFs. See MarketplaceAdminReveal. */}

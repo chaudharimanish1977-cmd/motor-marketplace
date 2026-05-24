@@ -89,8 +89,8 @@ Remove an entry when it's actually done **and** verified — not when the code l
 - **Renewal cadence — channel expansion (M5)** — SES email ✅; SMS via MSG91 ⏳; Telegram bot ⏳; WhatsApp post-MVP (own v1.6 lane). Lapsed-buyer "share your new policy" loop.
 - **Demo time-skip mode (M5)** — admin toggle "Fast-forward N days" that fires all scheduled messages; key for "show me the flywheel" in pitches.
 
-### Investor demo readiness (per V1 build plan M6)
-- 3–5 pre-seeded demo personas across vehicle ages / IDVs / profiles so any investor can pick a relatable one.
+### Demo readiness (per V1 build plan M6)
+- 3–5 pre-seeded demo personas across vehicle ages / IDVs / profiles so any viewer can pick a relatable one.
 - End-to-end demo scripts (5-min and 15-min versions).
 - Admin "behind the curtain" reveal — currently retired in `6856c6b`; either re-add as a debug toggle or build a fresh admin surface.
 - Pre-recorded backup demo video (Loom) — pitch never depends on live LLM.

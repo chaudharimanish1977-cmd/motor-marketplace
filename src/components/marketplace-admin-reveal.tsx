@@ -23,7 +23,7 @@
  *   · the recommendedInsurers list with reasoning
  *   · the selectionCriteria as a small mono list
  *
- * Designed for live investor demos: append `?admin=1` to any
+ * Designed for live demos: append `?admin=1` to any
  * /report/[id] URL on demo.rightoffer.in and the moat-explaining
  * section appears below the audit.
  */

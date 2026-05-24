@@ -66,7 +66,7 @@ interface AuditedWithPolicy {
  *
  * Override via `INBOUND_DEMO_HOST` (hostname only, no scheme): when
  * set, every customer-facing URL routes through that hostname
- * instead of the production canonical. Used for live investor demos
+ * instead of the production canonical. Used for live demos
  * where we want forward → reply → magic-link → marketplace flow to
  * land on `demo.rightoffer.in` (marketplace gate open) instead of
  * `rightoffer.in` (marketplace hidden).

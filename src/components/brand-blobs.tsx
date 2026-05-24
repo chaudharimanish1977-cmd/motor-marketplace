@@ -9,7 +9,7 @@
  * Fixed-position + z-0 + pointer-events:none so they never interfere
  * with scrolling, clicks, or page content. Hidden in print.
  *
- * Used by the marketing / public surfaces: home page, investor demo,
+ * Used by the marketing / public surfaces: home page, demo,
  * and similar pages that want the same ambient brand feel.
  */
 export function BrandBlobs() {
