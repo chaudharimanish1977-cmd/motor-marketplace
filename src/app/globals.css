@@ -244,12 +244,23 @@
   /* Form controls: inputs/textareas/selects use the browser default white
    * background and inherited text color. In dark mode the inherited text
    * flips to slate-100 (light), which becomes white-on-white if the field
-   * keeps its default white bg. Force the field bg to the dark surface and
-   * give the placeholder a muted slate color so typed text stays legible. */
+   * keeps its default white bg.
+   *
+   * Background is set to slate-800 (#1E293B) — DELIBERATELY LIGHTER than
+   * the card surface token (#161018) and page bg (#0e0a10). When an input
+   * sits inside a card (most form layouts), this makes the field STAMP
+   * OUT as a distinct box: card sits at surface, input pops slightly
+   * lighter, the border traces a clear box around the field. Earlier
+   * value was `surface` itself, which made the input bg identical to
+   * the surrounding card — the user saw a border but no "box structure
+   * before filled in" because nothing visually separated input from card.
+   *
+   * Placeholder gets the muted slate so typed text reads cleanly above
+   * the placeholder ghost. */
   html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([class*="dark:bg-"]),
   html.dark textarea:not([class*="dark:bg-"]),
   html.dark select:not([class*="dark:bg-"]) {
-    background-color: rgb(var(--color-surface)) !important;
+    background-color: #1E293B !important;
     color: rgb(var(--color-charcoal)) !important;
     color-scheme: dark;
   }
