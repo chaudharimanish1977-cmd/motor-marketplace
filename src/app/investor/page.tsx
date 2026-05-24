@@ -105,7 +105,7 @@ export default async function InvestorHome() {
         <div className="max-w-3xl w-full text-center space-y-8">
         {/* Eyebrow */}
         <div className="flex justify-center">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-charcoal bg-brand-charcoal/10 border border-brand-charcoal/20 rounded-full">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-plum bg-brand-plum/10 border border-brand-charcoal/20 rounded-full">
             <Sparkles className="w-3.5 h-3.5" />
             RightOffer AI Powered Policy Review
           </span>

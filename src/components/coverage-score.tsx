@@ -28,7 +28,7 @@ const BAND_THEME: Record<
   good: {
     ring: "stroke-blue-500",
     text: "text-brand-charcoal",
-    chip: "bg-brand-charcoal/15 text-brand-charcoal border-brand-charcoal/30",
+    chip: "bg-brand-plum/15 text-brand-plum border-brand-charcoal/30",
     gradient: "from-brand-charcoal/10 to-white",
   },
   excellent: {

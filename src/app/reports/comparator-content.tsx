@@ -79,7 +79,7 @@ export function ComparatorContent({
   return (
     <div className="space-y-6">
       <header className="space-y-1.5">
-        <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-charcoal bg-brand-charcoal/10 border border-brand-charcoal/20 rounded-full">
+        <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-plum bg-brand-plum/10 border border-brand-charcoal/20 rounded-full">
           <Sparkles className="w-3.5 h-3.5" />
           {headerBadge}
         </div>
@@ -355,7 +355,7 @@ function RightOfferPickCard({ pick }: { pick: RightOfferPick }) {
     beatBadge.tone === "emerald"
       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
       : beatBadge.tone === "deepblue"
-        ? "bg-brand-charcoal/10 text-brand-charcoal border-brand-charcoal/20"
+        ? "bg-brand-plum/10 text-brand-plum border-brand-charcoal/20"
         : beatBadge.tone === "amber"
           ? "bg-amber-50 text-amber-700 border-amber-100"
           : "bg-slate-50 text-brand-slate border-brand-light-gray";
@@ -500,7 +500,7 @@ function VerdictBlock({
     tone === "emerald"
       ? "bg-emerald-100 text-emerald-700 border-emerald-200"
       : tone === "deepblue"
-        ? "bg-brand-charcoal/15 text-brand-charcoal border-brand-charcoal/30"
+        ? "bg-brand-plum/15 text-brand-plum border-brand-charcoal/30"
         : "bg-amber-100 text-amber-700 border-amber-200";
 
   const recommended = verdict.recommendedQuoteId

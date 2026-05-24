@@ -69,7 +69,7 @@ export default async function PolicyPage({ params }: PageProps) {
           {schedule && (
             <Link
               href={`/renewals/${transaction.id}`}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-charcoal hover:text-brand-charcoal px-3 py-2 rounded-lg hover:bg-brand-charcoal/10"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-plum hover:text-brand-charcoal px-3 py-2 rounded-lg hover:bg-brand-plum/10"
             >
               <CalendarClock className="w-4 h-4" />
               View Renewal Calendar

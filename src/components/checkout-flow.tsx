@@ -503,14 +503,14 @@ function PayMethodStep({
               className={clsx(
                 "w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all text-left",
                 selected
-                  ? "border-brand-charcoal bg-brand-charcoal/10"
+                  ? "border-brand-plum bg-brand-plum/10"
                   : "border-brand-light-gray bg-white hover:border-slate-300"
               )}
             >
               <div
                 className={clsx(
                   "w-10 h-10 rounded-lg flex items-center justify-center",
-                  selected ? "bg-brand-charcoal" : "bg-slate-100"
+                  selected ? "bg-brand-plum" : "bg-slate-100"
                 )}
               >
                 <Icon

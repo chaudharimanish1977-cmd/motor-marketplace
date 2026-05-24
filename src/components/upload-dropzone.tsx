@@ -503,7 +503,7 @@ export function UploadDropzone({
               <button
                 type="button"
                 onClick={resetForNext}
-                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal/10 transition-all"
+                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-charcoal text-brand-plum hover:bg-brand-plum/10 transition-all"
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
                   <Plus className="w-4 h-4" />

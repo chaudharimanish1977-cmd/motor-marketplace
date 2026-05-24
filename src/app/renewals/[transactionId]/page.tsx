@@ -29,7 +29,7 @@ const CHANNEL_META: Record<
   RenewalNudge["channel"],
   { icon: typeof Mail; label: string; colour: string }
 > = {
-  email: { icon: Mail, label: "Email", colour: "text-brand-charcoal bg-brand-charcoal/15" },
+  email: { icon: Mail, label: "Email", colour: "text-brand-plum bg-brand-plum/15" },
   sms: { icon: MessageSquare, label: "SMS", colour: "text-brand-plum bg-brand-plum/15" },
   telegram: { icon: Send, label: "Telegram", colour: "text-sky-600 bg-sky-100" },
   whatsapp: { icon: MessageSquare, label: "WhatsApp", colour: "text-emerald-600 bg-emerald-100" },
@@ -113,7 +113,7 @@ export default async function RenewalsPage({ params }: PageProps) {
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Hero */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-charcoal bg-brand-charcoal/15 rounded-full">
+          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-plum bg-brand-plum/15 rounded-full">
             <CalendarClock className="w-3.5 h-3.5" />
             Your Renewal Journey
           </div>
@@ -227,7 +227,7 @@ function KeyDate({
   const colors = {
     emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
     amber: "border-amber-200 bg-amber-50 text-amber-700",
-    blue: "border-brand-charcoal/30 bg-brand-charcoal/10 text-brand-charcoal",
+    blue: "border-brand-charcoal/30 bg-brand-plum/10 text-brand-plum",
   }[highlight];
   return (
     <div className={`rounded-xl border-2 p-4 text-center ${colors}`}>

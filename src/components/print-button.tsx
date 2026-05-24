@@ -14,7 +14,7 @@ export function PrintButton({ label = "Print / Save as PDF", className }: Props)
       type="button"
       onClick={() => window.print()}
       className={clsx(
-        "inline-flex items-center gap-1.5 text-sm font-semibold text-brand-charcoal hover:brightness-110 px-3 py-2 rounded-lg hover:bg-brand-charcoal/10 transition-colors",
+        "inline-flex items-center gap-1.5 text-sm font-semibold text-brand-plum hover:brightness-110 px-3 py-2 rounded-lg hover:bg-brand-plum/10 transition-colors",
         className
       )}
     >

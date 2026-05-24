@@ -110,7 +110,7 @@ export function LanguageSwitcher({ current }: Props) {
                   className={`w-full flex items-baseline justify-between gap-3 px-4 py-2.5 transition-colors normal-case tracking-normal ${
                     isActive
                       ? "bg-brand-plum/10 text-brand-plum"
-                      : "text-brand-charcoal hover:bg-brand-charcoal/5"
+                      : "text-brand-plum hover:bg-brand-plum/5"
                   }`}
                 >
                   <span className="font-serif text-base">{opt.native}</span>

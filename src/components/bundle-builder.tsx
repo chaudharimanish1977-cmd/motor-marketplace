@@ -242,8 +242,12 @@ export function BundleBuilder({
       {/* Vehicle summary */}
       <section className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-brand-charcoal/10 flex items-center justify-center shrink-0">
-            <Shield className="w-6 h-6 text-brand-charcoal" />
+          {/* Icon container uses plum tint — the brand accent reads in
+              both themes (deep plum in light, lifted plum in dark) and
+              keeps the iconography on-brand without clashing with the
+              white card. */}
+          <div className="w-12 h-12 rounded-2xl bg-brand-plum/10 flex items-center justify-center shrink-0">
+            <Shield className="w-6 h-6 text-brand-plum" />
           </div>
           <div className="flex-1">
             <div className="text-[10px] text-slate-500 uppercase tracking-[0.12em] font-semibold">
@@ -282,7 +286,7 @@ export function BundleBuilder({
               step={1000}
               value={desiredIdv}
               onChange={(e) => setDesiredIdv(Number(e.target.value))}
-              className="w-full accent-brand-charcoal"
+              className="w-full accent-brand-plum"
             />
             <div className="flex justify-between text-xs text-slate-500 mt-1">
               <span>{formatINR(Math.floor(parsedPolicy.idv * 0.85))}</span>
@@ -310,7 +314,10 @@ export function BundleBuilder({
               -year-old {parsedPolicy.vehicle.make}.
             </p>
           </div>
-          <span className="px-3 py-1 text-xs font-bold text-brand-charcoal bg-brand-charcoal/15 rounded-full tabular-nums">
+          {/* Count badge uses plum so the "selected" state matches the
+              toggles + add-on cards beneath. Plum auto-flips lifted in
+              dark mode — bright on dark page, deep on light. */}
+          <span className="px-3 py-1 text-xs font-bold text-brand-plum bg-brand-plum/15 rounded-full tabular-nums">
             {selectedAddOns.size} selected
           </span>
         </div>

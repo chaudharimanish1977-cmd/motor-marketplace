@@ -151,7 +151,7 @@ export function RcpSection({ rcp, vehicleLabel }: Props) {
       {/* IDV guidance */}
       <div className="px-5 md:px-6 py-4 border-t border-brand-light-gray bg-brand-offwhite/40">
         <div className="flex items-start gap-2.5">
-          <div className="w-6 h-6 shrink-0 rounded-lg bg-brand-charcoal/15 text-brand-charcoal flex items-center justify-center mt-0.5">
+          <div className="w-6 h-6 shrink-0 rounded-lg bg-brand-plum/15 text-brand-plum flex items-center justify-center mt-0.5">
             <Info className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0 flex-1">

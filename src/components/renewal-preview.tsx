@@ -54,7 +54,7 @@ export function RenewalPreview() {
       <div className="rounded-3xl bg-gradient-to-br from-white to-brand-offwhite border border-brand-light-gray shadow-soft overflow-hidden">
         <div className="px-6 md:px-8 py-7 grid md:grid-cols-[1fr_2fr] gap-6 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-charcoal bg-brand-charcoal/10 border border-brand-charcoal/20 rounded-full mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-plum bg-brand-plum/10 border border-brand-charcoal/20 rounded-full mb-3">
               <CalendarClock className="w-3.5 h-3.5" />
               Renewal Calendar
             </div>

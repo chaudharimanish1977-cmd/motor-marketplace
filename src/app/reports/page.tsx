@@ -528,7 +528,7 @@ function EmptyState({ hasFullSession }: { hasFullSession: boolean }) {
       <BrandBlobs />
       <main className="relative z-10 min-h-[70vh] flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full bg-white border border-brand-light-gray rounded-2xl shadow-soft p-8 text-center">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-charcoal/10 border border-brand-charcoal/20 text-brand-charcoal flex items-center justify-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-plum/10 border border-brand-charcoal/20 text-brand-plum flex items-center justify-center">
             <Upload className="w-7 h-7" />
           </div>
           <h2 className="mt-5 text-xl font-bold text-brand-charcoal tracking-tight">

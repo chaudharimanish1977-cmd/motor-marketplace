@@ -202,7 +202,7 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
                   <td key={tier.tier} className="p-4 space-y-2">
                     <LoadingLink
                       href={`/offer/${win.id}`}
-                      className="block w-full text-center text-xs font-semibold py-2 rounded-xl border-2 border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal/10"
+                      className="block w-full text-center text-xs font-semibold py-2 rounded-xl border-2 border-brand-charcoal text-brand-plum hover:bg-brand-plum/10"
                       spinnerPosition="right"
                     >
                       See breakdown

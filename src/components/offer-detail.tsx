@@ -509,7 +509,7 @@ function AddOnToggle({
       className={clsx(
         "flex items-center gap-4 p-4 rounded-2xl border transition-all",
         isSelected
-          ? "border-brand-charcoal/30 bg-brand-charcoal/10"
+          ? "border-brand-plum/30 bg-brand-plum/10"
           : "border-slate-200 bg-white",
         changedFromOriginal && "ring-2 ring-amber-200 ring-offset-1"
       )}
@@ -517,7 +517,7 @@ function AddOnToggle({
       <div
         className={clsx(
           "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-          isSelected ? "bg-brand-charcoal text-white" : "bg-slate-100 text-slate-500"
+          isSelected ? "bg-brand-plum text-white" : "bg-slate-100 text-slate-500"
         )}
       >
         <Icon className="w-5 h-5" />

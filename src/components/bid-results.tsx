@@ -152,8 +152,8 @@ export function BidResults({
         {/* Helpful context */}
         <div className="bg-white rounded-3xl border border-slate-200/80 p-6 max-w-4xl mx-auto shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-brand-charcoal/10 flex items-center justify-center shrink-0">
-              <Shield className="w-5 h-5 text-brand-charcoal" />
+            <div className="w-10 h-10 rounded-2xl bg-brand-plum/10 flex items-center justify-center shrink-0">
+              <Shield className="w-5 h-5 text-brand-plum" />
             </div>
             <div className="text-sm text-slate-700 leading-relaxed">
               <p className="font-semibold text-slate-900 mb-1">
@@ -418,7 +418,7 @@ function TierCard({
         {/* HERO: See full breakdown & customize — prominent, above Buy */}
         <LoadingLink
           href={`/offer/${winner.id}`}
-          className="block w-full py-3 text-center font-bold rounded-2xl bg-white border-2 border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal/10 transition-all hover:scale-[1.01] shadow-soft"
+          className="block w-full py-3 text-center font-bold rounded-2xl bg-white border-2 border-brand-charcoal text-brand-plum hover:bg-brand-plum/10 transition-all hover:scale-[1.01] shadow-soft"
           spinnerPosition="right"
         >
           <span className="inline-flex items-center gap-1.5">
