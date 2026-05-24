@@ -59,22 +59,26 @@ export function StopwatchChip({ startedAt, size = 54, className }: Props) {
         height={size}
         className="block"
       >
-        {/* Background track */}
+        {/* Background track — theme-aware via CSS vars so it flips
+            with light/dark mode (surface = white in light, dark slate
+            in dark). */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          fill="white"
-          stroke="rgba(10, 36, 99, 0.12)"
+          fill="rgb(var(--color-surface))"
+          stroke="rgb(var(--color-charcoal) / 0.12)"
           strokeWidth={stroke}
         />
-        {/* Sweeping progress ring — rotated -90deg so 12 o'clock is the start */}
+        {/* Sweeping progress ring — plum so it stays the editorial
+            accent across both themes (was orange, now matches the
+            Reading Room palette). */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="transparent"
-          stroke="#ff5a30"
+          stroke="rgb(var(--color-plum))"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -82,12 +86,13 @@ export function StopwatchChip({ startedAt, size = 54, className }: Props) {
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
           style={{ transition: "stroke-dashoffset 0.2s linear" }}
         />
-        {/* Subtle centre dot, like a watch pivot */}
+        {/* Subtle centre dot, like a watch pivot. Uses charcoal token
+            so it flips light in dark mode and stays visible. */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={1.5}
-          fill="#1a3470"
+          fill="rgb(var(--color-charcoal))"
           opacity="0.5"
         />
       </svg>
