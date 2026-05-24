@@ -32,9 +32,11 @@ import {
   buildMasterPdfFilename,
   sendInboundAuditReply,
   sendInboundMultiAuditReply,
+  sendInboundMultiVehicleReply,
   sendInboundNoMatchReply,
   type InboundComparatorSummary,
   type InboundMultiAuditAttachment,
+  type InboundMultiVehicleSection,
   type InboundNoMatchReason,
 } from "@/lib/email-sender";
 import { buildAuditMagicLinkUrl } from "@/lib/email-token";
@@ -46,7 +48,16 @@ import {
   computeRCP,
   scoreAgainstRcp,
 } from "@/lib/recommended-coverage-profile";
+import { vehicleKey, vehicleLabel } from "@/lib/policy-group";
 import type { ParsedPolicy, PolicyReport, User } from "@/lib/types";
+
+/** Augments an audited outcome with its fetched ParsedPolicy + filename
+ *  so the multi-vehicle grouping has everything it needs in one shape. */
+interface AuditedWithPolicy {
+  filename: string;
+  result: Extract<AuditPipelineResult, { kind: "audited" }>;
+  parsed: ParsedPolicy;
+}
 
 /**
  * Public origin for customer-facing URLs we generate during the
@@ -229,13 +240,40 @@ export async function runAuditsForInboundForward(args: {
       );
     }
   } else if (audited.length >= 2) {
+    // Multi-doc forward — but is it multi-VEHICLE or multi-doc-same-vehicle?
+    // We can only know after fetching each ParsedPolicy and grouping by
+    // vehicleKey (registration number, fallback to make+model+year+rto).
+    //
+    // Same-vehicle case (anchor + quotes for that anchor) → existing
+    // consolidated-reply path with the cross-doc comparator.
+    //
+    // Different-vehicle case (e.g. household forwards their Audi
+    // policy + spouse's Honda policy in one email) → new multi-vehicle
+    // reply path with per-vehicle sections, no cross-vehicle comparison.
     try {
-      await sendConsolidatedReplyForForward({
-        fromEmail: args.fromEmail,
-        audits: audited.map((a) => a.result),
-        excludedDocs,
-        includeDpdpConsentLine: wasFirstTouch,
-      });
+      const enrichedAudits = await fetchAuditedParsedPolicies(audited);
+      const vehicleGroups = groupByVehicle(enrichedAudits);
+
+      if (vehicleGroups.size <= 1) {
+        // All docs for one vehicle (or all unidentifiable, which we
+        // optimistically treat as one). Use the existing consolidated
+        // reply — cross-doc comparator works.
+        await sendConsolidatedReplyForForward({
+          fromEmail: args.fromEmail,
+          audits: audited.map((a) => a.result),
+          excludedDocs,
+          includeDpdpConsentLine: wasFirstTouch,
+        });
+      } else {
+        // Multi-vehicle forward. Send the per-vehicle-section reply
+        // instead so we don't compare an Audi to a Maruti.
+        await sendMultiVehicleReplyForForward({
+          fromEmail: args.fromEmail,
+          vehicleGroups,
+          excludedDocs,
+          includeDpdpConsentLine: wasFirstTouch,
+        });
+      }
     } catch (err) {
       console.error(
         `[audit-runner] multi-reply send failed for ${args.fromEmail}:`,
@@ -833,4 +871,192 @@ async function senderHasNoPriorAudits(email: string): Promise<boolean> {
     console.error("[audit-runner] senderHasNoPriorAudits check failed:", err);
     return true;
   }
+}
+
+// ============================================================================
+// Multi-vehicle dispatch — same forward spans multiple cars
+// ============================================================================
+
+/** Fetch the ParsedPolicy for each audited outcome. Audits whose row
+ *  fetch fails (KV consistency hiccup, deleted row) are filtered out
+ *  but logged — the customer still sees the rest of their vehicles. */
+async function fetchAuditedParsedPolicies(
+  audited: Array<{
+    filename: string;
+    result: Extract<AuditPipelineResult, { kind: "audited" }>;
+  }>
+): Promise<AuditedWithPolicy[]> {
+  const out: AuditedWithPolicy[] = [];
+  for (const a of audited) {
+    try {
+      const parsed = await findById<ParsedPolicy>(
+        Tables.PARSED_POLICIES,
+        a.result.parsedPolicyId
+      );
+      if (!parsed) {
+        console.warn(
+          `[audit-runner] ParsedPolicy ${a.result.parsedPolicyId} not found during vehicle-grouping fetch; skipping`
+        );
+        continue;
+      }
+      out.push({ filename: a.filename, result: a.result, parsed });
+    } catch (err) {
+      console.error(
+        `[audit-runner] ParsedPolicy fetch threw for ${a.result.parsedPolicyId} during vehicle-grouping:`,
+        err
+      );
+    }
+  }
+  return out;
+}
+
+/** Group audited outcomes by vehicleKey. Returns a Map keyed on the
+ *  stable vehicle identifier, preserving insertion order (most-recent
+ *  audited first when caller passes outcomes in that order). */
+function groupByVehicle(
+  audited: AuditedWithPolicy[]
+): Map<string, AuditedWithPolicy[]> {
+  const groups = new Map<string, AuditedWithPolicy[]>();
+  for (const a of audited) {
+    const key = vehicleKey(a.parsed);
+    const arr = groups.get(key) ?? [];
+    arr.push(a);
+    groups.set(key, arr);
+  }
+  return groups;
+}
+
+/**
+ * Multi-vehicle reply path. Builds per-vehicle sections for the email
+ * body, renders a master PDF that puppeteer assembles by hitting
+ * /reports?docs=<all ids> (the /reports page itself detects
+ * multi-vehicle and lays out vehicle tabs / sections), then sends ONE
+ * email with that PDF + a magic link.
+ *
+ * Per-vehicle section contains:
+ *   · Vehicle label (make + model + year)
+ *   · Doc count for that vehicle
+ *   · Insurer name (anchor)
+ *   · Top gap headline if any
+ *   · Aryan's bottom-line verdict
+ *
+ * Customer reads: "Audits ready · N vehicles. Here's each one."
+ */
+async function sendMultiVehicleReplyForForward(args: {
+  fromEmail: string;
+  vehicleGroups: Map<string, AuditedWithPolicy[]>;
+  excludedDocs: ExcludedDoc[];
+  includeDpdpConsentLine: boolean;
+}): Promise<void> {
+  const magicLinkUrl = buildAuditMagicLinkUrl(
+    args.fromEmail,
+    SITE_URL,
+    "/reports"
+  );
+
+  // Build one section per vehicle. Within each section we pick the
+  // ANCHOR doc (same heuristic as MultiDocComparison: most-recent
+  // policy if any, else most-recent doc) and render its summary.
+  const sections: InboundMultiVehicleSection[] = [];
+  const allDocIds: string[] = [];
+
+  for (const [key, audits] of args.vehicleGroups.entries()) {
+    // Anchor selection — same as buildMultiDocComparison.
+    const policies = audits.filter(
+      (a) => (a.parsed.documentType ?? "policy") === "policy"
+    );
+    const sortByMostRecent = (a: AuditedWithPolicy, b: AuditedWithPolicy) =>
+      new Date(b.parsed.odPeriodStart ?? 0).getTime() -
+      new Date(a.parsed.odPeriodStart ?? 0).getTime();
+    const anchor =
+      policies.sort(sortByMostRecent)[0] ?? [...audits].sort(sortByMostRecent)[0];
+
+    // Pull anchor's report to surface the bottom line in the email body.
+    let anchorReport: PolicyReport | null = null;
+    try {
+      anchorReport = await findOne<PolicyReport>(
+        Tables.REPORTS,
+        (r) => r.parsedPolicyId === anchor.result.parsedPolicyId
+      );
+    } catch (err) {
+      console.error(
+        `[audit-runner] anchor report fetch failed for ${anchor.result.parsedPolicyId}:`,
+        err
+      );
+    }
+
+    // Collect all doc IDs from this vehicle group for the master PDF
+    // render URL (puppeteer hits /reports?docs=id,id,id&print=1).
+    allDocIds.push(...audits.map((a) => a.result.parsedPolicyId));
+
+    // Bottom-line text — string OR {verdict, action} shape, flatten.
+    let bottomLineText = "";
+    const bl = anchorReport?.bottomLine;
+    if (bl) {
+      if (typeof bl === "string") {
+        bottomLineText = bl;
+      } else {
+        bottomLineText = [bl.verdict, bl.action].filter(Boolean).join(" ");
+      }
+    }
+
+    sections.push({
+      vehicleKey: key,
+      vehicleLabel: vehicleLabel(anchor.parsed),
+      docCount: audits.length,
+      insurerName: anchor.parsed.insurerName || "your insurer",
+      docTypeLabel:
+        (anchor.parsed.documentType ?? "policy") === "quote"
+          ? "Renewal quote"
+          : "Policy",
+      yearLabel: anchor.parsed.odPeriodEnd
+        ? new Date(anchor.parsed.odPeriodEnd).getFullYear().toString()
+        : "",
+      bottomLine: bottomLineText,
+      anchorParsedPolicyId: anchor.result.parsedPolicyId,
+    });
+  }
+
+  // Render master PDF — /reports with ALL the doc IDs across all
+  // vehicles. The page itself detects multi-vehicle and lays out the
+  // per-vehicle sections in print mode.
+  let masterPdf: Buffer | null = null;
+  try {
+    const t0 = Date.now();
+    masterPdf = await renderReportsPdf({
+      docIds: allDocIds,
+      baseUrl: SITE_URL,
+      excludedDocs: args.excludedDocs,
+    });
+    console.log(
+      `[audit-runner] rendered multi-vehicle master PDF in ${Date.now() - t0}ms (${masterPdf.length} bytes) for ${sections.length} vehicles`
+    );
+  } catch (err) {
+    console.error(
+      `[audit-runner] multi-vehicle master PDF render failed; sending without attachment:`,
+      err
+    );
+  }
+
+  // Greeting first-name lookup.
+  const lowered = args.fromEmail.toLowerCase();
+  const userRow = await findOne<User>(
+    Tables.USERS,
+    (u) => (u.email ?? "").toLowerCase() === lowered
+  );
+  const firstName = friendlyFirstName(userRow?.name) || undefined;
+
+  await sendInboundMultiVehicleReply({
+    to: args.fromEmail,
+    firstName,
+    sections,
+    magicLinkUrl,
+    masterPdf: masterPdf ?? Buffer.alloc(0),
+    masterPdfFilename: `Audits — ${sections.length} vehicles.pdf`,
+    includeDpdpConsentLine: args.includeDpdpConsentLine,
+    excludedDocs: args.excludedDocs,
+  });
+  console.log(
+    `[audit-runner] multi-vehicle reply sent to ${args.fromEmail} — ${sections.length} vehicles, ${allDocIds.length} docs total`
+  );
 }

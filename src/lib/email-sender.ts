@@ -1719,3 +1719,256 @@ function renderInboundReplyText({
     `PPS · The link above is valid for seven days. If it expires, just forward your policy again and I'll send a fresh one.`,
   ].join("\n");
 }
+
+// ============================================================================
+// Inbound MULTI-VEHICLE reply — one forward covers different cars
+// ============================================================================
+
+/**
+ * One vehicle's section in the multi-vehicle reply body. The audit
+ * runner builds this from a per-vehicle group of audited outcomes.
+ */
+export interface InboundMultiVehicleSection {
+  /** Stable vehicle identifier. Surfaced only in HTML data-attrs;
+   *  customer-visible content uses vehicleLabel. */
+  vehicleKey: string;
+  /** Human-readable header — "Audi A6 (2015)". */
+  vehicleLabel: string;
+  /** How many docs (policies / quotes) the customer forwarded for
+   *  this specific vehicle. */
+  docCount: number;
+  /** Anchor doc's insurer — surfaced in the section as identifier. */
+  insurerName: string;
+  /** "Policy" or "Renewal quote" — anchor doc's type. */
+  docTypeLabel: string;
+  /** Anchor doc's expiry year, used as a sublabel. May be empty. */
+  yearLabel: string;
+  /** Aryan's bottom-line verdict for this vehicle's anchor doc.
+   *  Already flattened to plain text (verdict + action concatenated
+   *  for the structured shape). Used as the section's body copy. */
+  bottomLine: string;
+  /** Anchor doc's parsed-policy ID — used to deep-link the magic-link
+   *  to the right vehicle within /reports (future polish). */
+  anchorParsedPolicyId: string;
+}
+
+interface InboundMultiVehicleReplyArgs {
+  to: string;
+  firstName?: string;
+  /** One entry per vehicle. Order is preserved as caller passed
+   *  (most-recently-uploaded first). */
+  sections: InboundMultiVehicleSection[];
+  /** Magic-link landing on /reports — the page detects multi-vehicle
+   *  from the docs= query param and lays out vehicle tabs. */
+  magicLinkUrl: string;
+  /** Master PDF covering all vehicles. May be empty buffer if puppeteer
+   *  render failed (degrade gracefully). */
+  masterPdf: Buffer;
+  masterPdfFilename: string;
+  includeDpdpConsentLine: boolean;
+  /** Docs the inbound webhook couldn't process at all. Surfaced in
+   *  the "Couldn't process" block, separately from the vehicle
+   *  sections. */
+  excludedDocs?: ExcludedDocSummary[];
+}
+
+/**
+ * Multi-vehicle inbound reply.
+ *
+ * Subject:  "Audits ready · N vehicles"
+ * Body:     greeting → per-vehicle sections (label + insurer + doc
+ *           count + Aryan's verdict) → magic-link to /reports →
+ *           "couldn't process" if any → footer → Aryan signoff
+ *
+ * Never compares across vehicles in this email — each section stands
+ * on its own. The customer clicks the magic link to see the full
+ * vehicle-tabbed view on /reports.
+ */
+export async function sendInboundMultiVehicleReply({
+  to,
+  firstName,
+  sections,
+  magicLinkUrl,
+  masterPdf,
+  masterPdfFilename,
+  includeDpdpConsentLine,
+  excludedDocs,
+}: InboundMultiVehicleReplyArgs): Promise<void> {
+  if (sections.length < 2) {
+    throw new Error(
+      "sendInboundMultiVehicleReply requires 2+ vehicle sections. Use sendInboundMultiAuditReply for single-vehicle multi-doc."
+    );
+  }
+
+  const subject = `Audits ready · ${sections.length} vehicles`;
+
+  const html = renderInboundMultiVehicleReplyHtml({
+    firstName,
+    sections,
+    magicLinkUrl,
+    includeDpdpConsentLine,
+    excludedDocs,
+  });
+  const text = renderInboundMultiVehicleReplyText({
+    firstName,
+    sections,
+    magicLinkUrl,
+    includeDpdpConsentLine,
+    excludedDocs,
+  });
+
+  const attachments: { filename: string; content: Buffer }[] = [];
+  if (masterPdf && masterPdf.length > 0) {
+    attachments.push({ filename: masterPdfFilename, content: masterPdf });
+  }
+
+  const { error } = await client().emails.send({
+    from: INBOUND_REPLY_FROM,
+    replyTo: REPLY_TO,
+    to,
+    subject,
+    html,
+    text,
+    attachments,
+  });
+  if (error) {
+    throw new Error(`Resend (multi-vehicle-reply) failed: ${error.message}`);
+  }
+}
+
+function renderInboundMultiVehicleReplyHtml({
+  firstName,
+  sections,
+  magicLinkUrl,
+  includeDpdpConsentLine,
+  excludedDocs,
+}: Omit<
+  InboundMultiVehicleReplyArgs,
+  "to" | "masterPdf" | "masterPdfFilename"
+>): string {
+  const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
+  const totalDocs = sections.reduce((sum, s) => sum + s.docCount, 0);
+  const opener = `Thanks for forwarding ${totalDocs} documents covering ${sections.length} different vehicles. I&rsquo;ve audited each one separately — here&rsquo;s a quick summary, with the full audit attached as a PDF.`;
+
+  const excludedSection = renderExcludedDocsHtml(excludedDocs);
+
+  // Per-vehicle sections — each rendered as a plum left-rule card with
+  // vehicle label + insurer + bottom-line.
+  const vehicleSections = sections
+    .map((s) => {
+      const subline = `${escape(s.docTypeLabel)} · ${escape(s.insurerName)}${
+        s.yearLabel ? ` &middot; ${escape(s.yearLabel)}` : ""
+      } · ${s.docCount} doc${s.docCount > 1 ? "s" : ""}`;
+      const bottom = s.bottomLine
+        ? `<p style="margin:8px 0 0;font-size:14.5px;line-height:1.55;color:#1a1218;">${escape(s.bottomLine)}</p>`
+        : "";
+      return `<div style="margin:0 0 22px;padding:14px 16px;border-left:3px solid #3a1e3d;background:#f7f4f7;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:18px;color:#1a1218;line-height:1.3;">
+          ${escape(s.vehicleLabel)}
+        </div>
+        <div style="margin-top:3px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:#6b6571;font-weight:600;">
+          ${subline}
+        </div>
+        ${bottom}
+      </div>`;
+    })
+    .join("");
+
+  const ctaButton = `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:6px 0 8px;">
+      <tr>
+        <td style="background-color:#3a1e3d;border-radius:8px;padding:14px 26px;text-align:center;">
+          <a href="${escape(magicLinkUrl)}" style="color:#ffffff;text-decoration:none;font-family:Georgia,'Times New Roman',serif;font-size:16px;font-weight:600;display:inline-block;line-height:1;">
+            Open all audits side-by-side &rarr;
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:0 0 24px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      Link valid 7 days. If it expires, forward your documents again and I&rsquo;ll send a fresh one.
+    </p>`;
+
+  const dpdpLine = includeDpdpConsentLine
+    ? `<p style="margin:0 0 8px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      &middot; By forwarding to RightOffer you&rsquo;ve consented to us processing these documents. Reply with the word DELETE to remove your data.
+    </p>`
+    : "";
+
+  return `<!doctype html>
+<html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
+  <div style="display:none;font-size:1px;color:#fff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Audits for ${sections.length} different vehicles attached.
+  </div>
+  <div style="max-width:560px;">
+    <div style="font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8b9d80;font-weight:700;margin:0 0 22px;">
+      &middot; RightOffer &middot; Audits ready &middot; ${sections.length} vehicles &middot;
+    </div>
+
+    <p style="margin:0 0 18px;">${greeting}</p>
+
+    <p style="margin:0 0 22px;">${opener}</p>
+
+    ${excludedSection}
+
+    ${ctaButton}
+
+    ${vehicleSections}
+
+    ${dpdpLine}
+    <p style="margin:0 0 22px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
+      If this landed in Promotions or Spam, drag it to Primary or add <strong style="color:#1a1218;">review@rightoffer.in</strong> to your contacts so future audits arrive cleanly.
+    </p>
+
+    <p style="margin:0;font-style:italic;">&mdash; Aryan</p>
+  </div>
+</body></html>`;
+}
+
+function renderInboundMultiVehicleReplyText({
+  firstName,
+  sections,
+  magicLinkUrl,
+  includeDpdpConsentLine,
+  excludedDocs,
+}: Omit<
+  InboundMultiVehicleReplyArgs,
+  "to" | "masterPdf" | "masterPdfFilename"
+>): string {
+  const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
+  const totalDocs = sections.reduce((sum, s) => sum + s.docCount, 0);
+  const lines: string[] = [
+    `· RightOffer · Audits ready · ${sections.length} vehicles ·`,
+    ``,
+    greeting,
+    ``,
+    `Thanks for forwarding ${totalDocs} documents covering ${sections.length} different vehicles. I've audited each one separately — here's a quick summary, with the full audit attached as a PDF.`,
+    ``,
+  ];
+  lines.push(...renderExcludedDocsText(excludedDocs));
+  lines.push(
+    `→ Open all audits side-by-side: ${magicLinkUrl}`,
+    `  Link valid 7 days. If it expires, forward your documents again and I'll send a fresh one.`,
+    ``
+  );
+  for (const s of sections) {
+    lines.push(`· ${s.vehicleLabel} ·`);
+    const subline = `  ${s.docTypeLabel} · ${s.insurerName}${
+      s.yearLabel ? ` · ${s.yearLabel}` : ""
+    } · ${s.docCount} doc${s.docCount > 1 ? "s" : ""}`;
+    lines.push(subline);
+    if (s.bottomLine) {
+      lines.push(`  ${s.bottomLine}`);
+    }
+    lines.push(``);
+  }
+  if (includeDpdpConsentLine) {
+    lines.push(
+      `· By forwarding to RightOffer you've consented to us processing these documents. Reply with the word DELETE to remove your data.`
+    );
+  }
+  lines.push(
+    `If this landed in Promotions or Spam, drag it to Primary or add review@rightoffer.in to your contacts so future audits arrive cleanly.`,
+    ``,
+    `— Aryan`
+  );
+  return lines.join("\n");
+}

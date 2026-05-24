@@ -36,3 +36,46 @@ export function policyGroupKey(p: ParsedPolicy): string {
   const model = (p.vehicle.model ?? "").toLowerCase().trim();
   return `${docType}:mm:${make}|${model}|${expiry}`;
 }
+
+/**
+ * Stable key for grouping "documents covering the same physical car."
+ *
+ * Distinct from policyGroupKey: vehicleKey IGNORES period + documentType.
+ * The same car's 2023 policy + 2024 quote share a vehicleKey but have
+ * different policyGroupKey. Used by the inbound-forward dispatcher to
+ * detect when a single forward covers multiple vehicles (so the
+ * cross-doc comparator never compares an Audi A6 to a Maruti Swift).
+ *
+ * Primary key: normalised registration number — same normalisation as
+ * policyGroupKey (strip spaces/hyphens, uppercase).
+ *
+ * Fallback when the parser couldn't extract a registration: lowercase
+ * make + model + yearOfManufacture + rto. Stricter than policyGroupKey's
+ * fallback because the same household might own two Maruti Swifts of
+ * different years — we want different physical cars to NOT collapse.
+ */
+export function vehicleKey(p: ParsedPolicy): string {
+  const reg = (p.vehicle.registrationNumber ?? "")
+    .replace(/[\s-]+/g, "")
+    .toUpperCase()
+    .trim();
+  if (reg) return `reg:${reg}`;
+  const make = (p.vehicle.make ?? "").toLowerCase().trim();
+  const model = (p.vehicle.model ?? "").toLowerCase().trim();
+  const year = p.vehicle.yearOfManufacture ?? 0;
+  const rto = (p.vehicle.rto ?? "").toLowerCase().trim();
+  return `mm:${make}|${model}|${year}|${rto}`;
+}
+
+/**
+ * Human-readable label for a vehicle — used as section header /
+ * tab label in multi-vehicle emails + /reports.
+ */
+export function vehicleLabel(p: ParsedPolicy): string {
+  const make = (p.vehicle.make ?? "").trim();
+  const model = (p.vehicle.model ?? "").trim();
+  const year = p.vehicle.yearOfManufacture;
+  const base = `${make} ${model}`.trim();
+  if (!base) return "your car";
+  return year ? `${base} (${year})` : base;
+}

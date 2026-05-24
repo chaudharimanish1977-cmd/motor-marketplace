@@ -16,6 +16,7 @@ import type {
   PolicyReport,
 } from "@/lib/types";
 import type { MultiDocRow } from "@/components/report-coverage-snapshot";
+import { vehicleKey, vehicleLabel } from "@/lib/policy-group";
 
 /**
  * A single document's pair (the parsed source + the generated audit).
@@ -226,4 +227,90 @@ function joinSnapshots(ordered: DocPair[]): MultiDocRow[] {
       }),
     };
   });
+}
+
+// ============================================================================
+// Multi-vehicle dispatching
+// ============================================================================
+
+/**
+ * Per-vehicle slice of a multi-vehicle forward. Each vehicle has its
+ * own MultiDocComparison (audit + cross-doc table scoped to docs that
+ * actually belong to that vehicle) so we never compare add-ons across
+ * a Maruti Swift and an Audi A6.
+ */
+export interface VehicleSlice {
+  /** Stable vehicle identifier — see vehicleKey() in policy-group.ts. */
+  vehicleKey: string;
+  /** Human-readable label, e.g. "Audi A6 (2015)". Used as tab + section
+   *  header in email / /reports. */
+  vehicleLabel: string;
+  /** Comparison object for THIS vehicle's docs only. Single-doc case
+   *  produces a comparison with one column; renders as a normal audit. */
+  comparison: MultiDocComparison;
+  /** Doc count for this vehicle (mirrors comparison.ordered.length). */
+  docCount: number;
+}
+
+export interface MultiVehicleComparison {
+  /** Ordered list of vehicle slices — most-recently-uploaded first. */
+  vehicles: VehicleSlice[];
+  /** Sum of docs across all vehicles. Equal to docPairs.length passed in. */
+  totalDocs: number;
+}
+
+/**
+ * Group docs by vehicle, then build a MultiDocComparison per group.
+ *
+ * Throws if docPairs is empty — callers should handle the empty case
+ * themselves (probably the no-PDF / no-match reply path).
+ *
+ * Ordering: vehicles are sorted by most-recent uploadedAt of any doc
+ * in the group. Investor / customer expectation: the car they just
+ * uploaded shows first.
+ *
+ * Even a single-vehicle forward returns a MultiVehicleComparison with
+ * vehicles.length === 1, so callers can use this builder unconditionally.
+ */
+export function buildMultiVehicleComparison(
+  docPairs: DocPair[]
+): MultiVehicleComparison {
+  if (docPairs.length === 0) {
+    throw new Error("buildMultiVehicleComparison requires at least one doc");
+  }
+
+  // Group by vehicleKey.
+  const groups = new Map<string, DocPair[]>();
+  for (const dp of docPairs) {
+    const key = vehicleKey(dp.parsed);
+    const arr = groups.get(key) ?? [];
+    arr.push(dp);
+    groups.set(key, arr);
+  }
+
+  // Sort groups by most-recent uploadedAt of any doc in the group.
+  // Why this sort: customers who forward "my current policy + my new
+  // quote for car X + my old policy for car Y" expect to see X first
+  // (the active comparison), then Y (the legacy).
+  const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
+    const aMax = Math.max(
+      ...groups.get(a)!.map((d) => Date.parse(d.parsed.uploadedAt) || 0)
+    );
+    const bMax = Math.max(
+      ...groups.get(b)!.map((d) => Date.parse(d.parsed.uploadedAt) || 0)
+    );
+    return bMax - aMax;
+  });
+
+  const vehicles: VehicleSlice[] = sortedKeys.map((key) => {
+    const docs = groups.get(key)!;
+    return {
+      vehicleKey: key,
+      vehicleLabel: vehicleLabel(docs[0].parsed),
+      comparison: buildMultiDocComparison(docs),
+      docCount: docs.length,
+    };
+  });
+
+  return { vehicles, totalDocs: docPairs.length };
 }

@@ -10,11 +10,15 @@ import { policyGroupKey } from "@/lib/policy-group";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 import { getAnonymousSession } from "@/lib/anonymous-session";
-import { buildMultiDocComparison } from "@/lib/multi-doc-comparison";
+import {
+  buildMultiDocComparison,
+  buildMultiVehicleComparison,
+} from "@/lib/multi-doc-comparison";
 import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 import { MultiDocReport } from "@/components/multi-doc-report";
+import { MultiVehicleReport } from "@/components/multi-vehicle-report";
 import { ResetButton } from "./reset-button";
 import { TabStrip, type TabDef } from "./tab-strip";
 
@@ -283,6 +287,94 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   // Note: visibleDocs.length === 1 case is already handled above via
   // redirect to /report/[id]. So docPairs.length >= 2 here.
 
+  const showGate = !isVerified;
+
+  // ── Multi-vehicle dispatch ──────────────────────────────────────
+  // Group by vehicleKey FIRST. If the forward spans more than one
+  // vehicle, route to MultiVehicleReport — the per-vehicle layout
+  // that never cross-compares Audi A6 add-ons against Maruti Swift
+  // add-ons. Single-vehicle (the common case) falls through to the
+  // existing comparator logic below.
+  const multiVehicle = buildMultiVehicleComparison(docPairs);
+  if (multiVehicle.vehicles.length > 1) {
+    // Generate cross-doc bottom line PER VEHICLE in parallel so total
+    // /reports render time stays bounded by the slowest LLM call,
+    // not the sum.
+    const bottomLineEntries = await Promise.all(
+      multiVehicle.vehicles.map(async (slice) => {
+        try {
+          const bl = await generateCrossDocBottomLine({
+            docs: slice.comparison.ordered.map((d, i) => ({
+              label: slice.comparison.labels[i].label,
+              period: slice.comparison.labels[i].sublabel,
+              documentType:
+                (d.parsed.documentType ?? "policy") === "quote"
+                  ? "quote"
+                  : "policy",
+              insurer: d.parsed.insurerName,
+              idv: d.parsed.idv,
+              ncbPercent: d.parsed.ncbPercent,
+              grandTotalPremium: d.parsed.premium?.grandTotal ?? 0,
+              addOnsPresent: (d.parsed.addOns ?? []).map((a) => a.name),
+              keyGaps: d.report.keyGaps?.items?.map((g) => g.title),
+              perDocBottomLine: flattenBottomLine(d.report.bottomLine),
+            })),
+          });
+          return [slice.vehicleKey, bl] as const;
+        } catch (err) {
+          console.error(
+            `[reports] per-vehicle bottom-line failed for ${slice.vehicleKey} (non-fatal):`,
+            err
+          );
+          return [slice.vehicleKey, null] as const;
+        }
+      })
+    );
+    const bottomLinesByVehicle: Record<
+      string,
+      { verdict: string; action?: string } | null
+    > = {};
+    for (const [k, v] of bottomLineEntries) {
+      bottomLinesByVehicle[k] = v;
+    }
+
+    return (
+      <>
+        {!printMode && <BrandBlobs />}
+        <main className="relative z-10 min-h-screen px-4 py-8 md:py-10">
+          <div className="max-w-4xl mx-auto">
+            {!printMode && (
+              <div className="flex items-center justify-between gap-2 mb-3 flex-wrap text-[11px] text-brand-slate">
+                <div>
+                  <span className="font-semibold text-brand-charcoal">
+                    {multiVehicle.vehicles.length}
+                  </span>{" "}
+                  vehicles &middot;{" "}
+                  <span className="font-semibold text-brand-charcoal">
+                    {multiVehicle.totalDocs}
+                  </span>{" "}
+                  document{multiVehicle.totalDocs === 1 ? "" : "s"}
+                </div>
+                <ResetButton />
+              </div>
+            )}
+            <MultiVehicleReport
+              data={multiVehicle}
+              bottomLinesByVehicle={bottomLinesByVehicle}
+              excludedDocs={excludedDocs}
+              view="customer"
+              showGate={!printMode && showGate}
+              printMode={printMode}
+              activeTab={requestedTab}
+              showAdminReveal={showAdminReveal}
+            />
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  // ── Single-vehicle path (existing comparator) ──────────────────
   const comparison = buildMultiDocComparison(docPairs);
 
   // Cross-doc bottom line — synthesised verdict across all forwarded
@@ -313,7 +405,9 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     console.error("[reports] cross-doc bottom line failed (non-fatal):", err);
   }
 
-  const showGate = !isVerified;
+  // showGate is defined above (before the multi-vehicle branch) so
+  // both the single-vehicle path here and the multi-vehicle return
+  // share the same gating decision.
 
   // Build the tab definitions — "Comparator" + one per doc.
   // The TabStrip client component reads ?tab= from the URL; we just
