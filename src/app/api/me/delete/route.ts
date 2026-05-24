@@ -12,6 +12,7 @@ import type {
   RenewalSchedule,
   RenewalSubscription,
   RFQ,
+  ShareToken,
   Transaction,
   User,
 } from "@/lib/types";
@@ -67,6 +68,7 @@ export async function POST() {
     transactions,
     schedules,
     subscriptions,
+    shareTokens,
   ] = await Promise.all([
     readTable<User>(Tables.USERS),
     readTable<ParsedPolicy>(Tables.PARSED_POLICIES),
@@ -76,6 +78,7 @@ export async function POST() {
     readTable<Transaction>(Tables.TRANSACTIONS),
     readTable<RenewalSchedule>(Tables.RENEWAL_SCHEDULES),
     readTable<RenewalSubscription>(Tables.RENEWAL_SUBSCRIPTIONS),
+    readTable<ShareToken>(Tables.SHARE_TOKENS),
   ]);
 
   // -------- Step 1: identify the policy IDs owned by this email --------
@@ -118,6 +121,7 @@ export async function POST() {
     transactions: 0,
     schedules: 0,
     subscriptions: 0,
+    shareTokens: 0,
   };
 
   const nextUsers = users.filter((u) => {
@@ -193,11 +197,28 @@ export async function POST() {
     return true;
   });
 
+  // Share tokens — keyed on ownerEmail (lowercased) + parsedPolicyId.
+  // Either match counts: a token from this user is gone, and any
+  // token pointing at a deleted policy is also gone. The /share/[token]
+  // recipient surface depersonalises but the row still carries
+  // parsedPolicyId, so DPDP erasure requires we drop both shapes.
+  const nextShareTokens = shareTokens.filter((tok) => {
+    if (
+      (tok.ownerEmail ?? "").toLowerCase() === target ||
+      policyIdsToDelete.has(tok.parsedPolicyId)
+    ) {
+      counts.shareTokens++;
+      return false;
+    }
+    return true;
+  });
+
   // Persist all tables. We don't have transactions across tables in the
   // prototype KV layer — a partial failure here would leave the data in
   // a half-deleted state, but the next retry would converge it. Order
   // is leaves-first so an interrupted run prefers orphaned children to
   // orphaned parents (less surprising on retry).
+  await writeTable(Tables.SHARE_TOKENS, nextShareTokens);
   await writeTable(Tables.TRANSACTIONS, nextTransactions);
   await writeTable(Tables.BIDS, nextBids);
   await writeTable(Tables.RFQS, nextRfqs);
