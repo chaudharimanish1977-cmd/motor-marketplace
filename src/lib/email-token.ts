@@ -22,7 +22,7 @@ import crypto from "crypto";
 
 const SECRET_ENV = "EMAIL_TOKEN_SECRET";
 
-export type TokenType = "unsub" | "login" | "session";
+export type TokenType = "unsub" | "login" | "session" | "remind";
 
 interface TokenPayload {
   t: TokenType;
@@ -173,6 +173,35 @@ export function buildAuditMagicLinkUrl(
   });
   const base = origin.replace(/\/+$/, "");
   return `${base}/me/auth/${token}?next=${encodeURIComponent(nextPath)}`;
+}
+
+/**
+ * Magic-link for "Yes, remind me before this expires" — embedded in
+ * the audit-reply email body. One click subscribes the customer to
+ * the renewal-reminder cron for the given parsedPolicyId.
+ *
+ * Payload subject packs `email|parsedPolicyId` so the click handler
+ * has everything it needs without a session lookup. We use `|` as
+ * the separator — neither email nor a UUID contain that character.
+ *
+ * Long expiry (30 days) — customers sometimes find the audit email
+ * weeks later and we'd rather they subscribe late than not at all.
+ * Single-use semantics aren't required: a re-click on an already-
+ * active subscription is harmlessly idempotent at the API layer.
+ */
+export function buildRemindMeUrl(
+  email: string,
+  parsedPolicyId: string,
+  origin: string
+): string {
+  const subject = `${email.toLowerCase().trim()}|${parsedPolicyId}`;
+  const token = signToken({
+    t: "remind",
+    s: subject,
+    e: Date.now() + THIRTY_DAYS_MS,
+  });
+  const base = origin.replace(/\/+$/, "");
+  return `${base}/api/reminders/click/${token}`;
 }
 
 /** Default session lifetime: 30 days. */

@@ -796,6 +796,11 @@ interface InboundReplyArgs {
    *  the line to avoid every reply reading like a fresh-onboarding
    *  email. */
   includeDpdpConsentLine: boolean;
+  /** Optional one-click "Remind me before this expires" magic link.
+   *  When present, renders a small editorial line in the reply body.
+   *  Caller is responsible for gating (policy-type only, expiry in
+   *  future) — if the URL is set, it's rendered. */
+  remindMeUrl?: string;
 }
 
 export async function sendInboundAuditReply({
@@ -805,6 +810,7 @@ export async function sendInboundAuditReply({
   magicLinkUrl,
   pdf,
   includeDpdpConsentLine,
+  remindMeUrl,
 }: InboundReplyArgs): Promise<void> {
   const subject = `${vehicleLabel} audit ready`;
 
@@ -813,12 +819,14 @@ export async function sendInboundAuditReply({
     vehicleLabel,
     magicLinkUrl,
     includeDpdpConsentLine,
+    remindMeUrl,
   });
   const text = renderInboundReplyText({
     firstName,
     vehicleLabel,
     magicLinkUrl,
     includeDpdpConsentLine,
+    remindMeUrl,
   });
 
   const { error } = await client().emails.send({
@@ -849,12 +857,20 @@ function renderInboundReplyHtml({
   vehicleLabel,
   magicLinkUrl,
   includeDpdpConsentLine,
+  remindMeUrl,
 }: Omit<InboundReplyArgs, "to" | "pdf">): string {
   const greeting = firstName ? `Hi ${escape(firstName)},` : "Hi there,";
   const dpdpLine = includeDpdpConsentLine
     ? `<p style="margin:0 0 14px;font-family:Menlo,Consolas,'SF Mono',monospace;font-size:11px;color:#6b6571;line-height:1.6;">
       &middot; By forwarding to RightOffer you&rsquo;ve consented to us processing this document. Reply with the word DELETE to remove your data.
     </p>`
+    : "";
+  // "Remind me before this expires" — one-click renewal subscribe.
+  // The link is HMAC-signed (30-day expiry) and lands on a thin
+  // confirmation page. No login required; the click itself is the
+  // consent action.
+  const remindLine = remindMeUrl
+    ? `<p style="margin:0 0 18px;"><a href="${escape(remindMeUrl)}" style="color:#3a1e3d;">&rarr; Remind me before this expires</a> <span style="color:#6b6571;font-style:italic;">&mdash; one click; we&rsquo;ll write to you 60, 30 and 7 days before.</span></p>`
     : "";
   return `<!doctype html>
 <html><body style="margin:0;padding:28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#1a1218;">
@@ -871,6 +887,8 @@ function renderInboundReplyHtml({
     <p style="margin:0 0 18px;">Thanks for forwarding your policy. I just read every line of your <em style="font-style:italic;color:#3a1e3d;">${escape(vehicleLabel)}</em> cover &mdash; the audit is attached as a PDF, and you can also view it on the web with one click below. No password needed; the link signs you in.</p>
 
     <p style="margin:0 0 18px;"><a href="${escape(magicLinkUrl)}" style="color:#3a1e3d;">View your full audit &rarr;</a></p>
+
+    ${remindLine}
 
     <p style="margin:0 0 18px;font-style:italic;color:#6b6571;">If you have a renewal quote, just forward it here next &mdash; I&rsquo;ll re-read it the same way.</p>
 
@@ -976,6 +994,10 @@ interface InboundMultiReplyArgs {
    *  audit. Rendered as a "Couldn't process" bullet list. Empty
    *  array (or omitted) when every doc made it through. */
   excludedDocs?: ExcludedDocSummary[];
+  /** Optional one-click "Remind me before this expires" magic link
+   *  for the anchor policy of this single-vehicle multi-doc forward.
+   *  Caller gates on policy-type + future-expiry. */
+  remindMeUrl?: string;
 }
 
 export async function sendInboundMultiAuditReply({
@@ -988,6 +1010,7 @@ export async function sendInboundMultiAuditReply({
   includeDpdpConsentLine,
   comparator,
   excludedDocs,
+  remindMeUrl,
 }: InboundMultiReplyArgs): Promise<void> {
   if (audits.length < 2) {
     throw new Error(
@@ -1005,6 +1028,7 @@ export async function sendInboundMultiAuditReply({
     includeDpdpConsentLine,
     comparator,
     excludedDocs,
+    remindMeUrl,
   });
   const text = renderInboundMultiReplyText({
     firstName,
@@ -1013,6 +1037,7 @@ export async function sendInboundMultiAuditReply({
     includeDpdpConsentLine,
     comparator,
     excludedDocs,
+    remindMeUrl,
   });
 
   const { error } = await client().emails.send({
@@ -1227,6 +1252,7 @@ function renderInboundMultiReplyHtml({
   includeDpdpConsentLine,
   comparator,
   excludedDocs,
+  remindMeUrl,
 }: Omit<
   InboundMultiReplyArgs,
   "to" | "masterPdf" | "masterPdfFilename"
@@ -1307,6 +1333,12 @@ function renderInboundMultiReplyHtml({
 
     ${ctaButton}
 
+    ${
+      remindMeUrl
+        ? `<p style="margin:0 0 22px;"><a href="${escape(remindMeUrl)}" style="color:#3a1e3d;">&rarr; Remind me before this expires</a> <span style="color:#6b6571;font-style:italic;">&mdash; one click; we&rsquo;ll email you 60, 30 and 7 days before renewal.</span></p>`
+        : ""
+    }
+
     ${renderComparatorSectionHtml(comparator)}
 
     ${dpdpLine}
@@ -1326,6 +1358,7 @@ function renderInboundMultiReplyText({
   includeDpdpConsentLine,
   comparator,
   excludedDocs,
+  remindMeUrl,
 }: Omit<
   InboundMultiReplyArgs,
   "to" | "masterPdf" | "masterPdfFilename"
@@ -1359,6 +1392,14 @@ function renderInboundMultiReplyText({
     `→ Open all audits side-by-side: ${magicLinkUrl}`,
     `  Link valid 7 days. If it expires, forward your documents again and I'll send a fresh one.`
   );
+  // Renewal-reminder magic link — sits below the master CTA so the
+  // primary action (open the audit) reads first.
+  if (remindMeUrl) {
+    lines.push(
+      ``,
+      `→ Remind me before this expires (one click; 60/30/7-day emails): ${remindMeUrl}`
+    );
+  }
   // Comparator summary, if provided.
   lines.push(...renderComparatorSectionText(comparator));
   // Footer small-print — sits ABOVE the signature so "— Aryan" is the
@@ -1691,6 +1732,7 @@ function renderInboundReplyText({
   vehicleLabel,
   magicLinkUrl,
   includeDpdpConsentLine,
+  remindMeUrl,
 }: Omit<InboundReplyArgs, "to" | "pdf">): string {
   const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
   return [
@@ -1702,6 +1744,12 @@ function renderInboundReplyText({
     ``,
     `View your full audit: ${magicLinkUrl}`,
     ``,
+    ...(remindMeUrl
+      ? [
+          `→ Remind me before this expires (one click; 60/30/7-day emails): ${remindMeUrl}`,
+          ``,
+        ]
+      : []),
     `If you have a renewal quote, just forward it here next — I'll re-read it the same way.`,
     ``,
     `— Aryan`,
@@ -1750,6 +1798,11 @@ export interface InboundMultiVehicleSection {
   /** Anchor doc's parsed-policy ID — used to deep-link the magic-link
    *  to the right vehicle within /reports (future polish). */
   anchorParsedPolicyId: string;
+  /** Optional per-vehicle "Remind me before this expires" magic link.
+   *  Caller gates on the anchor being a policy (not a quote) with a
+   *  future expiry. When set, renders as a small editorial line
+   *  inside this vehicle's section card. */
+  remindMeUrl?: string;
 }
 
 interface InboundMultiVehicleReplyArgs {
@@ -1862,6 +1915,12 @@ function renderInboundMultiVehicleReplyHtml({
       const bottom = s.bottomLine
         ? `<p style="margin:8px 0 0;font-size:14.5px;line-height:1.55;color:#1a1218;">${escape(s.bottomLine)}</p>`
         : "";
+      // Per-vehicle "remind me before this expires" link. Each
+      // vehicle's renewal cliff is independent, so each section
+      // carries its own one-click subscribe.
+      const remindLine = s.remindMeUrl
+        ? `<p style="margin:8px 0 0;font-size:13.5px;line-height:1.55;"><a href="${escape(s.remindMeUrl)}" style="color:#3a1e3d;">&rarr; Remind me before this expires</a></p>`
+        : "";
       return `<div style="margin:0 0 22px;padding:14px 16px;border-left:3px solid #3a1e3d;background:#f7f4f7;">
         <div style="font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:18px;color:#1a1218;line-height:1.3;">
           ${escape(s.vehicleLabel)}
@@ -1870,6 +1929,7 @@ function renderInboundMultiVehicleReplyHtml({
           ${subline}
         </div>
         ${bottom}
+        ${remindLine}
       </div>`;
     })
     .join("");
@@ -1957,6 +2017,9 @@ function renderInboundMultiVehicleReplyText({
     lines.push(subline);
     if (s.bottomLine) {
       lines.push(`  ${s.bottomLine}`);
+    }
+    if (s.remindMeUrl) {
+      lines.push(`  → Remind me before this expires: ${s.remindMeUrl}`);
     }
     lines.push(``);
   }

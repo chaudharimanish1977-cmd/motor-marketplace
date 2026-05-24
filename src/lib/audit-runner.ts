@@ -39,7 +39,7 @@ import {
   type InboundMultiVehicleSection,
   type InboundNoMatchReason,
 } from "@/lib/email-sender";
-import { buildAuditMagicLinkUrl } from "@/lib/email-token";
+import { buildAuditMagicLinkUrl, buildRemindMeUrl } from "@/lib/email-token";
 import { renderReportPdf, renderReportsPdf } from "@/lib/pdf-renderer";
 import { storeReportPdf } from "@/lib/blob-store";
 import { findById, findMany, findOne, Tables } from "@/lib/db";
@@ -504,6 +504,24 @@ async function sendAuditReplyForForward(args: {
   );
   const firstName = friendlyFirstName(userRow?.name) || undefined;
 
+  // Compute the one-click "Remind me before this expires" magic link.
+  // Gated to policies with a future expiry — quotes have no renewal
+  // cliff, lapsed policies have nothing to nudge. Lookup is
+  // best-effort: a miss here just suppresses the remind line.
+  let remindMeUrl: string | undefined;
+  try {
+    const parsed = await findById<ParsedPolicy>(
+      Tables.PARSED_POLICIES,
+      args.parsedPolicyId
+    );
+    remindMeUrl = maybeBuildRemindUrl(parsed, args.fromEmail);
+  } catch (err) {
+    console.warn(
+      "[audit-runner] remind-url lookup failed (non-fatal):",
+      err
+    );
+  }
+
   await sendInboundAuditReply({
     to: args.fromEmail,
     firstName,
@@ -511,10 +529,30 @@ async function sendAuditReplyForForward(args: {
     magicLinkUrl,
     pdf: pdfBuffer ?? Buffer.alloc(0),
     includeDpdpConsentLine: args.includeDpdpConsentLine,
+    remindMeUrl,
   });
   console.log(
     `[audit-runner] reply sent to ${args.fromEmail} for ${args.parsedPolicyId}`
   );
+}
+
+/**
+ * Build the one-click "Remind me" magic-link URL for an audit reply.
+ * Returns undefined when the doc isn't a policy or its expiry is in
+ * the past — quotes and lapsed policies have no renewal to subscribe
+ * to. The link is HMAC-signed with a 30-day expiry; the click handler
+ * at /api/reminders/click verifies + creates the subscription.
+ */
+function maybeBuildRemindUrl(
+  parsed: ParsedPolicy | null,
+  email: string
+): string | undefined {
+  if (!parsed) return undefined;
+  if ((parsed.documentType ?? "policy") !== "policy") return undefined;
+  if (!parsed.odPeriodEnd) return undefined;
+  const expiryMs = Date.parse(parsed.odPeriodEnd);
+  if (!Number.isFinite(expiryMs) || expiryMs < Date.now()) return undefined;
+  return buildRemindMeUrl(email, parsed.id, SITE_URL);
 }
 
 /**
@@ -647,6 +685,19 @@ async function sendConsolidatedReplyForForward(args: {
           err
         );
       }
+      let remindMeUrlSolo: string | undefined;
+      try {
+        const parsed = await findById<ParsedPolicy>(
+          Tables.PARSED_POLICIES,
+          onlyAudit.parsedPolicyId
+        );
+        remindMeUrlSolo = maybeBuildRemindUrl(parsed, args.fromEmail);
+      } catch (err) {
+        console.warn(
+          "[audit-runner] solo-fallback remind-url lookup failed:",
+          err
+        );
+      }
       await sendInboundAuditReply({
         to: args.fromEmail,
         firstName,
@@ -658,6 +709,7 @@ async function sendConsolidatedReplyForForward(args: {
         ),
         pdf: singlePdf ?? Buffer.alloc(0),
         includeDpdpConsentLine: args.includeDpdpConsentLine,
+        remindMeUrl: remindMeUrlSolo,
       });
       return;
     }
@@ -688,6 +740,38 @@ async function sendConsolidatedReplyForForward(args: {
       ? buildMasterPdfFilename(audits[0].vehicleLabel)
       : "Comparison.pdf";
 
+  // Anchor policy for the renewal-reminder link. Anchor = most-recent
+  // POLICY in the forward (matches the comparator's anchor selection
+  // heuristic). Quotes alone can't be subscribed to. Best-effort
+  // lookup; a miss here just suppresses the remind line in the email.
+  let remindMeUrlMulti: string | undefined;
+  try {
+    const candidates: ParsedPolicy[] = [];
+    for (const a of args.audits) {
+      const parsed = await findById<ParsedPolicy>(
+        Tables.PARSED_POLICIES,
+        a.parsedPolicyId
+      );
+      if (parsed && (parsed.documentType ?? "policy") === "policy") {
+        candidates.push(parsed);
+      }
+    }
+    candidates.sort(
+      (a, b) =>
+        new Date(b.odPeriodStart ?? 0).getTime() -
+        new Date(a.odPeriodStart ?? 0).getTime()
+    );
+    remindMeUrlMulti = maybeBuildRemindUrl(
+      candidates[0] ?? null,
+      args.fromEmail
+    );
+  } catch (err) {
+    console.warn(
+      "[audit-runner] multi-doc anchor remind-url lookup failed:",
+      err
+    );
+  }
+
   // Multi-reply path. Sends ONE email with the master PDF attached.
   await sendInboundMultiAuditReply({
     to: args.fromEmail,
@@ -699,6 +783,7 @@ async function sendConsolidatedReplyForForward(args: {
     includeDpdpConsentLine: args.includeDpdpConsentLine,
     comparator,
     excludedDocs: args.excludedDocs,
+    remindMeUrl: remindMeUrlMulti,
   });
   console.log(
     `[audit-runner] consolidated reply sent to ${args.fromEmail} — ${audits.length} audits, 1 master PDF${comparator ? " + comparator summary" : ""}`
@@ -1014,6 +1099,9 @@ async function sendMultiVehicleReplyForForward(args: {
         : "",
       bottomLine: bottomLineText,
       anchorParsedPolicyId: anchor.result.parsedPolicyId,
+      // Per-vehicle one-click "remind me" link. Skipped when the
+      // anchor is a quote or its expiry has lapsed.
+      remindMeUrl: maybeBuildRemindUrl(anchor.parsed, args.fromEmail),
     });
   }
 
