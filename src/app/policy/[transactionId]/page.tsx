@@ -12,14 +12,8 @@ import type {
   ParsedPolicy,
   RenewalSchedule,
 } from "@/lib/types";
-import { formatINR, formatDateRange } from "@/lib/format";
+import { formatINR, formatDateRange, friendlyFirstName } from "@/lib/format";
 import { isMarketplaceEnabled } from "@/lib/feature-flags";
-
-function firstName(fullName: string | undefined | null): string {
-  const trimmed = (fullName ?? "").trim();
-  if (!trimmed) return "there";
-  return trimmed.split(/\s+/)[0] || "there";
-}
 
 interface PageProps {
   params: Promise<{ transactionId: string }>;
@@ -94,7 +88,7 @@ export default async function PolicyPage({ params }: PageProps) {
           </div>
           <div className="flex-1 min-w-[200px]">
             <div className="font-bold text-emerald-900">
-              You&apos;re covered, {firstName(parsedPolicy.owner.name)}!
+              You&apos;re covered, {friendlyFirstName(parsedPolicy.owner.name)}!
             </div>
             <div className="text-sm text-emerald-800">
               Policy doc emailed to{" "}

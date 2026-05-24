@@ -220,6 +220,113 @@
     background-color: #0F172A !important;
   }
 
+  /* ============================================================
+   * Brand-token ALIASES used as surface bg or gradient stops.
+   *
+   * `brand-navy / olive / coral / deepblue / electricblue / etc.`
+   * all resolve at the CSS-variable layer to charcoal, plum, or sage.
+   * Those underlying variables flip LIGHT in dark mode (for body-text
+   * legibility against a dark page). But components use the aliases
+   * as the BACKGROUND of CTAs, gradient headers, pills with white
+   * text on top — when the background flips light, the white text
+   * disappears.
+   *
+   * Re-pin each alias to a fixed-dark value when it's used as bg /
+   * gradient stop. The :not([class*="dark:..."]) guard preserves any
+   * explicit dark:bg-* / dark:from-* override a component might want.
+   * text-* uses of the same aliases are NOT re-pinned — those still
+   * flip light naturally for inline text accents.
+   * ============================================================ */
+
+  /* === brand-navy / brand-ink (alias of charcoal) — pin to slate-900 === */
+  html.dark .bg-brand-navy:not([class*="dark:bg-"]),
+  html.dark .bg-brand-ink:not([class*="dark:bg-"]) {
+    background-color: #0F172A !important;
+  }
+  html.dark .from-brand-navy:not([class*="dark:from-"]),
+  html.dark .from-brand-ink:not([class*="dark:from-"]) {
+    --tw-gradient-from: #0F172A var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .via-brand-navy:not([class*="dark:via-"]),
+  html.dark .via-brand-ink:not([class*="dark:via-"]) {
+    --tw-gradient-stops: var(--tw-gradient-from), #1E293B var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-navy:not([class*="dark:to-"]),
+  html.dark .to-brand-ink:not([class*="dark:to-"]) {
+    --tw-gradient-to: #0F172A var(--tw-gradient-to-position) !important;
+  }
+
+  /* === brand-plum / brand-olive / brand-orange / brand-purple /
+       brand-deepblue (all resolve to plum) — pin to deep plum #3a1e3d
+       so white text on plum CTAs / headers stays readable in dark === */
+  html.dark .bg-brand-plum:not([class*="dark:bg-"]),
+  html.dark .bg-brand-olive:not([class*="dark:bg-"]),
+  html.dark .bg-brand-orange:not([class*="dark:bg-"]),
+  html.dark .bg-brand-purple:not([class*="dark:bg-"]),
+  html.dark .bg-brand-deepblue:not([class*="dark:bg-"]) {
+    background-color: #3a1e3d !important;
+  }
+  html.dark .from-brand-plum:not([class*="dark:from-"]),
+  html.dark .from-brand-olive:not([class*="dark:from-"]),
+  html.dark .from-brand-orange:not([class*="dark:from-"]),
+  html.dark .from-brand-purple:not([class*="dark:from-"]),
+  html.dark .from-brand-deepblue:not([class*="dark:from-"]) {
+    --tw-gradient-from: #3a1e3d var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(58 30 61 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .via-brand-plum:not([class*="dark:via-"]),
+  html.dark .via-brand-olive:not([class*="dark:via-"]),
+  html.dark .via-brand-orange:not([class*="dark:via-"]),
+  html.dark .via-brand-purple:not([class*="dark:via-"]),
+  html.dark .via-brand-deepblue:not([class*="dark:via-"]) {
+    --tw-gradient-stops: var(--tw-gradient-from), #3a1e3d var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-plum:not([class*="dark:to-"]),
+  html.dark .to-brand-olive:not([class*="dark:to-"]),
+  html.dark .to-brand-orange:not([class*="dark:to-"]),
+  html.dark .to-brand-purple:not([class*="dark:to-"]),
+  html.dark .to-brand-deepblue:not([class*="dark:to-"]) {
+    --tw-gradient-to: #3a1e3d var(--tw-gradient-to-position) !important;
+  }
+
+  /* === brand-sage / brand-coral / brand-electricblue / brand-skyblue /
+       brand-gold (all resolve to sage) — pin to a darker sage so white
+       text reads cleanly. Light-mode sage is #8b9d80; pin to #5a6b50 in
+       dark for ~5:1 contrast with white. === */
+  html.dark .bg-brand-sage:not([class*="dark:bg-"]),
+  html.dark .bg-brand-coral:not([class*="dark:bg-"]),
+  html.dark .bg-brand-electricblue:not([class*="dark:bg-"]),
+  html.dark .bg-brand-skyblue:not([class*="dark:bg-"]),
+  html.dark .bg-brand-gold:not([class*="dark:bg-"]) {
+    background-color: #5a6b50 !important;
+  }
+  html.dark .from-brand-sage:not([class*="dark:from-"]),
+  html.dark .from-brand-coral:not([class*="dark:from-"]),
+  html.dark .from-brand-electricblue:not([class*="dark:from-"]),
+  html.dark .from-brand-skyblue:not([class*="dark:from-"]),
+  html.dark .from-brand-gold:not([class*="dark:from-"]) {
+    --tw-gradient-from: #5a6b50 var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(90 107 80 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .via-brand-sage:not([class*="dark:via-"]),
+  html.dark .via-brand-coral:not([class*="dark:via-"]),
+  html.dark .via-brand-electricblue:not([class*="dark:via-"]),
+  html.dark .via-brand-skyblue:not([class*="dark:via-"]),
+  html.dark .via-brand-gold:not([class*="dark:via-"]) {
+    --tw-gradient-stops: var(--tw-gradient-from), #5a6b50 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-sage:not([class*="dark:to-"]),
+  html.dark .to-brand-coral:not([class*="dark:to-"]),
+  html.dark .to-brand-electricblue:not([class*="dark:to-"]),
+  html.dark .to-brand-skyblue:not([class*="dark:to-"]),
+  html.dark .to-brand-gold:not([class*="dark:to-"]) {
+    --tw-gradient-to: #5a6b50 var(--tw-gradient-to-position) !important;
+  }
+
   /* Form controls: inputs/textareas/selects use the browser default white
    * background and inherited text color. In dark mode the inherited text
    * flips to slate-100 (light), which becomes white-on-white if the field

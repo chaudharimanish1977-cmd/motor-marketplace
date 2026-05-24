@@ -6,12 +6,7 @@ import type { Bid, ParsedPolicy, RFQ } from "@/lib/types";
 import { CheckoutFlow } from "@/components/checkout-flow";
 import { NumberPlate } from "@/components/number-plate";
 import { isMarketplaceEnabled } from "@/lib/feature-flags";
-
-function firstName(fullName: string | undefined | null): string {
-  const trimmed = (fullName ?? "").trim();
-  if (!trimmed) return "there";
-  return trimmed.split(/\s+/)[0] || "there";
-}
+import { friendlyFirstName } from "@/lib/format";
 
 interface PageProps {
   params: Promise<{ bidId: string }>;
@@ -61,7 +56,7 @@ export default async function CheckoutPage({ params }: PageProps) {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="space-y-2 mb-8">
           <h1 className="text-3xl font-bold text-brand-ink">
-            Almost there, {firstName(parsedPolicy.owner.name)}
+            Almost there, {friendlyFirstName(parsedPolicy.owner.name)}
           </h1>
           <p className="text-slate-600">
             Quick KYC + payment, then your policy is issued in &lt; 5
