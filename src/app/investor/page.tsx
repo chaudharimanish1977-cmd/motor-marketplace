@@ -143,6 +143,13 @@ export default async function InvestorHome() {
           <p className="text-sm text-brand-slate">
             Free • No spam • Your policy data stays private
           </p>
+          <Link
+            href="/how-it-works"
+            className="mt-2 inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-brand-plum hover:underline"
+          >
+            How it works · the 7-step journey
+            <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
 
         {/* Value props strip */}

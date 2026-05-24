@@ -43,6 +43,7 @@ export default function robots(): MetadataRoute.Robots {
           "/renewals/",
           "/thank-you",
           "/investor",
+          "/how-it-works",
           "/pitch",
           "/logo",
         ],
