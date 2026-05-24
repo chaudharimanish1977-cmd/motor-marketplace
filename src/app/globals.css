@@ -213,54 +213,25 @@
   }
 
   /* ============================================================
-   * Brand tokens used as SURFACE bg or gradient stops.
+   * brand-plum / brand-sage as SURFACES (bg or gradient stops):
    *
-   * `brand-plum` and `brand-sage` resolve through CSS variables that
-   * flip LIGHT in dark mode (for body-text legibility against a dark
-   * page). But the SAME tokens are also used as CTA backgrounds and
-   * gradient header surfaces with white text on top — there, flipping
-   * the bg light makes the white text invisible.
+   * Per the v3 brand spec, Accent A1 (plum) and A2 (sage) flip from
+   * deep editorial tones in light mode to LIFTED variants in dark
+   * mode — lifted plum #c485c9, lifted sage #a8baa0. This is exactly
+   * what makes the "insurance before it costs you" italic accent
+   * read bright on a dark page. The same lift carries over to
+   * primary CTAs (Upload your policy, Get my free review, the
+   * Recommended tier card, etc.) — bright accent surfaces match the
+   * editorial brightness of the text accents.
    *
-   * Pin the bg + gradient-stop usages dark in dark mode so white text
-   * on plum/sage surfaces stays readable. text-* uses are NOT touched —
-   * inline text accents flip light naturally via the CSS variables.
-   * Components needing the lifted-light variant can opt in via explicit
-   * `dark:bg-*` / `dark:from-*` — the :not(...) guard preserves that.
+   * No bg/gradient pinning here — the CSS variables flip naturally
+   * via the html.dark token definitions above. brand-charcoal IS
+   * pinned dark (slate-900) because charcoal serves as body text in
+   * light AND as the "neutral utility" surface (Continue buttons,
+   * Tier 1 Basic header) — those need to stay dark in dark mode so
+   * white text on them remains readable. Plum and sage surfaces opt
+   * into the brand-mandated lift instead.
    * ============================================================ */
-
-  /* === brand-plum surface — pin to deep plum #3a1e3d in dark === */
-  html.dark .bg-brand-plum:not([class*="dark:bg-"]) {
-    background-color: #3a1e3d !important;
-  }
-  html.dark .from-brand-plum:not([class*="dark:from-"]) {
-    --tw-gradient-from: #3a1e3d var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(58 30 61 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-  html.dark .via-brand-plum:not([class*="dark:via-"]) {
-    --tw-gradient-stops: var(--tw-gradient-from), #3a1e3d var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
-  }
-  html.dark .to-brand-plum:not([class*="dark:to-"]) {
-    --tw-gradient-to: #3a1e3d var(--tw-gradient-to-position) !important;
-  }
-
-  /* === brand-sage surface — pin to deeper sage #5a6b50 for ~5:1
-       contrast with white text in dark mode. Light-mode sage #8b9d80
-       is too pale for white text once the page goes dark. === */
-  html.dark .bg-brand-sage:not([class*="dark:bg-"]) {
-    background-color: #5a6b50 !important;
-  }
-  html.dark .from-brand-sage:not([class*="dark:from-"]) {
-    --tw-gradient-from: #5a6b50 var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(90 107 80 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-  html.dark .via-brand-sage:not([class*="dark:via-"]) {
-    --tw-gradient-stops: var(--tw-gradient-from), #5a6b50 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
-  }
-  html.dark .to-brand-sage:not([class*="dark:to-"]) {
-    --tw-gradient-to: #5a6b50 var(--tw-gradient-to-position) !important;
-  }
 
   /* Form controls: inputs/textareas/selects use the browser default white
    * background and inherited text color. In dark mode the inherited text
