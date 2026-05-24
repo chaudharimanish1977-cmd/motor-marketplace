@@ -36,15 +36,25 @@ export default async function AdminDashboardPage() {
   }
 
   // Read the most-recent snapshot. If none exists yet (first visit
-  // before the cron has fired), compute one inline and write it so
-  // subsequent loads are fast.
-  let snapshot = await findById<AdminDashboardSnapshot>(
+  // before the cron has fired) OR the stored snapshot was written by
+  // an older schema version that's missing v2 fields, recompute and
+  // overwrite. Self-healing: deploys that introduce new fields
+  // auto-upgrade the snapshot on first page load.
+  const stored = await findById<AdminDashboardSnapshot>(
     Tables.ADMIN_DASHBOARD_SNAPSHOTS,
     "latest"
   );
-  if (!snapshot) {
+  const isStaleSchema =
+    !stored ||
+    stored.breadth?.makeCount === undefined ||
+    stored.breadth?.topMakes === undefined ||
+    stored.channels?.unknownChannel === undefined;
+  let snapshot: AdminDashboardSnapshot;
+  if (isStaleSchema) {
     snapshot = await computeAdminDashboardSnapshot();
     await writeTable(Tables.ADMIN_DASHBOARD_SNAPSHOTS, [snapshot]);
+  } else {
+    snapshot = stored as AdminDashboardSnapshot;
   }
 
   const computedAt = new Date(snapshot.computedAt);
