@@ -4,7 +4,11 @@ import { waitUntil } from "@vercel/functions";
 import { findById, findOne, appendRow, updateById, Tables } from "@/lib/db";
 import { generateReport } from "@/lib/report-generator";
 import { sendReportPdfEmail } from "@/lib/email-pdf-pipeline";
-import type { ParsedPolicy, PolicyReport } from "@/lib/types";
+import type {
+  ParsedPolicy,
+  PolicyReport,
+  RenewalSubscription,
+} from "@/lib/types";
 import { UnifiedReport } from "@/components/unified-report";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
@@ -171,6 +175,42 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
     );
   }
 
+  // Renewal-reminder chip context. We look up the existing subscription
+  // (if any) so the chip can render its "subscribed / paused / ready"
+  // states server-side instead of waiting for client-side fetch.
+  // Skipped in print mode + investor view to keep PDFs and demo
+  // surfaces unchanged.
+  let renewalChip:
+    | {
+        isVerified: boolean;
+        customerEmail: string | null;
+        customerMobile?: string;
+        existingSubscription: {
+          id: string;
+          status: "active" | "unsubscribed";
+          daysBefore: number[];
+        } | null;
+      }
+    | undefined;
+  if (view === "customer" && !printMode) {
+    const existing = await findOne<RenewalSubscription>(
+      Tables.RENEWAL_SUBSCRIPTIONS,
+      (s) => s.parsedPolicyId === parsedPolicy.id
+    );
+    renewalChip = {
+      isVerified: hasVerifiedSession,
+      customerEmail: verifiedEmail,
+      customerMobile: uploadSession?.whatsapp,
+      existingSubscription: existing
+        ? {
+            id: existing.id,
+            status: existing.status,
+            daysBefore: existing.daysBefore ?? [60, 30, 7],
+          }
+        : null,
+    };
+  }
+
   return (
     <UnifiedReport
       parsedPolicy={parsedPolicy}
@@ -180,6 +220,7 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
       drivingProfile={drivingProfile}
       printMode={printMode}
       showAdminReveal={showAdminReveal}
+      renewalChip={renewalChip}
     />
   );
 }

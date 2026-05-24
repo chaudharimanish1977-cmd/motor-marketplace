@@ -9,7 +9,12 @@ export const runtime = "nodejs";
 const SubscribeSchema = z.object({
   parsedPolicyId: z.string().uuid(),
   email: z.string().email(),
-  mobile: z.string().regex(/^[6-9]\d{9}$/, "Invalid 10-digit Indian mobile"),
+  /** Optional — when absent, the subscription is email-channel-only.
+   *  See RenewalSubscription.customerMobile in types.ts. */
+  mobile: z
+    .string()
+    .regex(/^[6-9]\d{9}$/, "Invalid 10-digit Indian mobile")
+    .optional(),
   daysBefore: z
     .array(z.number().int().min(1).max(180))
     .min(1)
@@ -70,14 +75,32 @@ export async function POST(request: NextRequest) {
     const reminderHourIst =
       validated.reminderHourIst ?? DEFAULT_REMINDER_HOUR;
 
+    // Channels follow the data we have. OTP-flow subscriptions carry
+    // both email + mobile (email + whatsapp channels). In-report-chip
+    // and email-magic-link subscriptions only carry email (email
+    // channel only). The cron reads `channels` directly so a missing
+    // mobile naturally means WhatsApp/SMS won't fire — no surprise.
+    const channels: ("email" | "whatsapp")[] = validated.mobile
+      ? ["email", "whatsapp"]
+      : ["email"];
+
     if (existing) {
+      // Merge channel widening — if the existing sub already had
+      // whatsapp (OTP flow) and the caller is updating without a
+      // mobile, don't silently drop whatsapp. Only widen, never narrow.
+      const mergedChannels: ("email" | "whatsapp")[] =
+        validated.mobile || existing.channels.includes("whatsapp")
+          ? ["email", "whatsapp"]
+          : ["email"];
+      const mergedMobile = validated.mobile ?? existing.customerMobile;
+
       const updated = await updateById<RenewalSubscription>(
         Tables.RENEWAL_SUBSCRIPTIONS,
         existing.id,
         {
           customerEmail: validated.email,
-          customerMobile: validated.mobile,
-          channels: ["email", "whatsapp"],
+          customerMobile: mergedMobile,
+          channels: mergedChannels,
           daysBefore,
           reminderHourIst,
           status: "active",
@@ -98,7 +121,7 @@ export async function POST(request: NextRequest) {
       parsedPolicyId: validated.parsedPolicyId,
       customerEmail: validated.email,
       customerMobile: validated.mobile,
-      channels: ["email", "whatsapp"],
+      channels,
       policyExpiryDate: expiry,
       daysBefore,
       reminderHourIst,

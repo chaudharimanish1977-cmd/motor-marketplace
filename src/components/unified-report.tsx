@@ -27,6 +27,7 @@ import { HowWeReadThisFooter } from "@/components/report-how-we-read";
 import { MarketplaceCta } from "@/components/marketplace-cta";
 import { MarketplaceAdminReveal } from "@/components/marketplace-admin-reveal";
 import { ReportDisplay } from "@/components/report-display";
+import { ReportRenewalChip } from "@/components/report-renewal-chip";
 
 interface Props {
   parsedPolicy: ParsedPolicy;
@@ -47,6 +48,19 @@ interface Props {
    *  ?admin=1 on the URL; used during live investor demos to show
    *  the matching intelligence that's hidden from customers. */
   showAdminReveal?: boolean;
+  /** Renewal-reminder context, threaded from /report/[id] page.
+   *  When undefined (e.g. legacy callers, demos), the chip skips
+   *  itself harmlessly. */
+  renewalChip?: {
+    isVerified: boolean;
+    customerEmail: string | null;
+    customerMobile?: string;
+    existingSubscription: {
+      id: string;
+      status: "active" | "unsubscribed";
+      daysBefore: number[];
+    } | null;
+  };
 }
 
 export function UnifiedReport({
@@ -57,6 +71,7 @@ export function UnifiedReport({
   drivingProfile,
   printMode,
   showAdminReveal,
+  renewalChip,
 }: Props) {
   const vehicleLabel =
     `${parsedPolicy.vehicle.make} ${parsedPolicy.vehicle.model}`.trim() ||
@@ -99,6 +114,24 @@ export function UnifiedReport({
 
       {/* ── 2. Aryan's bottom line ─────────────────────────────────── */}
       <BottomLineBanner report={report} />
+
+      {/* ── 2a. Renewal-reminder chip ─────────────────────────────────
+       *  Sits right under the verdict so it lands at the emotional
+       *  peak ("expires in N days, here are the gaps"). Self-gates
+       *  on documentType + expiry-in-future + !printMode, so it's
+       *  invisible for quotes, lapsed policies, and PDFs. */}
+      {renewalChip && parsedPolicy.odPeriodEnd && (
+        <ReportRenewalChip
+          parsedPolicyId={parsedPolicy.id}
+          policyExpiryDate={parsedPolicy.odPeriodEnd}
+          isPolicy={(parsedPolicy.documentType ?? "policy") === "policy"}
+          isVerified={renewalChip.isVerified}
+          customerEmail={renewalChip.customerEmail}
+          customerMobile={renewalChip.customerMobile}
+          existingSubscription={renewalChip.existingSubscription}
+          printMode={printMode}
+        />
+      )}
 
       {/* ── 2b. Marketplace CTA — bid entry point ──────────────────────
        *  Renders ONLY when marketplace is enabled (host-based gate; see

@@ -533,7 +533,13 @@ export interface RenewalSubscription {
   id: string;
   parsedPolicyId: string;
   customerEmail: string;
-  customerMobile: string;
+  /** Optional — present when the customer subscribed via the OTP flow
+   *  (which captures both email and mobile). Absent when they subscribed
+   *  via an email-only path: the in-report chip on /report (Google-OAuth
+   *  verified user with no mobile) or the email-reply magic-link in the
+   *  inbound forward reply. When absent, `channels` is ["email"] only —
+   *  the cron skips WhatsApp/SMS for this subscription. */
+  customerMobile?: string;
   /** Channels the customer agreed to. */
   channels: ("email" | "whatsapp")[];
   /** ISO date — derived from parsedPolicy.odPeriodEnd at subscribe time. */
