@@ -111,7 +111,7 @@ export function EmailCaptureForm({ onClaim, claimed }: Props) {
       className="rounded-2xl bg-white border border-brand-light-gray shadow-soft p-5 space-y-3"
     >
       <div>
-        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-charcoal">
           While we read your policy
         </div>
         <div className="text-base font-bold text-brand-charcoal mt-1 leading-tight">
@@ -136,7 +136,7 @@ export function EmailCaptureForm({ onClaim, claimed }: Props) {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             disabled={submitting}
-            className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors disabled:opacity-60"
+            className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-charcoal focus:ring-2 focus:ring-brand-charcoal/15 transition-colors disabled:opacity-60"
           />
         </div>
       </label>
@@ -156,7 +156,7 @@ export function EmailCaptureForm({ onClaim, claimed }: Props) {
             onChange={(e) => setWhatsapp(e.target.value)}
             placeholder="9XXXXXXXXX"
             disabled={submitting}
-            className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/15 transition-colors disabled:opacity-60"
+            className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-brand-light-gray bg-white focus:outline-none focus:border-brand-charcoal focus:ring-2 focus:ring-brand-charcoal/15 transition-colors disabled:opacity-60"
           />
         </div>
         <p className="text-[10px] text-brand-slate/80 mt-1 leading-relaxed">
@@ -180,7 +180,7 @@ export function EmailCaptureForm({ onClaim, claimed }: Props) {
       <button
         type="submit"
         disabled={submitting || !email}
-        className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-brand-navy hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl transition-all"
+        className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-brand-charcoal hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl transition-all"
       >
         {submitting ? (
           <>

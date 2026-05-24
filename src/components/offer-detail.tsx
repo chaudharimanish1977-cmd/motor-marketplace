@@ -291,7 +291,7 @@ export function OfferDetail({
               <div className="flex items-start justify-between mb-2 flex-wrap gap-3">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-brand-navy" />
+                    <Sparkles className="w-5 h-5 text-brand-charcoal" />
                     Customize this offer
                   </h2>
                   <p className="text-sm text-slate-500 mt-1">
@@ -413,7 +413,7 @@ export function OfferDetail({
                   {hasChanges ? (
                     <button
                       onClick={handleUpdate}
-                      className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-navy hover:brightness-110 text-white shadow-soft transition-all hover:scale-[1.01]"
+                      className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-charcoal hover:brightness-110 text-white shadow-soft transition-all hover:scale-[1.01]"
                     >
                       <span className="inline-flex items-center gap-1.5">
                         Update offer
@@ -423,7 +423,7 @@ export function OfferDetail({
                   ) : (
                     <LoadingLink
                       href={`/checkout/${bid.id}`}
-                      className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-olive hover:brightness-110 text-white shadow-glow transition-all hover:scale-[1.01]"
+                      className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-plum hover:brightness-110 text-white shadow-glow transition-all hover:scale-[1.01]"
                       spinnerPosition="right"
                     >
                       <span className="inline-flex items-center gap-1.5">
@@ -466,11 +466,11 @@ function getTierTheme(tier: number) {
   }
   if (tier === 2) {
     return {
-      heroGradient: "from-brand-navy via-brand-navy to-brand-plum",
+      heroGradient: "from-brand-charcoal via-brand-charcoal to-brand-plum",
     };
   }
   return {
-    heroGradient: "from-brand-plum via-brand-plum to-brand-coral",
+    heroGradient: "from-brand-plum via-brand-plum to-brand-sage",
   };
 }
 
@@ -509,7 +509,7 @@ function AddOnToggle({
       className={clsx(
         "flex items-center gap-4 p-4 rounded-2xl border transition-all",
         isSelected
-          ? "border-brand-navy/30 bg-brand-navy/10"
+          ? "border-brand-charcoal/30 bg-brand-charcoal/10"
           : "border-slate-200 bg-white",
         changedFromOriginal && "ring-2 ring-amber-200 ring-offset-1"
       )}
@@ -517,7 +517,7 @@ function AddOnToggle({
       <div
         className={clsx(
           "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-          isSelected ? "bg-brand-navy text-white" : "bg-slate-100 text-slate-500"
+          isSelected ? "bg-brand-charcoal text-white" : "bg-slate-100 text-slate-500"
         )}
       >
         <Icon className="w-5 h-5" />
@@ -556,7 +556,7 @@ function AddOnToggle({
           onClick={onToggle}
           className={clsx(
             "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
-            isSelected ? "bg-brand-navy" : "bg-slate-300"
+            isSelected ? "bg-brand-charcoal" : "bg-slate-300"
           )}
         >
           <span
@@ -761,7 +761,7 @@ function ComparisonCard({
         {/* Re-priced add-ons (carried over from current policy at new market rates) */}
         {carriedOver.length > 0 && (
           <div className="pt-4 mt-3 border-t border-dashed border-slate-200">
-            <div className="text-[10px] font-bold text-brand-navy uppercase tracking-[0.12em] mb-2 flex items-center gap-1">
+            <div className="text-[10px] font-bold text-brand-charcoal uppercase tracking-[0.12em] mb-2 flex items-center gap-1">
               <RefreshCw className="w-3 h-3" />
               Re-priced at market rate (carried from current policy)
             </div>
@@ -1079,7 +1079,7 @@ function FiveYearProjection({
           <span
             className={clsx(
               "text-sm font-bold tabular-nums",
-              savings5yr > 0 ? "text-brand-success" : "text-brand-coral"
+              savings5yr > 0 ? "text-brand-success" : "text-brand-sage"
             )}
           >
             {savings5yr > 0 ? "−" : "+"}
@@ -1129,8 +1129,8 @@ function UpdatingState({ insurerName }: { insurerName: string }) {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-slate-50 to-white">
       <div className="text-center space-y-6 max-w-md">
         <div className="relative inline-block">
-          <Loader2 className="w-16 h-16 text-brand-navy animate-spin" />
-          <Sparkles className="w-6 h-6 text-brand-olive absolute top-0 right-0 animate-pulse" />
+          <Loader2 className="w-16 h-16 text-brand-charcoal animate-spin" />
+          <Sparkles className="w-6 h-6 text-brand-plum absolute top-0 right-0 animate-pulse" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-900">

@@ -19,25 +19,25 @@ export function RenewalPreview() {
       label: "T-60 days",
       sub: "Email nudge",
       icon: Mail,
-      accent: "text-brand-navy",
-      bg: "bg-brand-navy/10",
-      bar: "bg-brand-navy/30",
+      accent: "text-brand-charcoal",
+      bg: "bg-brand-charcoal/10",
+      bar: "bg-brand-charcoal/30",
     },
     {
       label: "T-30 days",
       sub: "Pre-quote SMS",
       icon: MessageSquare,
-      accent: "text-brand-navy",
+      accent: "text-brand-charcoal",
       bg: "bg-sky-50",
-      bar: "bg-brand-navy/40",
+      bar: "bg-brand-charcoal/40",
     },
     {
       label: "T-7 days",
       sub: "Action reminder",
       icon: Bell,
-      accent: "text-brand-coral",
-      bg: "bg-brand-coral/10",
-      bar: "bg-brand-olive/40",
+      accent: "text-brand-sage",
+      bg: "bg-brand-sage/10",
+      bar: "bg-brand-plum/40",
     },
     {
       label: "Renewal day",
@@ -54,14 +54,14 @@ export function RenewalPreview() {
       <div className="rounded-3xl bg-gradient-to-br from-white to-brand-offwhite border border-brand-light-gray shadow-soft overflow-hidden">
         <div className="px-6 md:px-8 py-7 grid md:grid-cols-[1fr_2fr] gap-6 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-charcoal bg-brand-charcoal/10 border border-brand-charcoal/20 rounded-full mb-3">
               <CalendarClock className="w-3.5 h-3.5" />
               Renewal Calendar
             </div>
             <h3 className="text-2xl font-bold text-brand-charcoal leading-tight">
               Reviewed once.
               <br />
-              <span className="bg-gradient-to-r from-brand-navy to-brand-plum bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-brand-charcoal to-brand-plum bg-clip-text text-transparent">
                 Watched forever.
               </span>
             </h3>
@@ -72,7 +72,7 @@ export function RenewalPreview() {
           </div>
 
           <div className="relative">
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-brand-navy via-brand-coral to-brand-success rounded-full" />
+            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-brand-charcoal via-brand-sage to-brand-success rounded-full" />
             <div className="relative grid grid-cols-4 gap-2">
               {milestones.map((m) => {
                 const Icon = m.icon;

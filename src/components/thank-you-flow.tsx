@@ -54,7 +54,7 @@ export function ThankYouFlow({
 
       <div className="w-full max-w-md space-y-5">
         {/* CARD 1 — mail-sent confirmation */}
-        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-brand-coral/15 dark:from-emerald-900/30 dark:via-slate-800 dark:to-brand-coral/20 border border-emerald-200 dark:border-emerald-800/50 shadow-elevated overflow-hidden">
+        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-brand-sage/15 dark:from-emerald-900/30 dark:via-slate-800 dark:to-brand-sage/20 border border-emerald-200 dark:border-emerald-800/50 shadow-elevated overflow-hidden">
           <div className="px-6 pt-7 pb-6 text-center">
             <div className="inline-flex w-14 h-14 rounded-full bg-brand-success items-center justify-center shadow-elevated mb-3">
               <CheckCircle2 className="w-8 h-8 text-white" />
@@ -67,7 +67,7 @@ export function ThankYouFlow({
               policy review to
             </p>
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-brand-light-gray font-mono text-xs font-semibold text-brand-charcoal break-all max-w-full">
-              <Mail className="w-3.5 h-3.5 text-brand-navy shrink-0" />
+              <Mail className="w-3.5 h-3.5 text-brand-charcoal shrink-0" />
               <span className="truncate">{email || "your inbox"}</span>
             </div>
             <div className="text-[11px] text-brand-slate mt-2.5">
@@ -93,7 +93,7 @@ export function ThankYouFlow({
             {!submitted ? (
               <>
                 <div className="text-center mb-3">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy mb-1">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-charcoal mb-1">
                     5-second feedback
                   </div>
                   <div className="text-sm font-semibold text-brand-charcoal">
@@ -121,7 +121,7 @@ export function ThankYouFlow({
                           className={clsx(
                             "w-9 h-9 transition-colors",
                             active
-                              ? "fill-brand-coral text-brand-coral animate-star-pop"
+                              ? "fill-brand-sage text-brand-sage animate-star-pop"
                               : "text-brand-light-gray",
                             rating === null && n === 1 && "animate-star-idle"
                           )}
@@ -141,7 +141,7 @@ export function ThankYouFlow({
                     onChange={(e) => setComment(e.target.value)}
                     rows={2}
                     placeholder="Spill the tea — what flopped? (optional)"
-                    className="w-full px-3 py-2 mb-3 border-2 border-brand-light-gray rounded-xl text-sm text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-navy transition-colors resize-none"
+                    className="w-full px-3 py-2 mb-3 border-2 border-brand-light-gray rounded-xl text-sm text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-charcoal transition-colors resize-none"
                   />
                 )}
 
@@ -152,7 +152,7 @@ export function ThankYouFlow({
                   className={clsx(
                     "w-full py-2.5 rounded-xl font-bold text-sm transition-all",
                     rating !== null
-                      ? "bg-brand-navy hover:brightness-110 text-white shadow-soft"
+                      ? "bg-brand-charcoal hover:brightness-110 text-white shadow-soft"
                       : "bg-brand-light-gray text-brand-slate cursor-not-allowed"
                   )}
                 >
@@ -179,7 +179,7 @@ export function ThankYouFlow({
         <div className="text-center pt-1">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-brand-navy text-sm font-semibold hover:underline"
+            className="inline-flex items-center gap-1.5 text-brand-charcoal text-sm font-semibold hover:underline"
           >
             <Home className="w-4 h-4" />
             Back to RightOffer Home
@@ -208,7 +208,7 @@ function NoCallBadge() {
             strokeWidth="2.4"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-full h-full text-brand-navy"
+            className="w-full h-full text-brand-charcoal"
           >
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
           </svg>
@@ -220,12 +220,12 @@ function NoCallBadge() {
           stroke="currentColor"
           strokeWidth="3.5"
           strokeLinecap="round"
-          className="absolute inset-0 w-full h-full text-brand-coral animate-x-pulse"
+          className="absolute inset-0 w-full h-full text-brand-sage animate-x-pulse"
         >
           <path d="M4 4 L20 20 M20 4 L4 20" />
         </svg>
       </span>
-      <span className="font-bold text-brand-coral">Zero calls.</span>
+      <span className="font-bold text-brand-sage">Zero calls.</span>
     </span>
   );
 }
@@ -342,9 +342,9 @@ function RenewalOptInCard({
 
   if (state === "done") {
     return (
-      <div className="rounded-3xl bg-gradient-to-br from-brand-coral/10 to-white dark:from-brand-coral/20 dark:to-slate-800 border-2 border-brand-coral/30 dark:border-brand-coral/50 shadow-soft overflow-hidden">
+      <div className="rounded-3xl bg-gradient-to-br from-brand-sage/10 to-white dark:from-brand-sage/20 dark:to-slate-800 border-2 border-brand-sage/30 dark:border-brand-sage/50 shadow-soft overflow-hidden">
         <div className="px-6 py-5 flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-brand-olive flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-full bg-brand-plum flex items-center justify-center shrink-0">
             <BellRing className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
@@ -400,7 +400,7 @@ function RenewalOptInCard({
               <button
                 type="button"
                 onClick={() => setFlow("asking")}
-                className="font-semibold text-brand-navy hover:underline"
+                className="font-semibold text-brand-charcoal hover:underline"
               >
                 Changed your mind?
               </button>
@@ -417,11 +417,11 @@ function RenewalOptInCard({
     <div className="rounded-3xl bg-white border border-brand-light-gray shadow-soft overflow-hidden">
       <div className="px-6 py-5">
         <div className="flex items-start gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-brand-navy/10 flex items-center justify-center shrink-0">
-            <Bell className="w-5 h-5 text-brand-navy" />
+          <div className="w-10 h-10 rounded-xl bg-brand-charcoal/10 flex items-center justify-center shrink-0">
+            <Bell className="w-5 h-5 text-brand-charcoal" />
           </div>
           <div className="flex-1">
-            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy mb-1">
+            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-charcoal mb-1">
               Renewal reminder
             </div>
             <h3 className="text-base md:text-lg font-bold text-brand-charcoal leading-snug">
@@ -448,7 +448,7 @@ function RenewalOptInCard({
         {/* Schedule picker — only revealed once user opts in */}
         {flow === "scheduling" && (
           <div className="border border-brand-light-gray rounded-2xl p-4 mb-3 space-y-3 bg-brand-offwhite/40">
-            <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-navy">
+            <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-charcoal">
               Customize reminder schedule
             </div>
 
@@ -467,8 +467,8 @@ function RenewalOptInCard({
                       className={clsx(
                         "w-full text-left px-3 py-2 rounded-lg border text-xs font-semibold transition-all flex items-center justify-between gap-3",
                         active
-                          ? "bg-brand-navy text-white border-brand-navy"
-                          : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-navy"
+                          ? "bg-brand-charcoal text-white border-brand-charcoal"
+                          : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-charcoal"
                       )}
                     >
                       <span>{b.label}</span>
@@ -488,8 +488,8 @@ function RenewalOptInCard({
                   className={clsx(
                     "w-full px-3 py-2 rounded-lg border text-xs font-semibold transition-all flex items-center justify-between gap-3",
                     timeMode === "custom"
-                      ? "bg-brand-navy text-white border-brand-navy"
-                      : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-navy"
+                      ? "bg-brand-charcoal text-white border-brand-charcoal"
+                      : "bg-white text-brand-charcoal border-brand-light-gray hover:border-brand-charcoal"
                   )}
                 >
                   <button
@@ -530,7 +530,7 @@ function RenewalOptInCard({
             <button
               type="button"
               onClick={() => setFlow("scheduling")}
-              className="py-2.5 rounded-xl font-bold text-sm bg-brand-olive hover:brightness-110 text-white shadow-soft transition-all"
+              className="py-2.5 rounded-xl font-bold text-sm bg-brand-plum hover:brightness-110 text-white shadow-soft transition-all"
             >
               I&apos;m in
             </button>
@@ -552,7 +552,7 @@ function RenewalOptInCard({
                 "w-full py-2.5 rounded-xl font-bold text-sm transition-all inline-flex items-center justify-center gap-2",
                 saving
                   ? "bg-brand-light-gray text-brand-slate cursor-not-allowed"
-                  : "bg-brand-olive hover:brightness-110 text-white shadow-soft"
+                  : "bg-brand-plum hover:brightness-110 text-white shadow-soft"
               )}
             >
               {saving ? (

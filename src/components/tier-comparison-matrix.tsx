@@ -60,8 +60,8 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
                   tier.tier === 1
                     ? "from-brand-charcoal to-brand-slate"
                     : tier.tier === 2
-                      ? "from-brand-navy to-brand-plum"
-                      : "from-brand-plum to-brand-coral";
+                      ? "from-brand-charcoal to-brand-plum"
+                      : "from-brand-plum to-brand-sage";
                 return (
                   <th
                     key={tier.tier}
@@ -78,7 +78,7 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
                       </div>
                       <div className="text-base font-bold">{tier.label}</div>
                       {tier.tier === 2 && (
-                        <div className="text-[10px] mt-1 inline-block px-1.5 py-0.5 bg-white text-brand-navy rounded-full font-bold uppercase tracking-wide">
+                        <div className="text-[10px] mt-1 inline-block px-1.5 py-0.5 bg-white text-brand-charcoal rounded-full font-bold uppercase tracking-wide">
                           Recommended
                         </div>
                       )}
@@ -110,7 +110,7 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
                           ? "text-brand-success"
                           : delta < 5000
                             ? "text-brand-slate"
-                            : "text-brand-coral"
+                            : "text-brand-sage"
                       )}
                     >
                       {delta < 0
@@ -152,8 +152,8 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
 
             {/* Coverage rows */}
             <tr className="border-b border-brand-light-gray">
-              <td colSpan={availableTiers.length + 1} className="p-3 bg-brand-navy/10">
-                <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy">
+              <td colSpan={availableTiers.length + 1} className="p-3 bg-brand-charcoal/10">
+                <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-charcoal">
                   Coverage
                 </div>
               </td>
@@ -196,13 +196,13 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
                   tier.tier === 1
                     ? "bg-brand-charcoal hover:brightness-110"
                     : tier.tier === 2
-                      ? "bg-brand-olive hover:brightness-110 shadow-glow"
-                      : "bg-gradient-to-r from-brand-plum to-brand-coral hover:brightness-110";
+                      ? "bg-brand-plum hover:brightness-110 shadow-glow"
+                      : "bg-gradient-to-r from-brand-plum to-brand-sage hover:brightness-110";
                 return (
                   <td key={tier.tier} className="p-4 space-y-2">
                     <LoadingLink
                       href={`/offer/${win.id}`}
-                      className="block w-full text-center text-xs font-semibold py-2 rounded-xl border-2 border-brand-navy text-brand-navy hover:bg-brand-navy/10"
+                      className="block w-full text-center text-xs font-semibold py-2 rounded-xl border-2 border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal/10"
                       spinnerPosition="right"
                     >
                       See breakdown

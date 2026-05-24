@@ -29,7 +29,7 @@ const CHANNEL_META: Record<
   RenewalNudge["channel"],
   { icon: typeof Mail; label: string; colour: string }
 > = {
-  email: { icon: Mail, label: "Email", colour: "text-brand-navy bg-brand-navy/15" },
+  email: { icon: Mail, label: "Email", colour: "text-brand-charcoal bg-brand-charcoal/15" },
   sms: { icon: MessageSquare, label: "SMS", colour: "text-brand-plum bg-brand-plum/15" },
   telegram: { icon: Send, label: "Telegram", colour: "text-sky-600 bg-sky-100" },
   whatsapp: { icon: MessageSquare, label: "WhatsApp", colour: "text-emerald-600 bg-emerald-100" },
@@ -102,7 +102,7 @@ export default async function RenewalsPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <Link
             href={`/policy/${transaction.id}`}
-            className="inline-flex items-center gap-1 text-sm text-brand-slate hover:text-brand-navy"
+            className="inline-flex items-center gap-1 text-sm text-brand-slate hover:text-brand-charcoal"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to policy
@@ -113,11 +113,11 @@ export default async function RenewalsPage({ params }: PageProps) {
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Hero */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-navy bg-brand-navy/15 rounded-full">
+          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-charcoal bg-brand-charcoal/15 rounded-full">
             <CalendarClock className="w-3.5 h-3.5" />
             Your Renewal Journey
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-brand-ink">
+          <h1 className="text-3xl md:text-4xl font-bold text-brand-charcoal">
             We&apos;ll keep you covered.
           </h1>
           <p className="text-brand-slate max-w-2xl mx-auto">
@@ -227,7 +227,7 @@ function KeyDate({
   const colors = {
     emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
     amber: "border-amber-200 bg-amber-50 text-amber-700",
-    blue: "border-brand-navy/30 bg-brand-navy/10 text-brand-navy",
+    blue: "border-brand-charcoal/30 bg-brand-charcoal/10 text-brand-charcoal",
   }[highlight];
   return (
     <div className={`rounded-xl border-2 p-4 text-center ${colors}`}>
@@ -257,9 +257,9 @@ function PhaseSection({
   if (nudges.length === 0) return null;
 
   const headerColor = {
-    pre: "bg-brand-navy",
+    pre: "bg-brand-charcoal",
     expiry: "bg-amber-600",
-    post: "bg-brand-coral",
+    post: "bg-brand-sage",
     lapsed: "bg-emerald-600",
   }[variant];
 

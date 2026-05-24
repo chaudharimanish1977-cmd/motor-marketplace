@@ -33,7 +33,7 @@ export function SimplifyToggle() {
       className={clsx(
         "inline-flex items-center gap-1.5 text-xs font-medium border px-3 py-1.5 rounded-full transition-colors print:hidden",
         simplified
-          ? "bg-brand-olive text-brand-charcoal border-brand-olive"
+          ? "bg-brand-plum text-brand-charcoal border-brand-plum"
           : "text-white/90 hover:text-white border-white/30 hover:border-white/50"
       )}
     >

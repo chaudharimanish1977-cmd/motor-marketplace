@@ -203,7 +203,7 @@ function ProgressBar({
       </div>
       <div className="h-1.5 bg-brand-light-gray rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-brand-navy via-brand-plum to-brand-coral transition-all"
+          className="h-full bg-gradient-to-r from-brand-charcoal via-brand-plum to-brand-sage transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -219,7 +219,7 @@ function OrderSummary({
   bid: Bid;
 }) {
   return (
-    <div className="bg-gradient-to-br from-brand-navy to-brand-plum text-white rounded-2xl p-5 flex items-center justify-between shadow-elevated">
+    <div className="bg-gradient-to-br from-brand-charcoal to-brand-plum text-white rounded-2xl p-5 flex items-center justify-between shadow-elevated">
       <div className="min-w-0 flex-1">
         <div className="text-[10px] text-white/70 uppercase tracking-[0.12em]">
           Buying from
@@ -283,7 +283,7 @@ function KycAadhaarStep({
             )
           }
           placeholder="1234 5678 9012"
-          className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg text-lg font-mono tracking-wider focus:outline-none focus:border-brand-navy"
+          className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg text-lg font-mono tracking-wider focus:outline-none focus:border-brand-charcoal"
         />
         <p className="text-xs text-brand-slate mt-2">
           12 digits · Encrypted at rest · Used only for policy issuance
@@ -296,7 +296,7 @@ function KycAadhaarStep({
         className={clsx(
           "w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all",
           valid
-            ? "bg-brand-navy hover:brightness-110 text-white"
+            ? "bg-brand-charcoal hover:brightness-110 text-white"
             : "bg-slate-200 text-slate-400 cursor-not-allowed"
         )}
       >
@@ -342,7 +342,7 @@ function KycPanStep({
             onChange(e.target.value.toUpperCase().slice(0, 10))
           }
           placeholder="ABCDE1234F"
-          className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg text-lg font-mono tracking-wider focus:outline-none focus:border-brand-navy"
+          className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg text-lg font-mono tracking-wider focus:outline-none focus:border-brand-charcoal"
         />
         <p className="text-xs text-brand-slate mt-2">
           Format: 5 letters + 4 digits + 1 letter
@@ -362,7 +362,7 @@ function KycPanStep({
           className={clsx(
             "flex-[2] py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all",
             valid
-              ? "bg-brand-navy hover:brightness-110 text-white"
+              ? "bg-brand-charcoal hover:brightness-110 text-white"
               : "bg-slate-200 text-slate-400 cursor-not-allowed"
           )}
         >
@@ -431,7 +431,7 @@ function KycCkycStep({
         <input
           type="checkbox"
           defaultChecked
-          className="w-5 h-5 mt-0.5 accent-brand-navy"
+          className="w-5 h-5 mt-0.5 accent-brand-charcoal"
         />
         <span className="text-sm text-brand-charcoal">
           I confirm that the above details are correct and consent to share
@@ -450,7 +450,7 @@ function KycCkycStep({
         <button
           onClick={handleConfirm}
           disabled={verifying}
-          className="flex-[2] py-3 rounded-lg font-semibold bg-brand-navy hover:brightness-110 text-white flex items-center justify-center gap-2"
+          className="flex-[2] py-3 rounded-lg font-semibold bg-brand-charcoal hover:brightness-110 text-white flex items-center justify-center gap-2"
         >
           {verifying ? (
             <>
@@ -503,14 +503,14 @@ function PayMethodStep({
               className={clsx(
                 "w-full flex items-center gap-4 p-4 border-2 rounded-xl transition-all text-left",
                 selected
-                  ? "border-brand-navy bg-brand-navy/10"
+                  ? "border-brand-charcoal bg-brand-charcoal/10"
                   : "border-brand-light-gray bg-white hover:border-slate-300"
               )}
             >
               <div
                 className={clsx(
                   "w-10 h-10 rounded-lg flex items-center justify-center",
-                  selected ? "bg-brand-navy" : "bg-slate-100"
+                  selected ? "bg-brand-charcoal" : "bg-slate-100"
                 )}
               >
                 <Icon
@@ -527,7 +527,7 @@ function PayMethodStep({
               <div
                 className={clsx(
                   "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-                  selected ? "border-brand-navy bg-brand-navy" : "border-slate-300"
+                  selected ? "border-brand-charcoal bg-brand-charcoal" : "border-slate-300"
                 )}
               >
                 {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
@@ -546,7 +546,7 @@ function PayMethodStep({
         </button>
         <button
           onClick={onNext}
-          className="flex-[2] py-3 rounded-lg font-semibold bg-brand-navy hover:brightness-110 text-white flex items-center justify-center gap-2"
+          className="flex-[2] py-3 rounded-lg font-semibold bg-brand-charcoal hover:brightness-110 text-white flex items-center justify-center gap-2"
         >
           Continue <ArrowRight className="w-4 h-4" />
         </button>
@@ -593,7 +593,7 @@ function PayDetailsStep({
             value={upiId}
             onChange={(e) => onUpiChange(e.target.value)}
             placeholder="name@okicici"
-            className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg focus:outline-none focus:border-brand-navy"
+            className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg focus:outline-none focus:border-brand-charcoal"
           />
         </div>
       )}
@@ -648,7 +648,7 @@ function PayDetailsStep({
           className={clsx(
             "flex-[2] py-3 rounded-lg font-semibold flex items-center justify-center gap-2",
             valid
-              ? "bg-brand-navy hover:brightness-110 text-white"
+              ? "bg-brand-charcoal hover:brightness-110 text-white"
               : "bg-slate-200 text-slate-400 cursor-not-allowed"
           )}
         >
@@ -707,7 +707,7 @@ function PayConfirmStep({
         </button>
         <button
           onClick={onSubmit}
-          className="flex-[2] py-3 rounded-2xl font-bold bg-brand-olive hover:brightness-110 text-white flex items-center justify-center gap-2 shadow-glow"
+          className="flex-[2] py-3 rounded-2xl font-bold bg-brand-plum hover:brightness-110 text-white flex items-center justify-center gap-2 shadow-glow"
         >
           Pay {formatINR(bid.grandTotal)} <ArrowRight className="w-4 h-4" />
         </button>
@@ -734,11 +734,11 @@ function IssuingStep({ bid }: { bid: Bid }) {
   return (
     <div className="text-center space-y-6 py-8">
       <div className="relative inline-block">
-        <Loader2 className="w-16 h-16 text-brand-navy animate-spin" />
-        <Shield className="w-6 h-6 text-brand-olive absolute top-5 left-5" />
+        <Loader2 className="w-16 h-16 text-brand-charcoal animate-spin" />
+        <Shield className="w-6 h-6 text-brand-plum absolute top-5 left-5" />
       </div>
       <div>
-        <p className="text-lg font-semibold text-brand-navy">
+        <p className="text-lg font-semibold text-brand-charcoal">
           {messages[idx]}
         </p>
         <p className="text-sm text-brand-slate mt-2">
@@ -788,7 +788,7 @@ function Row({
       </span>
       <span
         className={clsx(
-          bold ? "text-xl font-bold text-brand-navy" : "font-semibold"
+          bold ? "text-xl font-bold text-brand-charcoal" : "font-semibold"
         )}
       >
         {value}

@@ -48,8 +48,8 @@ const TIER_RIBBON: Record<
     text: "text-brand-plum",
   },
   premium: {
-    border: "border-brand-coral/40",
-    text: "text-brand-coral",
+    border: "border-brand-sage/40",
+    text: "text-brand-sage",
   },
 };
 

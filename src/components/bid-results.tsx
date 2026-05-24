@@ -111,7 +111,7 @@ export function BidResults({
               className={clsx(
                 "inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-full transition-all",
                 viewMode === "cards"
-                  ? "bg-white text-brand-navy shadow-soft"
+                  ? "bg-white text-brand-charcoal shadow-soft"
                   : "text-brand-slate hover:text-brand-charcoal"
               )}
             >
@@ -124,7 +124,7 @@ export function BidResults({
               className={clsx(
                 "inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-full transition-all",
                 viewMode === "matrix"
-                  ? "bg-white text-brand-navy shadow-soft"
+                  ? "bg-white text-brand-charcoal shadow-soft"
                   : "text-brand-slate hover:text-brand-charcoal"
               )}
             >
@@ -152,8 +152,8 @@ export function BidResults({
         {/* Helpful context */}
         <div className="bg-white rounded-3xl border border-slate-200/80 p-6 max-w-4xl mx-auto shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-brand-navy/10 flex items-center justify-center shrink-0">
-              <Shield className="w-5 h-5 text-brand-navy" />
+            <div className="w-10 h-10 rounded-2xl bg-brand-charcoal/10 flex items-center justify-center shrink-0">
+              <Shield className="w-5 h-5 text-brand-charcoal" />
             </div>
             <div className="text-sm text-slate-700 leading-relaxed">
               <p className="font-semibold text-slate-900 mb-1">
@@ -227,7 +227,7 @@ export function BidResults({
         <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-elevated print:hidden">
           <div className="px-4 py-3 flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-brand-navy">
+              <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-brand-charcoal">
                 Recommended
               </div>
               <div className="flex items-baseline gap-1.5">
@@ -241,14 +241,14 @@ export function BidResults({
             </div>
             <LoadingLink
               href={`/offer/${recommendedWinner.id}`}
-              className="text-xs font-semibold text-brand-navy px-3 py-2 rounded-xl border border-brand-navy/30"
+              className="text-xs font-semibold text-brand-charcoal px-3 py-2 rounded-xl border border-brand-charcoal/30"
               spinnerPosition="right"
             >
               Details
             </LoadingLink>
             <LoadingLink
               href={`/checkout/${recommendedWinner.id}`}
-              className="text-xs font-bold text-white bg-brand-olive px-4 py-2.5 rounded-xl shadow-glow inline-flex items-center gap-1"
+              className="text-xs font-bold text-white bg-brand-plum px-4 py-2.5 rounded-xl shadow-glow inline-flex items-center gap-1"
               spinnerPosition="right"
             >
               Buy
@@ -300,7 +300,7 @@ function TierCard({
       className={clsx(
         "rounded-3xl bg-white shadow-lg overflow-hidden flex flex-col transition-transform hover:shadow-xl",
         tier.tier === 2 &&
-          "ring-2 ring-brand-navy ring-offset-2 md:scale-[1.02]"
+          "ring-2 ring-brand-charcoal ring-offset-2 md:scale-[1.02]"
       )}
     >
       {/* Tier header — gradient */}
@@ -323,7 +323,7 @@ function TierCard({
             </div>
           </div>
           {tier.tier === 2 && (
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 bg-white text-brand-navy rounded-full">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 bg-white text-brand-charcoal rounded-full">
               Recommended
             </span>
           )}
@@ -418,7 +418,7 @@ function TierCard({
         {/* HERO: See full breakdown & customize — prominent, above Buy */}
         <LoadingLink
           href={`/offer/${winner.id}`}
-          className="block w-full py-3 text-center font-bold rounded-2xl bg-white border-2 border-brand-navy text-brand-navy hover:bg-brand-navy/10 transition-all hover:scale-[1.01] shadow-soft"
+          className="block w-full py-3 text-center font-bold rounded-2xl bg-white border-2 border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal/10 transition-all hover:scale-[1.01] shadow-soft"
           spinnerPosition="right"
         >
           <span className="inline-flex items-center gap-1.5">
@@ -473,7 +473,7 @@ function OtherBidRow({ bid, vsWinner }: { bid: Bid; vsWinner: number }) {
   return (
     <LoadingLink
       href={`/offer/${bid.id}`}
-      className="block bg-white hover:bg-slate-50/80 border border-slate-200 hover:border-brand-navy/30 rounded-2xl p-3 transition-all group/row"
+      className="block bg-white hover:bg-slate-50/80 border border-slate-200 hover:border-brand-charcoal/30 rounded-2xl p-3 transition-all group/row"
       spinnerPosition="top-right"
     >
       <div className="flex items-start justify-between mb-1 gap-3">
@@ -502,7 +502,7 @@ function OtherBidRow({ bid, vsWinner }: { bid: Bid; vsWinner: number }) {
       </div>
       <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
         <span className="text-slate-500">See full breakdown</span>
-        <span className="font-semibold text-brand-navy inline-flex items-center gap-1 group-hover/row:translate-x-0.5 transition-transform">
+        <span className="font-semibold text-brand-charcoal inline-flex items-center gap-1 group-hover/row:translate-x-0.5 transition-transform">
           View offer
           <ArrowRight className="w-3 h-3" />
         </span>
@@ -516,28 +516,28 @@ function OtherBidRow({ bid, vsWinner }: { bid: Bid; vsWinner: number }) {
 // ============================================================================
 
 function tierTheme(tier: BidTier) {
+  // Three-tier hierarchy mapped onto the brand palette:
+  //   Basic        → neutral charcoal (safe, plain, "save")
+  //   Recommended  → solid plum (THE brand accent — the pick)
+  //   Super Cover  → plum→sage gradient (the editorial duo-tone for premium)
   if (tier === 1) {
     return {
-      headerBg: "bg-gradient-to-br from-brand-charcoal to-brand-slate",
+      headerBg: "bg-brand-charcoal",
       cta:
         "bg-brand-charcoal hover:brightness-110 text-white shadow-soft",
     };
   }
   if (tier === 2) {
-    // Recommended — brand's signature gradient
     return {
-      headerBg:
-        "bg-gradient-to-br from-brand-navy via-brand-navy to-brand-plum",
+      headerBg: "bg-brand-plum",
       cta:
-        "bg-brand-olive hover:brightness-110 text-white shadow-glow",
+        "bg-brand-plum hover:brightness-110 text-white shadow-glow",
     };
   }
-  // Super Cover — premium accent gradient using brand secondaries
   return {
-    headerBg:
-      "bg-gradient-to-br from-brand-plum via-brand-plum to-brand-coral",
+    headerBg: "bg-gradient-to-br from-brand-plum to-brand-sage",
     cta:
-      "bg-gradient-to-r from-brand-plum to-brand-coral hover:brightness-110 text-white shadow-elevated",
+      "bg-gradient-to-r from-brand-plum to-brand-sage hover:brightness-110 text-white shadow-elevated",
   };
 }
 
@@ -545,5 +545,5 @@ function deltaClass(delta: number) {
   if (delta < 0) return "text-brand-success";
   if (delta === 0) return "text-brand-slate";
   if (delta < 5000) return "text-brand-slate";
-  return "text-brand-coral";
+  return "text-brand-sage";
 }

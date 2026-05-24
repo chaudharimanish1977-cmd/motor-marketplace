@@ -105,7 +105,7 @@ export default async function InvestorHome() {
         <div className="max-w-3xl w-full text-center space-y-8">
         {/* Eyebrow */}
         <div className="flex justify-center">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-charcoal bg-brand-charcoal/10 border border-brand-charcoal/20 rounded-full">
             <Sparkles className="w-3.5 h-3.5" />
             RightOffer AI Powered Policy Review
           </span>
@@ -116,7 +116,7 @@ export default async function InvestorHome() {
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-brand-charcoal leading-[1.05]">
             Smart Review Today.
             <br />
-            <span className="bg-gradient-to-r from-brand-navy to-brand-plum bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-charcoal to-brand-plum bg-clip-text text-transparent">
               Stronger Protection Tomorrow.
             </span>
           </h1>
@@ -124,7 +124,7 @@ export default async function InvestorHome() {
             Upload your existing motor insurance policy. Get an AI-powered
             review of coverage gaps, the right add-ons for your car, and the
             best curated renewal offers from leading insurers —{" "}
-            <span className="font-semibold text-brand-navy">
+            <span className="font-semibold text-brand-charcoal">
               in under 2 minutes
             </span>
             .
@@ -135,7 +135,7 @@ export default async function InvestorHome() {
         <div className="pt-2 flex flex-col items-center gap-3">
           <LoadingLink
             href="/upload?demo=1"
-            className="inline-flex items-center justify-center px-9 py-4 bg-brand-olive hover:brightness-110 text-white font-semibold text-lg rounded-2xl shadow-glow transition-all hover:scale-[1.03]"
+            className="inline-flex items-center justify-center px-9 py-4 bg-brand-plum hover:brightness-110 text-white font-semibold text-lg rounded-2xl shadow-glow transition-all hover:scale-[1.03]"
           >
             Get My Free Policy Review
             <ArrowRight className="w-5 h-5 ml-2" />
@@ -172,7 +172,7 @@ export default async function InvestorHome() {
       {personas.length > 0 && (
         <section className="mt-24 max-w-5xl w-full">
           <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-coral bg-brand-coral/10 border border-brand-coral/20 rounded-full mb-4">
+            <span className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-sage bg-brand-sage/10 border border-brand-sage/20 rounded-full mb-4">
               <Zap className="w-3 h-3" />
               Pre-parsed personas · Investor shortcut
             </span>
@@ -218,7 +218,7 @@ function ValueProp({
 }) {
   return (
     <div className="space-y-3">
-      <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-brand-navy to-brand-plum flex items-center justify-center shadow-soft">
+      <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-brand-charcoal to-brand-plum flex items-center justify-center shadow-soft">
         <Icon className="w-6 h-6 text-white" />
       </div>
       <h3 className="font-semibold text-brand-charcoal">{title}</h3>
@@ -238,7 +238,7 @@ function PersonaCard({ parsed, report }: DemoPersona) {
     ? "bg-brand-success"
     : isHighIdv
       ? "bg-brand-plum"
-      : "bg-brand-olive";
+      : "bg-brand-plum";
   const profileTag = isWellCovered
     ? "Well-covered profile"
     : isHighIdv
@@ -248,7 +248,7 @@ function PersonaCard({ parsed, report }: DemoPersona) {
   return (
     <LoadingLink
       href={`/report/${parsed.id}?demo=1`}
-      className="block rounded-2xl bg-white border border-brand-light-gray hover:border-brand-navy/40 shadow-soft hover:shadow-elevated transition-all group overflow-hidden"
+      className="block rounded-2xl bg-white border border-brand-light-gray hover:border-brand-charcoal/40 shadow-soft hover:shadow-elevated transition-all group overflow-hidden"
     >
       <div className={`h-1.5 ${accentBar}`} />
       <div className="p-5">
@@ -281,7 +281,7 @@ function PersonaCard({ parsed, report }: DemoPersona) {
           <div className="text-xs text-brand-slate">
             {parsed.insurerName.split(" ").slice(0, 2).join(" ")}
           </div>
-          <div className="text-sm font-semibold text-brand-navy flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+          <div className="text-sm font-semibold text-brand-charcoal flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
             View Report
             <ArrowRight className="w-3.5 h-3.5" />
           </div>

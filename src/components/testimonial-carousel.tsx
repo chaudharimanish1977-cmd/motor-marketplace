@@ -65,7 +65,7 @@ export function TestimonialCarousel() {
       >
         {/* Decorative quote mark */}
         <Quote
-          className="absolute top-5 left-5 w-12 h-12 text-brand-navy/10"
+          className="absolute top-5 left-5 w-12 h-12 text-brand-charcoal/10"
           aria-hidden
         />
 
@@ -90,7 +90,7 @@ export function TestimonialCarousel() {
           type="button"
           aria-label="Previous review"
           onClick={() => goTo(idx - 1)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-brand-light-gray shadow-soft flex items-center justify-center text-brand-slate hover:text-brand-navy hover:border-brand-navy transition-colors"
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-brand-light-gray shadow-soft flex items-center justify-center text-brand-slate hover:text-brand-charcoal hover:border-brand-charcoal transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -98,7 +98,7 @@ export function TestimonialCarousel() {
           type="button"
           aria-label="Next review"
           onClick={() => goTo(idx + 1)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-brand-light-gray shadow-soft flex items-center justify-center text-brand-slate hover:text-brand-navy hover:border-brand-navy transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-brand-light-gray shadow-soft flex items-center justify-center text-brand-slate hover:text-brand-charcoal hover:border-brand-charcoal transition-colors"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -115,7 +115,7 @@ export function TestimonialCarousel() {
             className={clsx(
               "h-1.5 rounded-full transition-all",
               i === idx
-                ? "w-8 bg-brand-navy"
+                ? "w-8 bg-brand-charcoal"
                 : "w-2 bg-brand-light-gray hover:bg-brand-slate/50"
             )}
           />

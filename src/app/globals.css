@@ -98,14 +98,6 @@
   html.dark .text-black:not([class*="dark:text-"]) {
     color: rgb(var(--color-charcoal)) !important;
   }
-  /* Brand-navy is used as heading/accent text throughout the app, but on the
-   * deep plum dark surface it has ~no contrast. Per the brand HTML §02
-   * inversion, navy text "lifts" to off-white (the charcoal token) in dark
-   * mode — neutral, always readable, lets coral/olive carry the accent work. */
-  html.dark .text-brand-navy:not([class*="dark:text-"]) {
-    color: rgb(var(--color-charcoal)) !important;
-  }
-
   /* ============================================================
    * Tailwind named-blue light shades — flip to translucent dark
    * blues so light pills (e.g. bg-blue-50 + border-blue-100) read
@@ -221,109 +213,52 @@
   }
 
   /* ============================================================
-   * Brand-token ALIASES used as surface bg or gradient stops.
+   * Brand tokens used as SURFACE bg or gradient stops.
    *
-   * `brand-navy / olive / coral / deepblue / electricblue / etc.`
-   * all resolve at the CSS-variable layer to charcoal, plum, or sage.
-   * Those underlying variables flip LIGHT in dark mode (for body-text
-   * legibility against a dark page). But components use the aliases
-   * as the BACKGROUND of CTAs, gradient headers, pills with white
-   * text on top — when the background flips light, the white text
-   * disappears.
+   * `brand-plum` and `brand-sage` resolve through CSS variables that
+   * flip LIGHT in dark mode (for body-text legibility against a dark
+   * page). But the SAME tokens are also used as CTA backgrounds and
+   * gradient header surfaces with white text on top — there, flipping
+   * the bg light makes the white text invisible.
    *
-   * Re-pin each alias to a fixed-dark value when it's used as bg /
-   * gradient stop. The :not([class*="dark:..."]) guard preserves any
-   * explicit dark:bg-* / dark:from-* override a component might want.
-   * text-* uses of the same aliases are NOT re-pinned — those still
-   * flip light naturally for inline text accents.
+   * Pin the bg + gradient-stop usages dark in dark mode so white text
+   * on plum/sage surfaces stays readable. text-* uses are NOT touched —
+   * inline text accents flip light naturally via the CSS variables.
+   * Components needing the lifted-light variant can opt in via explicit
+   * `dark:bg-*` / `dark:from-*` — the :not(...) guard preserves that.
    * ============================================================ */
 
-  /* === brand-navy / brand-ink (alias of charcoal) — pin to slate-900 === */
-  html.dark .bg-brand-navy:not([class*="dark:bg-"]),
-  html.dark .bg-brand-ink:not([class*="dark:bg-"]) {
-    background-color: #0F172A !important;
-  }
-  html.dark .from-brand-navy:not([class*="dark:from-"]),
-  html.dark .from-brand-ink:not([class*="dark:from-"]) {
-    --tw-gradient-from: #0F172A var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-  html.dark .via-brand-navy:not([class*="dark:via-"]),
-  html.dark .via-brand-ink:not([class*="dark:via-"]) {
-    --tw-gradient-stops: var(--tw-gradient-from), #1E293B var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
-  }
-  html.dark .to-brand-navy:not([class*="dark:to-"]),
-  html.dark .to-brand-ink:not([class*="dark:to-"]) {
-    --tw-gradient-to: #0F172A var(--tw-gradient-to-position) !important;
-  }
-
-  /* === brand-plum / brand-olive / brand-orange / brand-purple /
-       brand-deepblue (all resolve to plum) — pin to deep plum #3a1e3d
-       so white text on plum CTAs / headers stays readable in dark === */
-  html.dark .bg-brand-plum:not([class*="dark:bg-"]),
-  html.dark .bg-brand-olive:not([class*="dark:bg-"]),
-  html.dark .bg-brand-orange:not([class*="dark:bg-"]),
-  html.dark .bg-brand-purple:not([class*="dark:bg-"]),
-  html.dark .bg-brand-deepblue:not([class*="dark:bg-"]) {
+  /* === brand-plum surface — pin to deep plum #3a1e3d in dark === */
+  html.dark .bg-brand-plum:not([class*="dark:bg-"]) {
     background-color: #3a1e3d !important;
   }
-  html.dark .from-brand-plum:not([class*="dark:from-"]),
-  html.dark .from-brand-olive:not([class*="dark:from-"]),
-  html.dark .from-brand-orange:not([class*="dark:from-"]),
-  html.dark .from-brand-purple:not([class*="dark:from-"]),
-  html.dark .from-brand-deepblue:not([class*="dark:from-"]) {
+  html.dark .from-brand-plum:not([class*="dark:from-"]) {
     --tw-gradient-from: #3a1e3d var(--tw-gradient-from-position) !important;
     --tw-gradient-to: rgb(58 30 61 / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  html.dark .via-brand-plum:not([class*="dark:via-"]),
-  html.dark .via-brand-olive:not([class*="dark:via-"]),
-  html.dark .via-brand-orange:not([class*="dark:via-"]),
-  html.dark .via-brand-purple:not([class*="dark:via-"]),
-  html.dark .via-brand-deepblue:not([class*="dark:via-"]) {
+  html.dark .via-brand-plum:not([class*="dark:via-"]) {
     --tw-gradient-stops: var(--tw-gradient-from), #3a1e3d var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
   }
-  html.dark .to-brand-plum:not([class*="dark:to-"]),
-  html.dark .to-brand-olive:not([class*="dark:to-"]),
-  html.dark .to-brand-orange:not([class*="dark:to-"]),
-  html.dark .to-brand-purple:not([class*="dark:to-"]),
-  html.dark .to-brand-deepblue:not([class*="dark:to-"]) {
+  html.dark .to-brand-plum:not([class*="dark:to-"]) {
     --tw-gradient-to: #3a1e3d var(--tw-gradient-to-position) !important;
   }
 
-  /* === brand-sage / brand-coral / brand-electricblue / brand-skyblue /
-       brand-gold (all resolve to sage) — pin to a darker sage so white
-       text reads cleanly. Light-mode sage is #8b9d80; pin to #5a6b50 in
-       dark for ~5:1 contrast with white. === */
-  html.dark .bg-brand-sage:not([class*="dark:bg-"]),
-  html.dark .bg-brand-coral:not([class*="dark:bg-"]),
-  html.dark .bg-brand-electricblue:not([class*="dark:bg-"]),
-  html.dark .bg-brand-skyblue:not([class*="dark:bg-"]),
-  html.dark .bg-brand-gold:not([class*="dark:bg-"]) {
+  /* === brand-sage surface — pin to deeper sage #5a6b50 for ~5:1
+       contrast with white text in dark mode. Light-mode sage #8b9d80
+       is too pale for white text once the page goes dark. === */
+  html.dark .bg-brand-sage:not([class*="dark:bg-"]) {
     background-color: #5a6b50 !important;
   }
-  html.dark .from-brand-sage:not([class*="dark:from-"]),
-  html.dark .from-brand-coral:not([class*="dark:from-"]),
-  html.dark .from-brand-electricblue:not([class*="dark:from-"]),
-  html.dark .from-brand-skyblue:not([class*="dark:from-"]),
-  html.dark .from-brand-gold:not([class*="dark:from-"]) {
+  html.dark .from-brand-sage:not([class*="dark:from-"]) {
     --tw-gradient-from: #5a6b50 var(--tw-gradient-from-position) !important;
     --tw-gradient-to: rgb(90 107 80 / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  html.dark .via-brand-sage:not([class*="dark:via-"]),
-  html.dark .via-brand-coral:not([class*="dark:via-"]),
-  html.dark .via-brand-electricblue:not([class*="dark:via-"]),
-  html.dark .via-brand-skyblue:not([class*="dark:via-"]),
-  html.dark .via-brand-gold:not([class*="dark:via-"]) {
+  html.dark .via-brand-sage:not([class*="dark:via-"]) {
     --tw-gradient-stops: var(--tw-gradient-from), #5a6b50 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
   }
-  html.dark .to-brand-sage:not([class*="dark:to-"]),
-  html.dark .to-brand-coral:not([class*="dark:to-"]),
-  html.dark .to-brand-electricblue:not([class*="dark:to-"]),
-  html.dark .to-brand-skyblue:not([class*="dark:to-"]),
-  html.dark .to-brand-gold:not([class*="dark:to-"]) {
+  html.dark .to-brand-sage:not([class*="dark:to-"]) {
     --tw-gradient-to: #5a6b50 var(--tw-gradient-to-position) !important;
   }
 

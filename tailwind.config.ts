@@ -48,25 +48,6 @@ const config: Config = {
           // === Functional ===
           success: "#00B894",
           alert: "#E17055",
-
-          // === Legacy aliases — remap onto Reading Room semantics so
-          // existing class references (bg-brand-navy, bg-brand-olive,
-          // text-brand-coral, etc.) keep working but adopt the new palette
-          // automatically. Will be swept out in a later commit.
-          //   Heading color (navy) → charcoal so headings stay readable.
-          //   CTA / surface fill (olive, orange) → plum (CTAs are plum).
-          //   Warm accent (coral, gold) → sage (the editorial accent).
-          //   Deep/tier accents (plum, deepblue, electricblue, etc.) → plum. ===
-          navy: "rgb(var(--color-charcoal) / <alpha-value>)", // → body fg
-          olive: "rgb(var(--color-plum) / <alpha-value>)", // → plum (CTAs)
-          coral: "rgb(var(--color-sage) / <alpha-value>)", // → sage
-          deepblue: "rgb(var(--color-plum) / <alpha-value>)", // → plum
-          electricblue: "rgb(var(--color-sage) / <alpha-value>)", // → sage
-          skyblue: "rgb(var(--color-sage) / <alpha-value>)", // → sage
-          orange: "rgb(var(--color-plum) / <alpha-value>)", // → plum
-          purple: "rgb(var(--color-plum) / <alpha-value>)", // → plum
-          gold: "rgb(var(--color-sage) / <alpha-value>)", // → sage
-          ink: "rgb(var(--color-charcoal) / <alpha-value>)",
         },
         // Semantic surface token for cards/panels that today use bg-white.
         // Stays white in light mode, dark slate in dark mode.

@@ -37,7 +37,7 @@ export default async function BidPage({ params }: PageProps) {
           </p>
           <Link
             href={`/report/${id}`}
-            className="inline-block px-6 py-2 bg-brand-navy text-white rounded-lg"
+            className="inline-block px-6 py-2 bg-brand-charcoal text-white rounded-lg"
           >
             Go to Report
           </Link>
@@ -63,18 +63,18 @@ export default async function BidPage({ params }: PageProps) {
     <main className="min-h-screen px-4 py-8 max-w-3xl mx-auto">
       <Link
         href={`/report/${id}`}
-        className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-navy mb-6 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-charcoal mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to report
       </Link>
 
       <div className="space-y-3 mb-8">
-        <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-navy bg-brand-navy/15 rounded-full">
+        <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-charcoal bg-brand-charcoal/15 rounded-full">
           <Sparkles className="w-3 h-3" />
           Step 2 of 3 · Build Your Bundle
         </span>
-        <h1 className="text-3xl md:text-4xl font-bold text-brand-ink">
+        <h1 className="text-3xl md:text-4xl font-bold text-brand-charcoal">
           {previousSelections ? "Customize Your Cover" : "Curate Your Cover"}
         </h1>
         <p className="text-slate-600 text-lg">

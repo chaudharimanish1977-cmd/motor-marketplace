@@ -34,13 +34,13 @@ export function ShellLapsed({ policy, lifecycle }: ShellLapsedProps) {
   return (
     <main className="min-h-screen px-4 py-8 max-w-2xl mx-auto">
       {/* Sharp top banner — uncovered moment */}
-      <div className="rounded-2xl bg-brand-surface border-l-4 border-brand-coral px-5 md:px-7 py-5 mb-7">
+      <div className="rounded-2xl bg-brand-surface border-l-4 border-brand-sage px-5 md:px-7 py-5 mb-7">
         <div className="flex items-start gap-4">
-          <div className="text-brand-coral flex-shrink-0">
+          <div className="text-brand-sage flex-shrink-0">
             <AlertIcon />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-mono font-bold text-[10.5px] uppercase tracking-[0.16em] text-brand-coral">
+            <div className="font-mono font-bold text-[10.5px] uppercase tracking-[0.16em] text-brand-sage">
               · Policy lapsed · {daysLapsed} day
               {daysLapsed === 1 ? "" : "s"} ago ·
             </div>

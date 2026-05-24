@@ -63,7 +63,7 @@ export function EmailMeButton({ reportId }: { reportId?: string }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="flex-1 px-3 py-2 text-sm rounded-lg border border-brand-light-gray text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-navy"
+              className="flex-1 px-3 py-2 text-sm rounded-lg border border-brand-light-gray text-brand-charcoal placeholder:text-brand-slate/50 focus:outline-none focus:border-brand-charcoal"
               autoFocus
             />
             <button
@@ -73,7 +73,7 @@ export function EmailMeButton({ reportId }: { reportId?: string }) {
               className={clsx(
                 "px-3 py-2 text-xs font-bold rounded-lg",
                 isValid && !submitting
-                  ? "bg-brand-navy hover:brightness-110 text-white"
+                  ? "bg-brand-charcoal hover:brightness-110 text-white"
                   : "bg-brand-light-gray text-brand-slate cursor-not-allowed"
               )}
             >

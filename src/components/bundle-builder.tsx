@@ -242,8 +242,8 @@ export function BundleBuilder({
       {/* Vehicle summary */}
       <section className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-brand-navy/10 flex items-center justify-center shrink-0">
-            <Shield className="w-6 h-6 text-brand-navy" />
+          <div className="w-12 h-12 rounded-2xl bg-brand-charcoal/10 flex items-center justify-center shrink-0">
+            <Shield className="w-6 h-6 text-brand-charcoal" />
           </div>
           <div className="flex-1">
             <div className="text-[10px] text-slate-500 uppercase tracking-[0.12em] font-semibold">
@@ -282,7 +282,7 @@ export function BundleBuilder({
               step={1000}
               value={desiredIdv}
               onChange={(e) => setDesiredIdv(Number(e.target.value))}
-              className="w-full accent-brand-navy"
+              className="w-full accent-brand-charcoal"
             />
             <div className="flex justify-between text-xs text-slate-500 mt-1">
               <span>{formatINR(Math.floor(parsedPolicy.idv * 0.85))}</span>
@@ -291,7 +291,7 @@ export function BundleBuilder({
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-xl font-bold text-brand-navy">
+            <div className="text-xl font-bold text-brand-charcoal">
               {formatINR(desiredIdv)}
             </div>
           </div>
@@ -310,7 +310,7 @@ export function BundleBuilder({
               -year-old {parsedPolicy.vehicle.make}.
             </p>
           </div>
-          <span className="px-3 py-1 text-xs font-bold text-brand-navy bg-brand-navy/15 rounded-full tabular-nums">
+          <span className="px-3 py-1 text-xs font-bold text-brand-charcoal bg-brand-charcoal/15 rounded-full tabular-nums">
             {selectedAddOns.size} selected
           </span>
         </div>
@@ -420,7 +420,7 @@ export function BundleBuilder({
           "w-full py-4 rounded-2xl text-lg font-bold transition-all",
           hasClaim === null
             ? "bg-brand-light-gray text-brand-slate cursor-not-allowed"
-            : "bg-brand-olive hover:brightness-110 text-white hover:scale-[1.01] shadow-glow"
+            : "bg-brand-plum hover:brightness-110 text-white hover:scale-[1.01] shadow-glow"
         )}
       >
         Get My 3-Tier Curated Offers →
@@ -455,7 +455,7 @@ function AddOnGroup({
 }) {
   const headerColor = {
     emerald: "text-emerald-700",
-    blue: "text-brand-navy",
+    blue: "text-brand-charcoal",
     amber: "text-amber-700",
   }[badgeColor];
 
@@ -502,14 +502,14 @@ function AddOnRow({
       className={clsx(
         "flex items-start gap-3 p-3.5 rounded-2xl border transition-colors",
         isSelected
-          ? "border-brand-navy/30 bg-brand-navy/10"
+          ? "border-brand-charcoal/30 bg-brand-charcoal/10"
           : "border-slate-200 bg-white hover:bg-slate-50/40"
       )}
     >
       <div
         className={clsx(
           "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5",
-          isSelected ? "bg-brand-navy" : "bg-slate-100"
+          isSelected ? "bg-brand-charcoal" : "bg-slate-100"
         )}
       >
         <Icon
@@ -570,7 +570,7 @@ function Toggle({
       onClick={onChange}
       className={clsx(
         "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors mt-1.5",
-        isOn ? "bg-brand-navy" : "bg-slate-300"
+        isOn ? "bg-brand-charcoal" : "bg-slate-300"
       )}
     >
       <span

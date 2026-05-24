@@ -19,7 +19,7 @@ import { PlateOtpInput } from "@/components/plate-otp-input";
  *      prefer email)
  *
  * Editorial styling locked in:
- *   · No more gradient bg-brand-navy modal — replaced with hairline
+ *   · No more gradient bg-brand-charcoal modal — replaced with hairline
  *     section break + serif heading + plum CTAs
  *   · Mono kicker · serif headline with italic-plum accent
  *   · Email field in the editorial capsule treatment (plum focus)

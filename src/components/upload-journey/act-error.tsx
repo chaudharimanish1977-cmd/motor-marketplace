@@ -40,7 +40,7 @@ export function ActError({
     <div className="relative w-full">
       {/* No persistent loader — we've stopped reading. */}
       <div className="mb-6 flex items-center justify-between gap-3">
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-coral font-bold">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold">
           · Reading interrupted ·
         </span>
         <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-brand-slate">

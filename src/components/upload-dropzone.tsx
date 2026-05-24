@@ -493,7 +493,7 @@ export function UploadDropzone({
               <LoadingLink
                 href="/reports"
                 spinnerPosition="right"
-                className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-olive hover:brightness-110 text-white shadow-glow transition-all"
+                className="block w-full py-3.5 text-center font-bold rounded-2xl bg-brand-plum hover:brightness-110 text-white shadow-glow transition-all"
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
                   See {isMulti ? "my reports" : "my report"}
@@ -503,7 +503,7 @@ export function UploadDropzone({
               <button
                 type="button"
                 onClick={resetForNext}
-                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-navy text-brand-navy hover:bg-brand-navy/10 transition-all"
+                className="block w-full py-3 text-center font-semibold rounded-2xl bg-white border-2 border-brand-charcoal text-brand-charcoal hover:bg-brand-charcoal/10 transition-all"
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
                   <Plus className="w-4 h-4" />

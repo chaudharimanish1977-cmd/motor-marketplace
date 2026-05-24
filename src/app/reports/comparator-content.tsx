@@ -79,7 +79,7 @@ export function ComparatorContent({
   return (
     <div className="space-y-6">
       <header className="space-y-1.5">
-        <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy bg-brand-navy/10 border border-brand-navy/20 rounded-full">
+        <div className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-charcoal bg-brand-charcoal/10 border border-brand-charcoal/20 rounded-full">
           <Sparkles className="w-3.5 h-3.5" />
           {headerBadge}
         </div>
@@ -131,7 +131,7 @@ function RcpBlock({
   return (
     <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
       <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-charcoal">
           <ShieldCheck className="w-3.5 h-3.5" />
           What we recommend
         </div>
@@ -189,7 +189,7 @@ function RcpBlock({
 
       {rcp.idv.note && (
         <div className="px-5 md:px-6 py-3 border-t border-brand-light-gray bg-brand-offwhite/40 text-xs text-brand-slate flex items-start gap-2">
-          <Gauge className="w-3.5 h-3.5 text-brand-navy shrink-0 mt-0.5" />
+          <Gauge className="w-3.5 h-3.5 text-brand-charcoal shrink-0 mt-0.5" />
           <span>
             <strong className="text-brand-charcoal">
               IDV {formatINR(rcp.idv.current)}
@@ -212,7 +212,7 @@ function QuotesBlock({
   return (
     <section className="bg-white rounded-2xl border border-brand-light-gray shadow-soft overflow-hidden">
       <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-navy">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-charcoal">
           <Trophy className="w-3.5 h-3.5" />
           Your documents
         </div>
@@ -355,21 +355,21 @@ function RightOfferPickCard({ pick }: { pick: RightOfferPick }) {
     beatBadge.tone === "emerald"
       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
       : beatBadge.tone === "deepblue"
-        ? "bg-brand-navy/10 text-brand-navy border-brand-navy/20"
+        ? "bg-brand-charcoal/10 text-brand-charcoal border-brand-charcoal/20"
         : beatBadge.tone === "amber"
           ? "bg-amber-50 text-amber-700 border-amber-100"
           : "bg-slate-50 text-brand-slate border-brand-light-gray";
 
   return (
-    <section className="rounded-2xl border-2 border-brand-coral/30 bg-gradient-to-br from-brand-coral/10 to-white shadow-elevated overflow-hidden">
+    <section className="rounded-2xl border-2 border-brand-sage/30 bg-gradient-to-br from-brand-sage/10 to-white shadow-elevated overflow-hidden">
       <header className="px-5 md:px-6 pt-5 pb-3 border-b border-brand-light-gray flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-coral">
+          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-sage">
             <Award className="w-3.5 h-3.5" />
             Our pick · Right Offer
           </div>
           <h2 className="mt-1.5 text-xl md:text-2xl font-bold text-brand-charcoal tracking-tight flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-brand-coral" />
+            <Building2 className="w-5 h-5 text-brand-sage" />
             {pick.insurerName}
           </h2>
           {pick.tagline && (
@@ -387,7 +387,7 @@ function RightOfferPickCard({ pick }: { pick: RightOfferPick }) {
       <div className="px-5 md:px-6 py-4 space-y-3">
         {/* Why this is the Right Offer */}
         <div className="flex items-start gap-2 text-sm text-brand-charcoal leading-relaxed">
-          <CheckCircle2 className="w-4 h-4 text-brand-coral shrink-0 mt-0.5" />
+          <CheckCircle2 className="w-4 h-4 text-brand-sage shrink-0 mt-0.5" />
           <span>{pick.beatSummary}</span>
         </div>
 
@@ -494,13 +494,13 @@ function VerdictBlock({
     tone === "emerald"
       ? "border-emerald-200 bg-emerald-50/40"
       : tone === "deepblue"
-        ? "border-brand-navy/30 bg-brand-navy/10"
+        ? "border-brand-charcoal/30 bg-brand-charcoal/10"
         : "border-amber-200 bg-amber-50/40";
   const iconCls =
     tone === "emerald"
       ? "bg-emerald-100 text-emerald-700 border-emerald-200"
       : tone === "deepblue"
-        ? "bg-brand-navy/15 text-brand-navy border-brand-navy/30"
+        ? "bg-brand-charcoal/15 text-brand-charcoal border-brand-charcoal/30"
         : "bg-amber-100 text-amber-700 border-amber-200";
 
   const recommended = verdict.recommendedQuoteId

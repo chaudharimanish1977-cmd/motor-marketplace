@@ -60,7 +60,7 @@ export function ContactCTA({
         className={clsx(
           "inline-flex items-center gap-2 px-8 py-4 font-bold rounded-2xl shadow-glow hover:scale-105 hover:brightness-110 transition-all",
           buttonClassName ??
-            "bg-brand-olive text-white"
+            "bg-brand-plum text-white"
         )}
       >
         {label}
@@ -90,7 +90,7 @@ export function ContactCTA({
               <X className="w-4 h-4 text-brand-slate" />
             </button>
 
-            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-navy mb-1">
+            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-charcoal mb-1">
               Talk to a RightOffer advisor
             </div>
             <h2 className="text-xl font-bold mb-2">
@@ -104,7 +104,7 @@ export function ContactCTA({
 
             {/* Email row */}
             <div className="flex items-center gap-2 p-3 rounded-xl border border-brand-light-gray bg-brand-offwhite">
-              <Mail className="w-5 h-5 text-brand-navy shrink-0" />
+              <Mail className="w-5 h-5 text-brand-charcoal shrink-0" />
               <span className="flex-1 font-mono text-sm font-semibold text-brand-charcoal truncate">
                 {CONTACT_EMAIL}
               </span>
@@ -115,7 +115,7 @@ export function ContactCTA({
                   "inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors",
                   copied
                     ? "bg-brand-success text-white"
-                    : "bg-brand-navy text-white hover:brightness-110"
+                    : "bg-brand-charcoal text-white hover:brightness-110"
                 )}
               >
                 {copied ? (

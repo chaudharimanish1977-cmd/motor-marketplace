@@ -27,9 +27,9 @@ interface Props {
 
 // Brand v2.0 colors — ink-line sedan in olive (matches the logo's
 // hand-drawn sedan), coral headlight accent, plum-tinted window fill.
-const STROKE = "#424D1F"; // brand-olive
+const STROKE = "#424D1F"; // brand-plum
 const STROKE_W = 2;
-const ACCENT = "#ff5a30"; // brand-coral
+const ACCENT = "#ff5a30"; // brand-sage
 const WINDOW_FILL = "rgba(58, 30, 61, 0.10)"; // brand-plum at 10% — soft tint
 
 export function CarByBodyType({ bodyType, x = 0, y = 0 }: Props) {

@@ -36,7 +36,7 @@ export default async function CheckoutPage({ params }: PageProps) {
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-3 flex-wrap">
           <Link
             href={`/bid/${parsedPolicy.id}/results?rfq=${rfq.id}`}
-            className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-navy"
+            className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-charcoal"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to offers
@@ -55,7 +55,7 @@ export default async function CheckoutPage({ params }: PageProps) {
 
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="space-y-2 mb-8">
-          <h1 className="text-3xl font-bold text-brand-ink">
+          <h1 className="text-3xl font-bold text-brand-charcoal">
             Almost there, {friendlyFirstName(parsedPolicy.owner.name)}
           </h1>
           <p className="text-slate-600">

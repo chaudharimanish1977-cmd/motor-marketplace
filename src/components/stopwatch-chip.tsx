@@ -96,7 +96,7 @@ export function StopwatchChip({ startedAt, size = 54, className }: Props) {
           opacity="0.5"
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold tabular-nums text-brand-navy">
+      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold tabular-nums text-brand-charcoal">
         {display}
       </span>
     </div>

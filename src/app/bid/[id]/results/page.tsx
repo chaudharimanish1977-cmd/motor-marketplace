@@ -70,7 +70,7 @@ export default async function ResultsPage({
           </p>
           <Link
             href={`/bid/${id}`}
-            className="inline-block px-6 py-2 bg-brand-navy text-white rounded-lg"
+            className="inline-block px-6 py-2 bg-brand-charcoal text-white rounded-lg"
           >
             Curate My Bundle
           </Link>
@@ -94,7 +94,7 @@ export default async function ResultsPage({
           </p>
           <Link
             href={`/bid/${id}`}
-            className="inline-block px-6 py-2 bg-brand-navy text-white rounded-lg"
+            className="inline-block px-6 py-2 bg-brand-charcoal text-white rounded-lg"
           >
             Re-curate
           </Link>
@@ -138,7 +138,7 @@ export default async function ResultsPage({
         <div className="max-w-7xl mx-auto px-4 py-4">
           <Link
             href={`/bid/${id}`}
-            className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-navy"
+            className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-charcoal"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to bundle
