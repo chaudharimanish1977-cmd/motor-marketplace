@@ -501,15 +501,18 @@ function AddOnRow({
     <div
       className={clsx(
         "flex items-start gap-3 p-3.5 rounded-2xl border transition-colors",
+        // Selected state uses plum tint — matches the Toggle ON state
+        // and the editorial brand accent. Plum auto-flips lifted in
+        // dark mode so the selected card stays visibly highlighted.
         isSelected
-          ? "border-brand-charcoal/30 bg-brand-charcoal/10"
+          ? "border-brand-plum/30 bg-brand-plum/10"
           : "border-slate-200 bg-white hover:bg-slate-50/40"
       )}
     >
       <div
         className={clsx(
           "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5",
-          isSelected ? "bg-brand-charcoal" : "bg-slate-100"
+          isSelected ? "bg-brand-plum" : "bg-slate-100"
         )}
       >
         <Icon
@@ -570,7 +573,11 @@ function Toggle({
       onClick={onChange}
       className={clsx(
         "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors mt-1.5",
-        isOn ? "bg-brand-charcoal" : "bg-slate-300"
+        // ON state uses brand-plum so the active toggle reads as a
+        // primary product action (matches the editorial accent palette
+        // — deep plum in light, lifted plum in dark, bright in both).
+        // OFF state stays neutral slate for clear visual hierarchy.
+        isOn ? "bg-brand-plum" : "bg-slate-300"
       )}
     >
       <span

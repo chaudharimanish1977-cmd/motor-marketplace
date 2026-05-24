@@ -184,32 +184,39 @@
 
   /* IMPORTANT: brand-charcoal and brand-slate are wired to CSS variables that
    * flip light in dark mode (for body text legibility). When the SAME tokens
-   * are used as gradient BACKGROUND stops (offer-tier hero cards intend a
-   * dark gradient with white text on top), the auto-flip inverts the design
-   * and the white text becomes invisible. Re-pin those gradient stops back
-   * to their darker dark-mode equivalents so the hero card stays dark. */
+   * are used as gradient BACKGROUND stops or solid SURFACES (utility CTAs
+   * like Continue/Pay, Tier 1 Basic header, toggle ON state, AddOn icon
+   * containers), the auto-flip inverts the design and white text on a
+   * now-cream bg becomes invisible. Re-pin to a distinctly LIFTED slate
+   * (#334155 / slate-700) — clearly visible against the warm near-black
+   * page bg #0e0a10, gives white text ~9:1 contrast, reads as an elevated
+   * utility surface in dark mode. (Earlier value slate-900 #0F172A was so
+   * close to page bg that buttons looked unrendered.) */
   html.dark .from-brand-charcoal:not([class*="dark:from-"]) {
-    --tw-gradient-from: #0F172A var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-  html.dark .via-brand-charcoal:not([class*="dark:via-"]) {
-    --tw-gradient-stops: var(--tw-gradient-from), #1E293B var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
-  }
-  html.dark .to-brand-charcoal:not([class*="dark:to-"]) {
-    --tw-gradient-to: #0F172A var(--tw-gradient-to-position) !important;
-  }
-  html.dark .from-brand-slate:not([class*="dark:from-"]) {
     --tw-gradient-from: #334155 var(--tw-gradient-from-position) !important;
     --tw-gradient-to: rgb(51 65 85 / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
   }
-  html.dark .to-brand-slate:not([class*="dark:to-"]) {
+  html.dark .via-brand-charcoal:not([class*="dark:via-"]) {
+    --tw-gradient-stops: var(--tw-gradient-from), #475569 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-charcoal:not([class*="dark:to-"]) {
     --tw-gradient-to: #334155 var(--tw-gradient-to-position) !important;
   }
-  /* Same for solid `bg-brand-charcoal` blocks used as dark wells */
+  html.dark .from-brand-slate:not([class*="dark:from-"]) {
+    --tw-gradient-from: #475569 var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(71 85 105 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.dark .to-brand-slate:not([class*="dark:to-"]) {
+    --tw-gradient-to: #475569 var(--tw-gradient-to-position) !important;
+  }
+  /* Solid bg-brand-charcoal surfaces — utility buttons (Continue, Pay),
+     Tier 1 Basic tier-card header, Curate My Bundle, toggle ON state,
+     AddOn icon container, and anywhere else "elevated dark surface
+     with white text on top" was the design intent. */
   html.dark .bg-brand-charcoal:not([class*="dark:bg-"]) {
-    background-color: #0F172A !important;
+    background-color: #334155 !important;
   }
 
   /* ============================================================
@@ -226,11 +233,12 @@
    *
    * No bg/gradient pinning here — the CSS variables flip naturally
    * via the html.dark token definitions above. brand-charcoal IS
-   * pinned dark (slate-900) because charcoal serves as body text in
-   * light AND as the "neutral utility" surface (Continue buttons,
-   * Tier 1 Basic header) — those need to stay dark in dark mode so
-   * white text on them remains readable. Plum and sage surfaces opt
-   * into the brand-mandated lift instead.
+   * pinned dark (slate-700 #334155) because charcoal serves as body
+   * text in light AND as the "neutral utility" surface (Continue
+   * buttons, Tier 1 Basic header) — those need to stay dark in dark
+   * mode AND visible against the page bg, so white text on them
+   * remains readable. Plum and sage surfaces opt into the
+   * brand-mandated lift instead.
    * ============================================================ */
 
   /* Form controls: inputs/textareas/selects use the browser default white
@@ -271,17 +279,6 @@
     --tw-gradient-to: rgb(var(--color-surface) / 0) var(--tw-gradient-to-position) !important;
     --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--color-surface)) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
   }
-
-  /* RightOffer editorial: brand.navy/olive/coral/plum/sage all resolve to CSS
-   * variables (--color-charcoal/--color-plum/--color-sage) that flip
-   * automatically with theme. No bespoke dark-mode overrides needed here. */
-
-  /* SVG strokes/fills authored with hardcoded brand-navy (#1a3470)
-   * inline. The page bg in dark mode is slate-900 — too close. Use
-   * currentColor or skyblue alternatives. We can't auto-fix inline SVGs
-   * universally, but icon containers using `text-brand-navy` flip
-   * via the text-color override above — `<svg stroke="currentColor">`
-   * will then inherit the readable color. */
 
   /* ============================================================
    * Named-color light shades used as "celebratory" / accent card
@@ -514,6 +511,27 @@
   html.dark .to-slate-200:not([class*="dark:to-"]) {
     --tw-gradient-to: rgb(15 23 42) var(--tw-gradient-to-position) !important;
   }
+
+  /* ============================================================
+   * Coloured-family -200 / -300 SOLID backgrounds — used as icon
+   * pill containers and emphasis blocks (e.g. Claim Disclosure
+   * icon is `bg-amber-200` inside a `bg-amber-50/70` card). The
+   * existing -50/-100 shim doesn't reach -200; without these
+   * rules the icon container renders as a light yellow circle on
+   * the dark amber card, breaking the dark-mode read.
+   * Same -900 hex anchors as the -50/-100 rules above, at higher
+   * alpha so the icon container reads as the "inner emphasis"
+   * surface rather than the card.
+   * ============================================================ */
+  html.dark .bg-amber-200:not([class*="dark:bg-"]) { background-color: rgb(120 53 15 / 0.55) !important; }
+  html.dark .bg-amber-300:not([class*="dark:bg-"]) { background-color: rgb(120 53 15 / 0.7) !important; }
+  html.dark .bg-emerald-200:not([class*="dark:bg-"]) { background-color: rgb(6 78 59 / 0.55) !important; }
+  html.dark .bg-emerald-300:not([class*="dark:bg-"]) { background-color: rgb(6 78 59 / 0.7) !important; }
+  html.dark .bg-rose-200:not([class*="dark:bg-"]) { background-color: rgb(136 19 55 / 0.55) !important; }
+  html.dark .bg-red-200:not([class*="dark:bg-"]) { background-color: rgb(127 29 29 / 0.55) !important; }
+  html.dark .bg-orange-200:not([class*="dark:bg-"]) { background-color: rgb(124 45 18 / 0.55) !important; }
+  html.dark .bg-yellow-200:not([class*="dark:bg-"]) { background-color: rgb(113 63 18 / 0.55) !important; }
+
   /* When SimplifyToggle is on, hide detail-level prose marked with .report-detail */
   body.report-simplified .report-detail {
     display: none;
