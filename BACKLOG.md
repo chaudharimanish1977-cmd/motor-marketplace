@@ -118,6 +118,7 @@ Remove an entry when it's actually done **and** verified — not when the code l
 |---|---|---|
 | 2026-05-17 | **BFSI legal expert reviews `/privacy`** | Currently carries a draft banner. Senior compliance person from the founder's network is aware of the plan. Add ToS at the same time. |
 | 2026-05-17 | **Grievance Officer name + direct contact in `/privacy`** | Post company incorporation. |
+| 2026-05-24 | **Set up grievance@rightoffer.in mailbox + ensure monitoring** | /privacy promises responses within 7 working days. Today this address is referenced but the mailbox isn't confirmed to be live + actively read. Create the mailbox at Titan (same way as review@), wire forwarding to hello@ or a dedicated address you check daily. Without this, the published policy is technically non-compliant on day one. |
 | 2026-05-17 | **Move AI sub-processor to Indian-region availability** | Currently US-hosted. Telegraphed in the privacy policy. Switch when Claude / equivalent ships an India region. |
 | 2026-05-17 | **Start insurer conversations** | Audit-first wedge — strategy agreed yesterday. |
 | 2026-05-18 | **Day-1 insurer partner pick** | Affects rate-card flexibility, API maturity, garage coverage. Per V1 spec — strategic decision pending before bid orchestrator shifts from mock personas to real insurer. |

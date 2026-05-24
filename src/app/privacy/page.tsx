@@ -42,16 +42,14 @@ export default function PrivacyPage() {
         </h1>
         <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
           Last updated · {updated}
-          <span className="text-brand-plum"> · Draft </span>
-          (pending legal review)
         </p>
       </header>
 
       <div className="space-y-8 leading-[1.7] text-[16.5px]">
         <Section number="i." title="What this policy covers">
-          This policy describes how <strong>RightOffer Reviews Private
-          Limited</strong> ("we", "us", "RightOffer") collects, uses,
-          stores, and shares your personal information when you use{" "}
+          This policy describes how RightOffer ("we", "us") collects,
+          uses, stores, and shares your personal information when you
+          use{" "}
           <Link
             href="/"
             className="italic text-brand-plum hover:underline"
@@ -181,9 +179,18 @@ export default function PrivacyPage() {
           us run the service — under strict contractual confidentiality
           obligations:
           <ul className="mt-3 space-y-2 list-none pl-0">
-            <Item label="Hosting and database">
-              Vercel and Upstash for serving the site and storing your
-              account.
+            <Item label="Hosting and serverless compute">
+              Vercel, for serving the site and running our application
+              code.
+            </Item>
+            <Item label="Database">
+              Upstash, for storing your account, parsed policy details,
+              audit reports, and renewal subscriptions.
+            </Item>
+            <Item label="Document storage">
+              Vercel Blob, for storing the original PDF you upload or
+              forward. Documents sit encrypted at rest, scoped behind
+              authenticated URLs.
             </Item>
             <Item label="Email delivery">
               Resend, for transactional outbound messages (your review,
@@ -201,6 +208,12 @@ export default function PrivacyPage() {
               . Postmark parses the email and hands the attachment to our
               servers; it does not retain the document long-term.
             </Item>
+            <Item label="Background job processing">
+              Upstash QStash, for durably queueing audit work after an
+              email is forwarded. Each queued job carries an internal
+              reference to your forwarded document and email so we can
+              resume if a step fails. Payloads are signed and short-lived.
+            </Item>
             <Item label="Sign-in via Google or Apple">
               only when you choose to use those providers; we receive
               your verified email and name from them. We do not push
@@ -211,6 +224,13 @@ export default function PrivacyPage() {
               policy and to compose the editorial review. Documents are
               sent without sales calls / marketing data; outputs are
               stored in our database only.
+            </Item>
+            <Item label="Error monitoring">
+              Sentry, for capturing application exceptions so we can fix
+              bugs. Captured events may include limited context such as
+              the route that errored and (rarely) the email of the
+              affected user. We do not send full document contents to
+              Sentry.
             </Item>
           </ul>
           We work to keep your personal data on servers located in India.
