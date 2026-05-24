@@ -2,20 +2,20 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Hostname-based rewrites for marketing + demo subdomains.
+ * Hostname-based rewrites for marketing subdomains.
  *
  *   pitch.rightoffer.in/         →  /pitch   (the investor deck)
- *   demo.rightoffer.in/          →  /investor (investor walkthrough landing)
  *
- * The DEMO subdomain serves the same production build as rightoffer.in,
- * but the feature-flag helper (isMarketplaceEnabled) checks the request
- * host and force-enables the marketplace UI when host starts with
- * `demo.`. Result: investors get the full marketplace flow on a
- * dedicated URL; public customers on rightoffer.in see Phase 1 only.
+ * The DEMO subdomain (demo.rightoffer.in) serves the same production
+ * build as rightoffer.in, with the marketplace feature-flag flipped
+ * ON via host detection in `isMarketplaceEnabled` (lib/feature-flags.ts).
+ * It does NOT rewrite the root URL — `demo.rightoffer.in/` serves the
+ * same editorial home page as `rightoffer.in/` for visual consistency.
+ * The personas walkthrough remains accessible at `demo.rightoffer.in/investor`
+ * for anyone navigating there directly.
  *
- * Anything else on these subdomains (assets, deep paths) falls through
- * to the normal app. The main domain is unaffected — middleware only
- * branches on hostnames starting with `pitch.` or `demo.`.
+ * The pitch subdomain rewrites `/` → `/pitch` because that subdomain
+ * exists exclusively to serve the deck — there's no other "home" to land on.
  */
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
@@ -28,16 +28,9 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (host.startsWith("demo.")) {
-    const url = request.nextUrl.clone();
-    if (url.pathname === "/" || url.pathname === "") {
-      url.pathname = "/investor";
-      return NextResponse.rewrite(url);
-    }
-    // Any other path on demo.rightoffer.in passes through. The host
-    // header is preserved, which is all the feature-flag helper
-    // needs to flip marketplace ON for this subdomain.
-  }
+  // demo.rightoffer.in passes through with no rewrite — the host header
+  // is naturally preserved, which is all isMarketplaceEnabled() needs
+  // to flip the marketplace flag ON for this subdomain.
 
   return NextResponse.next();
 }
