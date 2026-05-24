@@ -125,7 +125,7 @@ export function CheckoutFlow({ parsedPolicy, bid }: Props) {
       <OrderSummary parsedPolicy={parsedPolicy} bid={bid} />
 
       {/* Step content */}
-      <div className="bg-white rounded-2xl border border-brand-light-gray shadow-sm p-6 md:p-8 min-h-[300px]">
+      <div className="bg-white rounded-2xl border border-brand-light-gray dark:border-slate-700 shadow-sm p-6 md:p-8 min-h-[300px]">
         <DemoModeBadge />
 
         {step === "kyc-aadhaar" && (
@@ -283,7 +283,7 @@ function KycAadhaarStep({
             )
           }
           placeholder="1234 5678 9012"
-          className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg text-lg font-mono tracking-wider focus:outline-none focus:border-brand-charcoal"
+          className="w-full px-4 py-3 border-2 border-brand-light-gray dark:border-slate-600 rounded-lg text-lg font-mono tracking-wider focus:outline-none focus:border-brand-charcoal"
         />
         <p className="text-xs text-brand-slate mt-2">
           12 digits · Encrypted at rest · Used only for policy issuance
@@ -297,7 +297,7 @@ function KycAadhaarStep({
           "w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all",
           valid
             ? "bg-brand-charcoal hover:brightness-110 text-white"
-            : "bg-slate-200 text-slate-400 cursor-not-allowed"
+            : "bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500"
         )}
       >
         Continue <ArrowRight className="w-4 h-4" />
@@ -342,7 +342,7 @@ function KycPanStep({
             onChange(e.target.value.toUpperCase().slice(0, 10))
           }
           placeholder="ABCDE1234F"
-          className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg text-lg font-mono tracking-wider focus:outline-none focus:border-brand-charcoal"
+          className="w-full px-4 py-3 border-2 border-brand-light-gray dark:border-slate-600 rounded-lg text-lg font-mono tracking-wider focus:outline-none focus:border-brand-charcoal"
         />
         <p className="text-xs text-brand-slate mt-2">
           Format: 5 letters + 4 digits + 1 letter
@@ -352,7 +352,7 @@ function KycPanStep({
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
+          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray dark:border-slate-600 text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -363,7 +363,7 @@ function KycPanStep({
             "flex-[2] py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all",
             valid
               ? "bg-brand-charcoal hover:brightness-110 text-white"
-              : "bg-slate-200 text-slate-400 cursor-not-allowed"
+              : "bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500"
           )}
         >
           Continue <ArrowRight className="w-4 h-4" />
@@ -443,7 +443,7 @@ function KycCkycStep({
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
+          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray dark:border-slate-600 text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -540,7 +540,7 @@ function PayMethodStep({
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
+          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray dark:border-slate-600 text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -593,7 +593,7 @@ function PayDetailsStep({
             value={upiId}
             onChange={(e) => onUpiChange(e.target.value)}
             placeholder="name@okicici"
-            className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg focus:outline-none focus:border-brand-charcoal"
+            className="w-full px-4 py-3 border-2 border-brand-light-gray dark:border-slate-600 rounded-lg focus:outline-none focus:border-brand-charcoal"
           />
         </div>
       )}
@@ -607,26 +607,26 @@ function PayDetailsStep({
             <input
               type="text"
               placeholder="4242 4242 4242 4242"
-              className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg font-mono"
+              className="w-full px-4 py-3 border-2 border-brand-light-gray dark:border-slate-600 rounded-lg font-mono"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <input
               type="text"
               placeholder="MM/YY"
-              className="px-4 py-3 border-2 border-brand-light-gray rounded-lg font-mono"
+              className="px-4 py-3 border-2 border-brand-light-gray dark:border-slate-600 rounded-lg font-mono"
             />
             <input
               type="text"
               placeholder="CVV"
-              className="px-4 py-3 border-2 border-brand-light-gray rounded-lg font-mono"
+              className="px-4 py-3 border-2 border-brand-light-gray dark:border-slate-600 rounded-lg font-mono"
             />
           </div>
         </div>
       )}
 
       {method === "netbanking" && (
-        <select className="w-full px-4 py-3 border-2 border-brand-light-gray rounded-lg">
+        <select className="w-full px-4 py-3 border-2 border-brand-light-gray dark:border-slate-600 rounded-lg">
           <option>HDFC Bank</option>
           <option>ICICI Bank</option>
           <option>State Bank of India</option>
@@ -638,7 +638,7 @@ function PayDetailsStep({
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
+          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray dark:border-slate-600 text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -649,7 +649,7 @@ function PayDetailsStep({
             "flex-[2] py-3 rounded-lg font-semibold flex items-center justify-center gap-2",
             valid
               ? "bg-brand-charcoal hover:brightness-110 text-white"
-              : "bg-slate-200 text-slate-400 cursor-not-allowed"
+              : "bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500"
           )}
         >
           Continue <ArrowRight className="w-4 h-4" />
@@ -681,7 +681,7 @@ function PayConfirmStep({
         </p>
       </div>
 
-      <div className="bg-brand-offwhite rounded-xl p-5 space-y-3 border border-brand-light-gray">
+      <div className="bg-brand-offwhite rounded-xl p-5 space-y-3 border border-brand-light-gray dark:border-slate-700">
         <Row label="Insurer" value={bid.insurerName} />
         <Row label="Method" value={method.toUpperCase()} />
         <Row label="Subtotal" value={formatINR(bid.totalPackage)} />
@@ -701,7 +701,7 @@ function PayConfirmStep({
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
+          className="flex-1 py-3 rounded-lg font-semibold border-2 border-brand-light-gray dark:border-slate-600 text-brand-charcoal hover:bg-brand-offwhite flex items-center justify-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>

@@ -46,7 +46,7 @@ export function TierComparisonMatrix({ parsedPolicy, tiers }: Props) {
   );
 
   return (
-    <div className="bg-white rounded-3xl border border-brand-light-gray shadow-soft overflow-hidden">
+    <div className="bg-white rounded-3xl border border-brand-light-gray dark:border-slate-700 shadow-soft overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           {/* Header — tier names */}

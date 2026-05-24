@@ -75,7 +75,7 @@ export function CoverageScoreCard({ score }: Props) {
   return (
     <section
       className={clsx(
-        "relative rounded-3xl border-2 border-brand-light-gray bg-gradient-to-br shadow-soft p-6 md:p-8 overflow-hidden",
+        "relative rounded-3xl border-2 border-brand-light-gray dark:border-slate-600 bg-gradient-to-br shadow-soft p-6 md:p-8 overflow-hidden",
         theme.gradient
       )}
     >
@@ -88,14 +88,18 @@ export function CoverageScoreCard({ score }: Props) {
             viewBox="0 0 200 180"
             className="overflow-visible"
           >
-            {/* Background arc */}
+            {/* Background arc — uses brand-slate at low alpha so it
+                reads as a subtle track in BOTH modes (deep slate at
+                10% on light, lifted slate at 30% on dark). The prior
+                `stroke-brand-light-gray` flipped to a near-page-bg
+                tone in dark and became invisible. */}
             <circle
               cx="100"
               cy="100"
               r={radius}
               fill="none"
               strokeWidth="14"
-              className="stroke-brand-light-gray"
+              className="stroke-brand-slate/30"
               strokeLinecap="round"
               strokeDasharray={`${arcLength} ${circumference}`}
               transform="rotate(160 100 100)"

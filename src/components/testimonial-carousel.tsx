@@ -59,7 +59,7 @@ export function TestimonialCarousel() {
   return (
     <section className="max-w-3xl w-full mt-16">
       <div
-        className="relative rounded-3xl bg-gradient-to-br from-white to-brand-offwhite border border-brand-light-gray shadow-soft p-7 md:p-9 min-h-[260px] md:min-h-[230px] overflow-hidden"
+        className="relative rounded-3xl bg-gradient-to-br from-white to-brand-offwhite border border-brand-light-gray dark:border-slate-700 shadow-soft p-7 md:p-9 min-h-[260px] md:min-h-[230px] overflow-hidden"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
@@ -90,7 +90,7 @@ export function TestimonialCarousel() {
           type="button"
           aria-label="Previous review"
           onClick={() => goTo(idx - 1)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-brand-light-gray shadow-soft flex items-center justify-center text-brand-slate hover:text-brand-charcoal hover:border-brand-charcoal transition-colors"
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-brand-light-gray dark:border-slate-700 shadow-soft flex items-center justify-center text-brand-slate hover:text-brand-charcoal hover:border-brand-charcoal transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -98,7 +98,7 @@ export function TestimonialCarousel() {
           type="button"
           aria-label="Next review"
           onClick={() => goTo(idx + 1)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-brand-light-gray shadow-soft flex items-center justify-center text-brand-slate hover:text-brand-charcoal hover:border-brand-charcoal transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-brand-light-gray dark:border-slate-700 shadow-soft flex items-center justify-center text-brand-slate hover:text-brand-charcoal hover:border-brand-charcoal transition-colors"
         >
           <ChevronRight className="w-5 h-5" />
         </button>

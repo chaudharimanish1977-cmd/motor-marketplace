@@ -426,7 +426,7 @@ export function BundleBuilder({
         className={clsx(
           "w-full py-4 rounded-2xl text-lg font-bold transition-all",
           hasClaim === null
-            ? "bg-brand-light-gray text-brand-slate cursor-not-allowed"
+            ? "bg-brand-light-gray text-brand-slate cursor-not-allowed dark:bg-slate-700 dark:text-slate-500"
             : "bg-brand-plum hover:brightness-110 text-white hover:scale-[1.01] shadow-glow"
         )}
       >

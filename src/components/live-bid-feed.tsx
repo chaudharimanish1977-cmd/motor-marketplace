@@ -312,7 +312,7 @@ export function LiveBidFeed({
 
   return (
     <div className="w-full max-w-2xl mx-auto py-2">
-      <div className="rounded-2xl border border-brand-light-gray bg-white shadow-soft overflow-hidden">
+      <div className="rounded-2xl border border-brand-light-gray dark:border-slate-700 bg-white shadow-soft overflow-hidden">
         <div className="bg-gradient-to-r from-brand-plum to-brand-sage text-white px-5 py-3.5">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
