@@ -564,6 +564,177 @@ export interface RenewalSubscription {
 }
 
 // ============================================================================
+// Admin dashboard snapshot — pre-computed aggregates for /admin/dashboard
+// ============================================================================
+
+/**
+ * Singleton row in Tables.ADMIN_DASHBOARD_SNAPSHOTS (id="latest").
+ * Written by the cron at /api/cron/admin-dashboard (every 3h between
+ * 9am-9pm IST) and the manual refresh button on /admin/dashboard.
+ * Read by /admin/dashboard for instant render.
+ *
+ * Placeholder fields are tagged with `placeholder: true` so the UI
+ * can show "coming soon" badges for categories gated on instrumentation
+ * we haven't shipped yet (e.g. PostHog funnel data).
+ */
+export interface AdminDashboardSnapshot {
+  /** Always "latest" — there's only one snapshot row, refreshed in place. */
+  id: "latest";
+  computedAt: string;
+  /** How long the compute took. Useful for noticing perf regressions. */
+  computedDurationMs: number;
+
+  // === 1. Top-line volume =====================================================
+  volume: {
+    /** Total ParsedPolicy rows. */
+    totalAudits: number;
+    audits7d: number;
+    audits30d: number;
+    /** Last 30 days, one entry per date (YYYY-MM-DD), 0-filled. */
+    perDay30d: Array<{ date: string; count: number }>;
+    /** Total Users rows. */
+    totalCustomers: number;
+    /** Customers with 2+ ParsedPolicy rows (proxy for return engagement). */
+    multiAuditCustomers: number;
+    /** Distinct vehicles by registration number (fallback make+model+year+rto). */
+    uniqueVehicles: number;
+  };
+
+  // === 2. Coverage breadth ====================================================
+  breadth: {
+    /** Distinct insurer names across all parsed policies. */
+    insurerCount: number;
+    /** Top 10 insurers by audit count. */
+    topInsurers: Array<{ name: string; count: number }>;
+    /** Distinct make+model combinations. */
+    makeModelCount: number;
+    /** Top 10 by audit count. */
+    topMakeModels: Array<{ name: string; count: number }>;
+    /** Distinct RTO codes (proxy for cities). */
+    rtoCount: number;
+    /** Top 10 RTOs by audit count. */
+    topRtos: Array<{ rto: string; count: number }>;
+    /** ISO date range of policy expiries seen. */
+    oldestExpiry: string | null;
+    newestExpiry: string | null;
+    /** Document type mix across all parsed docs. */
+    policyCount: number;
+    quoteCount: number;
+  };
+
+  // === 3. Audit content insights =============================================
+  content: {
+    /** Total "at risk" rupees identified across all audits — the
+     *  investor-compelling number. Derived from each report's gap
+     *  estimates where present. Placeholder when not yet wired. */
+    totalAtRiskInr: number;
+    atRiskInrPlaceholder: boolean;
+    /** Average count of items in keyGaps across reports. */
+    avgGapsPerPolicy: number;
+    /** Distribution of gap categories — top 10 by frequency. */
+    topGapCategories: Array<{ category: string; count: number }>;
+    /** Coverage score band distribution across reports. */
+    coverageScoreDistribution: {
+      excellent: number;
+      good: number;
+      belowAverage: number;
+      critical: number;
+      uncategorized: number;
+    };
+    coverageScorePlaceholder: boolean;
+    /** Median IDV and Grand-Total premium across all parsed policies. */
+    medianIdv: number;
+    medianPremium: number;
+  };
+
+  // === 4. Customer signal =====================================================
+  signal: {
+    /** Average customer rating out of 5. Placeholder until ratings table
+     *  is wired. */
+    avgRating: number | null;
+    /** Distribution {1: n, 2: n, ...}. */
+    ratingDistribution: { "1": number; "2": number; "3": number; "4": number; "5": number };
+    totalRatings: number;
+    ratingPlaceholder: boolean;
+    /** % of audited customers who opted into renewal reminders. */
+    renewalOptInRate: number;
+    /** Customers with 2+ audits / total customers, as a percentage. */
+    returningCustomerRate: number;
+  };
+
+  // === 5. Channel mix =========================================================
+  channels: {
+    /** Heuristic: uploadedPdfUrl containing "inbox/" → email forward;
+     *  otherwise → web upload. */
+    webUpload: number;
+    emailForward: number;
+    /** Whatsapp share-back isn't tracked yet — placeholder. */
+    whatsappShareback: number;
+    whatsappShareBackPlaceholder: boolean;
+    /** Multi-doc forwards: a customer email with 2+ parsed policies
+     *  uploaded within 30 minutes of each other. */
+    multiDocForwards: number;
+    /** Multi-vehicle forwards: multi-doc batch where 2+ distinct
+     *  vehicle keys appear. */
+    multiVehicleForwards: number;
+  };
+
+  // === 6. Operational health ==================================================
+  ops: {
+    /** Parse+audit duration percentiles (ms). Placeholder until we
+     *  instrument timings on PARSED_POLICIES. */
+    p50AuditMs: number | null;
+    p90AuditMs: number | null;
+    timingsPlaceholder: boolean;
+    /** Audit success rate — placeholder until we log rejections. */
+    auditSuccessRate: number | null;
+    successRatePlaceholder: boolean;
+    /** Most recent cron run timestamps (snapshot of when the dashboard
+     *  itself last ran). */
+    lastDashboardComputeAt: string;
+    /** Sentry events last 7d — placeholder, would need Sentry API access. */
+    sentryEvents7d: number | null;
+    sentryPlaceholder: boolean;
+  };
+
+  // === 7. Funnel (gated on H1 PostHog) =======================================
+  funnel: {
+    placeholder: true;
+    note: string;
+  };
+
+  // === 8. Editorial product engagement =======================================
+  editorialEngagement: {
+    /** Customers who answered at least one MidLoadQuestions field.
+     *  Placeholder — drivingProfile is captured per-render via query
+     *  params today, not persisted. */
+    midLoadQuestionsAnswered: number;
+    placeholder: boolean;
+  };
+
+  // === 9. Forward-channel trust ==============================================
+  forwardTrust: {
+    /** Customers who have forwarded 2+ separate forward-batches
+     *  (heuristic: multi-doc batches with uploadedPdfUrl containing
+     *  "inbox/", counted distinctly per ~30-min window). */
+    customersWith2PlusForwards: number;
+    customersWith3PlusForwards: number;
+  };
+
+  // === 10. DPDP compliance ==================================================
+  dpdp: {
+    /** Users with dpdpConsentGivenAt set. */
+    consentedCustomers: number;
+    /** Active vs unsubscribed renewal subs. */
+    activeSubscriptions: number;
+    unsubscribedSubscriptions: number;
+    /** Deletion requests handled — placeholder, would need an audit log. */
+    deletionRequestsHandled: number;
+    deletionPlaceholder: boolean;
+  };
+}
+
+// ============================================================================
 // Comparison Report — the Right Offer comparator output
 // ============================================================================
 

@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/annual-reaudit",
       "schedule": "0 5 * * 1"
+    },
+    {
+      "path": "/api/cron/admin-dashboard",
+      "schedule": "30 3,6,9,12,15 * * *"
     }
   ]
 }

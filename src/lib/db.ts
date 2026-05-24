@@ -190,6 +190,10 @@ export const Tables = {
   RENEWAL_SUBSCRIPTIONS: "renewal_subscriptions",
   COMPARISONS: "comparisons",
   SHARE_TOKENS: "share_tokens",
+  /** Pre-computed admin-dashboard snapshot (singleton row, id="latest").
+   *  Written by the cron at /api/cron/admin-dashboard and the manual
+   *  refresh at /api/admin/dashboard/refresh. Read by /admin/dashboard. */
+  ADMIN_DASHBOARD_SNAPSHOTS: "admin_dashboard_snapshots",
 } as const;
 
 export const ALL_TABLES = Object.values(Tables);
