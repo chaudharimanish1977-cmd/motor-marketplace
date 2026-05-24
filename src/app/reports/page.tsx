@@ -338,6 +338,25 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       bottomLinesByVehicle[k] = v;
     }
 
+    // Build tabs — "All vehicles" first (default), then one per
+    // vehicle. Per-vehicle tabs let the customer jump straight to a
+    // specific car's audit without scrolling past the others.
+    // MultiVehicleReport reads activeTab and either shows all
+    // vehicles stacked ("all") or filters to one ("vehicle-<key>").
+    const mvTabs: TabDef[] = [
+      {
+        id: "all",
+        label: `All ${multiVehicle.vehicles.length} vehicles`,
+      },
+      ...multiVehicle.vehicles.map((slice) => ({
+        id: `vehicle-${slice.vehicleKey}`,
+        label: slice.vehicleLabel,
+      })),
+    ];
+    const mvActiveTabId = mvTabs.find((t) => t.id === requestedTab)
+      ? requestedTab
+      : "all";
+
     return (
       <>
         {!printMode && <BrandBlobs />}
@@ -358,6 +377,13 @@ export default async function ReportsPage({ searchParams }: PageProps) {
                 <ResetButton />
               </div>
             )}
+            {!printMode && (
+              <TabStrip
+                tabs={mvTabs}
+                firstTabId="all"
+                isVerified={isVerified}
+              />
+            )}
             <MultiVehicleReport
               data={multiVehicle}
               bottomLinesByVehicle={bottomLinesByVehicle}
@@ -365,7 +391,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
               view="customer"
               showGate={!printMode && showGate}
               printMode={printMode}
-              activeTab={requestedTab}
+              activeTab={mvActiveTabId}
               showAdminReveal={showAdminReveal}
             />
           </div>
