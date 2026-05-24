@@ -75,6 +75,17 @@ export interface ParsedPolicy {
    * field existed.
    */
   anniversaryEmailedAt?: string;
+
+  /**
+   * Which channel brought this PDF in. Stamped by audit-pipeline.ts
+   * at appendRow time using its own AuditPipelineSource arg
+   * ("web-upload" | "email-forward"). Optional for backward compat
+   * with policies created before this field landed — those count as
+   * "unknown" in channel-mix analytics. Same shape as the existing
+   * AuditPipelineSource union; new value "unknown" is the legacy/
+   * placeholder bucket.
+   */
+  source?: "web-upload" | "email-forward" | "unknown";
 }
 
 export type PolicyType =
@@ -602,15 +613,25 @@ export interface AdminDashboardSnapshot {
 
   // === 2. Coverage breadth ====================================================
   breadth: {
-    /** Distinct insurer names across all parsed policies. */
+    /** Distinct insurer names across all parsed policies, after
+     *  canonicalisation (case-insensitive, suffix-stripped — "Tata AIG"
+     *  and "Tata AIG General Insurance Company Limited" merge). */
     insurerCount: number;
     /** Top 10 insurers by audit count. */
     topInsurers: Array<{ name: string; count: number }>;
-    /** Distinct make+model combinations. */
+    /** Distinct vehicle MAKES — Maruti, Honda, Tata, etc. — separate
+     *  from the make+model count beneath. Useful as "which brands
+     *  have we seen at all." */
+    makeCount: number;
+    /** Top 10 makes by audit count. */
+    topMakes: Array<{ name: string; count: number }>;
+    /** Distinct make+model combinations — Maruti Swift, Honda City, etc.
+     *  Granular breadth metric: "how many distinct vehicle variants." */
     makeModelCount: number;
     /** Top 10 by audit count. */
     topMakeModels: Array<{ name: string; count: number }>;
-    /** Distinct RTO codes (proxy for cities). */
+    /** Distinct RTO codes (proxy for cities). Canonicalised — "MH 02",
+     *  "MH-02", "MH02" all merge. */
     rtoCount: number;
     /** Top 10 RTOs by audit count. */
     topRtos: Array<{ rto: string; count: number }>;
@@ -664,10 +685,13 @@ export interface AdminDashboardSnapshot {
 
   // === 5. Channel mix =========================================================
   channels: {
-    /** Heuristic: uploadedPdfUrl containing "inbox/" → email forward;
-     *  otherwise → web upload. */
+    /** Sourced from ParsedPolicy.source field (stamped by audit-pipeline
+     *  at parse time). Legacy rows without the field count as "unknown". */
     webUpload: number;
     emailForward: number;
+    /** Policies parsed before the source field landed — backward-compat
+     *  bucket. Will shrink to 0 as old data ages out / gets re-audited. */
+    unknownChannel: number;
     /** Whatsapp share-back isn't tracked yet — placeholder. */
     whatsappShareback: number;
     whatsappShareBackPlaceholder: boolean;

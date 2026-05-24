@@ -146,8 +146,9 @@ export async function runAuditPipeline(
     };
   }
 
-  // ---- 5. Stamp documentType from the classifier ----
+  // ---- 5. Stamp documentType from the classifier + channel source ----
   parsed.documentType = classification.documentType;
+  parsed.source = args.source; // "web-upload" | "email-forward"
 
   // ---- 6. Persist ParsedPolicy row ----
   const savedPolicy = await appendRow<ParsedPolicy>(

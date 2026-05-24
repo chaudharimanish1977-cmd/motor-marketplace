@@ -84,68 +84,101 @@ export default async function AdminDashboardPage() {
 
       <div className="space-y-12">
         {/* ── 1. Top-line volume ───────────────────────────────────── */}
-        <Section number="01" title="Volume">
+        <Section
+          number="01"
+          title="Volume"
+          description="Raw counts of audits, customers, vehicles, and active renewal subscriptions. The growth chart at the bottom shows how audits-per-day moved over the last 30 days."
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             <Stat
               label="Total audits"
               value={snapshot.volume.totalAudits.toLocaleString("en-IN")}
               sublabel="all time"
+              description="One audit = one ParsedPolicy row. Includes both bound policies and renewal quotes."
             />
             <Stat
               label="Last 7 days"
               value={snapshot.volume.audits7d.toLocaleString("en-IN")}
+              description="Audits where uploadedAt is within the last 7 calendar days."
             />
             <Stat
               label="Last 30 days"
               value={snapshot.volume.audits30d.toLocaleString("en-IN")}
+              description="Audits where uploadedAt is within the last 30 days."
             />
             <Stat
               label="Unique customers"
               value={snapshot.volume.totalCustomers.toLocaleString("en-IN")}
+              description="Total User rows — one per verified email."
             />
             <Stat
               label="Unique vehicles"
               value={snapshot.volume.uniqueVehicles.toLocaleString("en-IN")}
+              description="Distinct vehicles after dedup. Keyed by registration number; falls back to make+model+year+RTO if registration missing."
             />
             <Stat
               label="Returning customers"
               value={snapshot.volume.multiAuditCustomers.toLocaleString("en-IN")}
               sublabel="2+ audits"
+              description="Customers (by owner.email) with more than one ParsedPolicy on file — proxy for engagement."
             />
             <Stat
               label="Active reminders"
               value={snapshot.dpdp.activeSubscriptions.toLocaleString("en-IN")}
+              description="RenewalSubscription rows with status='active'. Each row is one policy subscribed to renewal nudges."
             />
             <Stat
               label="Unsubscribed"
               value={snapshot.dpdp.unsubscribedSubscriptions.toLocaleString("en-IN")}
+              description="RenewalSubscription rows with status='unsubscribed' (customer clicked one-click unsub in a reminder email)."
             />
           </div>
           <SparkBar series={snapshot.volume.perDay30d} />
         </Section>
 
         {/* ── 2. Coverage breadth ──────────────────────────────────── */}
-        <Section number="02" title="Coverage breadth">
+        <Section
+          number="02"
+          title="Coverage breadth"
+          description="How many distinct insurers, vehicle makes, make+model combos, and RTOs we've parsed at least one document for. All names are canonicalised — 'Tata AIG' and 'Tata AIG General Insurance Company Limited' merge into one bucket; 'MH 02', 'MH-02', 'MH02' merge into one RTO."
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-6">
             <Stat
               label="Insurers"
               value={snapshot.breadth.insurerCount.toLocaleString("en-IN")}
               sublabel="distinct"
+              description="Unique insurer names after stripping suffixes like 'General Insurance Co Ltd'."
+            />
+            <Stat
+              label="Vehicle makes"
+              value={snapshot.breadth.makeCount.toLocaleString("en-IN")}
+              sublabel="brands"
+              description="Distinct brands — Maruti, Honda, Tata, etc. — across all audits."
             />
             <Stat
               label="Make/Model combos"
               value={snapshot.breadth.makeModelCount.toLocaleString("en-IN")}
+              description="Distinct make+model pairs — Maruti Swift, Honda City, Tata Nexon, etc."
             />
             <Stat
               label="RTOs covered"
               value={snapshot.breadth.rtoCount.toLocaleString("en-IN")}
-            />
-            <Stat
-              label="Policy : Quote"
-              value={`${snapshot.breadth.policyCount} : ${snapshot.breadth.quoteCount}`}
+              description="Distinct RTO codes (proxy for cities/regions). Format-normalised so 'MH 02' and 'MH-02' count once."
             />
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-6">
+            <Stat
+              label="Policies"
+              value={snapshot.breadth.policyCount.toLocaleString("en-IN")}
+              description="Documents classified as bound policies."
+            />
+            <Stat
+              label="Quotes"
+              value={snapshot.breadth.quoteCount.toLocaleString("en-IN")}
+              description="Documents classified as unbound renewal quotes."
+            />
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <RankList
               title="Top insurers"
               items={snapshot.breadth.topInsurers.map((i) => ({
@@ -154,7 +187,14 @@ export default async function AdminDashboardPage() {
               }))}
             />
             <RankList
-              title="Top makes / models"
+              title="Top makes"
+              items={snapshot.breadth.topMakes.map((i) => ({
+                label: i.name,
+                count: i.count,
+              }))}
+            />
+            <RankList
+              title="Top make + model"
               items={snapshot.breadth.topMakeModels.map((i) => ({
                 label: i.name,
                 count: i.count,
@@ -182,25 +222,33 @@ export default async function AdminDashboardPage() {
         </Section>
 
         {/* ── 3. Audit content insights ────────────────────────────── */}
-        <Section number="03" title="Audit content">
+        <Section
+          number="03"
+          title="Audit content"
+          description="What the audits actually surface — money at risk, gap counts, value distributions. Gap categories are canonicalised so 'Zero Depreciation Cover Missing', 'Zero Depreciation Not Available', and 'Zero Dep' all merge into one bucket."
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-6">
             <Stat
               label="₹ at risk identified"
               value={formatINR(snapshot.content.totalAtRiskInr)}
               sublabel="across all audits"
               placeholder={snapshot.content.atRiskInrPlaceholder}
+              description="Sum of estimated annual premium across every essential-tagged add-on that's missing from a customer's current policy. Defensible proxy for 'what they'd pay in a worst-case claim event if those gaps stayed open'."
             />
             <Stat
               label="Avg gaps / policy"
               value={snapshot.content.avgGapsPerPolicy.toFixed(1)}
+              description="Mean count of items in report.keyGaps.items across all reports that have any."
             />
             <Stat
               label="Median IDV"
               value={formatINR(snapshot.content.medianIdv)}
+              description="Middle Insured Declared Value across all parsed policies — the customer's stated car value."
             />
             <Stat
               label="Median premium"
               value={formatINR(snapshot.content.medianPremium)}
+              description="Middle Grand-Total premium customers are currently paying."
             />
           </div>
           <div className="grid md:grid-cols-2 gap-6">
@@ -220,7 +268,11 @@ export default async function AdminDashboardPage() {
         </Section>
 
         {/* ── 4. Customer signal ───────────────────────────────────── */}
-        <Section number="04" title="Customer signal">
+        <Section
+          number="04"
+          title="Customer signal"
+          description="Direct customer-side indicators: how customers rated the audit, how many subscribed to renewal reminders, how many came back for a second audit."
+        >
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             <Stat
               label="Avg rating"
@@ -231,16 +283,19 @@ export default async function AdminDashboardPage() {
               }
               sublabel={`${snapshot.signal.totalRatings} ratings`}
               placeholder={snapshot.signal.ratingPlaceholder}
+              description="5-point rating average. Captured today via /thank-you star widget but not yet persisted to a Ratings table."
             />
             <Stat
               label="Renewal opt-in rate"
               value={`${snapshot.signal.renewalOptInRate.toFixed(1)}%`}
               sublabel="of customers"
+              description="Customers with at least one active RenewalSubscription divided by total customer count. Strong indicator of value perception."
             />
             <Stat
               label="Returning customer rate"
               value={`${snapshot.signal.returningCustomerRate.toFixed(1)}%`}
               sublabel="2+ audits / total"
+              description="Customers who came back for a second audit. Early proxy for product stickiness."
             />
           </div>
           {snapshot.signal.ratingPlaceholder && (
@@ -252,52 +307,69 @@ export default async function AdminDashboardPage() {
         </Section>
 
         {/* ── 5. Channel mix ───────────────────────────────────────── */}
-        <Section number="05" title="Channel mix">
+        <Section
+          number="05"
+          title="Channel mix"
+          description="Which channel each audit arrived through. Web uploads land via /upload; email forwards arrive via Postmark on review@rightoffer.in and run the same audit pipeline. Both write the same ParsedPolicy shape — only the `source` field differs."
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             <Stat
               label="Web uploads"
               value={snapshot.channels.webUpload.toLocaleString("en-IN")}
+              description="Policies parsed via the /upload web dropzone."
             />
             <Stat
               label="Email forwards"
               value={snapshot.channels.emailForward.toLocaleString("en-IN")}
+              description="Policies parsed from inbound email forwards to review@rightoffer.in (Postmark)."
             />
             <Stat
-              label="Multi-doc forwards"
-              value={snapshot.channels.multiDocForwards.toLocaleString("en-IN")}
-              sublabel="2+ docs / forward"
-            />
-            <Stat
-              label="Multi-vehicle forwards"
-              value={snapshot.channels.multiVehicleForwards.toLocaleString("en-IN")}
-              sublabel="distinct vehicles"
+              label="Unknown channel"
+              value={snapshot.channels.unknownChannel.toLocaleString("en-IN")}
+              placeholder={snapshot.channels.unknownChannel > 0}
+              description="Legacy policies parsed before the source field was added (2026-05-25). New audits stamp the source, so this count will only shrink."
             />
             <Stat
               label="WhatsApp share-backs"
               value={snapshot.channels.whatsappShareback.toString()}
               placeholder={snapshot.channels.whatsappShareBackPlaceholder}
+              description="Audits triggered when customers forward their report card back via WhatsApp — pending the WhatsApp Business API leg (Insights v1.6)."
             />
           </div>
-          {snapshot.channels.whatsappShareBackPlaceholder && (
-            <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
-              · WhatsApp share-back tracking pending — instrument when
-              WhatsApp leg (Insights v1.6) lands ·
-            </p>
-          )}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-5">
+            <Stat
+              label="Multi-doc forwards"
+              value={snapshot.channels.multiDocForwards.toLocaleString("en-IN")}
+              sublabel="2+ docs / forward batch"
+              description="Email-forward batches where the customer attached 2 or more PDFs (e.g. current policy + renewal quote). Clustered by 30-minute window per sender email."
+            />
+            <Stat
+              label="Multi-vehicle forwards"
+              value={snapshot.channels.multiVehicleForwards.toLocaleString("en-IN")}
+              sublabel="distinct vehicles in batch"
+              description="Multi-doc batches where 2+ different vehicles appear — household forwards with multiple cars."
+            />
+          </div>
         </Section>
 
         {/* ── 6. Operational health ────────────────────────────────── */}
-        <Section number="06" title="Operational health">
+        <Section
+          number="06"
+          title="Operational health"
+          description="System-side reliability: how fast audits process, what fraction succeed, and the error count surfaced by Sentry."
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             <Stat
               label="P50 audit"
               value={snapshot.ops.p50AuditMs !== null ? `${snapshot.ops.p50AuditMs}ms` : "—"}
               placeholder={snapshot.ops.timingsPlaceholder}
+              description="Median end-to-end audit processing time (extract → classify → parse → generate report)."
             />
             <Stat
               label="P90 audit"
               value={snapshot.ops.p90AuditMs !== null ? `${snapshot.ops.p90AuditMs}ms` : "—"}
               placeholder={snapshot.ops.timingsPlaceholder}
+              description="90th percentile — i.e., 90% of audits complete in less than this time."
             />
             <Stat
               label="Audit success rate"
@@ -307,21 +379,23 @@ export default async function AdminDashboardPage() {
                   : "—"
               }
               placeholder={snapshot.ops.successRatePlaceholder}
+              description="Percentage of audit attempts that complete without rejection. Excludes intentional rejections (scanned image, two-wheeler, etc.)."
             />
             <Stat
               label="Sentry events (7d)"
               value={snapshot.ops.sentryEvents7d?.toString() ?? "—"}
               placeholder={snapshot.ops.sentryPlaceholder}
+              description="Count of exceptions captured by Sentry in the last 7 days. Lower is better; 0 is healthy."
             />
           </div>
-          <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
-            · Timings + success rate need PARSED_POLICIES instrumented with
-            durations · Sentry needs API access ·
-          </p>
         </Section>
 
         {/* ── 7. Funnel (placeholder) ──────────────────────────────── */}
-        <Section number="07" title="Funnel conversion">
+        <Section
+          number="07"
+          title="Funnel conversion"
+          description="Per-step conversion across the customer journey. Requires event tracking via PostHog or similar — gated on H1 from the launch checklist."
+        >
           <PlaceholderBlock
             title="Upload → verify → report → subscribe → share"
             show={true}
@@ -330,71 +404,74 @@ export default async function AdminDashboardPage() {
         </Section>
 
         {/* ── 8. Editorial engagement ──────────────────────────────── */}
-        <Section number="08" title="Editorial engagement">
+        <Section
+          number="08"
+          title="Editorial engagement"
+          description="How deeply customers engage with the product surface — not just upload-and-leave. Tracks customers who answered the optional MidLoadQuestions (parking habits, past claims, renewal priorities)."
+        >
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             <Stat
               label="MidLoadQuestions answered"
               value={snapshot.editorialEngagement.midLoadQuestionsAnswered.toLocaleString("en-IN")}
               placeholder={snapshot.editorialEngagement.placeholder}
               sublabel="customers who engaged"
+              description="Customers who answered at least one driving-profile question during the upload journey. Today these answers are threaded via URL query params and not persisted — needs ParsedPolicy.drivingProfile field."
             />
           </div>
-          {snapshot.editorialEngagement.placeholder && (
-            <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
-              · Persist drivingProfile answers on ParsedPolicy (today
-              they&rsquo;re ephemeral, threaded via URL query params) ·
-            </p>
-          )}
         </Section>
 
         {/* ── 9. Forward-channel trust ─────────────────────────────── */}
-        <Section number="09" title="Forward-channel trust">
+        <Section
+          number="09"
+          title="Forward-channel trust"
+          description="Customers who came back and forwarded a second (or third) policy. Counted as distinct 30-min forward batches per sender email — multi-doc forwards in a single batch don't count separately."
+        >
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             <Stat
               label="Customers · 2+ forwards"
               value={snapshot.forwardTrust.customersWith2PlusForwards.toLocaleString("en-IN")}
               sublabel="came back"
+              description="Distinct customers who triggered 2 or more forward batches over time. Strong trust signal — they kept us in mind."
             />
             <Stat
               label="Customers · 3+ forwards"
               value={snapshot.forwardTrust.customersWith3PlusForwards.toLocaleString("en-IN")}
               sublabel="repeat trust"
+              description="Customers with 3+ forward batches. Highest-engagement segment."
             />
           </div>
-          <p className="mt-4 font-serif italic text-[13.5px] text-brand-slate">
-            Counted as distinct 30-min forward batches per customer email.
-            Multi-doc forwards in a single batch don&rsquo;t count separately.
-          </p>
         </Section>
 
         {/* ── 10. DPDP compliance ──────────────────────────────────── */}
-        <Section number="10" title="DPDP compliance">
+        <Section
+          number="10"
+          title="DPDP compliance"
+          description="Tracks compliance posture under India's Digital Personal Data Protection Act, 2023: explicit consent capture, active subscriptions, unsubscribes, deletion requests handled."
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             <Stat
               label="Consented customers"
               value={snapshot.dpdp.consentedCustomers.toLocaleString("en-IN")}
               sublabel="dpdpConsentGivenAt set"
+              description="User rows where the customer has explicitly given DPDP consent at signup or first upload."
             />
             <Stat
               label="Active subscriptions"
               value={snapshot.dpdp.activeSubscriptions.toLocaleString("en-IN")}
+              description="RenewalSubscription rows with status='active'."
             />
             <Stat
               label="Unsubscribed"
               value={snapshot.dpdp.unsubscribedSubscriptions.toLocaleString("en-IN")}
+              description="Customers who clicked the one-click unsubscribe link in a reminder email. 0 = no opt-outs yet."
             />
             <Stat
               label="Deletion requests"
               value={snapshot.dpdp.deletionRequestsHandled.toString()}
               placeholder={snapshot.dpdp.deletionPlaceholder}
+              description="Count of /api/me/delete requests handled. Requires an audit log on the delete endpoint to track historically."
             />
           </div>
-          {snapshot.dpdp.deletionPlaceholder && (
-            <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
-              · Wire an audit log on /api/me/delete to count deletion
-              requests handled ·
-            </p>
-          )}
         </Section>
       </div>
 
@@ -424,15 +501,17 @@ export default async function AdminDashboardPage() {
 function Section({
   number,
   title,
+  description,
   children,
 }: {
   number: string;
   title: string;
+  description?: string;
   children: React.ReactNode;
 }) {
   return (
     <section>
-      <div className="flex items-baseline gap-3 mb-5">
+      <div className="flex items-baseline gap-3 mb-2">
         <span className="font-mono text-[11px] font-bold tracking-[0.14em] text-brand-sage">
           · {number} ·
         </span>
@@ -440,6 +519,11 @@ function Section({
           {title}
         </h2>
       </div>
+      {description && (
+        <p className="font-serif italic text-[13.5px] text-brand-slate mb-5 max-w-2xl leading-[1.55]">
+          {description}
+        </p>
+      )}
       {children}
     </section>
   );
@@ -449,11 +533,13 @@ function Stat({
   label,
   value,
   sublabel,
+  description,
   placeholder = false,
 }: {
   label: string;
   value: string;
   sublabel?: string;
+  description?: string;
   placeholder?: boolean;
 }) {
   return (
@@ -478,6 +564,11 @@ function Stat({
       {sublabel && (
         <div className="mt-1 font-serif italic text-[12.5px] text-brand-slate">
           {sublabel}
+        </div>
+      )}
+      {description && (
+        <div className="mt-1.5 font-serif text-[11.5px] text-brand-slate/80 leading-snug">
+          {description}
         </div>
       )}
     </div>
