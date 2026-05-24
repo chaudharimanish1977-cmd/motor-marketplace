@@ -40,8 +40,6 @@ export default function TermsPage() {
         </h1>
         <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
           Last updated · {updated}
-          <span className="text-brand-plum"> · Draft </span>
-          (pending legal review)
         </p>
       </header>
 
@@ -90,10 +88,9 @@ export default function TermsPage() {
           policy</em>{" "}
           and pointers on common gaps. We do not:
           <ul className="mt-3 space-y-2 list-none pl-0">
-            <Item label="Recommend specific insurance products">
-              by name as if we were a broker. Where we surface offers
-              from partner insurers, we say so clearly and the choice is
-              yours.
+            <Item label="Recommend specific insurance products by name">
+              we do not act as a broker, agent, or intermediary for any
+              insurer. We will not tell you which policy to buy.
             </Item>
             <Item label="Guarantee claim outcomes">
               insurers settle claims under their own contracts and
@@ -109,14 +106,10 @@ export default function TermsPage() {
         </Section>
 
         <Section number="v." title="Fees">
-          The policy review service is currently <strong>free</strong> to
-          end users. We do not charge for the report itself.
-          <br />
-          <br />
-          When you choose to renew through a partner insurer surfaced in
-          our marketplace, we may earn a commission from that insurer —
-          this is disclosed on the offer page itself. The commission
-          structure does not affect the review.
+          The policy review service is <strong>free</strong> to end users.
+          We do not charge for the report itself, and today we do not
+          earn any commission or fee from any insurer for the reviews you
+          read on this site.
         </Section>
 
         <Section number="vi." title="Intellectual property">
@@ -168,7 +161,7 @@ export default function TermsPage() {
         <Section number="x." title="Governing law">
           These terms are governed by Indian law. Any dispute will be
           subject to the exclusive jurisdiction of the courts at
-          Bengaluru, Karnataka. If you have a complaint, please contact
+          Mumbai, Maharashtra. If you have a complaint, please contact
           us first at{" "}
           <a
             href="mailto:hello@rightoffer.in"
