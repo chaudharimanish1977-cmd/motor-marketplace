@@ -15,6 +15,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Tables, findById, writeTable } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 import { computeAdminDashboardSnapshot } from "@/lib/admin-dashboard";
 import type { AdminDashboardSnapshot } from "@/lib/types";
 import { formatINR } from "@/lib/format";
@@ -30,10 +31,20 @@ export const metadata = {
 };
 
 export default async function AdminDashboardPage() {
+  // Demo-gated: visible on demo.rightoffer.in (where marketplace is on)
+  // and Vercel preview / dev builds. Production rightoffer.in returns
+  // 404 — we don't want random visitors landing on a metrics surface
+  // that leaks customer aggregates. When task #28 (demo password
+  // protection) lands, this page inherits that gate automatically.
+  if (!(await isMarketplaceEnabled())) notFound();
+
+  // Founder-only affordances. Non-founder visitors on demo (typically
+  // investors walking through) can VIEW the snapshot but can't trigger
+  // a manual refresh (expensive read on KV). The cron keeps the data
+  // fresh on its own.
   const session = await getSession();
-  if (!session || session.toLowerCase() !== FOUNDER_EMAIL) {
-    notFound();
-  }
+  const isFounder =
+    !!session && session.toLowerCase() === FOUNDER_EMAIL;
 
   // Read the most-recent snapshot. If none exists yet (first visit
   // before the cron has fired) OR the stored snapshot was written by
@@ -73,7 +84,7 @@ export default async function AdminDashboardPage() {
               so far.
             </h1>
           </div>
-          <RefreshButton />
+          {isFounder && <RefreshButton />}
         </div>
         <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
           Last computed · {computedAt.toLocaleString("en-IN", {

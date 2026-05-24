@@ -44,6 +44,7 @@ export default function robots(): MetadataRoute.Robots {
           "/thank-you",
           "/investor",
           "/how-it-works",
+          "/admin/",
           "/pitch",
           "/logo",
         ],
