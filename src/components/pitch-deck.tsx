@@ -465,7 +465,106 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 05 The product
+  // ─────────────────────────────────────────────────── 05 Four stakeholders
+  {
+    render: () => (
+      <div>
+        <Kicker>Four stakeholders · one alignment</Kicker>
+        <Headline className="!text-3xl md:!text-5xl lg:!text-6xl mb-10 md:mb-12">
+          Right coverage <Em>squares</Em> what lowest-premium broke.
+        </Headline>
+
+        {/* 4-column stakeholder wants — each column shows what they
+            actually optimise for. Reading them side-by-side surfaces
+            the conflict everyone's been building around: customer
+            wants low premium, insurer wants high, intermediary takes
+            highest commission, regulator wants all of the above plus
+            transparency + claim performance. The current category
+            sells one cell of this matrix to one customer at a time;
+            no product has aligned the full grid. */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7 mb-10 md:mb-12">
+          {[
+            {
+              t: "Customer",
+              items: [
+                "Lowest premium",
+                "Zero co-pay at claim",
+                "Fully digital experience",
+                "Tailored to my car",
+              ],
+            },
+            {
+              t: "Insurer",
+              items: [
+                "High premiums",
+                "Low commissions",
+                "Digital intake",
+                "Risk-fit customers",
+              ],
+            },
+            {
+              t: "Intermediary",
+              items: [
+                "Lowest premium pitch",
+                "Highest commission",
+              ],
+            },
+            {
+              t: "Regulator",
+              items: [
+                "Lowest premiums",
+                "Lowest commissions",
+                "Transparent offerings",
+                "Service excellence",
+                "Timely claim settlement",
+              ],
+            },
+          ].map((col) => (
+            <div
+              key={col.t}
+              className="border-l-2 border-brand-plum/40 pl-4"
+            >
+              <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-plum font-bold mb-3">
+                · {col.t} ·
+              </div>
+              <ul className="list-none p-0 m-0 space-y-1.5 font-serif text-[13.5px] md:text-[14.5px] text-brand-charcoal leading-[1.4]">
+                {col.items.map((item) => (
+                  <li key={item}>· {item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* RightOffer positioning answer — sage left-rule so it visually
+            reads as the answer, not just another column. Three braided
+            moves in one paragraph: re-frame the question, data-driven
+            bid, honest commission. */}
+        <div className="border-l-2 border-brand-sage pl-6 max-w-4xl">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-brand-sage font-bold mb-3">
+            · Why RightOffer is placed for this ·
+          </div>
+          <p className="font-serif text-[15.5px] md:text-[17px] text-brand-charcoal leading-[1.55] m-0">
+            The category has been sold on{" "}
+            <Em>&ldquo;insurance starting at ₹XXX/month&rdquo;</Em>{" "}
+            for a decade. Customers who&rsquo;ve been through a claim
+            know that wasn&rsquo;t enough. We change the question from
+            &ldquo;lowest premium&rdquo; to{" "}
+            <Em>right coverage at the right price</Em> — a data-driven
+            bidding process matches each customer to insurers whose
+            risk appetite fits, the entire flow is digital, and a{" "}
+            <Sage>flat 10% commission</Sage> across every insurer
+            keeps the ranking honest and lets carriers pass the saving
+            back to the customer. One product that aligns with what
+            every stakeholder — including the regulator — actually
+            wants.
+          </p>
+        </div>
+      </div>
+    ),
+  },
+
+  // ─────────────────────────────────────────────────── 06 The product
   {
     render: () => (
       <div>
@@ -507,7 +606,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 06 The channel
+  // ─────────────────────────────────────────────────── 07 The channel
   {
     render: () => (
       <div>
@@ -544,7 +643,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 07 The audit artefact
+  // ─────────────────────────────────────────────────── 08 The audit artefact
   {
     render: () => (
       <div>
@@ -608,7 +707,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 08 Multi-doc comparator
+  // ─────────────────────────────────────────────────── 09 Multi-doc comparator
   {
     render: () => (
       <div>
@@ -657,7 +756,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 09 Aryan
+  // ─────────────────────────────────────────────────── 10 Aryan
   {
     render: () => (
       <div>
@@ -685,7 +784,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 10 Behind the curtain
+  // ─────────────────────────────────────────────────── 11 Behind the curtain
   {
     render: () => (
       <div>
@@ -718,7 +817,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 11 Why now
+  // ─────────────────────────────────────────────────── 12 Why now
   {
     render: () => (
       <div>
@@ -763,7 +862,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 12 Market
+  // ─────────────────────────────────────────────────── 13 Market
   {
     render: () => (
       <div>
@@ -816,7 +915,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 13 Economics
+  // ─────────────────────────────────────────────────── 14 Economics
   {
     render: () => (
       <div>
@@ -866,7 +965,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 14 Competitive map
+  // ─────────────────────────────────────────────────── 15 Competitive map
   {
     render: () => (
       <div>
@@ -923,7 +1022,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 15 Distribution wedge
+  // ─────────────────────────────────────────────────── 16 Distribution wedge
   {
     render: () => (
       <div>
@@ -953,7 +1052,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 16 Defensibility
+  // ─────────────────────────────────────────────────── 17 Defensibility
   {
     render: () => (
       <div>
@@ -996,7 +1095,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 17 Traction
+  // ─────────────────────────────────────────────────── 18 Traction
   {
     render: () => (
       <div>
@@ -1047,7 +1146,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 18 Team
+  // ─────────────────────────────────────────────────── 19 Team
   {
     render: () => (
       <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr] gap-12">
@@ -1095,7 +1194,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 19 Roadmap
+  // ─────────────────────────────────────────────────── 20 Roadmap
   {
     render: () => (
       <div>
@@ -1142,7 +1241,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 20 The ask
+  // ─────────────────────────────────────────────────── 21 The ask
   {
     render: () => (
       <div>
@@ -1189,7 +1288,7 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─────────────────────────────────────────────────── 21 Vision
+  // ─────────────────────────────────────────────────── 22 Vision
   {
     render: () => (
       <div className="text-center">
