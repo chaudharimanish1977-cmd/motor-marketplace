@@ -30,7 +30,6 @@ import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 import {
   SketchCar,
-  SketchCarStatic,
   SketchDoc,
   SketchLoupe,
   SketchSedan,
@@ -127,14 +126,14 @@ export default async function Home() {
 }
 
 /* ─── 1. Brand row ──────────────────────────────────────────────────────── */
-/* Responsive layout:
- *   - Mobile (<md): stacked. Row 1 = wordmark only (the fixed top-right
- *     theme toggle owns its corner). Row 2 = full-width Upload pill +
- *     Sign in link, centred. This avoids the collision between the old
- *     right-edge "Upload →" fallback and the theme toggle, and pushes
- *     the primary action above the headline where a thumb can reach it.
- *   - Desktop (md+): wordmark left, Upload + Sign in absolute-centred on
- *     the page so the CTA sits dead-centre regardless of wordmark width. */
+/* Wordmark left, sign-in right. The primary "review my policy" action
+ * lives down in the headline CTA — the page no longer carries two CTAs
+ * stacked above each other. Cleaner read; the eye lands on the headline
+ * verdict first, then the action pill beneath it.
+ *
+ * `signedIn` is read for completeness even though both states share the
+ * same layout — the portal label flips between "Sign in" and "My
+ * policies" upstream. */
 function V7Brand({
   signedIn,
   portalLabel,
@@ -142,8 +141,9 @@ function V7Brand({
   signedIn: boolean;
   portalLabel: string;
 }) {
+  void signedIn;
   return (
-    <header className="relative flex flex-col gap-3 py-4 md:py-6 md:flex-row md:items-center md:justify-between md:gap-4">
+    <header className="flex items-center justify-between gap-4 py-4 md:py-6">
       {/* Wordmark — italic serif "r" + small-caps RightOffer + sage CAR pill.
        *  Wordmark stays English; it's a brand-identity mark, not body copy. */}
       <Link
@@ -168,27 +168,12 @@ function V7Brand({
         </span>
       </Link>
 
-      <div className="flex items-center justify-center gap-4 md:absolute md:left-1/2 md:-translate-x-1/2 md:gap-5">
-        <LoadingLink
-          href="/upload"
-          className="inline-flex items-center gap-2 bg-brand-plum text-brand-offwhite px-5 py-2.5 rounded-full font-serif italic font-medium text-base hover:opacity-90 transition-opacity"
-        >
-          <span>Upload your</span>
-          <SketchCarStatic
-            width={44}
-            className="align-middle"
-            color="currentColor"
-          />
-          <span>policy</span>
-          <span aria-hidden>→</span>
-        </LoadingLink>
-        <Link
-          href="/me"
-          className="font-serif italic text-[14px] text-brand-slate hover:text-brand-charcoal transition-colors"
-        >
-          {portalLabel}
-        </Link>
-      </div>
+      <Link
+        href="/me"
+        className="font-serif italic text-[14px] text-brand-slate hover:text-brand-charcoal transition-colors"
+      >
+        {portalLabel}
+      </Link>
     </header>
   );
 }

@@ -24,6 +24,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LoadingLink } from "@/components/loading-link";
+import { SketchCarStatic } from "@/components/sketches";
 
 const FORWARD_ADDRESS = "review@rightoffer.in";
 /** mailto link that opens the default mail client pre-filled with To
@@ -52,7 +53,7 @@ export interface HeadlineCTALabels {
 const DEFAULT_LABELS: HeadlineCTALabels = {
   chipPayLess: "I want to pay less",
   chipWorryLess: "I want to worry less",
-  ctaPrimary: "Get my free 2-minute review",
+  ctaPrimary: "Get my free 2-minute car policy review",
   trustLine: "Trusted by 1,000+ Indian car owners",
   sampleLink: "or see a sample review",
 };
@@ -123,11 +124,23 @@ export function HeadlineCTA({ labels = DEFAULT_LABELS }: HeadlineCTAProps) {
         </Chip>
       </div>
 
+      {/* Primary pill — same car sketch that used to live in the top
+       *  upload pill (now removed) is inlined here so the headline
+       *  CTA carries the brand iconography. aria-label keeps the
+       *  whole sentence accessible since the SVG itself is aria-hidden. */}
       <LoadingLink
         href={ctaHref}
-        className="inline-flex items-center gap-1 bg-brand-plum text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[18px] hover:opacity-90 transition-opacity"
+        aria-label={labels.ctaPrimary}
+        className="inline-flex items-center gap-2 bg-brand-plum text-brand-offwhite px-7 py-4 rounded-full font-serif italic font-medium text-[18px] hover:opacity-90 transition-opacity"
       >
-        {labels.ctaPrimary} <span aria-hidden>→</span>
+        <span>Get my free 2-minute</span>
+        <SketchCarStatic
+          width={44}
+          className="align-middle"
+          color="currentColor"
+        />
+        <span>policy review</span>
+        <span aria-hidden>→</span>
       </LoadingLink>
 
       {/* "OR" divider — visually separates the two CTAs so they read
