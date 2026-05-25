@@ -36,19 +36,11 @@ export function PitchDeck() {
     if (sp.get("print") === "1") setPrintMode(true);
   }, []);
 
-  // Suppress the global site-wide dark-mode CSS rules while the deck is
-  // mounted. The deck has its own committed light-editorial theme; we
-  // don't want dark-mode toggling the brand-* tokens out from under it.
-  // Restore on unmount so the rest of the site honours the user's pref.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const html = document.documentElement;
-    const wasDark = html.classList.contains("dark");
-    if (wasDark) html.classList.remove("dark");
-    return () => {
-      if (wasDark) html.classList.add("dark");
-    };
-  }, []);
+  // The deck now respects the user's dark/light preference like every
+  // other surface. Brand tokens (charcoal, plum, sage, slate) flip via
+  // CSS variables in globals.css; the only hand-tuned values are the
+  // page bg (see BG below) — cream in light, warm near-black in dark.
+  // No more force-strip of the `dark` class.
 
   const go = useCallback(
     (n: number) => {
@@ -103,9 +95,13 @@ export function PitchDeck() {
     return () => document.removeEventListener("keydown", onKey);
   }, [go, idx, slides.length]);
 
-  // Background tokens — light editorial, matches the product. Off-white
-  // page with a hint of warmth; serif body throughout; charcoal text.
-  const BG = "bg-[#fdf8f0] text-brand-charcoal font-serif";
+  // Page background. Light = warm cream #fdf8f0 (editorial, matches
+  // the audit report aesthetic). Dark = warm near-black #13100f (mirrors
+  // the cream's warmth on the dark side; subtly distinct from pure
+  // #0e0a10 page bg so the deck still reads as its own surface).
+  // text-brand-charcoal flips cream-on-dark / charcoal-on-light via
+  // the CSS variable — no override needed.
+  const BG = "bg-[#fdf8f0] dark:bg-[#13100f] text-brand-charcoal font-serif";
 
   if (printMode) {
     return (
