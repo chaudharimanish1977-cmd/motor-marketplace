@@ -8,6 +8,7 @@ import "./globals.css";
 // place for now to keep other commits clean.
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SiteHeader } from "@/components/site-header";
+import { DemoFooter } from "@/components/demo-footer";
 import { getSession } from "@/lib/session";
 import { getUploadSession } from "@/lib/upload-session";
 // TopLoader temporarily disabled — first attempt with the nextjs-toploader
@@ -192,6 +193,9 @@ export default async function RootLayout({
           <SiteHeader signedIn={hasAnySession} />
           {children}
         </div>
+        {/* DemoFooter only renders when isMarketplaceEnabled() is true
+            (demo subdomain / preview / dev). Returns null on production. */}
+        <DemoFooter />
       </body>
     </html>
   );

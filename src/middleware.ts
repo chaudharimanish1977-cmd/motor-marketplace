@@ -1,24 +1,29 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifyDemoCookie, DEMO_COOKIE_NAME } from "@/lib/demo-auth";
 
 /**
- * Hostname-based rewrites for marketing subdomains.
+ * Hostname-based routing + demo password gate.
  *
- *   pitch.rightoffer.in/         →  /pitch   (the investor deck)
+ * Three jobs:
  *
- * The DEMO subdomain (demo.rightoffer.in) serves the same production
- * build as rightoffer.in, with the marketplace feature-flag flipped
- * ON via host detection in `isMarketplaceEnabled` (lib/feature-flags.ts).
- * It does NOT rewrite the root URL — `demo.rightoffer.in/` serves the
- * same editorial home page as `rightoffer.in/` for visual consistency.
- * The personas walkthrough remains accessible at `demo.rightoffer.in/investor`
- * for anyone navigating there directly.
+ * 1. pitch.rightoffer.in/ → /pitch (rewrite). The pitch subdomain exists
+ *    exclusively to serve the deck.
  *
- * The pitch subdomain rewrites `/` → `/pitch` because that subdomain
- * exists exclusively to serve the deck — there's no other "home" to land on.
+ * 2. Demo password gate. Anything on `demo.rightoffer.in` plus
+ *    `rightoffer.in/investor` requires the shared password cookie
+ *    (`ro-demo-pass`, HMAC-signed via lib/demo-auth.ts). Missing or
+ *    invalid → redirect to /demo-login?next=<path>. /demo-login itself
+ *    and /api/demo-auth are exempt so the gate flow doesn't lock
+ *    itself out.
+ *
+ * 3. demo subdomain passes through with no rewrite (post-auth) — the
+ *    host header naturally reaches isMarketplaceEnabled() so the
+ *    marketplace flag flips on for these requests.
  */
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
+  const pathname = request.nextUrl.pathname;
 
   if (host.startsWith("pitch.")) {
     const url = request.nextUrl.clone();
@@ -28,13 +33,38 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // demo.rightoffer.in passes through with no rewrite — the host header
-  // is naturally preserved, which is all isMarketplaceEnabled() needs
-  // to flip the marketplace flag ON for this subdomain.
+  // ── Demo password gate ───────────────────────────────────────────
+  // Apply when:
+  //   · host is on a demo subdomain (covers all paths)
+  //   · OR path starts with /investor on the canonical domain
+  const isDemoHost = host.startsWith("demo.");
+  const isInvestorPath = pathname.startsWith("/investor");
+  const needsGate = isDemoHost || isInvestorPath;
+
+  if (needsGate) {
+    // Don't gate the gate itself — would create a redirect loop.
+    const isGateBypassed =
+      pathname === "/demo-login" ||
+      pathname.startsWith("/api/demo-auth");
+    if (!isGateBypassed) {
+      const cookie = request.cookies.get(DEMO_COOKIE_NAME)?.value;
+      if (!verifyDemoCookie(cookie)) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/demo-login";
+        // Preserve where they were trying to go so post-login redirects
+        // them there. Encoded by Next's clone() handling.
+        const dest = pathname + (request.nextUrl.search || "");
+        url.search = `?next=${encodeURIComponent(dest)}`;
+        return NextResponse.redirect(url);
+      }
+    }
+  }
 
   return NextResponse.next();
 }
 
 export const config = {
+  // Skip the matcher for /api/* (each endpoint has its own auth),
+  // _next static assets, favicon, and any file with an extension.
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };
