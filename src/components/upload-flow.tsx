@@ -82,7 +82,7 @@ export function UploadFlow({
       <UploadDropzone
         demoMode={isDemo}
         onBusyChange={setBusy}
-        backHref={renewalContext ? "/me" : isDemo ? "/investor" : "/"}
+        backHref={renewalContext ? "/me" : "/"}
         priorityChip={priorityChip ?? null}
         journeyState={journeyState}
         journeyDocCount={journeyDocCount}

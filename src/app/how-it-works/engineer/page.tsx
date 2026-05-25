@@ -291,7 +291,7 @@ export default async function EngineerViewPage() {
           Customer view
         </Link>
         <Link
-          href="/investor"
+          href="/"
           className="inline-flex items-center gap-1.5 text-sm text-brand-slate hover:text-brand-plum font-mono uppercase tracking-[0.12em] text-[10.5px] font-bold"
         >
           Back to demo
@@ -358,7 +358,7 @@ export default async function EngineerViewPage() {
           ← Customer view
         </Link>
         {" · "}
-        <Link href="/investor" className="text-brand-plum hover:underline">
+        <Link href="/" className="text-brand-plum hover:underline">
           Demo home
         </Link>
         {" · "}

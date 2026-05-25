@@ -100,7 +100,7 @@ export default async function HowItWorksPage() {
     <article className="max-w-3xl mx-auto px-6 md:px-8 py-10 md:py-16 font-serif text-brand-charcoal">
         <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           <Link
-            href="/investor"
+            href="/"
             className="inline-flex items-center gap-1.5 text-sm text-brand-slate hover:text-brand-plum font-mono uppercase tracking-[0.12em] text-[10.5px] font-bold"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -160,7 +160,7 @@ export default async function HowItWorksPage() {
 
         <footer className="mt-12 pt-6 border-t border-brand-light-gray dark:border-slate-700 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate text-center">
           <Link
-            href="/investor"
+            href="/"
             className="text-brand-plum hover:underline"
           >
             ← Back to demo

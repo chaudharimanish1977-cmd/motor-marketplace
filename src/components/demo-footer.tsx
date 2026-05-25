@@ -20,7 +20,7 @@ import Link from "next/link";
 import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 const LINKS: Array<{ href: string; label: string }> = [
-  { href: "/investor", label: "Demo home" },
+  { href: "/", label: "Demo home" },
   { href: "/upload?demo=1", label: "Upload a policy" },
   { href: "/how-it-works", label: "Customer view" },
   { href: "/how-it-works/engineer", label: "Engineer view" },
