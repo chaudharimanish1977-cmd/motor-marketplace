@@ -11,7 +11,6 @@ import type { ParsedPolicy, PolicyReport } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 import { policyGroupKey } from "@/lib/policy-group";
 import { RenewalPreview } from "@/components/renewal-preview";
-import { BrandBlobs } from "@/components/brand-blobs";
 import { LoadingLink } from "@/components/loading-link";
 
 // Always re-fetch personas at request time so newly-parsed policies appear
@@ -99,9 +98,7 @@ export default async function InvestorHome() {
   const personas = await loadDemoPersonas();
 
   return (
-    <>
-      <BrandBlobs />
-      <main className="relative z-10 min-h-screen flex flex-col items-center px-4 py-12">
+    <main className="min-h-screen flex flex-col items-center px-4 py-12">
         <div className="max-w-3xl w-full text-center space-y-8">
         {/* Eyebrow */}
         <div className="flex justify-center">
@@ -225,8 +222,7 @@ export default async function InvestorHome() {
         RightOffer · Independent motor insurance advisor for India · Investor
         demo build
       </p>
-      </main>
-    </>
+    </main>
   );
 }
 

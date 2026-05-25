@@ -16,7 +16,6 @@
  */
 
 import Link from "next/link";
-import { BrandBlobs } from "@/components/brand-blobs";
 
 export const metadata = {
   title: "Renewal reminder — RightOffer",
@@ -54,9 +53,7 @@ export default async function RemindersDonePage({ searchParams }: PageProps) {
   const isExpired = status === "expired";
 
   return (
-    <>
-      <BrandBlobs />
-      <main className="relative z-10 min-h-[70vh] flex items-center justify-center px-4 py-12">
+    <main className="min-h-[70vh] flex items-center justify-center px-4 py-12">
         <article className="max-w-md w-full text-center font-serif text-brand-charcoal">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-4">
             {isOk ? "· Reminder on ·" : "· Renewal reminder ·"}
@@ -136,7 +133,6 @@ export default async function RemindersDonePage({ searchParams }: PageProps) {
             </>
           )}
         </article>
-      </main>
-    </>
+    </main>
   );
 }

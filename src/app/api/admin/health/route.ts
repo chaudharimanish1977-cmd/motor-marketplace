@@ -19,7 +19,7 @@
 
 import { NextResponse } from "next/server";
 import { readTable, Tables } from "@/lib/db";
-import { getSession } from "@/lib/session";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 import type {
   ParsedPolicy,
   PolicyReport,
@@ -27,18 +27,17 @@ import type {
   User,
 } from "@/lib/types";
 
-const FOUNDER_EMAIL = "chaudharimanish1977@gmail.com";
-
 export const runtime = "nodejs";
 // Tight maxDuration — this endpoint is cheap. If it ever times out
 // at 10s it's a KV problem worth surfacing as a 500.
 export const maxDuration = 10;
 
 export async function GET() {
-  const session = await getSession();
-  if (!session || session.toLowerCase() !== FOUNDER_EMAIL) {
-    // Mimic the not-found shape so the endpoint stays invisible to
-    // non-founders. Same 404 a deleted resource would return.
+  // Demo-gated to match /admin/dashboard. The demo subdomain is
+  // already behind the shared password gate, so health surfaces
+  // only when isMarketplaceEnabled() is true — i.e. demo /
+  // preview / dev. Production rightoffer.in returns 404.
+  if (!(await isMarketplaceEnabled())) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 

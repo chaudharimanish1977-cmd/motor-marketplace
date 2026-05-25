@@ -19,7 +19,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { isMarketplaceEnabled } from "@/lib/feature-flags";
-import { BrandBlobs } from "@/components/brand-blobs";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -98,9 +97,7 @@ export default async function HowItWorksPage() {
   if (!(await isMarketplaceEnabled())) notFound();
 
   return (
-    <>
-      <BrandBlobs />
-      <article className="relative z-10 max-w-3xl mx-auto px-6 md:px-8 py-10 md:py-16 font-serif text-brand-charcoal">
+    <article className="max-w-3xl mx-auto px-6 md:px-8 py-10 md:py-16 font-serif text-brand-charcoal">
         <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           <Link
             href="/investor"
@@ -173,8 +170,7 @@ export default async function HowItWorksPage() {
             RightOffer.in
           </Link>
         </footer>
-      </article>
-    </>
+    </article>
   );
 }
 

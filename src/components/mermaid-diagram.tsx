@@ -39,33 +39,52 @@ export function MermaidDiagram({ chart, caption }: Props) {
         const isDark =
           typeof document !== "undefined" &&
           document.documentElement.classList.contains("dark");
+
+        // Brand palette tuned for both themes. The CRITICAL ones for
+        // legibility: primaryColor (default node fill) + primaryTextColor
+        // must contrast. In dark mode we use a mid-plum fill with cream
+        // text; in light mode we use a near-white fill with charcoal
+        // text. Mermaid's default styling for things like classDef
+        // overrides these — we removed those classDefs from each chart
+        // so theme variables actually win.
         mermaid.initialize({
           startOnLoad: false,
           theme: "base",
           themeVariables: {
-            // Editorial brand palette mapped to Mermaid variables.
-            // See https://mermaid.js.org/config/theming.html#theme-variables
-            background: isDark ? "#0e0a10" : "#ffffff",
-            primaryColor: isDark ? "#241522" : "#f7f4f7",
+            background: "transparent",
+            // Primary nodes — most boxes in our flowcharts
+            primaryColor: isDark ? "#3a1e3d" : "#f7f4f7",
             primaryTextColor: isDark ? "#f3eef0" : "#1a1218",
             primaryBorderColor: isDark ? "#c485c9" : "#3a1e3d",
-            lineColor: isDark ? "#9a8f98" : "#6b6571",
-            secondaryColor: isDark ? "#1a2118" : "#eef2ec",
+            // Edges / arrows
+            lineColor: isDark ? "#c485c9" : "#3a1e3d",
+            // Subgraph / cluster styling
+            clusterBkg: isDark ? "rgba(60,30,63,0.18)" : "rgba(247,244,247,0.5)",
+            clusterBorder: isDark ? "#c485c9" : "#3a1e3d",
+            titleColor: isDark ? "#f3eef0" : "#1a1218",
+            // Secondary nodes — sage accent (less used but defined for completeness)
+            secondaryColor: isDark ? "#5a6b50" : "#eef2ec",
             secondaryTextColor: isDark ? "#f3eef0" : "#1a1218",
             secondaryBorderColor: isDark ? "#a8baa0" : "#8b9d80",
-            tertiaryColor: isDark ? "#1E293B" : "#fafafa",
+            // Tertiary — slate utility
+            tertiaryColor: isDark ? "#334155" : "#fafafa",
             tertiaryTextColor: isDark ? "#f3eef0" : "#1a1218",
-            tertiaryBorderColor: isDark ? "#475569" : "#e6e4e8",
+            tertiaryBorderColor: isDark ? "#9a8f98" : "#6b6571",
+            // Notes / text in misc places
+            noteBkgColor: isDark ? "#3a1e3d" : "#fef3c7",
+            noteTextColor: isDark ? "#f3eef0" : "#1a1218",
+            noteBorderColor: isDark ? "#c485c9" : "#92400e",
             fontFamily:
               "var(--font-newsreader), Newsreader, Georgia, serif",
-            fontSize: "13.5px",
+            fontSize: "14px",
           },
           flowchart: {
             curve: "basis",
-            padding: 14,
-            nodeSpacing: 32,
-            rankSpacing: 44,
+            padding: 18,
+            nodeSpacing: 38,
+            rankSpacing: 52,
             useMaxWidth: true,
+            htmlLabels: true,
           },
           securityLevel: "loose",
         });
@@ -90,10 +109,10 @@ export function MermaidDiagram({ chart, caption }: Props) {
   }, [chart, id]);
 
   return (
-    <figure className="my-8">
+    <figure className="my-4">
       <div
         ref={ref}
-        className="overflow-x-auto rounded-2xl border border-brand-light-gray dark:border-slate-700 bg-brand-offwhite p-5 md:p-7 [&_svg]:max-w-full [&_svg]:h-auto"
+        className="w-full overflow-x-auto py-3 [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:w-full"
         aria-label={caption ?? "Architecture diagram"}
       />
       {error && (
@@ -102,7 +121,7 @@ export function MermaidDiagram({ chart, caption }: Props) {
         </p>
       )}
       {caption && (
-        <figcaption className="mt-3 font-serif italic text-[13px] text-brand-slate leading-[1.55] text-center max-w-2xl mx-auto">
+        <figcaption className="mt-4 font-serif italic text-[13.5px] text-brand-slate leading-[1.55] max-w-3xl">
           {caption}
         </figcaption>
       )}
