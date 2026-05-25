@@ -101,13 +101,22 @@ export default async function HowItWorksPage() {
     <>
       <BrandBlobs />
       <article className="relative z-10 max-w-3xl mx-auto px-6 md:px-8 py-10 md:py-16 font-serif text-brand-charcoal">
-        <Link
-          href="/investor"
-          className="inline-flex items-center gap-1.5 text-sm text-brand-slate hover:text-brand-plum mb-8 font-mono uppercase tracking-[0.12em] text-[10.5px] font-bold"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to demo
-        </Link>
+        <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
+          <Link
+            href="/investor"
+            className="inline-flex items-center gap-1.5 text-sm text-brand-slate hover:text-brand-plum font-mono uppercase tracking-[0.12em] text-[10.5px] font-bold"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to demo
+          </Link>
+          <Link
+            href="/how-it-works/engineer"
+            className="inline-flex items-center gap-1.5 text-sm font-mono uppercase tracking-[0.12em] text-[10.5px] font-bold text-brand-plum hover:underline"
+          >
+            Engineer view · architecture
+            <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+          </Link>
+        </div>
 
         {/* Masthead */}
         <header className="mb-12 pb-6 border-b border-brand-light-gray dark:border-slate-700">

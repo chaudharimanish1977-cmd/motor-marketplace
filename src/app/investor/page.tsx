@@ -148,7 +148,14 @@ export default async function InvestorHome() {
               href="/how-it-works"
               className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-brand-plum hover:underline"
             >
-              How it works · the 7-step journey
+              How it works · customer view
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+            <Link
+              href="/how-it-works/engineer"
+              className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-brand-plum hover:underline"
+            >
+              Architecture · engineer view
               <ArrowRight className="w-3 h-3" />
             </Link>
             <Link

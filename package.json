@@ -20,6 +20,7 @@
     "@vercel/kv": "^3.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
+    "mermaid": "^11.15.0",
     "next": "^15.1.0",
     "next-auth": "^4.24.14",
     "pdf-parse": "^1.1.1",
