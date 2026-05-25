@@ -22,7 +22,7 @@ import { isMarketplaceEnabled } from "@/lib/feature-flags";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
-  title: "How RightOffer works — Phase 1 journey",
+  title: "How RightOffer works — the full journey",
   robots: { index: false, follow: false },
 };
 
@@ -34,7 +34,7 @@ interface Step {
   technical: string;
 }
 
-const STEPS: Step[] = [
+const PHASE1_STEPS: Step[] = [
   {
     number: "01",
     title: "Customer hands over the policy.",
@@ -93,6 +93,55 @@ const STEPS: Step[] = [
   },
 ];
 
+/**
+ * Phase 2 — the marketplace flow. Picks up after the audit when the
+ * customer wants to buy new cover (renewal or fresh policy). Sits
+ * behind the marketplace feature flag on production today; live on
+ * demo.rightoffer.in for walkthroughs.
+ */
+const PHASE2_STEPS: Step[] = [
+  {
+    number: "08",
+    title: "Customer chooses the marketplace.",
+    body: "The audit page carries a quiet plum CTA — \"Curate your bundle.\" One click leaves the audit-only world. The customer is now opting into a new cover, not just understanding their existing one.",
+    channel: "/report → /bid",
+    technical:
+      "marketplace feature flag (host gate · demo subdomain) hides this CTA on production; isMarketplaceEnabled() controls every marketplace surface uniformly",
+  },
+  {
+    number: "09",
+    title: "Bundle Builder tunes coverage.",
+    body: "Add-ons grouped by relevance — essential / optional / drop — pre-toggled based on the audit's recommendations. Customer adjusts IDV with a slider, picks add-ons, declares any pending claim. The shape they want becomes the auction's target spec.",
+    channel: "Bundle Builder",
+    technical:
+      "src/components/bundle-builder.tsx · AddOnRecommendation typing on PolicyReport · POST /api/bid builds an RFQ from the selection",
+  },
+  {
+    number: "10",
+    title: "Live auction · three insurers bid.",
+    body: "We dispatch the customer's target spec to three insurers (real partner integrations in V2; AI-generated insurer personas in the demo). Each returns three coverage tiers — Basic, Recommended, Super Cover. The \"Auction live\" feed plays the timing live in front of the customer.",
+    channel: "Bid orchestrator · live feed",
+    technical:
+      "Bids stored in KV per RFQ · src/components/live-bid-feed.tsx · 3-tier sourcing (preferences → API auction → underwriter pool in real V2)",
+  },
+  {
+    number: "11",
+    title: "Three tiers. One pick.",
+    body: "The results page lays out the three tiers side-by-side. Basic for the price-sensitive renewer, Recommended (the brand pick) matching the customer's exact selection, Super Cover for everything-on. Each tier shows the winning insurer plus the runners-up. Customer picks one and hits Buy.",
+    channel: "Tier comparator",
+    technical:
+      "/bid/[id]/results · TierComparisonMatrix view · sticky mobile CTA shortcuts to Recommended",
+  },
+  {
+    number: "12",
+    title: "KYC, payment, policy issued.",
+    body: "Three-screen KYC — Aadhaar, then PAN, then address. Razorpay-style payment modal closes the loop. The policy is issued in under five minutes, certified PDF lands in the inbox, and the renewal calendar for next year is already laid out — 60, 30, 7 days before next year's expiry. The audit loop closes; the renewal loop opens.",
+    channel: "Checkout → Policy issued → Renewal calendar",
+    technical:
+      "/checkout/[bidId] (3-screen flow) → /policy/[transactionId] (issued PDF) → /renewals/[transactionId] (next-year cadence) · Transactions table in KV",
+  },
+];
+
 export default async function HowItWorksPage() {
   if (!(await isMarketplaceEnabled())) notFound();
 
@@ -118,7 +167,7 @@ export default async function HowItWorksPage() {
         {/* Masthead */}
         <header className="mb-12 pb-6 border-b border-brand-light-gray dark:border-slate-700">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
-            · How it works · Phase 1 · audit-only ·
+            · How it works · the full journey ·
           </div>
           <h1 className="font-serif font-medium text-3xl md:text-[44px] leading-[1.05] tracking-[-0.02em] text-brand-charcoal m-0">
             Forward a policy.{" "}
@@ -127,36 +176,47 @@ export default async function HowItWorksPage() {
             </span>
           </h1>
           <p className="mt-4 font-serif italic text-[15.5px] md:text-[16.5px] text-brand-slate leading-[1.55] max-w-2xl">
-            Seven steps from customer hand-off to renewal reminder. No
-            marketplace, no bidding, no insurer push — just an honest
-            read of what they already pay for, and a tap on the shoulder
-            before it lapses.
+            Twelve steps from the moment a customer hands over their
+            policy to the moment a new policy lands in their inbox.
+            Phase 1 — the audit — runs for every customer. Phase 2 —
+            the marketplace — opens only when the customer says yes
+            to new cover.
           </p>
         </header>
 
-        {/* Steps */}
+        {/* Phase 1 — Audit */}
+        <SectionDivider
+          kicker="· Phase 1 · Audit ·"
+          title="Every customer walks this."
+          subtitle="Seven steps from hand-off to renewal reminder. Live on rightoffer.in today. No marketplace, no bidding, no insurer push — just an honest read of what they already pay for, and a tap on the shoulder before it lapses."
+        />
+
         <ol className="space-y-10 list-none p-0 m-0">
-          {STEPS.map((step, i) => (
-            <StepRow key={step.number} step={step} isLast={i === STEPS.length - 1} />
+          {PHASE1_STEPS.map((step, i) => (
+            <StepRow
+              key={step.number}
+              step={step}
+              isLast={i === PHASE1_STEPS.length - 1}
+            />
           ))}
         </ol>
 
-        {/* Closing */}
-        <section className="mt-16 pt-8 border-t border-brand-light-gray dark:border-slate-700">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-sage font-bold mb-3">
-            · What Phase 2 adds ·
-          </div>
-          <p className="font-serif italic text-[14.5px] text-brand-slate leading-[1.6] max-w-2xl">
-            Phase 2 — marketplace — picks up{" "}
-            <span className="not-italic text-brand-charcoal">after</span>{" "}
-            the audit. Same upload, same parse, same report. A new CTA
-            on the report invites the customer into a curated insurer
-            auction. The audit IS the wedge; the marketplace is the
-            second act. Everything you walked through above stays
-            unchanged the day we flip the marketplace flag on
-            production.
-          </p>
-        </section>
+        {/* Phase 2 — Marketplace */}
+        <SectionDivider
+          kicker="· Phase 2 · Marketplace ·"
+          title="When the customer is ready to buy."
+          subtitle="The audit is the wedge; the marketplace is the second act. Same upload, same audit — but a new CTA on the report invites the customer into a curated insurer auction. Live on demo.rightoffer.in today; ships on production when V2 launches by flipping one feature flag."
+        />
+
+        <ol className="space-y-10 list-none p-0 m-0">
+          {PHASE2_STEPS.map((step, i) => (
+            <StepRow
+              key={step.number}
+              step={step}
+              isLast={i === PHASE2_STEPS.length - 1}
+            />
+          ))}
+        </ol>
 
         <footer className="mt-12 pt-6 border-t border-brand-light-gray dark:border-slate-700 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate text-center">
           <Link
@@ -171,6 +231,31 @@ export default async function HowItWorksPage() {
           </Link>
         </footer>
     </article>
+  );
+}
+
+function SectionDivider({
+  kicker,
+  title,
+  subtitle,
+}: {
+  kicker: string;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="my-12 first-of-type:mt-0">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-brand-plum font-bold mb-3">
+        {kicker}
+      </div>
+      <h2 className="font-serif font-medium text-2xl md:text-[32px] leading-[1.15] tracking-[-0.015em] text-brand-charcoal m-0">
+        {title}
+      </h2>
+      <p className="mt-3 font-serif italic text-[14.5px] md:text-[15.5px] text-brand-slate leading-[1.55] max-w-2xl">
+        {subtitle}
+      </p>
+      <hr className="mt-5 border-0 border-t border-brand-plum/30" />
+    </div>
   );
 }
 
