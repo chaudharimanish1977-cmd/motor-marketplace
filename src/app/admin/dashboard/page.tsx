@@ -14,14 +14,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Tables, findById, writeTable } from "@/lib/db";
-import { getSession } from "@/lib/session";
 import { isMarketplaceEnabled } from "@/lib/feature-flags";
 import { computeAdminDashboardSnapshot } from "@/lib/admin-dashboard";
 import type { AdminDashboardSnapshot } from "@/lib/types";
 import { formatINR } from "@/lib/format";
 import { RefreshButton } from "./refresh-button";
-
-const FOUNDER_EMAIL = "chaudharimanish1977@gmail.com";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -38,13 +35,12 @@ export default async function AdminDashboardPage() {
   // protection) lands, this page inherits that gate automatically.
   if (!(await isMarketplaceEnabled())) notFound();
 
-  // Founder-only affordances. Non-founder visitors on demo (typically
-  // investors walking through) can VIEW the snapshot but can't trigger
-  // a manual refresh (expensive read on KV). The cron keeps the data
-  // fresh on its own.
-  const session = await getSession();
-  const isFounder =
-    !!session && session.toLowerCase() === FOUNDER_EMAIL;
+  // Refresh button is available to anyone who got past the demo
+  // password gate. We considered restricting it to a /me-authenticated
+  // founder session, but that gate fails when the founder is on
+  // demo.rightoffer.in (where they authed with the demo password, not
+  // their magic-link). KV recompute is ~50ms — no real cost. The cron
+  // still keeps the snapshot fresh on its own.
 
   // Read the most-recent snapshot. If none exists yet (first visit
   // before the cron has fired) OR the stored snapshot was written by
@@ -59,7 +55,9 @@ export default async function AdminDashboardPage() {
     !stored ||
     stored.breadth?.makeCount === undefined ||
     stored.breadth?.topMakes === undefined ||
-    stored.channels?.unknownChannel === undefined;
+    stored.channels?.unknownChannel === undefined ||
+    stored.visitors === undefined ||
+    stored.nonFounderReports === undefined;
   let snapshot: AdminDashboardSnapshot;
   if (isStaleSchema) {
     snapshot = await computeAdminDashboardSnapshot();
@@ -84,7 +82,7 @@ export default async function AdminDashboardPage() {
               so far.
             </h1>
           </div>
-          {isFounder && <RefreshButton />}
+          <RefreshButton />
         </div>
         <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate">
           Last computed · {computedAt.toLocaleString("en-IN", {
@@ -494,6 +492,105 @@ export default async function AdminDashboardPage() {
             />
           </div>
         </Section>
+        {/* ── 11. Site traffic ─────────────────────────────────────── */}
+        <Section
+          number="11"
+          title="Site traffic"
+          description="Unique-per-day browsers loading the production site. Counted in middleware via a long-lived cookie + a daily KV counter. The demo / pitch subdomains are excluded so this stays a clean prod metric. Refreshes with the rest of the dashboard."
+        >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <Stat
+              label="Visitors today"
+              value={snapshot.visitors.uniqueToday.toLocaleString("en-IN")}
+              sublabel="IST"
+              description="Distinct browsers that loaded any non-admin page since 00:00 IST."
+            />
+            <Stat
+              label="Last 7 days"
+              value={snapshot.visitors.uniqueLast7d.toLocaleString("en-IN")}
+              description="Sum of daily uniques across the last 7 IST days (a returning visitor each day counts each day)."
+            />
+            <Stat
+              label="Last 30 days"
+              value={snapshot.visitors.uniqueLast30d.toLocaleString("en-IN")}
+              description="Sum of daily uniques across the last 30 IST days."
+            />
+            <Stat
+              label="All-time unique"
+              value={snapshot.visitors.totalUnique.toLocaleString("en-IN")}
+              sublabel="distinct browsers"
+              description="Total unique browsers ever — incremented once per browser when the cookie is first set."
+            />
+          </div>
+          {snapshot.visitors.perDay30d.length > 0 && (
+            <SparkBar series={snapshot.visitors.perDay30d} />
+          )}
+        </Section>
+
+        {/* ── 12. Real-customer audits (non-founder) ────────────────── */}
+        <Section
+          number="12"
+          title="Real-customer audits"
+          description="Audits where the parsed owner email is not on the founder testing list. Filters out your own test uploads so the count reflects real customer activity. Each row links to the rendered report."
+        >
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mb-6">
+            <Stat
+              label="Non-founder audits"
+              value={snapshot.nonFounderReports.totalCount.toLocaleString("en-IN")}
+              sublabel="all time"
+              description="Total ParsedPolicy rows whose owner.email is not on FOUNDER_EMAILS in lib/admin-dashboard.ts."
+            />
+            <Stat
+              label="Unique customers"
+              value={snapshot.nonFounderReports.uniqueCustomers.toLocaleString("en-IN")}
+              sublabel="distinct emails"
+              description="Distinct non-founder emails across all parsed policies."
+            />
+          </div>
+          {snapshot.nonFounderReports.items.length === 0 ? (
+            <p className="font-serif italic text-[14px] text-brand-slate">
+              No non-founder audits yet.
+            </p>
+          ) : (
+            <div className="border-l-2 border-brand-plum/30 pl-4">
+              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-slate mb-3">
+                Most recent {snapshot.nonFounderReports.items.length} (newest first)
+              </div>
+              <ol className="space-y-2">
+                {snapshot.nonFounderReports.items.map((item) => (
+                  <li
+                    key={item.parsedPolicyId}
+                    className="grid grid-cols-12 gap-3 items-baseline font-serif text-[13.5px] text-brand-charcoal border-b border-brand-light-gray/40 dark:border-slate-700/40 pb-2"
+                  >
+                    <span className="col-span-3 font-mono tabular-nums text-[11px] text-brand-slate">
+                      {formatDateTime(item.uploadedAt)}
+                    </span>
+                    <span className="col-span-3 truncate" title={item.email}>
+                      {item.email}
+                      {item.name ? (
+                        <span className="text-brand-slate italic">
+                          {" "}· {item.name}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="col-span-3 truncate text-brand-slate">
+                      {[item.vehicle, item.insurer].filter(Boolean).join(" · ") || "—"}
+                    </span>
+                    <span className="col-span-3 text-right">
+                      <Link
+                        href={item.reportUrl}
+                        target="_blank"
+                        className="font-mono text-[11px] uppercase tracking-[0.14em] text-brand-plum hover:underline"
+                      >
+                        Open report →
+                      </Link>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </Section>
       </div>
 
       <footer className="mt-16 pt-6 border-t border-brand-light-gray dark:border-slate-700 font-mono text-[10.5px] uppercase tracking-[0.14em] text-brand-slate text-center">
@@ -703,6 +800,20 @@ function formatDate(iso: string): string {
       day: "numeric",
       month: "short",
       year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function formatDateTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Asia/Kolkata",
     });
   } catch {
     return iso;

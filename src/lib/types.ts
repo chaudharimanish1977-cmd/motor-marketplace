@@ -756,6 +756,45 @@ export interface AdminDashboardSnapshot {
     deletionRequestsHandled: number;
     deletionPlaceholder: boolean;
   };
+
+  // === 11. Site traffic ======================================================
+  /** Unique-per-day visitors to the production site. Populated from KV
+   *  counters maintained by the middleware (lib/visitor-tracking.ts).
+   *  Counts only the canonical host — demo and pitch subdomains are
+   *  excluded so the metric stays clean. */
+  visitors: {
+    /** All-time unique browsers that have ever loaded a page. */
+    totalUnique: number;
+    /** Unique browsers that loaded a page today (IST). */
+    uniqueToday: number;
+    /** Sum of daily uniques across the last 7 IST days. */
+    uniqueLast7d: number;
+    /** Sum of daily uniques across the last 30 IST days. */
+    uniqueLast30d: number;
+    /** Per-day series for the sparkbar — oldest → newest. */
+    perDay30d: Array<{ date: string; count: number }>;
+  };
+
+  // === 12. Real-customer audits (non-founder) ===============================
+  /** Audits from email addresses other than the founder's own. The
+   *  filter list is `FOUNDER_EMAILS` in admin-dashboard.ts. Each item
+   *  links to the report at /report/<parsedPolicyId>. */
+  nonFounderReports: {
+    /** Audits where owner.email is not on the founder filter list. */
+    totalCount: number;
+    /** Distinct non-founder emails. */
+    uniqueCustomers: number;
+    /** Most-recent first, capped at 100. */
+    items: Array<{
+      parsedPolicyId: string;
+      email: string;
+      name?: string;
+      insurer?: string;
+      vehicle?: string;
+      uploadedAt: string;
+      reportUrl: string;
+    }>;
+  };
 }
 
 // ============================================================================

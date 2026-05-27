@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyDemoCookie, DEMO_COOKIE_NAME } from "@/lib/demo-auth";
+import { trackVisitor } from "@/lib/visitor-tracking";
 
 /**
  * Hostname-based routing + demo password gate.
@@ -21,7 +22,7 @@ import { verifyDemoCookie, DEMO_COOKIE_NAME } from "@/lib/demo-auth";
  *    host header naturally reaches isMarketplaceEnabled() so the
  *    marketplace flag flips on for these requests.
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
   const pathname = request.nextUrl.pathname;
 
@@ -60,7 +61,25 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  // ── Visitor counting ─────────────────────────────────────────────
+  // Track unique-per-day visitors on the canonical production host
+  // only. We skip:
+  //   · demo / preview subdomains (don't pollute the prod metric)
+  //   · /admin/* (the founder hitting the dashboard isn't a "visitor")
+  //   · /demo-login (gate page, not real traffic)
+  //   · /investor (already gated)
+  // The matcher excludes /api/* and static assets so we don't need to
+  // re-check those here.
+  const response = NextResponse.next();
+  const isProdHost = !isDemoHost && !host.startsWith("pitch.");
+  const isTrackablePath =
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/demo-login") &&
+    !pathname.startsWith("/investor");
+  if (isProdHost && isTrackablePath) {
+    await trackVisitor(request, response);
+  }
+  return response;
 }
 
 export const config = {

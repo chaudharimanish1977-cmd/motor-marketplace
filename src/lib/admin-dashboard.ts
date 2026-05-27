@@ -26,6 +26,17 @@ import type {
   User,
 } from "@/lib/types";
 import { vehicleKey } from "@/lib/policy-group";
+import { readVisitorMetrics } from "@/lib/visitor-tracking";
+
+/**
+ * Emails that count as 'founder / internal testing' and should be
+ * filtered out of the "real customer audits" list. Lowercased.
+ *
+ * Add additional founder testing emails here as needed.
+ */
+const FOUNDER_EMAILS = new Set<string>([
+  "chaudharimanish1977@gmail.com",
+]);
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -313,6 +324,46 @@ export async function computeAdminDashboardSnapshot(): Promise<AdminDashboardSna
     (s) => s.status === "unsubscribed"
   ).length;
 
+  // ── 11. Site traffic (unique visitors) ────────────────────────────
+  // Read from KV counters maintained by middleware visitor-tracking.
+  // Falls back to zeros if the counters haven't been populated yet
+  // (fresh deploy, KV reset, etc.).
+  const visitors = await readVisitorMetrics().catch(() => ({
+    totalUnique: 0,
+    uniqueToday: 0,
+    uniqueLast7d: 0,
+    uniqueLast30d: 0,
+    perDay30d: [] as Array<{ date: string; count: number }>,
+  }));
+
+  // ── 12. Real-customer audits (non-founder) ────────────────────────
+  // Audits where the parser's owner.email is not on FOUNDER_EMAILS.
+  // Sort most-recent first, cap at 100 to keep the snapshot small.
+  const nonFounderPolicies = parsedPolicies.filter((p) => {
+    const e = (p.owner?.email ?? "").toLowerCase().trim();
+    return e && !FOUNDER_EMAILS.has(e);
+  });
+  const nonFounderEmails = new Set(
+    nonFounderPolicies
+      .map((p) => (p.owner?.email ?? "").toLowerCase().trim())
+      .filter(Boolean)
+  );
+  const nonFounderItems = [...nonFounderPolicies]
+    .sort((a, b) => Date.parse(b.uploadedAt) - Date.parse(a.uploadedAt))
+    .slice(0, 100)
+    .map((p) => ({
+      parsedPolicyId: p.id,
+      email: (p.owner?.email ?? "").toLowerCase().trim(),
+      name: p.owner?.name?.trim() || undefined,
+      insurer:
+        canonicalizeInsurer(p.insurerName ?? "").display || undefined,
+      vehicle:
+        [p.vehicle?.make, p.vehicle?.model].filter(Boolean).join(" ") ||
+        undefined,
+      uploadedAt: p.uploadedAt,
+      reportUrl: `/report/${p.id}`,
+    }));
+
   const computedAt = new Date().toISOString();
   const computedDurationMs = Date.now() - t0;
 
@@ -398,6 +449,12 @@ export async function computeAdminDashboardSnapshot(): Promise<AdminDashboardSna
       unsubscribedSubscriptions,
       deletionRequestsHandled: 0,
       deletionPlaceholder: true,
+    },
+    visitors,
+    nonFounderReports: {
+      totalCount: nonFounderPolicies.length,
+      uniqueCustomers: nonFounderEmails.size,
+      items: nonFounderItems,
     },
   };
 }

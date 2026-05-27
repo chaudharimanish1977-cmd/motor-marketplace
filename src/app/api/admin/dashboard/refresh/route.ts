@@ -5,24 +5,24 @@
  * the snapshot and overwrites the singleton KV row, same as the cron at
  * /api/cron/admin-dashboard does.
  *
- * Gated by founder-email session — anyone else gets a 404 so the
- * endpoint stays invisible to non-founders. Same not-found-spoofing
- * pattern as /api/admin/health.
+ * Gated by the demo-marketplace flag — i.e. anyone who got past the
+ * demo password cookie on demo.rightoffer.in (or is on a preview
+ * build) can refresh. We previously also required a founder magic-link
+ * session, but that double-gate locked the founder out on the demo
+ * subdomain since they authenticate there with the demo password,
+ * not their /me magic-link.
  */
 
 import { NextResponse } from "next/server";
 import { writeTable, Tables } from "@/lib/db";
-import { getSession } from "@/lib/session";
+import { isMarketplaceEnabled } from "@/lib/feature-flags";
 import { computeAdminDashboardSnapshot } from "@/lib/admin-dashboard";
-
-const FOUNDER_EMAIL = "chaudharimanish1977@gmail.com";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST() {
-  const session = await getSession();
-  if (!session || session.toLowerCase() !== FOUNDER_EMAIL) {
+  if (!(await isMarketplaceEnabled())) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
